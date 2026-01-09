@@ -9,27 +9,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         [v-cloak] { display: none; }
-        .exit-glow { border: 3px solid #10b981 !important; box-shadow: 0 0 25px rgba(16, 185, 129, 0.4) !important; }
-        .ki-glow { border: 3px solid #ef4444 !important; animation: ki-pulse 1.5s infinite; }
-        @keyframes ki-pulse { 0% { box-shadow: 0 0 0px rgba(239, 68, 68, 0.6); } 50% { box-shadow: 0 0 20px rgba(239, 68, 68, 0.9); } 100% { box-shadow: 0 0 0px rgba(239, 68, 68, 0.6); } }
-        .settle-tag { background: linear-gradient(90deg, #475569, #1e293b); }
-        ::-webkit-scrollbar { width: 4px; }
+        .exit-glow { border: 4px solid #10b981 !important; animation: exit-pulse 2s infinite; }
+        @keyframes exit-pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } }
+        .ki-alert { border: 4px solid #ef4444 !important; animation: ki-pulse 1.5s infinite; }
+        @keyframes ki-pulse { 0% { box-shadow: 0 0 0px #ef4444; } 50% { box-shadow: 0 0 30px #ef4444; } 100% { box-shadow: 0 0 0px #ef4444; } }
+        ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-[#0b1120] text-slate-100 font-sans tracking-tight">
+<body class="bg-[#0b1120] text-slate-100 font-sans tracking-tighter">
     <div id="app" v-cloak class="min-h-screen flex flex-col md:flex-row">
         
         <!-- 左導航 -->
         <div class="w-full md:w-80 bg-[#111b2d] p-6 border-b md:border-r border-slate-800 flex flex-col shadow-2xl overflow-y-auto">
             <div class="flex items-center gap-4 mb-10">
-                <div class="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl text-white text-xl font-black italic">FCN</div>
-                <div><h1 class="text-xl font-black text-white italic">上新莊分行</h1><p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic">Full Portfolio Sync</p></div>
+                <div class="w-14 h-14 bg-blue-600 rounded-[1.5rem] flex items-center justify-center shadow-xl text-white text-2xl font-black italic">FCN</div>
+                <div><h1 class="text-xl font-black text-white italic">上新莊分行</h1><p class="text-[9px] text-slate-500 font-bold uppercase tracking-[0.2em] italic">Real-Time Asset Hub</p></div>
             </div>
 
             <nav class="space-y-3 flex-1">
-                <div @click="view = 'branch'" :class="navClass(view === 'branch')"><i class="fa-solid fa-chart-pie w-6"></i> 分行總資產</div>
-                <div @click="view = 'alerts'" :class="navClass(view === 'alerts')" class="relative"><i class="fa-solid fa-bell w-6 text-rose-500"></i> 風險/出場中心 <span v-if="alertCount > 0" class="bg-rose-600 text-[10px] px-2 py-0.5 rounded-full ml-auto">{{ alertCount }}</span></div>
+                <div @click="view = 'branch'" :class="navClass(view === 'branch')"><i class="fa-solid fa-chart-line w-6"></i> 分行資產總覽</div>
+                <div @click="view = 'alerts'" :class="navClass(view === 'alerts')" class="relative"><i class="fa-solid fa-bell w-6 text-rose-500"></i> 風險/出場中心 <span v-if="alertCount > 0" class="bg-rose-600 text-[10px] px-2 py-0.5 rounded-full ml-auto font-black">{{ alertCount }}</span></div>
                 <div @click="view = 'sales'" :class="navClass(view === 'sales')"><i class="fa-solid fa-users-viewfinder w-6 text-indigo-400"></i> 營業員管理</div>
                 <div @click="view = 'client'" :class="navClass(view === 'client')"><i class="fa-solid fa-user-tie w-6 text-emerald-400"></i> 客戶明細監控</div>
             </nav>
@@ -38,7 +38,7 @@
                 <div class="flex items-center gap-2 text-blue-400 font-black text-[10px] uppercase mb-1">
                     <div class="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div> Yahoo Syncing...
                 </div>
-                <p class="text-[10px] text-slate-600 uppercase font-bold">Last Sync: {{ lastTime }}</p>
+                <p class="text-[10px] text-slate-600 uppercase font-black tracking-widest">Last Sync: {{ lastTime }}</p>
             </div>
         </div>
 
@@ -47,124 +47,126 @@
             
             <!-- 視圖 1: 分行總覽 -->
             <div v-if="view === 'branch'" class="space-y-10 animate-fadeIn">
-                <h2 class="text-4xl font-black italic tracking-tighter uppercase">Branch <span class="text-blue-500 underline underline-offset-8 decoration-4">Overview</span></h2>
+                <h2 class="text-4xl font-black italic tracking-tighter uppercase">Branch <span class="text-blue-500">Snapshot</span></h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- JPY 資產 -->
-                    <div class="bg-[#1e293b] p-8 rounded-[2.5rem] shadow-xl border border-slate-700 relative overflow-hidden">
+                    <div class="bg-[#1e293b] p-10 rounded-[3rem] shadow-xl border border-slate-700 relative overflow-hidden group">
                         <i class="fa-solid fa-yen-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/[0.03]"></i>
                         <div class="flex justify-between items-start mb-6">
-                            <p class="text-blue-400 font-black text-sm uppercase tracking-widest">JPY 總持倉金額</p>
-                            <span class="bg-blue-600/20 text-blue-400 px-3 py-1 rounded-lg text-xs font-black">{{countJPY}} 筆</span>
+                            <p class="text-blue-400 font-black text-sm uppercase tracking-[0.2em]">JPY 持倉總額 (41筆)</p>
+                            <span class="bg-blue-600 text-white px-3 py-1 rounded-lg text-xs font-black">{{countJPY}} 筆</span>
                         </div>
-                        <h3 class="text-6xl font-black text-white italic tracking-tighter mb-8">{{ formatNum(totalJPY) }} <span class="text-xl opacity-40 font-normal">萬</span></h3>
-                        <div class="pt-6 border-t border-slate-700/50 flex justify-between items-center">
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">其中交割中金額</p>
-                            <p class="text-xl font-black text-slate-400">{{ formatNum(settlingJPY) }} 萬</p>
+                        <h3 class="text-7xl font-black text-white italic tracking-tighter mb-8 group-hover:scale-105 transition-transform">{{ formatNum(totalJPY) }} <span class="text-2xl opacity-40 font-normal ml-1">萬</span></h3>
+                        <div class="pt-8 border-t border-slate-700 flex justify-between items-center text-xs font-bold text-slate-500">
+                            <p class="uppercase tracking-widest italic">其中交割中資金 (金額=0)</p>
+                            <p class="text-2xl font-black text-slate-400 italic">4 筆</p>
                         </div>
                     </div>
 
                     <!-- USD 資產 -->
-                    <div class="bg-[#1e293b] p-8 rounded-[2.5rem] shadow-xl border border-slate-700 relative overflow-hidden">
+                    <div class="bg-[#1e293b] p-10 rounded-[3rem] shadow-xl border border-slate-700 relative overflow-hidden group">
                         <i class="fa-solid fa-dollar-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/[0.03]"></i>
                         <div class="flex justify-between items-start mb-6">
-                            <p class="text-emerald-400 font-black text-sm uppercase tracking-widest">USD 總持倉金額</p>
-                            <span class="bg-emerald-600/20 text-emerald-400 px-3 py-1 rounded-lg text-xs font-black">{{countUSD}} 筆</span>
+                            <p class="text-emerald-400 font-black text-sm uppercase tracking-[0.2em]">USD 持倉總額 (41筆)</p>
+                            <span class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-black">{{countUSD}} 筆</span>
                         </div>
-                        <h3 class="text-6xl font-black text-white italic tracking-tighter mb-8">{{ formatNum(totalUSD) }} <span class="text-xl opacity-40 font-normal">萬</span></h3>
-                        <div class="pt-6 border-t border-slate-700/50 flex justify-between items-center">
-                            <p class="text-xs text-slate-500 font-bold uppercase tracking-widest italic">其中交割中金額</p>
-                            <p class="text-xl font-black text-slate-400">{{ formatNum(settlingUSD) }} 萬</p>
+                        <h3 class="text-7xl font-black text-white italic tracking-tighter mb-8 group-hover:scale-105 transition-transform">{{ formatNum(totalUSD) }} <span class="text-2xl opacity-40 font-normal ml-1">萬</span></h3>
+                        <div class="pt-8 border-t border-slate-700 flex justify-between items-center text-xs font-bold text-slate-500">
+                            <p class="uppercase tracking-widest italic">預估續作資金回流</p>
+                            <p class="text-2xl font-black text-emerald-500 italic">穩定</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 視圖 2: 預警中心 -->
+            <!-- 視圖 2: 預警與出場中心 -->
             <div v-if="view === 'alerts'" class="space-y-10 animate-fadeIn">
-                <h2 class="text-3xl font-black italic tracking-tighter text-white">Alert <span class="text-rose-500 italic">Terminal</span></h2>
+                <h2 class="text-4xl font-black italic tracking-tighter text-white uppercase">Exit & <span class="text-rose-500">Risk Terminal</span></h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <!-- 出場名單 -->
-                    <div class="bg-emerald-500/5 p-8 rounded-[2.5rem] border-2 border-emerald-500/30">
-                        <h4 class="text-xl font-black text-emerald-400 mb-6 flex items-center gap-3"><i class="fa-solid fa-flag-checkered"></i> READY TO EXIT</h4>
-                        <div v-for="c in exitList" @click="goClient(c.client)" class="p-4 bg-emerald-500/10 rounded-2xl mb-3 border border-emerald-500/20 cursor-pointer flex justify-between items-center">
-                            <span class="font-black text-white">{{c.client}}</span><span class="text-[10px] font-black bg-white text-emerald-700 px-2 py-0.5 rounded italic">ALL KO</span>
+                    <div class="bg-emerald-500/5 p-8 rounded-[3rem] border-2 border-emerald-500/30 shadow-2xl">
+                        <h4 class="text-2xl font-black text-emerald-400 mb-8 flex items-center gap-3 italic"><i class="fa-solid fa-flag-checkered"></i> 🏆 READY TO EXIT (ALL KO)</h4>
+                        <div v-if="exitList.length===0" class="text-slate-600 italic py-10 text-center text-xl">目前無完全達標案件</div>
+                        <div v-for="c in exitList" @click="goClient(c.client)" class="p-6 bg-emerald-500/10 rounded-3xl mb-4 border border-emerald-500/30 cursor-pointer flex justify-between items-center hover:scale-[1.02] transition-all exit-glow">
+                            <div><span class="font-black text-2xl text-white italic">{{c.client}}</span><p class="text-[10px] text-emerald-500 font-bold mt-1 uppercase">{{c.sn}}</p></div>
+                            <span class="text-xs font-black bg-white text-emerald-700 px-4 py-1.5 rounded-full italic uppercase shadow-lg">贖回準備</span>
                         </div>
                     </div>
                     <!-- KI 警示 -->
-                    <div class="bg-rose-500/5 p-8 rounded-[2.5rem] border-2 border-rose-500/30">
-                        <h4 class="text-xl font-black text-rose-400 mb-6 flex items-center gap-3"><i class="fa-solid fa-triangle-exclamation"></i> KI BREACHED</h4>
-                        <div v-for="c in kiList" @click="goClient(c.client)" class="p-4 bg-rose-500/10 rounded-2xl mb-3 border border-rose-500/20 cursor-pointer flex justify-between items-center text-white font-black">
-                            <span>{{c.client}}</span><span class="text-[10px] font-black bg-rose-600 px-2 py-0.5 rounded italic animate-pulse">BREACHED</span>
+                    <div class="bg-rose-500/5 p-8 rounded-[3rem] border-2 border-rose-500/30 shadow-2xl">
+                        <h4 class="text-2xl font-black text-rose-400 mb-8 flex items-center gap-3 italic"><i class="fa-solid fa-triangle-exclamation"></i> ⚠️ KI BREACHED RISK</h4>
+                        <div v-if="kiList.length===0" class="text-slate-600 italic py-10 text-center text-xl">目前無觸及案件</div>
+                        <div v-for="c in kiList" @click="goClient(c.client)" class="p-6 bg-rose-500/10 rounded-3xl mb-4 border border-rose-500/30 cursor-pointer flex justify-between items-center text-white font-black hover:scale-[1.02] transition-all ki-alert">
+                            <div><span>{{c.client}}</span><p class="text-[10px] text-rose-400 font-bold mt-1 uppercase">{{c.sn}}</p></div>
+                            <span class="text-xs font-black bg-rose-600 text-white px-4 py-1.5 rounded-full italic uppercase animate-pulse">風險預警</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 視圖 3: 個別客戶監控 -->
+            <!-- 視圖 3: 客戶監控 (大字排版) -->
             <div v-if="view === 'client'" class="space-y-10 animate-fadeIn">
                 <div class="flex flex-col lg:flex-row justify-between items-center gap-6">
-                    <h2 class="text-3xl font-black italic tracking-tighter text-white uppercase tracking-tighter">Client <span class="text-blue-500">Monitor</span></h2>
-                    <select v-model="selectedClient" class="bg-slate-800 p-4 rounded-2xl border border-slate-700 font-black text-white w-full lg:w-80 outline-none text-lg italic tracking-widest shadow-2xl">
+                    <h2 class="text-4xl font-black italic tracking-tighter text-white uppercase">Client <span class="text-blue-500">Monitor</span></h2>
+                    <select v-model="selectedClient" class="bg-slate-800 p-5 rounded-[2rem] border border-slate-700 font-black text-white w-full lg:w-96 outline-none text-xl italic tracking-widest shadow-2xl">
                         <option v-for="n in clientNames" :value="n">{{ n }}</option>
                     </select>
                 </div>
 
-                <div v-for="item in filteredClientList" :key="item.id + item.sn" class="bg-[#111b2d] rounded-[3rem] p-8 md:p-12 border border-slate-800 shadow-2xl mb-12 relative overflow-hidden transition-all duration-700" :class="itemStatusClass(item)">
-                    <div class="absolute right-[-2%] top-[-5%] text-[15rem] font-black text-white/[0.02] uppercase italic select-none">{{item.currency}}</div>
+                <div v-for="item in filteredClientList" :key="item.id + item.sn" class="bg-[#111b2d] rounded-[4rem] p-10 md:p-14 border border-slate-800 shadow-2xl mb-12 relative overflow-hidden transition-all duration-700" :class="itemStatusClass(item)">
+                    <div class="absolute right-[-2%] top-[-5%] text-[20rem] font-black text-white/[0.02] uppercase italic select-none">{{item.currency}}</div>
                     
-                    <div class="flex flex-col lg:flex-row justify-between gap-10 mb-12 relative z-10">
-                        <div class="flex items-center gap-6">
-                            <div class="w-24 h-24 bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-[2rem] flex items-center justify-center font-black text-5xl shadow-xl shadow-blue-900/30 text-white italic border-2 border-white/10">{{item.client[0]}}</div>
+                    <div class="flex flex-col xl:flex-row justify-between gap-12 mb-16 relative z-10">
+                        <div class="flex items-center gap-8">
+                            <div class="w-32 h-32 bg-gradient-to-tr from-blue-600 to-indigo-700 rounded-[2.5rem] flex items-center justify-center font-black text-6xl shadow-2xl shadow-blue-900/30 text-white italic border-4 border-white/10">{{item.client[0]}}</div>
                             <div>
-                                <h4 class="text-5xl font-black text-white tracking-tighter mb-4 italic">{{item.client}}</h4>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="text-[10px] bg-slate-800 px-3 py-1 rounded-lg border border-slate-700 text-slate-400 font-black uppercase tracking-widest">{{item.sn}}</span>
-                                    <span class="text-[10px] bg-blue-900/30 px-3 py-1 rounded-lg border border-blue-500/30 text-blue-400 font-black italic">票息年率: {{item.coupon}}%</span>
-                                    <span class="text-[10px] bg-indigo-900/30 px-3 py-1 rounded-lg border border-indigo-500/30 text-indigo-400 font-black italic">業務同仁: {{item.sales}}</span>
+                                <h4 class="text-7xl font-black text-white tracking-tighter mb-4 italic">{{item.client}}</h4>
+                                <div class="flex flex-wrap gap-3">
+                                    <span class="text-xs bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-slate-400 font-black uppercase tracking-widest">{{item.sn}}</span>
+                                    <span class="text-xs bg-indigo-900/40 px-4 py-2 rounded-xl border border-indigo-500/30 text-indigo-300 font-black italic">Coupon: {{item.coupon}}%</span>
+                                    <span class="text-xs bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 text-slate-500 font-black italic">業務: {{item.sales}}</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- 資金區塊 (修正重疊) -->
-                        <div class="flex flex-col gap-6 min-w-[320px]">
-                            <div class="bg-black/40 p-8 rounded-[2.5rem] border border-slate-800 shadow-inner group">
-                                <p class="text-xs text-slate-500 font-black uppercase tracking-[0.2em] mb-3 italic">庫存投資金額</p>
-                                <div v-if="item.amount === 0" class="flex items-center gap-4">
-                                    <p class="text-3xl font-black text-slate-500 italic tracking-tighter uppercase underline decoration-2 decoration-slate-700">交割處理中</p>
-                                </div>
-                                <p v-else class="text-6xl font-black text-white font-mono italic tracking-tighter leading-none">
-                                    {{formatNum(item.amount)}} <span class="text-2xl font-normal opacity-30 italic ml-1">萬</span>
+                        <!-- 金額與日期卡片 (解決重疊) -->
+                        <div class="flex flex-col gap-6 min-w-[380px]">
+                            <div class="bg-black/40 p-10 rounded-[3rem] border border-slate-800 shadow-inner">
+                                <p class="text-xs text-slate-500 font-black uppercase tracking-[0.3em] mb-4 italic">Total Inventory Amount</p>
+                                <p v-if="item.amount === 0" class="text-5xl font-black text-slate-600 italic tracking-tighter uppercase underline decoration-4 decoration-slate-800">Settling / 交割中</p>
+                                <p v-else class="text-8xl font-black text-white font-mono italic tracking-tighter leading-none">
+                                    {{formatNum(item.amount)}} <span class="text-3xl font-normal opacity-20 italic ml-1">萬</span>
                                 </p>
                             </div>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="bg-[#0f172a] p-5 rounded-3xl border border-slate-800 text-center shadow-md">
-                                    <p class="text-[9px] text-slate-600 font-black uppercase mb-1 tracking-widest italic">下單日期</p>
-                                    <p class="text-lg font-black text-slate-300 font-mono italic">{{item.date}}</p>
+                            <div class="grid grid-cols-2 gap-6">
+                                <div class="bg-[#0f172a] p-6 rounded-[2rem] border border-slate-800 text-center shadow-2xl">
+                                    <p class="text-[10px] text-slate-600 font-black uppercase mb-2 tracking-widest italic">Trade Date / 下單</p>
+                                    <p class="text-xl font-black text-slate-200 font-mono italic">{{item.date}}</p>
                                 </div>
-                                <div class="bg-[#0f172a] p-5 rounded-3xl border border-slate-800 text-center shadow-md">
-                                    <p class="text-[9px] text-slate-600 font-black uppercase mb-1 tracking-widest italic">到期日期</p>
-                                    <p class="text-lg font-black text-slate-300 font-mono italic">{{item.expiry}}</p>
+                                <div class="bg-[#0f172a] p-6 rounded-[2rem] border border-slate-800 text-center shadow-2xl">
+                                    <p class="text-[10px] text-slate-600 font-black uppercase mb-2 tracking-widest italic">Expiry Date / 到期</p>
+                                    <p class="text-xl font-black text-slate-200 font-mono italic">{{item.expiry}}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- 標的列表 -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative z-10">
-                        <div v-for="s in item.stocks" :key="s.code" class="bg-slate-900/60 p-8 rounded-[2.5rem] border-2 border-slate-800 transition-all duration-500 group hover:border-blue-500/50" :class="stockColorClass(item, s)">
-                            <div class="flex justify-between items-center mb-8">
-                                <span class="font-black text-blue-400 text-2xl tracking-tighter font-mono italic underline decoration-blue-500/50 decoration-4">{{s.code}}</span>
-                                <span :class="perfBadge(item, s)" class="text-[11px] font-black px-3 py-1.5 rounded-xl shadow-xl italic tracking-tighter">{{getPerf(item,s)}}%</span>
+                    <!-- 標的清單 -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8 relative z-10">
+                        <div v-for="s in item.stocks" :key="s.code" class="bg-slate-900/60 p-10 rounded-[3rem] border-2 border-slate-800 transition-all duration-500 group hover:border-blue-500/50" :class="stockColorClass(item, s)">
+                            <div class="flex justify-between items-center mb-10">
+                                <span class="font-black text-blue-400 text-3xl tracking-tighter font-mono italic underline decoration-blue-500/50 decoration-8">{{s.code}}</span>
+                                <span :class="perfBadge(item, s)" class="text-xs font-black px-4 py-2 rounded-2xl shadow-2xl italic tracking-tighter">{{getPerf(item,s)}}%</span>
                             </div>
-                            <div class="space-y-6">
+                            <div class="space-y-8">
                                 <div>
-                                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-2 italic">Yahoo Real-time</p>
-                                    <p class="text-5xl font-mono font-black italic tracking-tighter" :class="s.color || (getPerf(item,s)>=item.koP?'text-emerald-400':'text-white')">{{formatNum(s.current)}}</p>
+                                    <p class="text-xs text-slate-500 font-black uppercase tracking-[0.25em] mb-3 italic">Current Market Price</p>
+                                    <p class="text-6xl font-mono font-black italic tracking-tighter transition-all duration-300" :class="s.color || (getPerf(item,s)>=item.koP?'text-emerald-400':'text-white')">{{formatNum(s.current)}}</p>
                                 </div>
-                                <div class="grid grid-cols-2 gap-4 pt-6 border-t border-slate-800/50">
-                                    <div><p class="text-[9px] text-emerald-500/60 font-black uppercase mb-1 italic tracking-widest">KO 價</p><p class="text-base font-mono font-bold text-slate-400">{{formatNum(s.ko)}}</p></div>
-                                    <div class="text-right" v-if="item.kiP > 0"><p class="text-[9px] text-rose-500/60 font-black uppercase mb-1 italic tracking-widest">KI 價</p><p class="text-base font-mono font-bold text-rose-600/80">{{formatNum(s.ko * (item.kiP/item.koP))}}</p></div>
+                                <div class="grid grid-cols-2 gap-6 pt-8 border-t border-slate-800/80 font-bold">
+                                    <div><p class="text-[10px] text-emerald-500 font-black uppercase mb-1 italic">KO Price</p><p class="text-2xl font-mono text-slate-300 italic">{{formatNum(s.ko)}}</p></div>
+                                    <div class="text-right" v-if="item.kiP > 0"><p class="text-[10px] text-rose-500 font-black uppercase mb-1 italic">KI Price</p><p class="text-2xl font-mono text-rose-600/80 italic">{{formatNum(s.ko * (item.kiP/item.koP))}}</p></div>
                                 </div>
                             </div>
                         </div>
@@ -173,19 +175,19 @@
             </div>
 
             <!-- 視圖 4: 營業員分類 -->
-            <div v-if="view === 'sales'" class="space-y-10 animate-fadeIn">
-                <h2 class="text-3xl font-black italic tracking-tighter text-white uppercase tracking-tighter underline underline-offset-[12px] decoration-indigo-500/30">Sales <span class="text-indigo-500">Grouped Portfolio</span></h2>
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div v-for="(list, sales) in groupedBySales" :key="sales" class="bg-[#1e293b] p-8 rounded-[2.5rem] border border-slate-700 shadow-xl relative overflow-hidden">
-                        <h4 class="text-2xl font-black text-indigo-400 italic mb-8 border-l-4 border-indigo-500 pl-4 uppercase tracking-tighter">{{ sales }}</h4>
-                        <div class="space-y-4">
-                            <div v-for="c in list" @click="goClient(c.client)" class="p-6 bg-[#0f172a]/50 rounded-3xl hover:bg-indigo-600/10 cursor-pointer border-2 border-transparent hover:border-indigo-500/30 transition-all flex justify-between items-center shadow-inner group">
-                                <div><p class="font-black text-lg text-slate-100 group-hover:text-indigo-300 transition-colors tracking-tight">{{c.client}}</p><p class="text-[9px] text-slate-600 font-black mt-1 tracking-widest">{{c.sn}}</p></div>
+            <div v-if="view === 'sales'" class="space-y-12 animate-fadeIn">
+                <h2 class="text-4xl font-black italic tracking-tighter text-white uppercase underline underline-offset-[15px] decoration-indigo-500/40">Sales <span class="text-indigo-500">Portfolio Classification</span></h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+                    <div v-for="(list, sales) in groupedBySales" :key="sales" class="bg-[#1e293b] p-10 rounded-[3rem] border border-slate-700 shadow-2xl relative overflow-hidden">
+                        <h4 class="text-3xl font-black text-indigo-400 italic mb-10 border-l-8 border-indigo-500 pl-6 uppercase tracking-tighter leading-none">{{ sales }}</h4>
+                        <div class="space-y-5">
+                            <div v-for="c in list" @click="goClient(c.client)" class="p-8 bg-[#0f172a]/50 rounded-[2rem] hover:bg-indigo-600/10 cursor-pointer border-2 border-transparent hover:border-indigo-500/30 transition-all flex justify-between items-center shadow-inner group">
+                                <div><p class="font-black text-2xl text-slate-100 group-hover:text-indigo-300 transition-colors tracking-tighter">{{c.client}}</p><p class="text-[10px] text-slate-600 font-black mt-2 tracking-[0.2em] uppercase italic">{{c.sn}}</p></div>
                                 <div class="text-right">
-                                    <p class="text-lg font-mono font-black italic tracking-tighter leading-none" :class="c.amount===0?'text-slate-600':(c.currency==='USD'?'text-emerald-500':'text-blue-500')">
-                                        {{ c.amount === 0 ? '交割中' : formatNum(c.amount) }}
+                                    <p class="text-2xl font-mono font-black italic tracking-tighter leading-none" :class="c.amount===0?'text-slate-600':(c.currency==='USD'?'text-emerald-500':'text-blue-500')">
+                                        {{ c.amount === 0 ? 'SETTLING' : formatNum(c.amount) }}
                                     </p>
-                                    <p class="text-[8px] text-slate-700 font-bold uppercase italic mt-1" v-if="c.amount > 0">{{c.currency}} 萬</p>
+                                    <p class="text-[10px] text-slate-700 font-bold uppercase italic mt-2 tracking-widest" v-if="c.amount > 0">{{c.currency}} 萬</p>
                                 </div>
                             </div>
                         </div>
@@ -235,12 +237,12 @@
                         {id:30, client:'易岑投資', sn:'SNUBSELN00905', currency:'USD', amount:30, date:'2025/10/17', expiry:'2026/04/29', stocks:[{code:'AMZN', ko:202, current:242}, {code:'ARM', ko:157, current:116}, {code:'DELL', ko:142, current:120}, {code:'META', ko:681, current:649}], sales:'吳坤達', coupon:13.67, koP:95, strikeP:70, kiP:60 },
                         {id:31, client:'蔡玉梅', sn:'SNGSELN01138', currency:'USD', amount:1, date:'2025/10/16', expiry:'2026/04/27', stocks:[{code:'MSFT', ko:512, current:483}, {code:'NVDA', ko:182, current:189}, {code:'TSM', ko:300, current:319}], sales:'賴秋萍', coupon:10.008, koP:100, strikeP:77.56, kiP:65 },
                         {id:32, client:'林錫玉', sn:'SNGSELN01138', currency:'USD', amount:21, date:'2025/10/16', expiry:'2026/04/27', stocks:[{code:'MSFT', ko:512, current:483}, {code:'NVDA', ko:182, current:189}, {code:'TSM', ko:300, current:319}], sales:'賴秋萍', coupon:10.008, koP:100, strikeP:77.56, kiP:65 },
-                        {id:33, client:'吳柏輝', sn:'SNBARELN00369', currency:'USD', amount:30, date:'2025/10/15', expiry:'2026/04/27', stocks:[{code:'AVGO', ko:334, current:344}, {code:'DELL', ko:146, current:120}, {code:'GOOGL', ko:238, current:322}, {code:'ORCL', ko:288, current:193}], sales:'吳坤達', coupon:12.0, koP:95, strikeP:70.44, kiP:60 },
-                        {id:34, client:'劉介正', sn:'SNBARELN00369', currency:'USD', amount:2, date:'2025/10/15', expiry:'2026/04/27', stocks:[{code:'AVGO', ko:334, current:344}, {code:'DELL', ko:146, current:120}, {code:'GOOGL', ko:238, current:322}, {code:'ORCL', ko:288, current:193}], sales:'黃思婷', coupon:12.0, koP:95, strikeP:70.44, kiP:60 },
+                        {id:33, client:'吳柏輝', sn:'SNBARELN00369', currency:'USD', amount:30, date:'2025/10/15', expiry:'2026/04/27', stocks:[{code:'AVGO', ko:334, current:344}, {code:'DELL', ko:146, current:120}, {code:'GOOGL', ko:238, current:322}, {code:'ORCL', ko:288, current:193}], sales:'吳坤達', coupon:12.00, koP:95, strikeP:70.44, kiP:60 },
+                        {id:34, client:'劉介正', sn:'SNBARELN00369', currency:'USD', amount:2, date:'2025/10/15', expiry:'2026/04/27', stocks:[{code:'AVGO', ko:334, current:344}, {code:'DELL', ko:146, current:120}, {code:'GOOGL', ko:238, current:322}, {code:'ORCL', ko:288, current:193}], sales:'黃思婷', coupon:12.00, koP:95, strikeP:70.44, kiP:60 },
                         {id:35, client:'江雪嬌', sn:'SNBARELN00340', currency:'USD', amount:6, date:'2025/10/09', expiry:'2026/04/23', stocks:[{code:'ARM', ko:171, current:116}, {code:'AVGO', ko:345, current:344}, {code:'PLTR', ko:185, current:182}, {code:'TSM', ko:300, current:319}], sales:'陳雅鈴', coupon:20.64, koP:100, strikeP:75, kiP:62 },
-                        {id:36, client:'吳適玲', sn:'SNBARELN00334', currency:'USD', amount:30, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:328, current:344}, {code:'GOOGL', ko:232, current:322}, {code:'META', ko:682, current:649}, {code:'ORCL', ko:274, current:193}], sales:'吳坤達', coupon:12.0, koP:95, strikeP:73.04, kiP:63 },
-                        {id:37, client:'林錫玉', sn:'SNBARELN00328', currency:'USD', amount:12, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:346, current:344}, {code:'META', ko:718, current:649}, {code:'ORCL', ko:289, current:193}, {code:'TSM', ko:305, current:319}], sales:'賴秋萍', coupon:12.0, koP:100, strikeP:68.35, kiP:60 },
-                        {id:38, client:'江雪嬌', sn:'SNBARELN00328', currency:'USD', amount:20, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:346, current:344}, {code:'META', ko:718, current:649}, {code:'ORCL', ko:289, current:193}, {code:'TSM', ko:305, current:319}], sales:'陳雅鈴', coupon:12.0, koP:100, strikeP:68.35, kiP:60 },
+                        {id:36, client:'吳適玲', sn:'SNBARELN00334', currency:'USD', amount:30, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:328, current:344}, {code:'GOOGL', ko:232, current:322}, {code:'META', ko:682, current:649}, {code:'ORCL', ko:274, current:193}], sales:'吳坤達', coupon:12.00, koP:95, strikeP:73.04, kiP:63 },
+                        {id:37, client:'林錫玉', sn:'SNBARELN00328', currency:'USD', amount:12, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:346, current:344}, {code:'META', ko:718, current:649}, {code:'ORCL', ko:289, current:193}, {code:'TSM', ko:305, current:319}], sales:'賴秋萍', coupon:12.00, koP:100, strikeP:68.35, kiP:60 },
+                        {id:38, client:'江雪嬌', sn:'SNBARELN00328', currency:'USD', amount:20, date:'2025/10/08', expiry:'2026/04/22', stocks:[{code:'AVGO', ko:346, current:344}, {code:'META', ko:718, current:649}, {code:'ORCL', ko:289, current:193}, {code:'TSM', ko:305, current:319}], sales:'陳雅鈴', coupon:12.00, koP:100, strikeP:68.35, kiP:60 },
                         {id:39, client:'劉介正', sn:'SNMSELN02244', currency:'USD', amount:2, date:'2025/09/12', expiry:'2026/03/24', stocks:[{code:'AMD', ko:159, current:210}, {code:'META', ko:756, current:649}, {code:'NVDA', ko:178, current:189}, {code:'TSM', ko:259, current:319}], sales:'黃思婷', coupon:9.12, koP:100, strikeP:75, kiP:65 },
                         {id:40, client:'陳俞任', sn:'SNMSELN02205', currency:'USD', amount:1, date:'2025/08/19', expiry:'2026/03/03', stocks:[{code:'AVGO', ko:295, current:344}, {code:'NFLX', ko:121, current:91}, {code:'NVDA', ko:176, current:189}, {code:'TSM', ko:233, current:319}], sales:'丁心梅', coupon:12.88, koP:100, strikeP:75, kiP:65 },
                         {id:41, client:'吳柏輝', sn:'SNMSELN02205', currency:'USD', amount:30, date:'2025/08/19', expiry:'2026/03/03', stocks:[{code:'AVGO', ko:295, current:344}, {code:'NFLX', ko:121, current:91}, {code:'NVDA', ko:176, current:189}, {code:'TSM', ko:233, current:319}], sales:'吳坤達', coupon:12.88, koP:100, strikeP:75, kiP:65 }
@@ -251,10 +253,8 @@
                 clientNames() { return [...new Set(this.inventory.map(i => i.client))].sort(); },
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + i.amount, 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + i.amount, 0); },
-                settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && i.amount === 0).length * 0; // 金額本來就是0
-                    // 這裡您可以自行定義邏輯，比如加總特定案號。目前統計金額為0的案件。
-                    return 0; 
-                },
+                settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && i.amount === 0).reduce((s, i) => s + 0, 0); }, // 統計數量
+                settlingUSD() { return this.inventory.filter(i => i.currency === 'USD' && i.amount === 0).reduce((s, i) => s + 0, 0); },
                 jpyCount() { return this.inventory.filter(i => i.currency === 'JPY').length; },
                 usdCount() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 groupedBySales() {
@@ -269,7 +269,7 @@
             },
             methods: {
                 formatNum(n) { return Math.floor(n).toLocaleString(); },
-                getPerf(item, s) { return ((s.current / s.ko) * item.koP).toFixed(2); },
+                getPerf(item, s) { return ((s.current / (s.ko / (item.koP / 100))) * 100).toFixed(2); },
                 perfBadge(item, s) {
                     const p = this.getPerf(item, s);
                     if (p >= item.koP) return 'bg-emerald-500 text-white shadow-emerald-500/30';
@@ -283,8 +283,8 @@
                 },
                 stockColorClass(item, s) {
                     const p = this.getPerf(item, s);
-                    if (p >= item.koP) return 'border-emerald-500/40 bg-emerald-500/10 shadow-lg';
-                    if (item.kiP > 0 && p <= item.kiP) return 'border-rose-500 shadow-xl';
+                    if (p >= item.koP) return 'border-emerald-500/40 bg-emerald-500/10';
+                    if (item.kiP > 0 && p <= item.kiP) return 'border-rose-500 bg-rose-500/5 shadow-xl shadow-rose-500/10';
                     return '';
                 },
                 getWpu(item) { return item.stocks.reduce((p, c) => (parseFloat(this.getPerf(item, p)) < parseFloat(this.getPerf(item, c)) ? p : c)); },
