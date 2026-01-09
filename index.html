@@ -3,68 +3,112 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 資產管理系統</title>
+    <title>FCN 尊榮資產管理</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .sidebar-item:hover { background-color: #374151; cursor: pointer; }
-        .active { background-color: #2563eb !important; }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 text-gray-800">
-    <div id="app" class="flex h-screen">
+<body class="bg-slate-50 text-slate-900 font-sans">
+    <div id="app" class="min-h-screen flex flex-col md:flex-row">
         
-        <!-- 左側列表 -->
-        <div class="w-64 bg-slate-800 text-white flex flex-col">
-            <div class="p-6 text-2xl font-bold border-b border-slate-700">FCN Manager</div>
-            <nav class="flex-1 mt-4">
-                <div @click="currentView = 'all'" :class="['p-4 sidebar-item', currentView === 'all' ? 'active' : '']">
-                    👤 客戶資料/全體庫存
+        <!-- 左側導航欄 -->
+        <div class="w-full md:w-72 bg-slate-900 text-white shadow-xl">
+            <div class="p-8 border-b border-slate-800 text-center">
+                <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-500/30">
+                    {{ customer.name[0] }}
                 </div>
-                <div @click="currentView = 'ko'" :class="['p-4 sidebar-item text-green-400', currentView === 'ko' ? 'active' : '']">
-                    🚀 即將 KO 提醒
+                <h2 class="text-xl font-bold tracking-wider">{{ customer.name }}</h2>
+                <p class="text-slate-400 text-sm mt-1">尊榮理財客戶 ({{ customer.id }})</p>
+            </div>
+            
+            <nav class="p-4 space-y-2">
+                <div @click="currentView = 'all'" :class="navClass(currentView === 'all')">
+                    <i class="fa-solid fa-wallet w-6"></i> 總覽與資產庫存
                 </div>
-                <div @click="currentView = 'ki'" :class="['p-4 sidebar-item text-red-400', currentView === 'ki' ? 'active' : '']">
-                    ⚠️ 已觸及 KI 警示
+                <div @click="currentView = 'ko'" :class="navClass(currentView === 'ko', 'text-emerald-400')">
+                    <i class="fa-solid fa-arrow-trend-up w-6"></i> 即將 KO 獲利名單
+                </div>
+                <div @click="currentView = 'ki'" :class="navClass(currentView === 'ki', 'text-rose-400')">
+                    <i class="fa-solid fa-triangle-exclamation w-6"></i> 已觸及 KI 預警
                 </div>
             </nav>
-            <div class="p-4 text-xs text-slate-500 border-t border-slate-700">數據每 5 秒自動更新</div>
         </div>
 
-        <!-- 右側內容區 -->
-        <div class="flex-1 overflow-y-auto p-8">
-            <h1 class="text-2xl font-bold mb-6">{{ viewTitle }}</h1>
+        <!-- 右側主區域 -->
+        <div class="flex-1 p-4 md:p-10">
+            <!-- 上方資產概況卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-500 text-sm mb-1">總資產價值 (USD)</p>
+                    <h3 class="text-3xl font-black">${{ totalAssets.toLocaleString() }}</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <p class="text-slate-500 text-sm mb-1">累計已收票息</p>
+                    <h3 class="text-3xl font-black text-emerald-600">${{ customer.totalCoupon.toLocaleString() }}</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-l-blue-500">
+                    <p class="text-slate-500 text-sm mb-1">庫存筆數</p>
+                    <h3 class="text-3xl font-black">{{ inventory.length }} 筆</h3>
+                </div>
+            </div>
 
-            <!-- 數據列表 -->
-            <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                <table class="w-full text-left">
-                    <thead class="bg-gray-50 border-b">
-                        <tr>
-                            <th class="p-4">產品代碼</th>
-                            <th class="p-4">掛鉤標的</th>
-                            <th class="p-4 text-right">當前股價</th>
-                            <th class="p-4 text-right">KO 價</th>
-                            <th class="p-4 text-right">KI 價</th>
-                            <th class="p-4 text-center">狀態</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="item in filteredList" :key="item.id" class="border-b hover:bg-gray-50">
-                            <td class="p-4 font-mono">{{ item.id }}</td>
-                            <td class="p-4 font-bold text-blue-600">{{ item.underlying }}</td>
-                            <td class="p-4 text-right font-bold" :class="item.priceColor">
-                                ${{ item.currentPrice.toFixed(2) }}
-                            </td>
-                            <td class="p-4 text-right text-gray-500">${{ item.koPrice }}</td>
-                            <td class="p-4 text-right text-gray-500">${{ item.kiPrice }}</td>
-                            <td class="p-4 text-center">
-                                <span v-if="item.isKI" class="bg-red-100 text-red-600 px-3 py-1 rounded-full text-sm">已觸及 KI</span>
-                                <span v-else-if="item.isNearKO" class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-sm">接近 KO</span>
-                                <span v-else class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm">持有中</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <h2 class="text-xl font-bold mb-6 flex items-center">
+                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
+                {{ viewTitle }}
+            </h2>
+
+            <!-- FCN 庫存清單 -->
+            <div class="space-y-4">
+                <div v-for="item in filteredList" :key="item.id" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
+                        <div>
+                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2 inline-block">{{ item.id }}</span>
+                            <h4 class="text-lg font-bold">{{ item.underlying }} 掛鉤票據</h4>
+                        </div>
+                        <div class="text-right mt-2 md:mt-0">
+                            <p class="text-xs text-slate-400">當前股價</p>
+                            <p class="text-xl font-mono font-bold" :class="item.priceColor">${{ item.currentPrice.toFixed(2) }}</p>
+                        </div>
+                    </div>
+
+                    <!-- 視覺化進度條：顯示 KI - 當前價 - KO -->
+                    <div class="relative pt-6 pb-2">
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                            <div class="h-full bg-rose-400" :style="{width: '10%'}"></div> <!-- KI 區 -->
+                            <div class="h-full bg-slate-200" :style="{width: '80%'}"></div> <!-- 安全區 -->
+                            <div class="h-full bg-emerald-400" :style="{width: '10%'}"></div> <!-- KO 區 -->
+                        </div>
+                        <!-- 股價標記點 -->
+                        <div class="absolute top-4 transition-all duration-500" :style="{left: calculatePosition(item) + '%'}">
+                            <div class="w-1 h-6 bg-slate-900 mx-auto"></div>
+                            <div class="text-[10px] font-bold whitespace-nowrap -translate-x-1/2">目前位置</div>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
+                            <span>KI: ${{item.kiPrice}}</span>
+                            <span>KO: ${{item.koPrice}}</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-50 text-sm">
+                        <div>
+                            <p class="text-slate-400">距離 KI</p>
+                            <p class="font-bold text-rose-500">{{ (((item.currentPrice - item.kiPrice)/item.kiPrice)*100).toFixed(2) }}%</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">距離 KO</p>
+                            <p class="font-bold text-emerald-500">{{ (((item.koPrice - item.currentPrice)/item.currentPrice)*100).toFixed(2) }}%</p>
+                        </div>
+                        <div>
+                            <p class="text-slate-400">票息率 (p.a.)</p>
+                            <p class="font-bold">{{ item.coupon }}%</p>
+                        </div>
+                        <div class="text-right">
+                            <span v-if="item.isKI" class="bg-rose-500 text-white px-3 py-1 rounded-lg text-xs font-bold">⚠️ 觸及下限</span>
+                            <span v-else-if="item.isNearKO" class="bg-emerald-500 text-white px-3 py-1 rounded-lg text-xs font-bold">💰 即將獲利</span>
+                            <span v-else class="bg-slate-800 text-white px-3 py-1 rounded-lg text-xs font-bold">運作中</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -75,47 +119,19 @@
             data() {
                 return {
                     currentView: 'all',
-                    // 模擬庫存數據
+                    // 在這裡修改客戶資料！
+                    customer: {
+                        name: '張大明',
+                        id: 'VVIP-888-001',
+                        totalCoupon: 12500.50
+                    },
                     inventory: [
-                        { id: 'FCN-001', underlying: 'NVDA', currentPrice: 130.5, koPrice: 145, kiPrice: 105, priceColor: '' },
-                        { id: 'FCN-002', underlying: 'TSLA', currentPrice: 175.2, koPrice: 180, kiPrice: 140, priceColor: '' },
-                        { id: 'FCN-003', underlying: 'AAPL', currentPrice: 165.0, koPrice: 210, kiPrice: 170, priceColor: '' },
-                        { id: 'FCN-004', underlying: 'MSFT', currentPrice: 410.5, koPrice: 450, kiPrice: 380, priceColor: '' }
+                        { id: 'FCN-NVDA-101', underlying: 'NVDA', currentPrice: 128.5, koPrice: 145, kiPrice: 100, coupon: 12.5, priceColor: '' },
+                        { id: 'FCN-TSLA-202', underlying: 'TSLA', currentPrice: 178.2, koPrice: 185, kiPrice: 140, coupon: 15.0, priceColor: '' },
+                        { id: 'FCN-AAPL-303', underlying: 'AAPL', currentPrice: 162.0, koPrice: 210, kiPrice: 165, coupon: 8.5, priceColor: '' }
                     ]
                 }
             },
             computed: {
-                viewTitle() {
-                    if (this.currentView === 'all') return '客戶資料與完整庫存';
-                    if (this.currentView === 'ko') return '🚀 即將自動贖回 (KO) 名單';
-                    return '⚠️ 已觸及下限 (KI) 預警名單';
-                },
-                // 這裡實作自動過濾邏輯
-                filteredList() {
-                    return this.inventory.map(item => {
-                        // 計算狀態
-                        item.isKI = item.currentPrice <= item.kiPrice;
-                        item.isNearKO = item.currentPrice >= (item.koPrice * 0.95) && !item.isKI;
-                        return item;
-                    }).filter(item => {
-                        if (this.currentView === 'all') return true;
-                        if (this.currentView === 'ko') return item.isNearKO;
-                        if (this.currentView === 'ki') return item.isKI;
-                    });
-                }
-            },
-            mounted() {
-                // 模擬股價即時更新
-                setInterval(() => {
-                    this.inventory.forEach(item => {
-                        const change = (Math.random() - 0.5) * 2; // 隨機波動
-                        const oldPrice = item.currentPrice;
-                        item.currentPrice += change;
-                        item.priceColor = item.currentPrice > oldPrice ? 'text-green-500' : 'text-red-500';
-                    });
-                }, 3000);
-            }
-        }).mount('#app')
-    </script>
-</body>
-</html>
+                totalAssets() {
+                    return this.inventory.length * 50000; // 假設
