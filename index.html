@@ -19,50 +19,54 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-black tracking-tight text-white">上新莊分行</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCN Management System</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest italic">Asset Management</p>
                 </div>
             </div>
 
             <nav class="space-y-3 flex-1">
                 <div @click="view = 'branch'" :class="navClass(view === 'branch')">
-                    <i class="fa-solid fa-chart-column w-6 text-blue-400"></i> 分行總資產概覽
+                    <i class="fa-solid fa-chart-line w-6 text-blue-400"></i> 分行資產總覽
                 </div>
-                <div class="pt-4 pb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest border-t border-slate-700/50">客戶庫存查詢</div>
+                <div class="pt-6 pb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest border-t border-slate-700/50">客戶庫存查詢</div>
                 <div @click="view = 'client'" :class="navClass(view === 'client')">
-                    <i class="fa-solid fa-user-check w-6 text-indigo-400"></i> 個別客戶明細
+                    <i class="fa-solid fa-user-tie w-6 text-indigo-400"></i> 客戶明細監控
                 </div>
             </nav>
 
             <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 mt-6">
-                <p class="text-[10px] text-slate-500 font-bold mb-2">系統狀態</p>
+                <p class="text-[10px] text-slate-500 font-bold mb-2 uppercase">Market Status</p>
                 <div class="flex items-center gap-2">
                     <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs font-bold text-emerald-500">股價同步中</span>
+                    <span class="text-xs font-bold text-emerald-500">即時價格同步中</span>
                 </div>
             </div>
         </div>
 
         <!-- 右側內容區 -->
-        <div class="flex-1 p-4 md:p-10 overflow-y-auto">
+        <div class="flex-1 p-4 md:p-10 overflow-y-auto bg-[#0f172a]">
             
-            <!-- 視圖 1：分行總資產概覽 -->
+            <!-- 頁面 1：分行總資產概覽 -->
             <div v-if="view === 'branch'" class="animate-fadeIn">
-                <h2 class="text-3xl font-black mb-8 italic">上新莊客戶總資產概覽</h2>
+                <h2 class="text-3xl font-black mb-8 italic flex items-center gap-3">
+                    <span class="w-2 h-10 bg-blue-600 rounded-full"></span>
+                    上新莊分行資產規模
+                </h2>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
                     <!-- JPY 統計卡片 -->
-                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-                        <i class="fa-solid fa-yen-sign absolute right-[-10%] bottom-[-10%] text-9xl text-white/10 rotate-12 transition-transform group-hover:scale-110"></i>
-                        <p class="text-blue-100 font-bold text-sm mb-2 uppercase tracking-widest">JPY 日幣資產總額</p>
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-blue-400/20">
+                        <i class="fa-solid fa-yen-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/10 rotate-12"></i>
+                        <p class="text-blue-100 font-bold text-sm mb-2 uppercase tracking-widest">JPY 日幣 FCN 總額</p>
                         <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalJPY) }} <span class="text-xl">萬</span></h3>
                         <div class="flex gap-4">
-                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">客戶數：{{ jpyClients.length }}</span>
-                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">平均利率：12.76%</span>
+                            <span class="bg-black/20 px-4 py-1.5 rounded-xl text-xs font-bold backdrop-blur-sm">客戶數：{{ jpyCount }} 位</span>
+                            <span class="bg-black/20 px-4 py-1.5 rounded-xl text-xs font-bold backdrop-blur-sm">平均利率：12.76%</span>
                         </div>
                     </div>
 
                     <!-- USD 統計卡片 -->
-                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
-                        <i class="fa-solid fa-dollar-sign absolute right-[-10%] bottom-[-10%] text-9xl text-white/10 rotate-12 transition-transform group-hover:scale-110"></i>
-                        <p class="text-emerald-100 font-bold text-sm mb-2 uppercase tracking-widest">USD 美金資產總額</p>
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-emerald-400/20">
+                        <i class="fa-solid fa-dollar-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/10 rotate-12"></i>
+                        <p class="text-emerald-100 font-bold text-sm mb-2 uppercase tracking-widest">USD 美金 FCN 總額</p>
                         <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalUSD) }} <span class="text-xl">萬</span></h3>
+                        <div c
