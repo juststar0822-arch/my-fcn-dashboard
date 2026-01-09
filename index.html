@@ -9,163 +9,123 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         [v-cloak] { display: none; }
-        body { background-color: #f8fafc; color: #1e293b; font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; }
-        .fcn-card { background: white; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
-        .stock-tag { background: #f1f5f9; border-radius: 10px; padding: 8px; min-width: 90px; text-align: center; border: 1px solid #f1f5f9; }
-        .tag-danger { border-color: #fca5a5; background: #fef2f2; color: #dc2626; }
-        .tag-success { border-color: #86efac; background: #f0fdf4; color: #16a34a; }
-        .nav-sidebar { background: #1e293b; color: #f1f5f9; }
-        .active-tab { background: #3b82f6; color: white; border-radius: 12px; }
-        .risk-tab { padding: 10px 20px; font-weight: bold; border-bottom: 3px solid transparent; transition: 0.3s; }
-        .risk-tab.active { border-bottom-color: #3b82f6; color: #3b82f6; }
+        body { background-color: #f0f2f5; color: #333; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .fcn-card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .stock-tag { background: #f4f5f7; border-radius: 10px; padding: 6px 12px; text-align: center; min-width: 85px; }
+        .nav-header { background: white; padding: 12px; border-radius: 40px; display: flex; gap: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .nav-btn { padding: 10px 20px; border-radius: 30px; font-weight: bold; color: #666; transition: 0.3s; }
+        .nav-btn.active { background: #e8f0fe; color: #1a73e8; }
+        .text-value { font-family: "Monaco", "Consolas", monospace; font-weight: 800; color: #111; }
+        .risk-tab-container { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 16px; }
+        .risk-tab { padding: 10px 15px; font-weight: bold; color: #888; position: relative; }
+        .risk-tab.active { color: #1a73e8; border-bottom: 3px solid #1a73e8; }
     </style>
 </head>
-<body>
-    <div id="app" v-cloak class="min-h-screen flex flex-col md:flex-row">
+<body class="p-4 md:p-10">
+    <div id="app" v-cloak class="max-w-2xl mx-auto">
         
-        <!-- 左側導航 -->
-        <div class="w-full md:w-64 nav-sidebar p-6 flex flex-col shadow-xl">
-            <div class="flex items-center gap-3 mb-10 border-b border-slate-700 pb-6">
-                <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center font-black text-white">莊</div>
-                <div><h1 class="text-lg font-bold">上新莊分行</h1><p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">FCN Management</p></div>
-            </div>
+        <!-- 頂部導航 -->
+        <div class="nav-header sticky top-4 z-50">
+            <button @click="view = 'branch'" :class="['nav-btn', view === 'branch' ? 'active' : '']">按分行</button>
+            <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
+            <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務</button>
+            <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警</button>
+            <div class="ml-auto flex items-center px-4"><i class="fa-solid fa-rotate text-gray-400" :class="{'animate-spin': isSyncing}"></i></div>
+        </div>
 
-            <nav class="space-y-2 flex-1 font-bold">
-                <div @click="view = 'branch'" :class="['p-3 cursor-pointer flex items-center gap-3', view === 'branch' ? 'active-tab' : '']"><i class="fa-solid fa-chart-line w-5"></i> 分行總資產</div>
-                <div @click="view = 'alerts'" :class="['p-3 cursor-pointer flex items-center gap-3', view === 'alerts' ? 'active-tab' : '']"><i class="fa-solid fa-bell w-5 text-rose-400"></i> 風險預警中心</div>
-                <div @click="view = 'sales'" :class="['p-3 cursor-pointer flex items-center gap-3', view === 'sales' ? 'active-tab' : '']"><i class="fa-solid fa-user-group w-5"></i> 業務員管理</div>
-                <div @click="view = 'client'" :class="['p-3 cursor-pointer flex items-center gap-3', view === 'client' ? 'active-tab' : '']"><i class="fa-solid fa-user-tie w-5"></i> 客戶明細</div>
-            </nav>
-
-            <div class="mt-6 p-4 bg-slate-800 rounded-xl text-[10px] text-slate-400">
-                <div class="flex items-center gap-2 text-emerald-400 mb-1"><div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div> Yahoo Sync Live</div>
-                最後更新: {{ lastTime }}
+        <!-- 1. 分行總覽 -->
+        <div v-if="view === 'branch'" class="space-y-6">
+            <h2 class="text-xl font-black px-2">上新莊分行總資產</h2>
+            <div class="grid grid-cols-1 gap-4">
+                <div class="fcn-card bg-gradient-to-br from-blue-500 to-blue-700 text-white">
+                    <p class="text-xs opacity-80 font-bold uppercase tracking-widest">JPY 日幣總庫存</p>
+                    <div class="text-4xl font-black mt-2 italic">¥ {{ formatNum(totalJPY) }} <span class="text-sm">萬</span></div>
+                    <div class="mt-4 flex justify-between text-xs opacity-90 border-t border-white/20 pt-4 font-bold">
+                        <span>總筆數: {{ countJPY }} 筆</span>
+                        <span>交割中: {{ settlingJPY }} 筆</span>
+                        <span>月配息: ¥{{ formatNum(monthlyJPY) }}</span>
+                    </div>
+                </div>
+                <div class="fcn-card bg-gradient-to-br from-emerald-500 to-emerald-700 text-white">
+                    <p class="text-xs opacity-80 font-bold uppercase tracking-widest">USD 美金總庫存</p>
+                    <div class="text-4xl font-black mt-2 italic">$ {{ formatNum(totalUSD) }} <span class="text-sm">萬</span></div>
+                    <div class="mt-4 flex justify-between text-xs opacity-90 border-t border-white/20 pt-4 font-bold">
+                        <span>總筆數: {{ countUSD }} 筆</span>
+                        <span>交割中: {{ settlingUSD }} 筆</span>
+                        <span>月配息: ${{ formatNum(monthlyUSD) }}</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- 右側內容 -->
-        <div class="flex-1 p-4 md:p-10 overflow-y-auto">
-            
-            <!-- 1. 分行總資產頁面 -->
-            <div v-if="view === 'branch'" class="space-y-8 animate-fadeIn">
-                <h2 class="text-2xl font-black italic border-l-4 border-blue-600 pl-4">上新莊分行資產總覽</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- USD Card -->
-                    <div class="fcn-card p-8 bg-gradient-to-br from-white to-emerald-50 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <p class="text-emerald-600 font-black text-sm uppercase tracking-widest italic">USD 美金資產規模</p>
-                            <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">{{ countUSD }} 筆</span>
-                        </div>
-                        <h3 class="text-5xl font-black text-slate-800 font-mono tracking-tighter">${{ formatNum(totalUSD) }} <span class="text-lg opacity-40">萬</span></h3>
-                        <div class="mt-6 pt-6 border-t border-emerald-100 grid grid-cols-2 gap-4">
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase">交割中(可續作)</p><p class="text-lg font-bold text-slate-600">{{ settlingUSD }} 筆</p></div>
-                            <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">預估月配息</p><p class="text-lg font-bold text-emerald-600">${{ formatNum(monthlyUSD) }}</p></div>
-                        </div>
-                    </div>
-                    <!-- JPY Card -->
-                    <div class="fcn-card p-8 bg-gradient-to-br from-white to-blue-50 relative overflow-hidden">
-                        <div class="flex justify-between items-center mb-4">
-                            <p class="text-blue-600 font-black text-sm uppercase tracking-widest italic">JPY 日幣資產規模</p>
-                            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold">{{ countJPY }} 筆</span>
-                        </div>
-                        <h3 class="text-5xl font-black text-slate-800 font-mono tracking-tighter">¥{{ formatNum(totalJPY) }} <span class="text-lg opacity-40">萬</span></h3>
-                        <div class="mt-6 pt-6 border-t border-blue-100 grid grid-cols-2 gap-4">
-                            <div><p class="text-[10px] text-slate-400 font-bold uppercase">交割中(可續作)</p><p class="text-lg font-bold text-slate-600">{{ settlingJPY }} 筆</p></div>
-                            <div class="text-right"><p class="text-[10px] text-slate-400 font-bold uppercase">預估月配息</p><p class="text-lg font-bold text-blue-600">¥{{ formatNum(monthlyJPY) }}</p></div>
-                        </div>
-                    </div>
-                </div>
+        <!-- 2. 風險預警中心 -->
+        <div v-if="view === 'alerts'" class="space-y-4">
+            <div class="risk-tab-container">
+                <button @click="riskSubView = 'ki'" :class="['risk-tab', riskSubView === 'ki' ? 'active' : '']">已觸及 KI ({{kiList.length}})</button>
+                <button @click="riskSubView = 'anyKO'" :class="['risk-tab', riskSubView === 'anyKO' ? 'active' : '']">標的達 KO ({{anyKOList.length}})</button>
+                <button @click="riskSubView = 'exit'" :class="['risk-tab', riskSubView === 'exit' ? 'active' : '']">即將出場 ({{readyExitList.length}})</button>
             </div>
-
-            <!-- 2. 風險預警中心 (3個分頁) -->
-            <div v-if="view === 'alerts'" class="space-y-6">
-                <div class="flex border-b border-gray-200">
-                    <button @click="riskTab = 'ki'" :class="['risk-tab', riskTab === 'ki' ? 'active' : '']">已觸及 KI ({{kiList.length}})</button>
-                    <button @click="riskTab = 'anyKO'" :class="['risk-tab', riskTab === 'anyKO' ? 'active' : '']">標的達 KO ({{anyKOList.length}})</button>
-                    <button @click="riskTab = 'ready'" :class="['risk-tab', riskTab === 'ready' ? 'active' : '']">即將出場 ({{readyExitList.length}})</button>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- 分頁內容 -->
-                    <div v-for="item in currentRiskList" class="fcn-card p-5 flex justify-between items-center hover:bg-gray-50 cursor-pointer" @click="goClient(item.client)">
-                        <div>
-                            <p class="font-black text-lg text-slate-800">{{ item.client }}</p>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase">{{ item.sn }} | 業務: {{ item.sales }}</p>
-                        </div>
-                        <div class="text-right">
-                            <span v-if="riskTab === 'ki'" class="bg-rose-100 text-rose-600 px-3 py-1 rounded-full text-[10px] font-black italic">BREACHED</span>
-                            <span v-if="riskTab === 'anyKO'" class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-black italic">PARTIAL KO</span>
-                            <span v-if="riskTab === 'ready'" class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black italic">READY EXIT</span>
-                        </div>
-                    </div>
-                </div>
+            <div v-for="item in currentRiskList" class="fcn-card flex justify-between items-center" @click="goClient(item.client)">
+                <div><p class="font-black text-lg">{{ item.client }}</p><p class="text-[10px] text-gray-400 uppercase font-bold">{{ item.sn }}</p></div>
+                <i class="fa-solid fa-chevron-right text-gray-300"></i>
             </div>
-
-            <!-- 3. 業務員管理 (下拉選單) -->
-            <div v-if="view === 'sales'" class="space-y-8 animate-fadeIn">
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-                    <h2 class="text-2xl font-black italic">Sales Management</h2>
-                    <select v-model="selectedSales" class="w-full md:w-64 p-3 rounded-xl border border-gray-300 font-bold outline-none focus:ring-2 ring-blue-500">
-                        <option value="">請選擇營業員</option>
-                        <option v-for="name in allSales" :value="name">{{ name }}</option>
-                    </select>
-                </div>
-                
-                <div v-if="selectedSales" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div v-for="item in salesFilteredList" class="fcn-card p-6 flex justify-between items-center">
-                        <div>
-                            <h4 class="text-xl font-black">{{ item.client }}</h4>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">{{ item.sn }}</p>
-                        </div>
-                        <div class="text-right font-mono font-black italic" :class="item.amount===0?'text-slate-300':(item.currency==='USD'?'text-emerald-500':'text-blue-500')">
-                            {{ item.amount === 0 ? '交割中' : formatNum(item.amount) + ' ' + item.currency }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 4. 客戶明細 (仿截圖精緻排版) -->
-            <div v-if="view === 'client'" class="space-y-8 animate-fadeIn">
-                <div class="flex justify-between items-center">
-                    <h2 class="text-2xl font-black italic tracking-widest">Client Monitor</h2>
-                    <select v-model="selectedClient" class="p-3 rounded-xl border border-gray-300 font-bold outline-none"><option v-for="n in clientNames" :value="n">{{ n }}</option></select>
-                </div>
-
-                <div v-for="item in filteredClientList" :key="item.id" class="fcn-card p-8 space-y-6 relative overflow-hidden" :class="isReadyToExit(item)?'exit-glow':''">
-                    <!-- 鎖定期提醒 -->
-                    <div v-if="!isKOPeriodStarted(item)" class="absolute right-6 top-6 bg-amber-100 text-amber-700 text-[9px] px-2 py-1 rounded-full font-black italic"><i class="fa-solid fa-lock mr-1"></i> 保證領息鎖定期 (未到KO觀察日)</div>
-                    <div v-else-if="isReadyToExit(item)" class="absolute right-6 top-6 bg-emerald-100 text-emerald-600 text-[9px] px-2 py-1 rounded-full font-black italic animate-pulse">符合出場條件 (READY EXIT)</div>
-
-                    <div><h3 class="text-3xl font-black text-slate-800 italic leading-none">{{ item.client }}</h3><p class="text-[10px] font-black text-slate-400 mt-2 tracking-widest uppercase">{{ item.sn }}</p></div>
-
-                    <!-- 標的標籤 -->
-                    <div class="flex flex-wrap gap-3">
-                        <div v-for="s in item.stocks" :key="s.code" class="stock-tag" :class="getStockTagClass(item, s)">
-                            <p class="text-[9px] font-black opacity-50">{{ s.code.replace('.T','') }}</p>
-                            <p class="text-lg font-black">{{ getPerf(item, s) }}%</p>
-                            <p class="text-[8px] font-bold opacity-60">P: {{ formatNum(s.current) }}</p>
-                        </div>
-                    </div>
-
-                    <!-- 核心數據 -->
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-gray-100">
-                        <div><p class="text-[9px] text-slate-400 font-black uppercase italic">投資金額</p><p class="text-2xl font-black font-mono italic" :class="item.amount===0?'text-slate-300':'text-slate-800'">{{item.amount===0?'交割中':formatNum(item.amount)}}<span v-if="item.amount>0" class="text-xs opacity-50 ml-1">{{item.currency}}萬</span></p></div>
-                        <div><p class="text-[9px] text-slate-400 font-black uppercase italic">配息年率</p><p class="text-2xl font-black font-mono italic">{{item.coupon}}%</p></div>
-                        <div><p class="text-[9px] text-emerald-500 font-black uppercase italic">預估月領息</p><p class="text-2xl font-black font-mono text-emerald-600 italic">+{{formatNum(calcMonthly(item))}}</p></div>
-                        <div class="text-right"><p class="text-[9px] text-slate-400 font-black uppercase italic">到期日期</p><p class="text-sm font-black text-blue-600 italic">{{item.expiry}}</p></div>
-                    </div>
-
-                    <!-- 下方門檻 -->
-                    <div class="bg-slate-50 p-4 rounded-2xl flex justify-between text-[10px] font-black text-slate-500 italic tracking-widest">
-                        <span>KO (贖回): {{ item.koP }}%</span>
-                        <span class="text-blue-500">PUT (履約): {{ item.strikeP }}%</span>
-                        <span :class="{'text-rose-500': hasBreachedKI(item)}">KI (下限): {{ item.kiP }}%</span>
-                        <span class="text-slate-400">START: {{ item.koStart }}</span>
-                    </div>
-                </div>
-            </div>
-
         </div>
+
+        <!-- 3. 業務員管理 -->
+        <div v-if="view === 'sales'" class="space-y-4">
+            <div class="px-2 mb-4">
+                <p class="text-xs font-bold text-gray-500 mb-2">請選取營業員</p>
+                <select v-model="selectedSales" class="w-full p-4 rounded-2xl bg-white border-none shadow-sm font-black text-blue-600 outline-none">
+                    <option v-for="name in allSales" :value="name">{{ name }}</option>
+                </select>
+            </div>
+            <div v-for="item in salesList" class="fcn-card flex justify-between items-center" @click="goClient(item.client)">
+                <div><p class="font-black text-lg">{{ item.client }}</p><p class="text-[10px] text-gray-400 font-bold uppercase">{{ item.sn }}</p></div>
+                <div class="text-right font-black italic" :class="item.amount===0?'text-gray-300':'text-gray-800'">{{ item.amount===0?'交割中':formatNum(item.amount) + ' ' + item.currency }}</div>
+            </div>
+        </div>
+
+        <!-- 4. 客戶明細 (核心版面) -->
+        <div v-if="view === 'client'" class="space-y-4">
+            <div class="px-2 mb-4">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名" class="w-full p-4 rounded-2xl bg-white border-none shadow-sm font-bold outline-none">
+            </div>
+
+            <div v-for="item in clientList" class="fcn-card">
+                <!-- 標題 -->
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 class="text-3xl font-black tracking-tighter">{{ item.client }}</h3>
+                        <div class="bg-gray-100 text-gray-500 text-[10px] px-3 py-0.5 rounded-full inline-block font-bold mt-1 tracking-widest uppercase">{{ item.sn }}</div>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-[10px] bg-indigo-50 text-indigo-500 px-2 py-1 rounded font-black italic">配息: {{ item.coupon }}%</span>
+                        <p class="text-[9px] text-gray-400 font-bold mt-1">業務: {{ item.sales }}</p>
+                    </div>
+                </div>
+
+                <!-- 標的小標籤列 -->
+                <div class="flex flex-wrap gap-2 mb-6">
+                    <div v-for="s in item.stocks" :key="s.code" class="stock-tag">
+                        <p class="text-[9px] font-bold text-gray-400">{{ s.code.replace('.T', '') }}</p>
+                        <p class="text-sm font-black" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
+                    </div>
+                </div>
+
+                <!-- 數據清單 -->
+                <div class="space-y-2 border-t border-gray-100 pt-4 text-xs font-bold text-gray-500">
+                    <div class="flex justify-between"><span>金額: <span class="text-gray-800 font-black">{{ item.amount===0?'交割中':formatNum(item.amount*10000) }}</span></span><span>月領息: <span class="text-emerald-600 font-black">${{ formatNum(calcMonthly(item)) }}</span></span></div>
+                    <div class="flex justify-between"><span>下單: <span class="text-gray-800">{{ item.date }}</span></span><span>到期: <span class="text-blue-600 italic">{{ item.expiry }}</span></span></div>
+                    <div class="flex justify-between text-[10px] bg-gray-50 p-2 rounded-lg mt-2">
+                        <span>KO: {{ item.koP }}%</span>
+                        <span>PUT (履約): {{ item.strikeP }}%</span>
+                        <span :class="{'text-rose-500': hasKI(item)}">KI: {{ item.kiP }}%</span>
+                        <span class="text-gray-400">觀察日: {{ item.koStart }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -173,58 +133,100 @@
         createApp({
             data() {
                 return {
-                    view: 'branch', riskTab: 'ki', selectedClient: '吳柏輝', selectedSales: '', search: '', lastTime: '-', isSyncing: false,
+                    view: 'branch', riskSubView: 'ki', selectedSales: '吳坤達', selectedClient: '', search: '', lastTime: '-', isSyncing: false,
                     inventory: [
-                        {id:1, client:'吳柏輝', sn:'SNUBSELN01051', currency:'JPY', amount:5300, date:'2026/01/06', koStart:'2026/02/16', expiry:'2026/07/17', coupon:12.76, koP:95, strikeP:70, kiP:55, stocks:[{code:'6146.T', initial:54200, koPrice:51490, current:56880}, {code:'6501.T', initial:5445, koPrice:5173, current:5124}, {code:'7011.T', initial:4260, koPrice:4047, current:4233}], sales:'吳坤達' },
-                        {id:2, client:'江雪嬌', sn:'SNUBSELN01051', currency:'JPY', amount:200, date:'2026/01/06', koStart:'2026/02/16', expiry:'2026/07/17', coupon:12.76, koP:95, strikeP:70, kiP:55, stocks:[{code:'6146.T', initial:54200, koPrice:51490, current:56880}, {code:'6501.T', initial:5445, koPrice:5173, current:5124}, {code:'7011.T', initial:4260, koPrice:4047, current:4233}], sales:'陳雅鈴' },
-                        {id:4, client:'陳潤纓', sn:'SNJPMELN01153', currency:'USD', amount:33, date:'2026/01/02', koStart:'2026/02/12', expiry:'2026/07/15', coupon:18.00, koP:100, strikeP:80.76, kiP:0, stocks:[{code:'NVDA', initial:189, koPrice:189, current:189}, {code:'TSLA', initial:438, koPrice:438, current:431}, {code:'TSM', initial:320, koPrice:320, current:319}], sales:'賴婉甄' },
-                        {id:5, client:'劉介正', sn:'SNJPMELN01155', currency:'USD', amount:2, date:'2026/01/02', koStart:'2026/02/09', expiry:'2026/10/14', coupon:11.53, koP:100, strikeP:75, kiP:65, stocks:[{code:'AMD', initial:223, koPrice:223, current:210}, {code:'NVDA', initial:189, koPrice:189, current:189}, {code:'TSM', initial:320, koPrice:320, current:319}], sales:'黃思婷' },
-                        {id:10, client:'吳適玲', sn:'SNUBSELN00988', currency:'JPY', amount:5300, date:'2025/12/04', koStart:'2026/01/13', expiry:'2026/06/16', coupon:13.76, koP:95, strikeP:70, kiP:60, stocks:[{code:'6857.T', initial:20700, koPrice:19665, current:20555}, {code:'7011.T', initial:4048, koPrice:3846, current:4233}, {code:'7012.T', initial:10680, koPrice:10146, current:11955}], sales:'吳坤達' },
-                        {id:15, client:'吳柏輝', sn:'SNUBSELN00980', currency:'JPY', amount:0, date:'2025/11/19', koStart:'2025/12/19', expiry:'2026/06/01', coupon:12.48, koP:95, strikeP:67.5, kiP:60, stocks:[{code:'VOD.L', initial:100, koPrice:95, current:100}], sales:'吳坤達' },
-                        {id:33, client:'吳柏輝', sn:'SNBARELN00369', currency:'USD', amount:30, date:'2025/10/15', koStart:'2025/11/24', expiry:'2026/04/27', coupon:12.00, koP:95, strikeP:70.44, kiP:60, stocks:[{code:'AVGO', initial:351, koPrice:334, current:344}, {code:'ORCL', initial:303, koPrice:288, current:193}], sales:'吳坤達' }
+                        {id:1, client:'吳柏輝', sn:'SNUBSELN01051', currency:'JPY', amount:5300, date:'2026/01/06', koStart:'2026/02/16', expiry:'2026/07/17', stocks:[{code:'6146.T', init:54200, current:56880}, {code:'6501.T', init:5445, current:5124}, {code:'7011.T', init:4260, current:4233}], sales:'吳坤達', coupon:12.76, koP:95, strikeP:70, kiP:55 },
+                        {id:2, client:'江雪嬌', sn:'SNUBSELN01051', currency:'JPY', amount:200, date:'2026/01/06', koStart:'2026/02/16', expiry:'2026/07/17', stocks:[{code:'6146.T', init:54200, current:56880}, {code:'6501.T', init:5445, current:5124}, {code:'7011.T', init:4260, current:4233}], sales:'陳雅鈴', coupon:12.76, koP:95, strikeP:70, kiP:55 },
+                        {id:3, client:'江雪嬌', sn:'SNUBSELN01051', currency:'JPY', amount:200, date:'2026/01/06', koStart:'2026/02/16', expiry:'2026/07/17', stocks:[{code:'6146.T', init:54200, current:56880}, {code:'6501.T', init:5445, current:5124}, {code:'7011.T', init:4260, current:4233}], sales:'陳雅鈴', coupon:12.76, koP:95, strikeP:70, kiP:55 },
+                        {id:4, client:'陳潤纓', sn:'SNJPMELN01153', currency:'USD', amount:33, date:'2026/01/02', koStart:'2026/02/12', expiry:'2026/07/15', stocks:[{code:'NVDA', init:189, current:189}, {code:'TSLA', init:438, current:431}, {code:'TSM', init:320, current:319}], sales:'賴婉甄', coupon:18.00, koP:100, strikeP:80.76, kiP:0 },
+                        {id:5, client:'劉介正', sn:'SNJPMELN01155', currency:'USD', amount:2, date:'2026/01/02', koStart:'2026/02/09', expiry:'2026/10/14', stocks:[{code:'AMD', init:223, current:210}, {code:'NVDA', init:189, current:189}, {code:'TSM', init:320, current:319}], sales:'黃思婷', coupon:11.53, koP:100, strikeP:75, kiP:65 },
+                        {id:6, client:'江雪嬌', sn:'SNNOELN01419', currency:'USD', amount:11, date:'2025/12/31', koStart:'2026/02/09', expiry:'2026/07/10', stocks:[{code:'MU', init:285, current:340}, {code:'NVDA', init:187, current:189}, {code:'TSLA', init:450, current:431}], sales:'陳雅鈴', coupon:13.91, koP:100, strikeP:75, kiP:55 },
+                        {id:7, client:'江雪嬌', sn:'SNBARELN00625', currency:'USD', amount:10, date:'2025/12/31', koStart:'2026/02/09', expiry:'2026/07/13', stocks:[{code:'MU', init:285, current:340}, {code:'NVDA', init:187, current:189}, {code:'TSLA', init:450, current:431}], sales:'陳雅鈴', coupon:17.70, koP:100, strikeP:85, kiP:55 },
+                        {id:8, client:'徐冠榮', sn:'SNNOELN01419', currency:'USD', amount:1, date:'2025/12/31', koStart:'2026/02/09', expiry:'2026/07/10', stocks:[{code:'MU', init:285, current:340}, {code:'NVDA', init:187, current:189}, {code:'TSLA', init:450, current:431}], sales:'吳坤達', coupon:13.91, koP:100, strikeP:75, kiP:55 },
+                        {id:9, client:'江雪嬌', sn:'SNUBSELN01039', currency:'USD', amount:10, date:'2025/12/29', koStart:'2026/02/06', expiry:'2026/09/11', stocks:[{code:'ARM', init:111, current:116}, {code:'MU', init:294, current:340}, {code:'NVDA', init:188, current:189}, {code:'TSLA', init:460, current:431}], sales:'陳雅鈴', coupon:19.17, koP:100, strikeP:75, kiP:65 },
+                        {id:10, client:'吳適玲', sn:'SNUBSELN00988', currency:'JPY', amount:5300, date:'2025/12/04', koStart:'2026/01/13', expiry:'2026/06/16', stocks:[{code:'6857.T', init:20700, current:20555}, {code:'7011.T', init:4048, current:4233}, {code:'7012.T', init:10680, current:11955}], sales:'吳坤達', coupon:13.76, koP:95, strikeP:70, kiP:60 },
+                        {id:11, client:'蔡玉梅', sn:'SNUBSELN00988', currency:'JPY', amount:500, date:'2025/12/04', koStart:'2026/01/13', expiry:'2026/06/16', stocks:[{code:'6857.T', init:20700, current:20555}, {code:'7011.T', init:4048, current:4233}, {code:'7012.T', init:10680, current:11955}], sales:'賴秋萍', coupon:13.76, koP:95, strikeP:70, kiP:60 },
+                        {id:12, client:'劉介正', sn:'SNNOELN01366', currency:'USD', amount:2, date:'2025/12/03', koStart:'2026/01/12', expiry:'2026/06/12', stocks:[{code:'GOOG', init:321, current:322}, {code:'MU', init:234, current:340}, {code:'TSM', init:295, current:319}], sales:'黃思婷', coupon:15.88, koP:100, strikeP:75, kiP:60 },
+                        {id:13, client:'江雪嬌', sn:'SNNOELN01366', currency:'USD', amount:2, date:'2025/12/03', koStart:'2026/01/12', expiry:'2026/06/12', stocks:[{code:'GOOG', init:321, current:322}, {code:'MU', init:234, current:340}, {code:'TSM', init:295, current:319}], sales:'陳雅鈴', coupon:15.88, koP:100, strikeP:75, kiP:60 },
+                        {id:14, client:'佑昌投資', sn:'SNGSELN01264', currency:'JPY', amount:7000, date:'2025/12/01', koStart:'2026/01/08', expiry:'2026/06/10', stocks:[{code:'7013.T', init:2730, current:3144}, {code:'7974.T', init:13065, current:10215}, {code:'8035.T', init:31630, current:37120}], sales:'吳坤達', coupon:12.78, koP:97, strikeP:75, kiP:65 },
+                        {id:15, client:'吳柏輝', sn:'SNUBSELN00980', currency:'JPY', amount:0, date:'2025/11/19', koStart:'2025/12/19', expiry:'2026/06/01', stocks:[{code:'VOD.L', init:100, current:100}], sales:'吳坤達', coupon:12.48, koP:95, strikeP:67.5, kiP:60 },
+                        {id:16, client:'江雪嬌', sn:'SNUBSELN00980', currency:'JPY', amount:0, date:'2025/11/19', koStart:'2025/12/19', expiry:'2026/06/01', stocks:[{code:'VOD.L', init:100, current:100}], sales:'陳雅鈴', coupon:12.48, koP:95, strikeP:67.5, kiP:60 },
+                        {id:17, client:'江雪嬌', sn:'SNUBSELN00980', currency:'JPY', amount:0, date:'2025/11/19', koStart:'2025/12/19', expiry:'2026/06/01', stocks:[{code:'VOD.L', init:100, current:100}], sales:'陳雅鈴', coupon:12.48, koP:95, strikeP:67.5, kiP:60 },
+                        {id:18, client:'佑昌投資', sn:'SNMSELN02394', currency:'USD', amount:30, date:'2025/11/18', koStart:'2025/12/26', expiry:'2026/05/29', stocks:[{code:'AMZN', init:223, current:242}, {code:'ARM', init:136, current:116}, {code:'AVGO', init:341, current:344}, {code:'TSM', init:278, current:319}], sales:'吳坤達', coupon:12.26, koP:100, strikeP:75, kiP:65 },
+                        {id:19, client:'江雪嬌', sn:'SNMSELN02390', currency:'JPY', amount:300, date:'2025/11/12', koStart:'2025/12/19', expiry:'2026/05/22', stocks:[{code:'5803.T', init:20075, current:21000}, {code:'6857.T', init:19830, current:20555}, {code:'8697.T', init:1797, current:1748}], sales:'陳雅鈴', coupon:15.79, koP:100, strikeP:75, kiP:60 },
+                        {id:20, client:'胡張素蓉', sn:'SNUBSELN00963', currency:'JPY', amount:500, date:'2025/11/12', koStart:'2025/12/19', expiry:'2026/05/22', stocks:[{code:'6146.T', init:47860, current:56880}, {code:'7011.T', init:4327, current:4233}, {code:'8002.T', init:3994, current:4660}], sales:'陳雅鈴', coupon:11.07, koP:100, strikeP:75, kiP:60 },
+                        {id:21, client:'江雪嬌', sn:'SNMSELN02380', currency:'USD', amount:30, date:'2025/11/06', koStart:'2025/12/15', expiry:'2026/02/20', stocks:[{code:'AVGO', init:3552, current:344}, {code:'NVDA', init:1879, current:189}, {code:'OKLO', init:1066, current:98}, {code:'TSM', init:2890, current:319}], sales:'陳雅鈴', coupon:35.23, koP:999, strikeP:80, kiP:65 },
+                        {id:22, client:'李麗娟', sn:'SNMSELN02369', currency:'USD', amount:1, date:'2025/11/03', koStart:'2025/12/10', expiry:'2026/05/14', stocks:[{code:'ARM', init:168, current:116}, {code:'AVGO', init:362, current:344}, {code:'DELL', init:160, current:120}, {code:'ORCL', init:257, current:193}], sales:'王淑濱', coupon:12.69, koP:95, strikeP:68.5, kiP:64 },
+                        {id:23, client:'吳柏輝', sn:'SNMSELN02369', currency:'USD', amount:30, date:'2025/11/03', koStart:'2025/12/10', expiry:'2026/05/14', stocks:[{code:'ARM', init:168, current:116}, {code:'AVGO', init:362, current:344}, {code:'DELL', init:160, current:120}, {code:'ORCL', init:257, current:193}], sales:'吳坤達', coupon:12.69, koP:95, strikeP:68.5, kiP:64 },
+                        {id:24, client:'劉介正', sn:'SNMSELN02369', currency:'USD', amount:2, date:'2025/11/03', koStart:'2025/12/10', expiry:'2026/05/14', stocks:[{code:'ARM', init:168, current:116}, {code:'AVGO', init:362, current:344}, {code:'DELL', init:160, current:120}, {code:'ORCL', init:257, current:193}], sales:'黃思婷', coupon:12.69, koP:95, strikeP:68.5, kiP:64 },
+                        {id:25, client:'佑昌投資', sn:'SNDBSELN00251', currency:'USD', amount:30, date:'2025/10/31', koStart:'2025/12/08', expiry:'2026/05/11', stocks:[{code:'ARM', init:169, current:116}, {code:'AVGO', init:369, current:344}, {code:'DELL', init:162, current:120}, {code:'ORCL', init:262, current:193}], sales:'吳坤達', coupon:12.00, koP:95, strikeP:68.5, kiP:64 },
+                        {id:26, client:'劉介正', sn:'SNBARELN00447', currency:'USD', amount:2, date:'2025/10/30', koStart:'2025/12/08', expiry:'2026/09/11', stocks:[{code:'ARM', init:165, current:116}, {code:'NVDA', init:203, current:189}, {code:'TSM', init:303, current:319}], sales:'黃思婷', coupon:11.30, koP:100, strikeP:75, kiP:55 },
+                        {id:27, client:'陳俞任', sn:'SNGSELN01175', currency:'USD', amount:1, date:'2025/10/23', koStart:'2025/12/01', expiry:'2026/05/04', stocks:[{code:'ARM', init:166, current:116}, {code:'AVGO', init:344, current:344}, {code:'DELL', init:154, current:120}, {code:'META', init:733, current:649}], sales:'丁心梅', coupon:13.956, koP:95, strikeP:70.5, kiP:60 },
+                        {id:28, client:'吳適玲', sn:'SNGSELN01175', currency:'USD', amount:30, date:'2025/10/23', koStart:'2025/12/01', expiry:'2026/05/04', stocks:[{code:'ARM', init:166, current:116}, {code:'AVGO', init:344, current:344}, {code:'DELL', init:154, current:120}, {code:'META', init:733, current:649}], sales:'吳坤達', coupon:13.956, koP:95, strikeP:70.5, kiP:60 },
+                        {id:29, client:'江雪嬌', sn:'SNUBSELN00905', currency:'USD', amount:7, date:'2025/10/17', koStart:'2025/11/24', expiry:'2026/04/29', stocks:[{code:'AMZN', init:212, current:242}, {code:'ARM', init:165, current:116}, {code:'DELL', init:149, current:120}, {code:'META', init:716, current:649}], sales:'陳雅鈴', coupon:13.67, koP:95, strikeP:70, kiP:60 },
+                        {id:30, client:'易岑投資', sn:'SNUBSELN00905', currency:'USD', amount:30, date:'2025/10/17', koStart:'2025/11/24', expiry:'2026/04/29', stocks:[{code:'AMZN', init:212, current:242}, {code:'ARM', init:165, current:116}, {code:'DELL', init:149, current:120}, {code:'META', init:716, current:649}], sales:'吳坤達', coupon:13.67, koP:95, strikeP:70, kiP:60 },
+                        {id:31, client:'蔡玉梅', sn:'SNGSELN01138', currency:'USD', amount:1, date:'2025/10/16', koStart:'2025/11/24', expiry:'2026/04/27', stocks:[{code:'MSFT', init:512, current:483}, {code:'NVDA', init:182, current:189}, {code:'TSM', init:300, current:319}], sales:'賴秋萍', coupon:10.008, koP:100, strikeP:77.56, kiP:65 },
+                        {id:32, client:'林錫玉', sn:'SNGSELN01138', currency:'USD', amount:21, date:'2025/10/16', koStart:'2025/11/24', expiry:'2026/04/27', stocks:[{code:'MSFT', init:512, current:483}, {code:'NVDA', init:182, current:189}, {code:'TSM', init:300, current:319}], sales:'賴秋萍', coupon:10.008, koP:100, strikeP:77.56, kiP:65 },
+                        {id:33, client:'吳柏輝', sn:'SNBARELN00369', currency:'USD', amount:30, date:'2025/10/15', koStart:'2025/11/24', expiry:'2026/04/27', stocks:[{code:'AVGO', init:351, current:344}, {code:'DELL', init:153, current:120}, {code:'GOOGL', init:250, current:322}, {code:'ORCL', init:303, current:193}], sales:'吳坤達', coupon:12.00, koP:95, strikeP:70.44, kiP:60 },
+                        {id:34, client:'劉介正', sn:'SNBARELN00369', currency:'USD', amount:2, date:'2025/10/15', koStart:'2025/11/24', expiry:'2026/04/27', stocks:[{code:'AVGO', init:351, current:344}, {code:'DELL', init:153, current:120}, {code:'GOOGL', init:250, current:322}, {code:'ORCL', init:303, current:193}], sales:'黃思婷', coupon:12.00, koP:95, strikeP:70.44, kiP:60 },
+                        {id:35, client:'江雪嬌', sn:'SNBARELN00340', currency:'USD', amount:6, date:'2025/10/09', koStart:'2025/11/20', expiry:'2026/04/23', stocks:[{code:'ARM', init:171, current:116}, {code:'AVGO', init:345, current:344}, {code:'PLTR', init:185, current:182}, {code:'TSM', init:300, current:319}], sales:'陳雅鈴', coupon:20.64, koP:100, strikeP:75, kiP:62 },
+                        {id:36, client:'吳適玲', sn:'SNBARELN00334', currency:'USD', amount:30, date:'2025/10/08', koStart:'2025/11/17', expiry:'2026/04/22', stocks:[{code:'AVGO', init:345, current:344}, {code:'GOOGL', init:244, current:322}, {code:'META', init:717, current:649}, {code:'ORCL', init:288, current:193}], sales:'吳坤達', coupon:12.00, koP:95, strikeP:73.04, kiP:63 },
+                        {id:37, client:'林錫玉', sn:'SNBARELN00328', currency:'USD', amount:12, date:'2025/10/08', koStart:'2025/11/17', expiry:'2026/04/22', stocks:[{code:'AVGO', init:346, current:344}, {code:'META', init:718, current:649}, {code:'ORCL', init:289, current:193}, {code:'TSM', init:305, current:319}], sales:'賴秋萍', coupon:12.00, koP:100, strikeP:68.35, kiP:60 },
+                        {id:38, client:'江雪嬌', sn:'SNBARELN00328', currency:'USD', amount:20, date:'2025/10/08', koStart:'2025/11/17', expiry:'2026/04/22', stocks:[{code:'AVGO', init:346, current:344}, {code:'META', init:718, current:649}, {code:'ORCL', init:289, current:193}, {code:'TSM', init:305, current:319}], sales:'陳雅鈴', coupon:12.00, koP:100, strikeP:68.35, kiP:60 },
+                        {id:39, client:'劉介正', sn:'SNMSELN02244', currency:'USD', amount:2, date:'2025/09/12', koStart:'2025/10/20', expiry:'2026/03/24', stocks:[{code:'AMD', init:159, current:210}, {code:'META', init:756, current:649}, {code:'NVDA', init:178, current:189}, {code:'TSM', init:259, current:319}], sales:'黃思婷', coupon:9.12, koP:100, strikeP:75, kiP:65 },
+                        {id:40, client:'陳俞任', sn:'SNMSELN02205', currency:'USD', amount:1, date:'2025/08/19', koStart:'2025/09/26', expiry:'2026/03/03', stocks:[{code:'AVGO', init:295, current:344}, {code:'NFLX', init:121, current:91}, {code:'NVDA', init:176, current:189}, {code:'TSM', init:233, current:319}], sales:'丁心梅', coupon:12.88, koP:100, strikeP:75, kiP:65 },
+                        {id:41, client:'吳柏輝', sn:'SNMSELN02205', currency:'USD', amount:30, date:'2025/08/19', koStart:'2025/09/26', expiry:'2026/03/03', stocks:[{code:'AVGO', init:295, current:344}, {code:'NFLX', init:121, current:91}, {code:'NVDA', init:176, current:189}, {code:'TSM', init:233, current:319}], sales:'吳坤達', coupon:12.88, koP:100, strikeP:75, kiP:65 }
                     ]
                 }
             },
             computed: {
+                clientNames() { return [...new Set(this.inventory.map(i => i.client))].sort(); },
+                allSales() { return [...new Set(this.inventory.map(i => i.sales))].sort(); },
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + i.amount, 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + i.amount, 0); },
-                countJPY() { return this.inventory.filter(i => i.currency === 'JPY').length; },
-                countUSD() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && i.amount === 0).length; },
                 settlingUSD() { return this.inventory.filter(i => i.currency === 'USD' && i.amount === 0).length; },
                 monthlyJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + this.calcMonthly(i), 0); },
                 monthlyUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + this.calcMonthly(i), 0); },
-                clientNames() { return [...new Set(this.inventory.map(i => i.client))].sort(); },
-                allSales() { return [...new Set(this.inventory.map(i => i.sales))].sort(); },
+                countJPY() { return this.inventory.filter(i => i.currency === 'JPY').length; },
+                countUSD() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 
-                salesFilteredList() { return this.inventory.filter(i => i.sales === this.selectedSales); },
-                filteredClientList() { return this.inventory.filter(i => i.client === this.selectedClient); },
-
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
-                anyKOList() { return this.inventory.filter(i => i.stocks.some(s => s.current >= s.koPrice) && !this.isReadyToExit(i)); },
-                readyExitList() { return this.inventory.filter(i => this.isReadyToExit(i)); },
+                anyKOList() { return this.inventory.filter(i => i.stocks.some(s => s.current >= (s.init * (i.koP/100))) && !this.isReadyExit(i)); },
+                readyExitList() { return this.inventory.filter(i => this.isReadyExit(i)); },
                 currentRiskList() { 
-                    if(this.riskTab==='ki') return this.kiList;
-                    if(this.riskTab==='anyKO') return this.anyKOList;
+                    if(this.riskSubView==='ki') return this.kiList;
+                    if(this.riskSubView==='anyKO') return this.anyKOList;
                     return this.readyExitList;
                 },
-                alertCount() { return this.kiList.length + this.readyExitList.length; }
+                alertCount() { return this.kiList.length + this.readyExitList.length; },
+                clientList() { return this.inventory.filter(i => i.client.includes(this.search)); },
+                salesList() { return this.inventory.filter(i => i.sales === this.selectedSales); },
+                filteredClientList() { return this.inventory.filter(i => i.client === this.selectedClient || (this.search && i.client.includes(this.search))); }
             },
             methods: {
                 formatNum(n) { return Math.floor(n).toLocaleString(); },
-                calcMonthly(item) { return (item.amount * 10000 * item.coupon / 100) / 12; },
-                getPerf(item, s) { return ((s.current / s.initial) * 100).toFixed(2); },
-                isKOPeriodStarted(item) { return new Date() >= new Date(item.koStart); },
+                calcMonthly(i) { return (i.amount * 10000 * i.coupon / 100) / 12; },
+                getPerf(item, s) { return ((s.current / s.init) * 100).toFixed(2); },
                 hasBreachedKI(item) { return item.kiP > 0 && item.stocks.some(s => parseFloat(this.getPerf(item, s)) <= item.kiP); },
-                isReadyToExit(item) { return this.isKOPeriodStarted(item) && item.stocks.every(s => s.current >= s.koPrice); },
-                getStockTagClass(item, s) {
+                isReadyExit(item) { 
+                    const started = new Date() >= new Date(item.koStart);
+                    const allKO = item.stocks.every(s => s.current >= (s.init * (item.koP/100)));
+                    return started && allKO;
+                },
+                perfColor(item, s) {
                     const p = parseFloat(this.getPerf(item, s));
-                    if (s.current >= s.koPrice) return 'tag-success';
-                    if (p <= item.strikeP) return 'tag-danger';
+                    if (p >= item.koP) return 'text-success';
+                    if (p <= item.strikeP) return 'text-danger';
                     return '';
                 },
-                navClass(active) { return active ? 'active-tab' : 'hover:bg-slate-700'; },
-                goClient(name) { this.selectedClient = name; this.view = 'client'; },
+                itemStatusClass(item) {
+                    if (this.isReadyExit(item)) return 'exit-glow';
+                    if (this.hasBreachedKI(item)) return 'ki-alert';
+                    return '';
+                },
+                navClass(active) { return `nav-btn ${active ? 'active' : ''}`; },
+                goClient(name) { this.search = name; this.view = 'client'; },
                 async fetchRealPrices() {
                     this.isSyncing = true;
                     const symbols = [...new Set(this.inventory.flatMap(i => i.stocks.map(s => s.code)))];
@@ -233,7 +235,7 @@
                         const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
                         const data = await response.json();
                         const result = JSON.parse(data.contents);
-                        if (result.quoteResponse && result.quoteResponse.result) {
+                        if (result.quoteResponse?.result) {
                             const quotes = result.quoteResponse.result;
                             this.inventory.forEach(item => {
                                 item.stocks.forEach(stock => {
