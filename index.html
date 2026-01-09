@@ -3,135 +3,137 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 尊榮資產管理</title>
+    <title>FCN 專業資產管理系統 - 內部分析版</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 text-slate-900 font-sans">
+<body class="bg-[#f4f7f9] text-slate-900 font-sans">
     <div id="app" class="min-h-screen flex flex-col md:flex-row">
         
         <!-- 左側導航欄 -->
-        <div class="w-full md:w-72 bg-slate-900 text-white shadow-xl">
-            <div class="p-8 border-b border-slate-800 text-center">
-                <div class="w-20 h-20 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl font-bold shadow-lg shadow-blue-500/30">
-                    {{ customer.name[0] }}
+        <div class="w-full md:w-80 bg-[#1a222d] text-white shadow-xl flex flex-col">
+            <div class="p-8 border-b border-slate-700">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
+                        <i class="fa-solid fa-chart-line text-xl"></i>
+                    </div>
+                    <h1 class="text-xl font-black tracking-tight">FCN 庫存管理</h1>
                 </div>
-                <h2 class="text-xl font-bold tracking-wider">{{ customer.name }}</h2>
-                <p class="text-slate-400 text-sm mt-1">尊榮理財客戶 ({{ customer.id }})</p>
+                <div class="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
+                    <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest mb-1">當前選取客戶</p>
+                    <select v-model="selectedClient" class="bg-transparent w-full font-bold text-lg focus:outline-none">
+                        <option v-for="c in clients" :value="c" class="bg-slate-800 text-white">{{ c }}</option>
+                    </select>
+                </div>
             </div>
             
-            <nav class="p-4 space-y-2">
+            <nav class="p-4 space-y-2 flex-1">
                 <div @click="currentView = 'all'" :class="navClass(currentView === 'all')">
-                    <i class="fa-solid fa-wallet w-6"></i> 總覽與資產庫存
+                    <i class="fa-solid fa-briefcase w-6"></i> 所有持倉明細
                 </div>
                 <div @click="currentView = 'ko'" :class="navClass(currentView === 'ko', 'text-emerald-400')">
-                    <i class="fa-solid fa-arrow-trend-up w-6"></i> 即將 KO 獲利名單
+                    <i class="fa-solid fa-bolt w-6"></i> 即將 KO 贖回 ({{ koCount }})
                 </div>
                 <div @click="currentView = 'ki'" :class="navClass(currentView === 'ki', 'text-rose-400')">
-                    <i class="fa-solid fa-triangle-exclamation w-6"></i> 已觸及 KI 預警
+                    <i class="fa-solid fa-shield-virus w-6"></i> KI 風險監控 ({{ kiCount }})
                 </div>
             </nav>
+            <div class="p-6 text-[10px] text-slate-500 border-t border-slate-800">
+                <p>最後更新：{{ lastUpdateTime }}</p>
+                <p>數據源：Excel 匯入資料</p>
+            </div>
         </div>
 
         <!-- 右側主區域 -->
-        <div class="flex-1 p-4 md:p-10">
-            <!-- 上方資產概況卡片 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p class="text-slate-500 text-sm mb-1">總資產價值 (USD)</p>
-                    <h3 class="text-3xl font-black">${{ totalAssets.toLocaleString() }}</h3>
+        <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+            <!-- 數據總覽卡片 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-blue-500">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase">持有總額 (JPY)</p>
+                    <h3 class="text-2xl font-black italic">{{ formatNum(totalAmount) }} 萬</h3>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                    <p class="text-slate-500 text-sm mb-1">累計已收票息</p>
-                    <h3 class="text-3xl font-black text-emerald-600">${{ customer.totalCoupon.toLocaleString() }}</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase">預估票息年率</p>
+                    <h3 class="text-2xl font-black text-emerald-600">{{ avgCoupon }}%</h3>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-l-blue-500">
-                    <p class="text-slate-500 text-sm mb-1">庫存筆數</p>
-                    <h3 class="text-3xl font-black">{{ inventory.length }} 筆</h3>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-amber-500">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase">距離觀察日</p>
+                    <h3 class="text-2xl font-black">38 天</h3>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-slate-800">
+                    <p class="text-slate-400 text-[10px] font-bold uppercase">到期日</p>
+                    <h3 class="text-xl font-black">2026/07/17</h3>
                 </div>
             </div>
 
-            <h2 class="text-xl font-bold mb-6 flex items-center">
-                <span class="w-2 h-8 bg-blue-600 rounded-full mr-3"></span>
-                {{ viewTitle }}
+            <h2 class="text-2xl font-black mb-6 text-slate-800 flex items-center gap-2">
+                <span class="w-1.5 h-6 bg-blue-500 rounded-full"></span>
+                {{ selectedClient }} 的庫存資產
             </h2>
 
-            <!-- FCN 庫存清單 -->
-            <div class="space-y-4">
-                <div v-for="item in filteredList" :key="item.id" class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 hover:shadow-md transition">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4">
-                        <div>
-                            <span class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2 inline-block">{{ item.id }}</span>
-                            <h4 class="text-lg font-bold">{{ item.underlying }} 掛鉤票據</h4>
+            <!-- FCN 卡片列表 -->
+            <div v-for="item in filteredList" :key="item.sn" class="bg-white rounded-[2rem] shadow-sm border border-slate-100 p-6 md:p-8 mb-6 hover:shadow-xl transition-all duration-500">
+                <div class="flex flex-col lg:flex-row justify-between gap-8">
+                    <!-- 商品基本資訊 -->
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-4">
+                            <span class="bg-blue-600 text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-tighter">{{ item.sn }}</span>
+                            <span class="text-slate-400 text-xs font-bold">下單日: {{ item.orderDate }}</span>
                         </div>
-                        <div class="text-right mt-2 md:mt-0">
-                            <p class="text-xs text-slate-400">當前股價</p>
-                            <p class="text-xl font-mono font-bold" :class="item.priceColor">${{ item.currentPrice.toFixed(2) }}</p>
+                        <h3 class="text-2xl font-black text-slate-800 mb-6 italic">Worst-of Fixed Coupon Note</h3>
+                        
+                        <!-- 三檔標的橫向顯示 -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div v-for="stock in item.stocks" :key="stock.code" 
+                                class="p-4 rounded-2xl border transition-all duration-500"
+                                :class="getStockClass(stock)">
+                                <div class="flex justify-between items-start mb-2">
+                                    <p class="font-black text-lg">{{ stock.code }}</p>
+                                    <span class="text-[10px] font-bold px-2 py-0.5 rounded" :class="stock.status === 'OK' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'">
+                                        {{ getPerf(stock) }}%
+                                    </span>
+                                </div>
+                                <div class="space-y-1">
+                                    <div class="flex justify-between text-[10px] font-bold uppercase text-slate-400">
+                                        <span>現價參考</span>
+                                        <span>KO 價</span>
+                                    </div>
+                                    <div class="flex justify-between font-mono font-bold">
+                                        <span class="text-xl" :class="stock.priceColor">${{ formatNum(stock.current) }}</span>
+                                        <span class="text-slate-400">${{ formatNum(stock.ko) }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 視覺化進度條：顯示 KI - 當前價 - KO -->
-                    <div class="relative pt-6 pb-2">
-                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden flex">
-                            <div class="h-full bg-rose-400" :style="{width: '10%'}"></div> <!-- KI 區 -->
-                            <div class="h-full bg-slate-200" :style="{width: '80%'}"></div> <!-- 安全區 -->
-                            <div class="h-full bg-emerald-400" :style="{width: '10%'}"></div> <!-- KO 區 -->
+                    <!-- 右側數據摘要 -->
+                    <div class="lg:w-72 bg-slate-50 rounded-3xl p-6 flex flex-col justify-between border border-slate-100">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">配息年率</p>
+                                <p class="text-3xl font-black text-blue-600">{{ item.coupon }}%</p>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase">履約價</p>
+                                    <p class="font-black">{{ item.strikeP }}%</p>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase">KI 價</p>
+                                    <p class="font-black text-rose-500">{{ item.kiP }}%</p>
+                                </div>
+                            </div>
                         </div>
-                        <!-- 股價標記點 -->
-                        <div class="absolute top-4 transition-all duration-500" :style="{left: calculatePosition(item) + '%'}">
-                            <div class="w-1 h-6 bg-slate-900 mx-auto"></div>
-                            <div class="text-[10px] font-bold whitespace-nowrap -translate-x-1/2">目前位置</div>
-                        </div>
-                        <div class="flex justify-between text-[10px] text-slate-400 mt-1 font-mono">
-                            <span>KI: ${{item.kiPrice}}</span>
-                            <span>KO: ${{item.koPrice}}</span>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 pt-4 border-t border-slate-50 text-sm">
-                        <div>
-                            <p class="text-slate-400">距離 KI</p>
-                            <p class="font-bold text-rose-500">{{ (((item.currentPrice - item.kiPrice)/item.kiPrice)*100).toFixed(2) }}%</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">距離 KO</p>
-                            <p class="font-bold text-emerald-500">{{ (((item.koPrice - item.currentPrice)/item.currentPrice)*100).toFixed(2) }}%</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400">票息率 (p.a.)</p>
-                            <p class="font-bold">{{ item.coupon }}%</p>
-                        </div>
-                        <div class="text-right">
-                            <span v-if="item.isKI" class="bg-rose-500 text-white px-3 py-1 rounded-lg text-xs font-bold">⚠️ 觸及下限</span>
-                            <span v-else-if="item.isNearKO" class="bg-emerald-500 text-white px-3 py-1 rounded-lg text-xs font-bold">💰 即將獲利</span>
-                            <span v-else class="bg-slate-800 text-white px-3 py-1 rounded-lg text-xs font-bold">運作中</span>
-                        </div>
+                        <button class="w-full mt-6 py-3 bg-slate-900 text-white rounded-2xl font-black text-sm hover:bg-blue-600 transition shadow-lg">查看觀察日詳情</button>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        const { createApp } = Vue
-        createApp({
-            data() {
-                return {
-                    currentView: 'all',
-                    // 在這裡修改客戶資料！
-                    customer: {
-                        name: '張大明',
-                        id: 'VVIP-888-001',
-                        totalCoupon: 12500.50
-                    },
-                    inventory: [
-                        { id: 'FCN-NVDA-101', underlying: 'NVDA', currentPrice: 128.5, koPrice: 145, kiPrice: 100, coupon: 12.5, priceColor: '' },
-                        { id: 'FCN-TSLA-202', underlying: 'TSLA', currentPrice: 178.2, koPrice: 185, kiPrice: 140, coupon: 15.0, priceColor: '' },
-                        { id: 'FCN-AAPL-303', underlying: 'AAPL', currentPrice: 162.0, koPrice: 210, kiPrice: 165, coupon: 8.5, priceColor: '' }
-                    ]
-                }
-            },
-            computed: {
-                totalAssets() {
-                    return this.inventory.length * 50000; // 假設
+                <!-- 底部進度條：以表現最差的標的為基準 -->
+                <div class="mt-8 pt-6 border-t border-slate-50">
+                    <div class="flex justify-between items-end mb-2">
+                        <p class="text-xs font-black uppercase text-slate-500">
+                            WPU (最差標的) 表現：<span class="text-blue-600">{{ getWpu(item).code }}</span>
+                        </p>
+                        <p class="text-xs font-black text-bl
