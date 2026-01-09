@@ -3,182 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 庫存管理系統</title>
-    <!-- 引入必要的工具 -->
+    <title>上新莊 FCN 資產管理系統</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-900 text-slate-100">
+<body class="bg-[#0f172a] text-slate-200 font-sans">
     <div id="app" class="min-h-screen flex flex-col md:flex-row">
         
-        <!-- 左側選單 -->
-        <div class="w-full md:w-80 bg-[#111827] p-6 border-b md:border-r border-slate-700">
-            <div class="flex items-center gap-3 mb-8">
-                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                    <i class="fa-solid fa-chart-pie text-white"></i>
+        <!-- 左側導航欄 -->
+        <div class="w-full md:w-80 bg-[#1e293b] p-6 border-b md:border-r border-slate-700 flex flex-col shadow-2xl">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-landmark text-white"></i>
                 </div>
-                <h1 class="text-xl font-bold">FCN 庫存管理</h1>
+                <div>
+                    <h1 class="text-xl font-black tracking-tight text-white">上新莊分行</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">FCN Management System</p>
+                </div>
             </div>
 
-            <div class="bg-slate-800 p-4 rounded-xl mb-6">
-                <label class="text-slate-400 text-xs font-bold block mb-2 uppercase tracking-widest">目前檢視客戶</label>
-                <select v-model="selectedClient" class="bg-transparent w-full text-lg font-bold outline-none text-white">
-                    <option v-for="name in clientNames" :value="name" class="bg-slate-800">{{ name }}</option>
-                </select>
-            </div>
-
-            <nav class="space-y-2">
-                <div @click="view = 'all'" :class="navBtnClass(view === 'all')">
-                    <i class="fa-solid fa-list w-6"></i> 所有持倉
+            <nav class="space-y-3 flex-1">
+                <div @click="view = 'branch'" :class="navClass(view === 'branch')">
+                    <i class="fa-solid fa-chart-column w-6 text-blue-400"></i> 分行總資產概覽
                 </div>
-                <div class="p-4 text-slate-500 text-xs border-t border-slate-800 mt-4">
-                    最後更新：{{ lastTime }}
+                <div class="pt-4 pb-2 text-[10px] font-black text-slate-500 uppercase tracking-widest border-t border-slate-700/50">客戶庫存查詢</div>
+                <div @click="view = 'client'" :class="navClass(view === 'client')">
+                    <i class="fa-solid fa-user-check w-6 text-indigo-400"></i> 個別客戶明細
                 </div>
             </nav>
-        </div>
 
-        <!-- 右側內容 -->
-        <div class="flex-1 p-4 md:p-8 overflow-y-auto bg-slate-900">
-            <!-- 頂部摘要 -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                    <p class="text-slate-400 text-xs font-bold mb-1">庫存總額 (JPY)</p>
-                    <h3 class="text-2xl font-black text-blue-400">{{ formatNum(totalPrincipal) }} 萬</h3>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                    <p class="text-slate-400 text-xs font-bold mb-1">配息年率</p>
-                    <h3 class="text-2xl font-black text-emerald-400">12.76%</h3>
-                </div>
-                <div class="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                    <p class="text-slate-400 text-xs font-bold mb-1">距離觀察日</p>
-                    <h3 class="text-2xl font-black text-amber-400">38 天</h3>
-                </div>
-            </div>
-
-            <!-- FCN 卡片 -->
-            <div v-for="item in filteredList" :key="item.client" class="bg-slate-800 rounded-3xl p-6 mb-6 border border-slate-700 shadow-2xl">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <span class="bg-blue-900 text-blue-300 text-[10px] px-2 py-1 rounded font-bold mr-2">{{ item.sn }}</span>
-                        <h4 class="text-lg font-bold mt-2 italic text-slate-200">Worst-of Fixed Coupon Note</h4>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] text-slate-500 font-bold tracking-widest">到期日</p>
-                        <p class="text-sm font-bold text-slate-300">{{ item.expiry }}</p>
-                    </div>
-                </div>
-
-                <!-- 三檔股票 -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <div v-for="s in item.stocks" :key="s.code" class="bg-slate-900/50 p-4 rounded-2xl border border-slate-700">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="font-black text-blue-400">{{ s.code }}</span>
-                            <span :class="perfClass(s)" class="text-[10px] font-bold px-2 py-0.5 rounded-full">
-                                {{ getPerf(s) }}%
-                            </span>
-                        </div>
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-[9px] text-slate-500 font-bold">現價參考</p>
-                                <p class="text-lg font-mono font-bold" :class="s.color">{{ formatNum(s.current) }}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[9px] text-slate-500 font-bold">KO 價</p>
-                                <p class="text-sm font-mono text-slate-400">{{ formatNum(s.ko) }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 進度條 -->
-                <div class="pt-4 border-t border-slate-700">
-                    <div class="flex justify-between text-[10px] font-bold text-slate-500 mb-2 uppercase">
-                        <span>WPU 表現基準 (最差標的)</span>
-                        <span class="text-blue-500 italic">距離 KO 贖回差 {{ (100 - getPerf(getWpu(item))).toFixed(2) }}%</span>
-                    </div>
-                    <div class="h-2 w-full bg-slate-700 rounded-full relative">
-                        <!-- KI 區 -->
-                        <div class="absolute left-0 h-full bg-rose-500/30 rounded-l-full" :style="{width: '55%'}"></div>
-                        <!-- KO 標記 -->
-                        <div class="absolute left-[95%] h-full w-0.5 bg-emerald-500"></div>
-                        <!-- 目前位置指針 -->
-                        <div class="absolute top-1/2 -translate-y-1/2 w-1 h-5 bg-white shadow-[0_0_8px_#fff] transition-all duration-1000" :style="{left: getPerf(getWpu(item)) + '%'}"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-[9px] font-bold text-slate-600">
-                        <span>KI (55%)</span>
-                        <span>KO (95%)</span>
-                    </div>
+            <div class="p-4 bg-slate-800/50 rounded-2xl border border-slate-700 mt-6">
+                <p class="text-[10px] text-slate-500 font-bold mb-2">系統狀態</p>
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold text-emerald-500">股價同步中</span>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script>
-        const { createApp } = Vue
-        createApp({
-            data() {
-                return {
-                    view: 'all',
-                    selectedClient: '吳柏輝',
-                    clientNames: ['吳柏輝', '江雪嬌'],
-                    lastTime: new Date().toLocaleTimeString(),
-                    inventory: [
-                        { 
-                            sn: 'SNUBSELN01051', client: '吳柏輝', amount: 5300, expiry: '2026/07/17', 
-                            stocks: [
-                                { code: '6146 JP', ko: 51490, current: 56880, color: '' },
-                                { code: '6501 JP', ko: 5173, current: 5124, color: '' },
-                                { code: '7011 JP', ko: 4047, current: 4233, color: '' }
-                            ]
-                        },
-                        { 
-                            sn: 'SNUBSELN01051', client: '江雪嬌', amount: 200, expiry: '2026/07/17', 
-                            stocks: [
-                                { code: '6146 JP', ko: 51490, current: 56880, color: '' },
-                                { code: '6501 JP', ko: 5173, current: 5124, color: '' },
-                                { code: '7011 JP', ko: 4047, current: 4233, color: '' }
-                            ]
-                        }
-                    ]
-                }
-            },
-            computed: {
-                filteredList() {
-                    return this.inventory.filter(i => i.client === this.selectedClient);
-                },
-                totalPrincipal() {
-                    return this.inventory.filter(i => i.client === this.selectedClient).reduce((s, i) => s + i.amount, 0);
-                }
-            },
-            methods: {
-                formatNum(n) { return Math.floor(n).toLocaleString(); },
-                getPerf(s) { return ((s.current / s.ko) * 95).toFixed(2); },
-                getWpu(item) {
-                    return item.stocks.reduce((p, c) => (parseFloat(this.getPerf(p)) < parseFloat(this.getPerf(c)) ? p : c));
-                },
-                perfClass(s) {
-                    const p = this.getPerf(s);
-                    return p >= 95 ? 'bg-emerald-900 text-emerald-300' : (p <= 55 ? 'bg-rose-900 text-rose-300' : 'bg-slate-700 text-slate-300');
-                },
-                navBtnClass(active) {
-                    return `p-4 rounded-xl cursor-pointer transition flex items-center gap-3 font-bold ${active ? 'bg-blue-600 text-white shadow-lg shadow-blue-900' : 'text-slate-400 hover:bg-slate-800'}`;
-                }
-            },
-            mounted() {
-                setInterval(() => {
-                    this.inventory.forEach(item => {
-                        item.stocks.forEach(s => {
-                            const change = (Math.random() - 0.5) * (s.current * 0.003);
-                            const old = s.current;
-                            s.current += change;
-                            s.color = s.current > old ? 'text-emerald-400' : 'text-rose-400';
-                        });
-                    });
-                    this.lastTime = new Date().toLocaleTimeString();
-                }, 3000);
-            }
-        }).mount('#app')
-    </script>
-</body>
-</html>
+        <!-- 右側內容區 -->
+        <div class="flex-1 p-4 md:p-10 overflow-y-auto">
+            
+            <!-- 視圖 1：分行總資產概覽 -->
+            <div v-if="view === 'branch'" class="animate-fadeIn">
+                <h2 class="text-3xl font-black mb-8 italic">上新莊客戶總資產概覽</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                    <!-- JPY 統計卡片 -->
+                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                        <i class="fa-solid fa-yen-sign absolute right-[-10%] bottom-[-10%] text-9xl text-white/10 rotate-12 transition-transform group-hover:scale-110"></i>
+                        <p class="text-blue-100 font-bold text-sm mb-2 uppercase tracking-widest">JPY 日幣資產總額</p>
+                        <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalJPY) }} <span class="text-xl">萬</span></h3>
+                        <div class="flex gap-4">
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">客戶數：{{ jpyClients.length }}</span>
+                            <span class="bg-white/20 px-3 py-1 rounded-full text-xs font-bold">平均利率：12.76%</span>
+                        </div>
+                    </div>
+
+                    <!-- USD 統計卡片 -->
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group">
+                        <i class="fa-solid fa-dollar-sign absolute right-[-10%] bottom-[-10%] text-9xl text-white/10 rotate-12 transition-transform group-hover:scale-110"></i>
+                        <p class="text-emerald-100 font-bold text-sm mb-2 uppercase tracking-widest">USD 美金資產總額</p>
+                        <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalUSD) }} <span class="text-xl">萬</span></h3>
