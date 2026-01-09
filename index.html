@@ -3,192 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上新莊分行 - FCN 總覽系統</title>
+    <title>上新莊分行 FCN 資產監控系統</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        [v-cloak] { display: none; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
 </head>
-<body class="bg-[#0f172a] text-slate-200 antialiased">
-    <div id="app" v-cloak>
-        <div class="min-h-screen flex flex-col md:flex-row">
-            
-            <!-- 左側導航 -->
-            <div class="w-full md:w-80 bg-[#1e293b] p-6 border-b md:border-r border-slate-700 shadow-2xl">
-                <div class="flex items-center gap-3 mb-10">
-                    <div class="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                        <i class="fa-solid fa-landmark text-white"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-black text-white">上新莊分行</h1>
-                        <p class="text-[10px] text-slate-500 font-bold tracking-widest uppercase">Asset Management</p>
-                    </div>
-                </div>
-
-                <nav class="space-y-3">
-                    <div @click="view = 'branch'" :class="navClass(view === 'branch')">
-                        <i class="fa-solid fa-chart-column w-6 text-blue-400"></i> 分行資產總覽
-                    </div>
-                    <div @click="view = 'client'" :class="navClass(view === 'client')">
-                        <i class="fa-solid fa-user-check w-6 text-indigo-400"></i> 客戶明細監控
-                    </div>
-                </nav>
-
-                <div class="mt-10 p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
-                    <p class="text-[10px] text-slate-500 font-black mb-2 uppercase">Market Data</p>
-                    <div class="flex items-center gap-2">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-bold text-emerald-500 italic">價格即時同步中</span>
-                    </div>
+<body class="bg-[#0f172a] text-slate-200">
+    <div id="app" v-cloak class="min-h-screen flex flex-col md:flex-row">
+        
+        <!-- 左側導航 -->
+        <div class="w-full md:w-72 bg-[#1e293b] p-6 border-b md:border-r border-slate-700 flex flex-col">
+            <div class="flex items-center gap-3 mb-10">
+                <i class="fa-solid fa-landmark text-2xl text-blue-500"></i>
+                <div>
+                    <h1 class="text-xl font-bold text-white leading-none">上新莊分行</h1>
+                    <p class="text-[9px] text-slate-500 mt-1 uppercase font-black">FCN Dashboard v2.0</p>
                 </div>
             </div>
-
-            <!-- 右側內容 -->
-            <div class="flex-1 p-4 md:p-10 overflow-y-auto bg-[#0f172a]">
-                
-                <!-- 頁面 1: 分行總覽 -->
-                <div v-if="view === 'branch'" class="fade-in">
-                    <h2 class="text-3xl font-black mb-8 italic">上新莊客戶總資產概覽</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-                        <!-- JPY 總額 -->
-                        <div class="bg-gradient-to-br from-blue-600 to-blue-900 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-blue-400/20">
-                            <i class="fa-solid fa-yen-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/5 rotate-12"></i>
-                            <p class="text-blue-100 font-bold text-sm mb-2 uppercase tracking-widest">JPY 日幣 FCN 總額</p>
-                            <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalJPY) }} <span class="text-xl font-normal">萬</span></h3>
-                            <div class="flex gap-4">
-                                <span class="bg-black/20 px-4 py-1.5 rounded-xl text-xs font-bold italic">客戶數：{{ jpyClients.length }} 位</span>
-                            </div>
-                        </div>
-
-                        <!-- USD 總額 -->
-                        <div class="bg-gradient-to-br from-emerald-600 to-teal-900 p-8 rounded-[2.5rem] shadow-xl relative overflow-hidden group border border-emerald-400/20">
-                            <i class="fa-solid fa-dollar-sign absolute right-[-5%] bottom-[-10%] text-9xl text-white/5 rotate-12"></i>
-                            <p class="text-emerald-100 font-bold text-sm mb-2 uppercase tracking-widest">USD 美金 FCN 總額</p>
-                            <h3 class="text-5xl font-black text-white mb-4">{{ formatNum(totalUSD) }} <span class="text-xl font-normal">萬</span></h3>
-                            <div class="flex gap-4">
-                                <span class="bg-black/20 px-4 py-1.5 rounded-xl text-xs font-bold italic">客戶數：{{ usdClients.length }} 位</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 全分行清單快照 -->
-                    <div class="bg-[#1e293b] rounded-[2rem] p-8 border border-slate-700">
-                        <h4 class="text-xl font-bold mb-6 flex items-center gap-3">
-                            <i class="fa-solid fa-table-list text-blue-500"></i> 分行客戶持倉快照
-                        </h4>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead class="text-slate-500 text-[10px] font-black uppercase tracking-widest border-b border-slate-700">
-                                    <tr>
-                                        <th class="pb-4">客戶姓名</th>
-                                        <th class="pb-4">幣別</th>
-                                        <th class="pb-4">金額(萬)</th>
-                                        <th class="pb-4">掛鉤標的</th>
-                                        <th class="pb-4 text-right">狀態</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="text-sm font-bold">
-                                    <tr v-for="i in inventory" class="border-b border-slate-800 hover:bg-slate-700/30 transition cursor-pointer" @click="goClient(i.client)">
-                                        <td class="py-5 text-slate-200">{{ i.client }}</td>
-                                        <td class="py-5">
-                                            <span :class="i.currency === 'USD' ? 'text-emerald-400' : 'text-blue-400'">{{ i.currency }}</span>
-                                        </td>
-                                        <td class="py-5 font-mono">{{ formatNum(i.amount) }}</td>
-                                        <td class="py-5 text-xs text-slate-500">{{ i.stocks.map(s => s.code).join(' / ') }}</td>
-                                        <td class="py-5 text-right">
-                                            <span class="px-3 py-1 bg-slate-800 rounded-full text-[10px] text-blue-400 border border-blue-500/30">穩定</span>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+            <nav class="space-y-2 flex-1">
+                <div @click="view = 'branch'" :class="navClass(view === 'branch')">
+                    <i class="fa-solid fa-chart-line w-6"></i> 分行資產總覽
                 </div>
-
-                <!-- 頁面 2: 客戶明細 -->
-                <div v-if="view === 'client'" class="fade-in">
-                    <div class="flex justify-between items-center mb-10">
-                        <h2 class="text-3xl font-black italic">客戶資產監控</h2>
-                        <select v-model="selectedClient" class="bg-slate-800 text-white font-bold p-3 rounded-2xl border border-slate-700 outline-none">
-                            <option v-for="name in clientNames" :value="name">{{ name }}</option>
-                        </select>
-                    </div>
-
-                    <div v-for="item in filteredList" :key="item.client + item.sn" class="bg-[#1e293b] rounded-[2.5rem] p-8 border border-slate-700 shadow-xl mb-10 relative overflow-hidden">
-                        <div class="absolute right-4 top-4 text-6xl font-black text-white/[0.03] uppercase select-none">{{ item.currency }}</div>
-                        
-                        <div class="flex justify-between items-start mb-8 relative z-10">
-                            <div class="flex items-center gap-4">
-                                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center font-black text-2xl text-white shadow-xl shadow-blue-900/40">
-                                    {{ item.client[0] }}
-                                </div>
-                                <div>
-                                    <h4 class="text-2xl font-black text-white">{{ item.client }}</h4>
-                                    <p class="text-xs text-slate-500 font-bold tracking-widest uppercase">{{ item.sn }} | 到期: {{ item.expiry }}</p>
-                                </div>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-xs text-slate-500 font-black uppercase mb-1">投資金額</p>
-                                <p class="text-3xl font-black text-blue-400 font-mono tracking-tighter">{{ formatNum(item.amount) }} <span class="text-sm font-bold uppercase">{{ item.currency }}</span></p>
-                            </div>
-                        </div>
-
-                        <!-- 標的股票 -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
-                            <div v-for="s in item.stocks" class="bg-slate-900/60 p-6 rounded-3xl border border-slate-700 hover:border-blue-500/50 transition">
-                                <div class="flex justify-between mb-4">
-                                    <span class="font-black text-blue-400 text-lg">{{ s.code }}</span>
-                                    <span :class="perfClass(item, s)" class="text-[10px] font-black px-2 py-1 rounded-lg">{{ getPerf(item, s) }}%</span>
-                                </div>
-                                <div class="flex justify-between items-end">
-                                    <div>
-                                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1 tracking-widest">現價參考</p>
-                                        <p class="text-2xl font-mono font-black transition-colors" :class="s.color">{{ formatNum(s.current) }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <p class="text-[10px] text-slate-500 font-bold uppercase mb-1">KO 價</p>
-                                        <p class="text-sm font-mono font-bold text-slate-400">{{ formatNum(s.ko) }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div @click="view = 'client'" :class="navClass(view === 'client')">
+                    <i class="fa-solid fa-user-group w-6"></i> 客戶持倉監控
                 </div>
+            </nav>
+            <div class="mt-6 p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+                <div class="flex items-center gap-2 text-emerald-500 text-xs font-bold">
+                    <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                    價格同步中
+                </div>
+                <p class="text-[9px] text-slate-500 mt-2">最後更新: {{ lastTime }}</p>
             </div>
         </div>
-    </div>
 
-    <script>
-        const { createApp } = Vue
-        createApp({
-            data() {
-                return {
-                    view: 'branch',
-                    selectedClient: '吳柏輝',
-                    // 【庫存資料區：您可以在這裡無限增加客戶】
-                    inventory: [
-                        { 
-                            sn: 'SNUBSELN01051', client: '吳柏輝', currency: 'JPY', amount: 5300, 
-                            expiry: '2026/07/17', koP: 95, strikeP: 70, kiP: 55,
-                            stocks: [
-                                { code: '6146 JP', ko: 51490, current: 56880, color: '' },
-                                { code: '6501 JP', ko: 5173, current: 5124, color: '' },
-                                { code: '7011 JP', ko: 4047, current: 4233, color: '' }
-                            ]
-                        },
-                        { 
-                            sn: 'SNUBSELN01051', client: '江雪嬌', currency: 'JPY', amount: 200, 
-                            expiry: '2026/07/17', koP: 95, strikeP: 70, kiP: 55,
-                            stocks: [
-                                { code: '6146 JP', ko: 51490, current: 56880, color: '' },
-                                { code: '6501 JP', ko: 5173, current: 5124, color: '' },
-                                { code: '7011 JP', ko: 4047, current: 4233, color: '' }
-                            ]
-                        },
-                        { 
-                            sn: 'SN-JPY-NEW-01', client: '王小明', currency: 'JPY', amount: 1500, 
-                            expiry: '2026/10/05', koP: 98, strikeP: 75, kiP: 60,
-                            stocks: [
-                                { code: '6146 JP', ko: 51490, current: 56880, color: '' },
-                                { code: '6501 JP', ko: 5173, current: 5124, color: '' },
-                                { code: '701
+        <!-- 右側內容 -->
+        <div class="flex-1 p-4 md:p-8 overflow-y-auto">
+            
+            <!-- 視圖 1: 分行總覽 -->
+            <div v-if="view === 'branch'" class="fade-in">
+                <h2 class="text-3xl font-black mb-8 italic tracking-tight">上新莊分行管理總覽</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+                    <div class="bg-gradient-to-br from-blue-600 to-blue-800 p-8 rounded-[2rem] shadow-xl border border-blue-400/20">
+                        <p class="text-blue-100 font-bold text-xs uppercase tracking-widest mb-1">JPY 日幣資產總庫存</p>
+                        <h3 class="text-5xl font-black text-white">{{ formatNum(totalJPY) }} <span class="text-lg">萬</span></h3>
+                        <div class="mt-4 flex gap-3">
+                            <span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold">總筆數: {{ countJPY }}</span>
+                        </div>
+                    </div>
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-800 p-8 rounded-[2.5rem] shadow-xl border border-emerald-400/20">
+                        <p class="text-emerald-100 font-bold text-xs uppercase tracking-widest mb-1">USD 美金資產總庫存</p>
+                        <h3 class="text-5xl font-black text-white">{{ formatNum(totalUSD) }} <span class="text-lg">萬</span></h3>
+                        <div class="mt-4 flex gap-3">
+                            <span class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold">總筆數: {{ countUSD }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/40 rounded-3xl p-6 border border-slate-700">
+                    <h4 class="text-lg font-bold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-blue-500"></i> 分行完整清單表
+                    </h4>
+                    <div class="overflow-x-auto text-xs">
+                        <table class="w-full text-left"
