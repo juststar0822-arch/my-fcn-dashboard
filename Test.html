@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>元大投資先生風格 - 智能條件單模擬</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元大證券 - 手續費試算器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -13,182 +13,164 @@
             --input-bg: #252d3a;
             --rise-red: #f23645;
             --fall-green: #089981;
+            --accent-gold: #d4af37;
         }
-        body { background-color: var(--yuanta-dark); color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--yuanta-dark); color: white; font-family: sans-serif; }
         .tab-active { color: white; border-bottom: 3px solid var(--yuanta-blue); font-weight: bold; }
         .tab-inactive { color: #848e9c; }
-        .yuanta-btn { background: var(--yuanta-blue); border-radius: 25px; transition: all 0.2s; }
-        .yuanta-btn:active { opacity: 0.8; transform: scale(0.98); }
-        .input-box { background: var(--input-bg); border: 1px solid #363c4e; border-radius: 8px; color: white; }
-        .stock-tag { background: #2a3240; border-radius: 4px; padding: 2px 6px; font-size: 12px; }
+        .input-field { background: var(--input-bg); border: 1px solid #363c4e; border-radius: 8px; color: white; width: 100%; padding: 12px; text-align: right; }
+        .result-card { background: var(--card-bg); border-radius: 12px; padding: 16px; border: 1px solid #2d3446; }
+        .label-text { color: #848e9c; font-size: 14px; margin-bottom: 4px; display: block; }
     </style>
 </head>
-<body class="flex justify-center items-start min-h-screen">
+<body class="flex justify-center p-4">
 
-    <!-- 模擬手機容器 -->
-    <div class="w-full max-w-md min-h-screen shadow-2xl overflow-hidden flex flex-col">
-        
-        <!-- Top Bar -->
-        <div class="p-4 flex justify-between items-center border-b border-gray-800">
-            <div class="flex items-center">
-                <span class="text-xl font-bold">智能單設定</span>
-            </div>
-            <div class="text-right">
-                <div class="text-xs text-gray-500">模擬資產</div>
-                <div class="text-yellow-500 font-bold">$100,000</div>
-            </div>
+    <div class="w-full max-w-md shadow-2xl rounded-2xl overflow-hidden">
+        <!-- Header -->
+        <div class="p-6 text-center border-b border-gray-800">
+            <h1 class="text-xl font-bold tracking-wide">交易手續費試算</h1>
+            <p class="text-xs text-gray-500 mt-1">元大證券費率參考版</p>
         </div>
 
-        <!-- 股票名稱區 -->
-        <div class="p-4 bg-[#161b22]">
-            <div class="flex justify-between items-end">
-                <div>
-                    <span class="text-2xl font-bold">2330 台積電</span>
-                    <span class="stock-tag ml-2 text-gray-400">現貨</span>
-                </div>
-                <div class="text-right">
-                    <div id="price" class="text-2xl font-mono text-red-500 tracking-tighter">1,025.0</div>
-                    <div class="text-xs text-red-500">+15.0 (+1.48%)</div>
-                </div>
-            </div>
+        <!-- Tab Switch -->
+        <div class="flex justify-around bg-[#161b22] border-b border-gray-800">
+            <button onclick="switchTab('tw')" id="tab-tw" class="py-4 px-8 tab-active">台股交易</button>
+            <button onclick="switchTab('us')" id="tab-us" class="py-4 px-8 tab-inactive">美股交易</button>
         </div>
 
-        <!-- 智能單類型切換 (模擬投資先生 Tab) -->
-        <div class="flex justify-around bg-[#161b22] border-b border-gray-800 text-sm">
-            <button onclick="setMode('trigger')" id="tab-trigger" class="py-3 px-4 tab-active">觸價才下單</button>
-            <button onclick="setMode('oco')" id="tab-oco" class="py-3 px-4 tab-inactive">二擇一 (OCO)</button>
-            <button onclick="setMode('trailing')" id="tab-trailing" class="py-3 px-4 tab-inactive">移動鎖利</button>
-        </div>
-
-        <!-- 設定內容區 -->
-        <div class="p-4 space-y-5 flex-grow">
+        <div class="p-6 space-y-6">
             
-            <!-- 觸發條件 -->
-            <div id="ui-trigger">
-                <label class="text-sm text-gray-400 block mb-2">當股價</label>
-                <div class="flex gap-2">
-                    <select class="input-box p-3 w-1/3">
-                        <option>大於等於</option>
-                        <option>小於等於</option>
-                    </select>
-                    <input type="number" id="val1" class="input-box p-3 w-2/3" placeholder="請輸入觸發價">
-                </div>
-            </div>
-
-            <div id="ui-oco" class="hidden space-y-4">
-                <div>
-                    <label class="text-sm text-gray-400 block mb-2">高價觸發 (停利)</label>
-                    <input type="number" id="oco-high" class="input-box p-3 w-full" placeholder="設定較高價格">
-                </div>
-                <div>
-                    <label class="text-sm text-gray-400 block mb-2">低價觸發 (停損)</label>
-                    <input type="number" id="oco-low" class="input-box p-3 w-full" placeholder="設定較低價格">
-                </div>
-            </div>
-
-            <div id="ui-trailing" class="hidden">
-                <label class="text-sm text-gray-400 block mb-2">從最高點回檔金額 (元)</label>
-                <input type="number" id="trail-val" class="input-box p-3 w-full" placeholder="例如: 10">
-                <p class="text-xs text-gray-500 mt-2">※ 系統將自動追蹤最高價，當股價由高點回落此金額時執行賣出。</p>
-            </div>
-
-            <!-- 下單設定 -->
-            <div class="border-t border-gray-800 pt-5 space-y-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm">委託方式</span>
-                    <div class="flex gap-2">
-                        <button class="px-4 py-1 rounded bg-blue-900 border border-blue-500 text-xs">限價</button>
-                        <button class="px-4 py-1 rounded bg-gray-700 text-xs">市價</button>
+            <!-- 台股試算介面 -->
+            <div id="tw-panel" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-text">股價 (TWD)</label>
+                        <input type="number" id="tw-price" class="input-field" placeholder="0.0" oninput="calculateTW()">
+                    </div>
+                    <div>
+                        <label class="label-text">股數</label>
+                        <input type="number" id="tw-qty" class="input-field" value="1000" oninput="calculateTW()">
                     </div>
                 </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm">數量 (股)</span>
-                    <input type="number" class="input-box p-2 w-32 text-right" value="1000">
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-sm">有效日期</span>
-                    <span class="text-sm text-blue-400">至 2024/12/31 (長效)</span>
-                </div>
-            </div>
-        </div>
 
-        <!-- 底部按鈕 -->
-        <div class="p-4 bg-[#161b22] border-t border-gray-800">
-            <button onclick="confirmOrder()" class="yuanta-btn w-full py-4 font-bold text-lg shadow-lg">確認送出條件單</button>
-        </div>
+                <div>
+                    <label class="label-text">手續費折讓 (例如: 6折請填 6)</label>
+                    <div class="relative">
+                        <input type="number" id="tw-discount" class="input-field" value="6" oninput="calculateTW()">
+                        <span class="absolute left-3 top-3 text-gray-500 text-sm">折</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 mt-1">※ 元大基本費率: 0.1425%</p>
+                </div>
 
-        <!-- 監控清單模擬 (抽屜感) -->
-        <div class="bg-black p-4 min-h-[100px]">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-sm font-bold text-gray-400">監控中條件</span>
-                <span id="order-count" class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">0</span>
+                <div class="result-card space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-400">成交總額</span>
+                        <span id="tw-total" class="font-mono font-bold">$0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">手續費 (折後)</span>
+                        <span id="tw-fee" class="text-blue-400">$0</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-400">證交稅 (0.3%)</span>
+                        <span id="tw-tax" class="text-orange-400">$0</span>
+                    </div>
+                    <hr class="border-gray-700">
+                    <div class="flex justify-between items-center pt-1">
+                        <span class="text-sm">買入預計支出</span>
+                        <span id="tw-buy-net" class="text-lg text-red-500 font-bold">$0</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-sm">賣出預計實收</span>
+                        <span id="tw-sell-net" class="text-lg text-green-500 font-bold">$0</span>
+                    </div>
+                </div>
             </div>
-            <div id="monitor-list" class="space-y-2">
-                <!-- 條件單卡片 -->
+
+            <!-- 美股試算介面 -->
+            <div id="us-panel" class="hidden space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="label-text">股價 (USD)</label>
+                        <input type="number" id="us-price" class="input-field" placeholder="0.0" oninput="calculateUS()">
+                    </div>
+                    <div>
+                        <label class="label-text">股數</label>
+                        <input type="number" id="us-qty" class="input-field" value="1" oninput="calculateUS()">
+                    </div>
+                </div>
+
+                <div class="bg-blue-900/20 border border-blue-500/30 p-3 rounded-lg">
+                    <p class="text-xs text-blue-300">元大美股優惠費率：成交金額 0.1%<br>目前設定：無最低手續費限制</p>
+                </div>
+
+                <div class="result-card space-y-3">
+                    <div class="flex justify-between text-gray-400">
+                        <span>成交總額</span>
+                        <span id="us-total" class="font-mono font-bold text-white">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span>手續費 (0.1%)</span>
+                        <span id="us-fee" class="text-blue-400">$0.00</span>
+                    </div>
+                    <hr class="border-gray-700">
+                    <div class="flex justify-between items-center pt-2">
+                        <span>買入總成本</span>
+                        <span id="us-buy-net" class="text-xl text-red-500 font-bold">$0.00</span>
+                    </div>
+                    <p class="text-[10px] text-gray-500 text-right">※ 美股賣出時另有微量 SEC 費用未列入</p>
+                </div>
             </div>
+
         </div>
     </div>
 
     <script>
-        let mode = 'trigger';
-        let currentPrice = 1025.0;
-        let orders = [];
-
-        // 模擬股價跳動
-        setInterval(() => {
-            const rand = (Math.random() - 0.5) * 2;
-            currentPrice = parseFloat((currentPrice + rand).toFixed(1));
-            const priceEl = document.getElementById('price');
-            priceEl.innerText = currentPrice.toLocaleString(undefined, {minimumFractionDigits: 1});
-            priceEl.className = rand > 0 ? 'text-2xl font-mono text-red-500 tracking-tighter' : 'text-2xl font-mono text-green-500 tracking-tighter';
-            checkLogic();
-        }, 1500);
-
-        function setMode(m) {
-            mode = m;
-            document.getElementById('ui-trigger').classList.add('hidden');
-            document.getElementById('ui-oco').classList.add('hidden');
-            document.getElementById('ui-trailing').classList.add('hidden');
-            document.getElementById(`ui-${m}`).classList.remove('hidden');
-
-            document.getElementById('tab-trigger').className = 'py-3 px-4 ' + (m==='trigger'?'tab-active':'tab-inactive');
-            document.getElementById('tab-oco').className = 'py-3 px-4 ' + (m==='oco'?'tab-active':'tab-inactive');
-            document.getElementById('tab-trailing').className = 'py-3 px-4 ' + (m==='trailing'?'tab-active':'tab-inactive');
+        function switchTab(type) {
+            if (type === 'tw') {
+                document.getElementById('tw-panel').classList.remove('hidden');
+                document.getElementById('us-panel').classList.add('hidden');
+                document.getElementById('tab-tw').className = 'py-4 px-8 tab-active';
+                document.getElementById('tab-us').className = 'py-4 px-8 tab-inactive';
+            } else {
+                document.getElementById('tw-panel').classList.add('hidden');
+                document.getElementById('us-panel').classList.remove('hidden');
+                document.getElementById('tab-tw').className = 'py-4 px-8 tab-inactive';
+                document.getElementById('tab-us').className = 'py-4 px-8 tab-active';
+            }
         }
 
-        function confirmOrder() {
-            let desc = "";
-            if(mode === 'trigger') desc = "觸價 > " + document.getElementById('val1').value;
-            if(mode === 'oco') desc = "OCO: " + document.getElementById('oco-low').value + "~" + document.getElementById('oco-high').value;
-            if(mode === 'trailing') desc = "回檔 " + document.getElementById('trail-val').value + " 元";
+        function calculateTW() {
+            const price = parseFloat(document.getElementById('tw-price').value) || 0;
+            const qty = parseFloat(document.getElementById('tw-qty').value) || 0;
+            const discount = parseFloat(document.getElementById('tw-discount').value) || 10;
+            
+            const total = price * qty;
+            // 基本費率 0.1425% (元大)
+            let fee = Math.floor(total * 0.001425 * (discount / 10));
+            // 台股手續費通常不滿20元以20元計(雖然有些券商會優待，這裡先以元大標準邏輯)
+            if (total > 0 && fee < 20) fee = 20; 
 
-            orders.push({ id: Date.now(), mode, desc, status: '監控中', peak: currentPrice });
-            updateList();
-            alert("條件單已啟動，開始監控行情");
+            const tax = Math.floor(total * 0.003); // 證交稅 0.3%
+
+            document.getElementById('tw-total').innerText = '$' + total.toLocaleString();
+            document.getElementById('tw-fee').innerText = '$' + fee.toLocaleString();
+            document.getElementById('tw-tax').innerText = '$' + tax.toLocaleString();
+            document.getElementById('tw-buy-net').innerText = '$' + (total + fee).toLocaleString();
+            document.getElementById('tw-sell-net').innerText = '$' + (total - fee - tax).toLocaleString();
         }
 
-        function updateList() {
-            const list = document.getElementById('monitor-list');
-            document.getElementById('order-count').innerText = orders.filter(o => o.status === '監控中').length;
-            list.innerHTML = '';
-            orders.forEach(o => {
-                list.innerHTML += `
-                    <div class="bg-[#252d3a] p-3 rounded-lg border-l-4 ${o.status==='監控中'?'border-blue-500':'border-gray-500'}">
-                        <div class="flex justify-between text-sm">
-                            <span class="font-bold">2330 台積電</span>
-                            <span class="${o.status==='監控中'?'text-blue-400':'text-gray-400'}">${o.status}</span>
-                        </div>
-                        <div class="text-xs text-gray-400 mt-1">${o.desc}</div>
-                    </div>
-                `;
-            });
-        }
+        function calculateUS() {
+            const price = parseFloat(document.getElementById('us-price').value) || 0;
+            const qty = parseFloat(document.getElementById('us-qty').value) || 0;
+            
+            const total = price * qty;
+            // 元大美股 0.1%，無低消
+            const fee = total * 0.001;
 
-        function checkLogic() {
-            orders.forEach(o => {
-                if(o.status !== '監控中') return;
-                // 這裡可以寫更複雜的觸發邏輯，滿足條件後變更狀態並 alert
-            });
+            document.getElementById('us-total').innerText = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('us-fee').innerText = '$' + fee.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('us-buy-net').innerText = '$' + (total + fee).toLocaleString(undefined, {minimumFractionDigits: 2});
         }
     </script>
 </body>
