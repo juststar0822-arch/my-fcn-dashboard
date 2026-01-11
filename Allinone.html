@@ -2,190 +2,281 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>專業投資儀表板 - 元大費率試算整合版</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>上新莊 All-in-One 專業系統</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #0a0e14; color: #e0e0e0; font-family: 'Inter', 'Microsoft JhengHei', sans-serif; }
-        .sidebar { background-color: #161b22; transition: all 0.3s; }
-        .card { background-color: #1c222d; border: 1px solid #2d3446; }
-        .nav-link { transition: all 0.2s; color: #848e9c; }
-        .nav-link.active { background-color: #1f2937; color: #3b82f6; border-right: 4px solid #3b82f6; }
-        .input-dark { background-color: #252d3a; border: 1px solid #363c4e; color: white; }
-        .input-dark:focus { border-color: #3b82f6; outline: none; }
-        .section-content { display: none; animation: fadeIn 0.3s ease; }
-        .section-content.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        :root {
+            --primary-bg: #0a0e17; 
+            --card-bg: #161c28;
+            --accent-gold: #c5a368; 
+            --accent-blue: #007aff;
+            --text-main: #ffffff;
+            --text-sub: #8e8e93;
+            --header-height: 60px;
+            --nav-height: 75px;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            height: 100%; width: 100%;
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--primary-bg);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        /* 頂部導航 */
+        header {
+            height: var(--header-height);
+            background: rgba(10, 14, 23, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            position: fixed;
+            top: 0; width: 100%;
+            box-sizing: border-box;
+            z-index: 100;
+            border-bottom: 1px solid rgba(197, 163, 104, 0.2);
+        }
+
+        .system-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--accent-gold);
+        }
+
+        #home-btn {
+            font-size: 1.4rem;
+            color: var(--text-main);
+            cursor: pointer;
+            display: none; /* 進入功能後才會顯示 */
+            padding: 5px 10px;
+        }
+
+        /* 主畫面內容區 */
+        .main-container {
+            margin-top: var(--header-height);
+            height: calc(100% - var(--header-height) - var(--nav-height));
+            overflow-y: auto;
+            padding: 25px 20px;
+            box-sizing: border-box;
+        }
+
+        .welcome-section {
+            margin-bottom: 30px;
+        }
+        .welcome-section h1 { margin: 0; font-size: 1.6rem; font-weight: 700; }
+        .welcome-section p { color: var(--accent-gold); margin: 8px 0 0; font-size: 0.9rem; opacity: 0.8; }
+
+        /* 主選單卡片 */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .menu-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .menu-card:active { transform: scale(0.95); background: #1e2636; }
+        .menu-card i {
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .menu-card span { font-weight: 500; font-size: 1.05rem; letter-spacing: 1px; }
+
+        /* Iframe 滿版容器 */
+        #content-frame-wrapper {
+            display: none;
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: 100%;
+            height: calc(100% - var(--header-height)); 
+            background: white;
+            z-index: 50;
+        }
+        iframe { width: 100%; height: 100%; border: none; }
+
+        /* 底部導航列 */
+        .bottom-nav {
+            height: var(--nav-height);
+            background: #11161f;
+            position: fixed;
+            bottom: 0; width: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding-bottom: env(safe-area-inset-bottom);
+            border-top: 1px solid rgba(255,255,255,0.08);
+            z-index: 90;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 0.7rem; /* 微調字體以適應5個按鈕 */
+            flex: 1;
+            transition: color 0.3s;
+        }
+        .nav-item i { font-size: 1.2rem; margin-bottom: 5px; }
+        .nav-item span { font-weight: 400; }
+        .nav-item:active { color: var(--accent-gold); }
+
+        /* 隱藏元素邏輯 */
+        .hidden { display: none !important; }
     </style>
 </head>
-<body class="flex min-h-screen">
+<body>
 
-    <!-- 側邊選單 -->
-    <aside class="sidebar w-64 fixed inset-y-0 left-0 z-50 overflow-y-auto border-r border-gray-800">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold text-blue-500 tracking-tighter">INVEST DASH</h1>
+<header>
+    <div class="system-name">上新莊 ALL-IN-ONE</div>
+    <div id="home-btn" onclick="goHome()">
+        <i class="fa-solid fa-house-chimney"></i>
+    </div>
+</header>
+
+<!-- 主選單 UI -->
+<div class="main-container" id="main-ui">
+    <div class="welcome-section">
+        <h1 id="greeting">午安, 專業經理人</h1>
+        <p><i class="fa-solid fa-shield-halved"></i> 專業資產管理系統已就緒</p>
+    </div>
+
+    <div class="menu-grid">
+        <div class="menu-card" onclick="loadTool('query')">
+            <i class="fa-solid fa-magnifying-glass-chart"></i>
+            <span>FCN報價</span>
         </div>
-        <nav class="mt-4 px-4">
-            <ul class="space-y-2">
-                <li>
-                    <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-link active flex items-center p-3 rounded-lg">
-                        <i class="fas fa-chart-line mr-3"></i><span>資產總覽</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="#" onclick="switchTab('fee-calc')" id="nav-fee-calc" class="nav-link flex items-center p-3 rounded-lg">
-                        <i class="fas fa-calculator mr-3"></i><span>手續費試算</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </aside>
+        <div class="menu-card" onclick="loadTool('quote')">
+            <i class="fa-solid fa-file-invoice-dollar"></i>
+            <span>FCN詢價</span>
+        </div>
+        <div class="menu-card" onclick="loadTool('cashflow')">
+            <i class="fa-solid fa-chart-line"></i>
+            <span>現金流</span>
+        </div>
+        <div class="menu-card" onclick="loadTool('yuanta')">
+            <i class="fa-solid fa-gem"></i>
+            <span>元元致富</span>
+        </div>
+        <!-- 新加入的手續費試算卡片 -->
+        <div class="menu-card" onclick="loadTool('fee_calc')">
+            <i class="fa-solid fa-calculator"></i>
+            <span>手續費試算</span>
+        </div>
+    </div>
+</div>
 
-    <!-- 主要內容區 -->
-    <main class="flex-1 ml-64 p-8">
-        
-        <!-- 區塊1: 原有的資產總覽 (預留) -->
-        <section id="section-dashboard" class="section-content active">
-            <h2 class="text-2xl font-bold mb-6">資產總覽</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="card p-6 rounded-2xl text-center">
-                    <p class="text-gray-400 text-sm mb-2">虛擬購買力</p>
-                    <p class="text-3xl font-bold text-yellow-500">$100,000</p>
-                </div>
-                <!-- 您原本的 FCN 或資產卡片可以放這 -->
-            </div>
-        </section>
+<!-- Iframe 承載區 -->
+<div id="content-frame-wrapper">
+    <iframe id="target-frame" src=""></iframe>
+</div>
 
-        <!-- 區塊2: 手續費試算 (新加入功能) -->
-        <section id="section-fee-calc" class="section-content">
-            <div class="max-w-xl mx-auto">
-                <div class="card rounded-2xl overflow-hidden shadow-2xl">
-                    <div class="p-5 border-b border-gray-800 bg-[#161b22] flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-blue-400">台/美股手續費試算</h2>
-                        <span class="text-[10px] text-gray-500 uppercase tracking-widest">Yuanta Rate</span>
-                    </div>
+<!-- 底部選單 -->
+<nav class="bottom-nav" id="bottom-bar">
+    <div class="nav-item" onclick="loadTool('query')">
+        <i class="fa-solid fa-magnifying-glass-chart"></i>
+        <span>FCN詢價</span>
+    </div>
+    <div class="nav-item" onclick="loadTool('quote')">
+        <i class="fa-solid fa-file-invoice-dollar"></i>
+        <span>FCN報價</span>
+    </div>
+    <div class="nav-item" onclick="loadTool('fee_calc')">
+        <i class="fa-solid fa-calculator"></i>
+        <span>手續費</span>
+    </div>
+    <div class="nav-item" onclick="loadTool('cashflow')">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>現金流</span>
+    </div>
+    <div class="nav-item" onclick="loadTool('yuanta')">
+        <i class="fa-solid fa-gem"></i>
+        <span>元元致富</span>
+    </div>
+</nav>
 
-                    <!-- 分頁標籤 -->
-                    <div class="flex bg-[#161b22] border-b border-gray-800 text-sm">
-                        <button onclick="toggleType('tw')" id="tab-tw" class="w-1/2 py-4 font-bold text-white border-b-2 border-blue-500">台股交易</button>
-                        <button onclick="toggleType('us')" id="tab-us" class="w-1/2 py-4 font-bold text-gray-500 border-b-2 border-transparent">美股複委託</button>
-                    </div>
+<script>
+    // 依據您的需求對應網址
+    const pages = {
+        'query': 'https://juststar0822-arch.github.io/my-fcn-dashboard/quote.html',      // FCN詢價
+        'quote': 'https://juststar0822-arch.github.io/my-fcn-dashboard/simulator.html',  // FCN報價
+        'cashflow': 'https://juststar0822-arch.github.io/my-fcn-dashboard/cashflow.html',// 現金流
+        'yuanta': 'https://juststar0822-arch.github.io/my-fcn-dashboard/yuanta_pro.html', // 元元致富
+        'fee_calc': 'https://juststar0822-arch.github.io/my-fcn-dashboard/Test.html'      // 手續費試算 (新加入)
+    };
 
-                    <div class="p-8 space-y-6">
-                        <!-- 台股介面 -->
-                        <div id="panel-tw" class="space-y-5">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-xs text-gray-500 block mb-2">股價 (TWD)</label>
-                                    <input type="number" id="tw-price" class="input-dark w-full p-4 rounded-xl text-right text-xl font-mono" placeholder="0.0" oninput="runTW()">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-gray-500 block mb-2">股數 <span id="tw-tag" class="ml-2 px-2 bg-gray-800 rounded text-blue-400">整張</span></label>
-                                    <input type="number" id="tw-qty" class="input-dark w-full p-4 rounded-xl text-right text-xl font-mono" value="1000" oninput="runTW()">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="text-xs text-gray-500 block mb-2">手續費折讓 (例如 2.8 折請填 2.8)</label>
-                                <div class="relative">
-                                    <input type="number" id="tw-discount" class="input-dark w-full p-4 rounded-xl text-right text-xl font-mono" value="6" step="0.1" oninput="runTW()">
-                                    <span class="absolute left-4 top-4 text-blue-500 font-bold">折</span>
-                                </div>
-                            </div>
+    function loadTool(key) {
+        const url = pages[key];
+        const wrapper = document.getElementById('content-frame-wrapper');
+        const frame = document.getElementById('target-frame');
+        const homeBtn = document.getElementById('home-btn');
+        const bottomBar = document.getElementById('bottom-bar');
+        const mainUi = document.getElementById('main-ui');
 
-                            <div class="bg-[#161b22] p-6 rounded-2xl border border-gray-800 space-y-4">
-                                <div class="flex justify-between text-sm text-gray-400"><span>成交金額</span><span id="res-tw-total" class="text-white font-mono">$0</span></div>
-                                <div class="flex justify-between text-sm text-gray-400"><span>手續費 (1.425‰ × 折讓)</span><div class="text-right"><span id="res-tw-fee" class="text-blue-400 font-mono font-bold">$0</span><p id="res-tw-min" class="text-[9px] text-gray-600">(整張低消$20)</p></div></div>
-                                <div class="flex justify-between text-sm text-gray-400"><span>證券交易稅 (3‰)</span><span id="res-tw-tax" class="text-orange-400 font-mono font-bold">$0</span></div>
-                                <hr class="border-gray-800">
-                                <div class="flex justify-between items-center"><span class="text-sm">買入總支出</span><span id="res-tw-buy" class="text-2xl text-red-500 font-bold font-mono">$0</span></div>
-                                <div class="flex justify-between items-center"><span class="text-sm">賣出預計實收</span><span id="res-tw-sell" class="text-2xl text-green-500 font-bold font-mono">$0</span></div>
-                            </div>
-                        </div>
+        // 1. 載入內容並顯示容器
+        wrapper.style.display = 'block';
+        frame.src = url;
 
-                        <!-- 美股介面 -->
-                        <div id="panel-us" class="hidden space-y-5">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="text-xs text-gray-500 block mb-2">股價 (USD)</label>
-                                    <input type="number" id="us-price" class="input-dark w-full p-4 rounded-xl text-right text-xl font-mono" placeholder="0.00" oninput="runUS()">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-gray-500 block mb-2">股數</label>
-                                    <input type="number" id="us-qty" class="input-dark w-full p-4 rounded-xl text-right text-xl font-mono" value="1" oninput="runUS()">
-                                </div>
-                            </div>
-                            <div class="p-3 bg-blue-900/10 border border-blue-500/20 rounded-lg text-xs text-blue-300">
-                                元大美股手續費：0.1% 成交金額，目前設定無低消。
-                            </div>
-                            <div class="bg-[#161b22] p-6 rounded-2xl border border-gray-800 space-y-4">
-                                <div class="flex justify-between text-sm text-gray-400"><span>成交總額</span><span id="res-us-total" class="text-white font-mono">$0.00</span></div>
-                                <div class="flex justify-between text-sm text-gray-400"><span>手續費 (0.1%)</span><span id="res-us-fee" class="text-blue-400 font-mono font-bold">$0.00</span></div>
-                                <hr class="border-gray-800">
-                                <div class="flex justify-between items-center"><span class="text-sm font-bold">買入預計總成本</span><span id="res-us-net" class="text-2xl text-red-500 font-bold font-mono">$0.00</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        // 2. 顯示頂部「房屋」按鈕
+        homeBtn.style.display = 'block';
 
-    </main>
+        // 3. 隱藏下方導航與主選單 (沉浸模式)
+        bottomBar.classList.add('hidden');
+        mainUi.classList.add('hidden');
+    }
 
-    <script>
-        // 頁籤切換邏輯 (主選單)
-        function switchTab(targetId) {
-            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            
-            document.getElementById('section-' + targetId).classList.add('active');
-            document.getElementById('nav-' + targetId).classList.add('active');
-        }
+    function goHome() {
+        const wrapper = document.getElementById('content-frame-wrapper');
+        const frame = document.getElementById('target-frame');
+        const homeBtn = document.getElementById('home-btn');
+        const bottomBar = document.getElementById('bottom-bar');
+        const mainUi = document.getElementById('main-ui');
 
-        // 試算器內部切換 (台股/美股)
-        function toggleType(type) {
-            const isTw = type === 'tw';
-            document.getElementById('panel-tw').classList.toggle('hidden', !isTw);
-            document.getElementById('panel-us').classList.toggle('hidden', isTw);
-            
-            document.getElementById('tab-tw').className = isTw ? 'w-1/2 py-4 font-bold text-white border-b-2 border-blue-500' : 'w-1/2 py-4 font-bold text-gray-500 border-b-2 border-transparent';
-            document.getElementById('tab-us').className = !isTw ? 'w-1/2 py-4 font-bold text-white border-b-2 border-blue-500' : 'w-1/2 py-4 font-bold text-gray-500 border-b-2 border-transparent';
-        }
+        // 1. 隱藏並清空 Iframe
+        wrapper.style.display = 'none';
+        frame.src = "";
 
-        // 台股計算核心
-        function runTW() {
-            const price = parseFloat(document.getElementById('tw-price').value) || 0;
-            const qty = parseFloat(document.getElementById('tw-qty').value) || 0;
-            const disc = parseFloat(document.getElementById('tw-discount').value) || 10;
-            const total = Math.round(price * qty);
-            
-            // 零股/整張低消判斷
-            let minFee = (qty > 0 && qty < 1000) ? 1 : 20;
-            document.getElementById('tw-tag').innerText = (qty > 0 && qty < 1000) ? "零股" : "整張";
-            document.getElementById('res-tw-min').innerText = `(${(qty > 0 && qty < 1000) ? "零股" : "整張"}低消$${minFee})`;
+        // 2. 隱藏頂部「房屋」按鈕
+        homeBtn.style.display = 'none';
 
-            let fee = Math.floor(total * 0.001425 * (disc / 10));
-            if (total > 0 && fee < minFee) fee = minFee; 
-            const tax = Math.floor(total * 0.003);
+        // 3. 恢復顯示導航與主選單
+        bottomBar.classList.remove('hidden');
+        mainUi.classList.remove('hidden');
+    }
 
-            document.getElementById('res-tw-total').innerText = '$' + total.toLocaleString();
-            document.getElementById('res-tw-fee').innerText = '$' + fee.toLocaleString();
-            document.getElementById('res-tw-tax').innerText = '$' + tax.toLocaleString();
-            document.getElementById('res-tw-buy').innerText = '$' + (total + fee).toLocaleString();
-            document.getElementById('res-tw-sell').innerText = '$' + (total - fee - tax).toLocaleString();
-        }
+    // 問候語邏輯
+    function setGreeting() {
+        const hr = new Date().getHours();
+        let g = "您好, 專業經理人";
+        if (hr < 5) g = "深夜了, 請注意休息";
+        else if (hr < 12) g = "早安, 專業經理人";
+        else if (hr < 18) g = "午安, 專業經理人";
+        else g = "晚安, 專業經理人";
+        document.getElementById('greeting').innerText = g;
+    }
+    setGreeting();
+</script>
 
-        // 美股計算核心
-        function runUS() {
-            const p = parseFloat(document.getElementById('us-price').value) || 0;
-            const q = parseFloat(document.getElementById('us-qty').value) || 0;
-            const total = p * q;
-            const fee = total * 0.001; // 0.1%
-
-            document.getElementById('res-us-total').innerText = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('res-us-fee').innerText = '$' + fee.toLocaleString(undefined, {minimumFractionDigits: 2});
-            document.getElementById('res-us-net').innerText = '$' + (total + fee).toLocaleString(undefined, {minimumFractionDigits: 2});
-        }
-    </script>
 </body>
 </html>
