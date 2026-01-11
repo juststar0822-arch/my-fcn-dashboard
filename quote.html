@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業報價系統 v2.1</title>
+    <title>FCN 專業報價系統 v2.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -33,17 +33,16 @@
         
         <!-- 輸入面板 -->
         <div v-if="!isLocked" class="no-print p-4 bg-white shadow-md mb-6 max-w-md mx-auto rounded-b-xl">
-            <h2 class="font-black text-blue-800 mb-3 border-b-2 border-blue-800">FCN 報價輸入面板 v2.1</h2>
+            <h2 class="font-black text-blue-800 mb-3 border-b-2 border-blue-800 text-lg">FCN 報價輸入 v2.2 (標的優化版)</h2>
             
-            <!-- 市場切換 -->
             <div class="flex gap-2 mb-3 items-center">
-                <span class="text-xs font-bold">市場選擇：</span>
+                <span class="text-xs font-bold">市場：</span>
                 <div @click="form.market = 'US'" :class="['market-btn', form.market === 'US' ? 'active' : '']">美股</div>
                 <div @click="form.market = 'JP'" :class="['market-btn', form.market === 'JP' ? 'active' : '']">日股 (.T)</div>
             </div>
 
             <div class="grid grid-cols-2 gap-3 text-sm">
-                <div class="col-span-2">標的代碼 (逗號分隔) <input v-model="form.tickers" class="w-full border p-2 rounded mt-1" placeholder="例如: TSM,NVDA,TSLA 或 6146,6501"></div>
+                <div class="col-span-2">標的代碼 (用逗號分開) <input v-model="form.tickers" class="w-full border p-2 rounded mt-1" placeholder="例如: TSM,NVDA,ORCL"></div>
                 <div>發行機構 <input v-model="form.issuer" class="w-full border p-2 rounded mt-1"></div>
                 <div>報價日期 <input v-model="form.date" type="date" class="w-full border p-2 rounded mt-1"></div>
                 <div>天期(月) <input v-model="form.tenor" type="number" class="w-full border p-2 rounded mt-1"></div>
@@ -53,7 +52,7 @@
                 <div>Strike % <input v-model="form.strikeP" type="number" class="w-full border p-2 rounded mt-1"></div>
                 <div>KI % (NA填0) <input v-model="form.kiP" type="number" class="w-full border p-2 rounded mt-1"></div>
             </div>
-            <button @click="generate" class="w-full mt-4 bg-blue-700 text-white font-black py-3 rounded-lg shadow-lg">生成報價預覽</button>
+            <button @click="generate" class="w-full mt-4 bg-blue-700 text-white font-black py-3 rounded-lg shadow-lg">生成預覽報價單</button>
         </div>
 
         <div class="flex justify-center mb-4 no-print">
@@ -88,13 +87,13 @@
                     <div class="col-span-3 navy-cell">天期(月)</div>
                     <div class="col-span-3 white-cell">{{ form.tenor }}</div>
                     <div class="col-span-3 navy-cell" style="grid-row: span 2;">觸及生效價<br>(KI)</div>
-                    <div class="col-span-3 white-cell text-2xl ki-red flex items-center justify-center" style="grid-row: span 2;">{{ form.kiP == 0 ? 'NA' : form.kiP + '%' }}</div>
+                    <div class="col-span-3 white-cell text-2xl ki-red flex items-center justify-center" style="grid-row: span 2;">{{ form.kiP == 0 ? 'NA' : form.kiP.toFixed(2) + '%' }}</div>
 
                     <div class="col-span-3 navy-cell text-red-500 font-bold">保證領息(月)</div>
                     <div class="col-span-3 white-cell text-red-500">{{ form.guarantee }}</div>
 
                     <div class="col-span-3 navy-cell">年化報酬率</div>
-                    <div class="col-span-3 white-cell text-xl text-blue-600">{{ form.coupon.toFixed(2) }}%</div>
+                    <div class="col-span-3 white-cell text-xl text-blue-600 font-black">{{ form.coupon.toFixed(2) }}%</div>
                 </div>
                 <div class="bg-blue-50 text-center py-2 font-black border-t border-b border-black">連結標的</div>
                 <div v-for="s in stockData" class="text-center py-3 border-b border-gray-200 font-black text-lg">
@@ -102,7 +101,7 @@
                 </div>
             </div>
 
-            <!-- 第二張：詳細報價 (修正空格問題) -->
+            <!-- 第二張：詳細報價 -->
             <div class="page-container shadow-2xl pb-4">
                 <div class="text-center pt-4">
                     <h1 class="text-3xl font-black tracking-widest">FCN報價</h1>
@@ -112,7 +111,6 @@
                     </div>
                 </div>
 
-                <!-- 核心條件表 (移除多餘空格) -->
                 <table class="w-full detail-table text-center mt-2 border-collapse">
                     <thead>
                         <tr class="bg-yellow-50">
@@ -167,27 +165,32 @@
 
     <script>
         const { createApp } = Vue;
-        // 擴充標的字典
+        // 中文名稱字典 (含 ORCL 及熱門標的)
         const stockNames = {
-            'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','BRK.B':'波克夏',
-            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'
+            // 美股標的
+            'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','GOOGL':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','NFLX':'網飛','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','V':'維薩','MA':'萬事達',
+            // 日股標的
+            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','9984.T':'軟銀集團','7203.T':'豐田汽車','6758.T':'索尼'
         };
 
         createApp({
             data() {
                 return {
                     isLocked: false,
-                    form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'Nomura', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,TSLA' },
+                    form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'Nomura', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL' },
                     stockData: []
                 }
             },
             methods: {
-                getStockName(s){ return stockNames[s] || ''; },
+                getStockName(s){ 
+                    // 先移除 .T 判斷，確保匹配正確
+                    const code = s.toUpperCase();
+                    return stockNames[code] || ''; 
+                },
                 async generate() {
                     this.stockData = [];
                     let tickerList = this.form.tickers.split(',').map(s => s.trim().toUpperCase());
                     
-                    // 日股代碼自動處理
                     if(this.form.market === 'JP') {
                         tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     }
