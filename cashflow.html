@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCN 預估現金流試算</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background: #f8fafc; }
+        .cashflow-card { background: linear-gradient(135deg, #1e293b 0%, #334155 100%); color: white; border-radius: 2rem; }
+        .twd-highlight { color: #fbbf24; }
+        .input-group { background: white; border-radius: 1.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app" v-cloak class="max-w-md mx-auto">
+        
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic">FCN 預估現金流試算</h1>
+            <p class="text-xs text-slate-400 font-bold mt-1 uppercase">Estimated Monthly Payout Projection</p>
+        </div>
+
+        <!-- 輸入區域 -->
+        <div class="input-group p-6 mb-6">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-black text-slate-500 mb-1">投資幣別</label>
+                    <div class="flex gap-2">
+                        <button @click="form.currency = 'USD'" :class="['flex-1 py-2 rounded-xl font-bold transition', form.currency === 'USD' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400']">USD 美元</button>
+                        <button @click="form.currency = 'JPY'" :class="['flex-1 py-2 rounded-xl font-bold transition', form.currency === 'JPY' ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-400']">JPY 日圓</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-500 mb-1">投資金額 ({{ form.currency == 'USD' ? '萬美元' : '萬日圓' }})</label>
+                    <input type="number" v-model="form.amount" class="w-full bg-slate-50 border-none p-3 rounded-xl text-xl font-black outline-none ring-2 ring-transparent focus:ring-blue-500">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-black text-slate-500 mb-1">預估年化利率 (%)</label>
+                    <input type="number" v-model="form.coupon" class="w-full bg-slate-50 border-none p-3 rounded-xl text-xl font-black text-blue-600 outline-none ring-2 ring-transparent focus:ring-blue-500">
+                </div>
+
+                <div class="pt-2 border-t border-slate-100">
+                    <div class="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                        <span>當前參考匯率 (Yahoo Finance)</span>
+                        <span @click="fetchRates" class="cursor-pointer text-blue-500"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin': isSyncing}"></i>更新匯率</span>
+                    </div>
+                    <div class="flex gap-4 mt-2">
+                        <div class="flex-1 bg-slate-50 p-2 rounded-lg">
+                            <p class="text-[9px] text-slate-400 uppercase">USD/TWD</p>
+                            <p class="text-sm font-black">{{ rates.USD.toFixed(3) }}</p>
+                        </div>
+                        <div class="flex-1 bg-slate-50 p-2 rounded-lg">
+                            <p class="text-[9px] text-slate-400 uppercase">JPY/TWD</p>
+                            <p class="text-sm font-black">{{ rates.JPY.toFixed(4) }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 結果展示區域 -->
+        <div class="cashflow-card p-8 shadow-2xl relative overflow-hidden mb-4">
+            <!-- 裝飾背景 -->
+            <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full"></div>
+            
+            <div class="relative z-10">
+                <p class="text-xs font-bold text-white/50 uppercase tracking-widest">預估每月領息金額</p>
+                
+                <div class="mt-4">
+                    <p class="text-5xl font-black italic tracking-tighter">
+                        {{ form.currency == 'USD' ? '$' : '¥' }} {{ formatNum(payoutOriginal) }}
+                    </p>
+                    <p class="text-sm font-bold text-white/40 mt-1">原幣月配息量</p>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-white/10">
+                    <p class="text-xs font-bold text-white/50 uppercase tracking-widest twd-highlight">約當新台幣</p>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl font-black twd-highlight italic">NT$ {{ formatNum(payoutTWD) }}</span>
+                    </div>
+                    <p class="text-[10px] font-bold text-white/30 mt-1">此金額係依據即時匯率換算之預估值</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 年度匯總 -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase">預估年度總配息 (台幣)</p>
+                    <p class="text-xl font-black text-slate-800 tracking-tighter italic">NT$ {{ formatNum(payoutTWD * 12) }}</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-black text-slate-400 uppercase">平均每日收益</p>
+                    <p class="text-xl font-black text-emerald-600 tracking-tighter italic">NT$ {{ formatNum(payoutTWD / 30) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 警語 -->
+        <div class="mt-8 px-4 text-center">
+            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">
+                ※ 以上數據均為預估試算結果，不保證實際獲利。<br>
+                實際配息金額及匯率依成交當時、實際派息日之銀行牌告為主。<br>
+                <span class="text-blue-500">本工具僅供參考，不構成任何投資建議。</span>
+            </p>
+        </div>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    isSyncing: false,
+                    form: {
+                        currency: 'USD',
+                        amount: 10, // 預設 10 萬
+                        coupon: 12.00 // 預設 12%
+                    },
+                    rates: {
+                        USD: 32.50,
+                        JPY: 0.2150
+                    }
+                }
+            },
+            computed: {
+                payoutOriginal() {
+                    // (金額 * 10000 * 利率%) / 12
+                    return (this.form.amount * 10000 * (this.form.coupon / 100)) / 12;
+                },
+                payoutTWD() {
+                    const currentRate = this.form.currency === 'USD' ? this.rates.USD : this.rates.JPY;
+                    return this.payoutOriginal * currentRate;
+                }
+            },
+            methods: {
+                formatNum(n) {
+                    return Math.floor(n).toLocaleString();
+                },
+                async fetchRates() {
+                    this.isSyncing = true;
+                    try {
+                        const symbols = ['USDTWD=X', 'JPYTWD=X'];
+                        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}`;
+                        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                        const data = await response.json();
+                        const result = JSON.parse(data.contents);
+                        
+                        if (result.quoteResponse?.result) {
+                            const quotes = result.quoteResponse.result;
+                            const usd = quotes.find(q => q.symbol === 'USDTWD=X');
+                            const jpy = quotes.find(q => q.symbol === 'JPYTWD=X');
+                            
+                            if (usd) this.rates.USD = usd.regularMarketPrice;
+                            if (jpy) this.rates.JPY = jpy.regularMarketPrice;
+                        }
+                    } catch (e) {
+                        console.error('匯率抓取失敗', e);
+                    } finally {
+                        this.isSyncing = false;
+                    }
+                }
+            },
+            mounted() {
+                this.fetchRates();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
