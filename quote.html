@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v5.0</title>
+    <title>FCN專業報價系統 v5.1</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -13,35 +13,34 @@
         body { background: #fafafa; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         [v-cloak] { display: none; }
         
-        /* Premium UI */
         .glass-input { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; transition: all 0.2s; font-weight: bold; }
         .glass-input:focus { border-color: #1e40af; outline: none; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
         .btn-premium { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; font-weight: 900; transition: all 0.3s; }
-        .btn-premium:disabled { background: #cbd5e1; transform: none; }
 
-        .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; position: relative; }
+        /* 截圖區寬度固定 */
+        .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; }
         .page-container { width: 410px; border: 1.5px solid #000; background: #fff; margin: 0 auto; overflow: visible; }
         
+        /* 摘要卡樣式 */
+        .summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .summary-header { font-size: 22px; font-weight: 900; text-align: center; border-bottom: 2px solid #000; padding: 12px; }
         .navy-cell { background: #2c3e50; color: white; border: 1px solid #000; text-align: center; font-size: 12px; font-weight: bold; padding: 10px 2px; }
         .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 8px 2px; height: 50px; }
 
+        /* 詳細表樣式 - 修正空白格 */
         .orange-bar { background: #fbbf24; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: 900; font-size: 13px; }
-        .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .detail-table td { border: 1px solid #000; font-size: 11px; font-weight: bold; padding: 4px 2px; }
+        .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.5px solid #000; }
+        .detail-table th, .detail-table td { border: 1px solid #000; font-size: 11px; font-weight: bold; padding: 6px 2px; text-align: center; }
         
         .row-container { display: flex; width: 100%; border-bottom: 1px solid #000; }
         .data-side { width: 125px; border-right: 1px solid #000; flex-shrink: 0; }
         .chart-side { flex-grow: 1; padding: 0px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: visible; }
-        .chart-box { height: 140px; width: 100%; } 
+        .chart-box { height: 145px; width: 100%; } 
         
-        .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 3px 0; font-weight: bold; color: #64748b; }
+        .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 4px 0; font-weight: bold; color: #64748b; }
         .legend-item { display: flex; align-items: center; gap: 3px; }
         .legend-dash { width: 12px; height: 0px; border-top: 2px dashed; }
         .legend-solid { width: 12px; height: 2px; background: #3b82f6; }
-
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -51,7 +50,7 @@
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 mb-8 no-print fade-in">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2">Stability Edition v5.0</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Pricing Terminal v5.1 Official</p>
             </div>
 
             <div class="space-y-4">
@@ -60,44 +59,40 @@
                     <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='JP'?'bg-white shadow-sm text-blue-600':'text-slate-400']">JP 日股</button>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1 uppercase tracking-widest">連結標的代碼</label>
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1 uppercase tracking-widest text-center">連結標的代碼 (逗號分隔)</label>
                     <input v-model="form.tickers" class="w-full glass-input text-center text-lg font-black uppercase" placeholder="NVDA,TSM,AMD">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label><input v-model="form.issuer" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">報價日期</label><input v-model="form.date" type="date" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">天期 (月)</label><input v-model="form.tenor" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1 text-blue-600 font-bold">利率 %</label><input v-model="form.coupon" type="number" class="w-full glass-input text-sm text-blue-600"></div>
+                    <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息 (月)</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
+                    <div><label class="text-[10px] font-black text-slate-500 mb-1 text-blue-600 font-bold">年化利率 %</label><input v-model="form.coupon" type="number" class="w-full glass-input text-sm text-blue-600"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KO %</label><input v-model="form.koP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">Strike %</label><input v-model="form.strikeP" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">KI %</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
+                    <div><label class="text-[10px] font-black text-slate-500 mb-1">KI % (無填0)</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
                 </div>
                 
                 <button @click="generate" :disabled="isSyncing" class="w-full btn-premium py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
                     <i v-if="isSyncing" class="fa-solid fa-circle-notch animate-spin"></i>
                     {{ isSyncing ? '正在抓取標的資料...' : '生成 FCN 專業報價單' }}
                 </button>
-                
-                <!-- 進度狀態顯示 -->
-                <div v-if="isSyncing" class="text-center font-bold text-blue-600 text-xs animate-pulse">
-                    {{ progressText }}
-                </div>
+                <div v-if="isSyncing" class="text-center font-bold text-blue-600 text-[10px] animate-pulse">{{ progressText }}</div>
             </div>
         </div>
 
         <!-- 2. 控制按鈕 -->
         <div v-if="isGenerated" class="flex flex-col items-center gap-3 mb-8 no-print sticky top-2 z-[500]">
-            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定隱藏面板' }}</button>
+            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定準備截圖' }}</button>
             <div class="flex gap-3">
-                <button @click="capture('summary')" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載摘要卡</button>
-                <button @click="capture('detail')" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載詳細報價</button>
+                <button @click="capture('summary')" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖1 (摘要卡)</button>
+                <button @click="capture('detail')" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖2 (詳細報價)</button>
             </div>
         </div>
 
-        <!-- 3. 報價內容 -->
+        <!-- 3. 內容區 -->
         <div v-show="isGenerated" class="fade-in">
-            <!-- 圖 1: 摘要卡 -->
+            <!-- 圖 1: 摘要 -->
             <div id="capture-summary" class="capture-box">
                 <div class="page-container shadow-sm">
                     <div class="summary-header">報價日期 {{ form.date.replace(/-/g, '/') }}</div>
@@ -118,21 +113,31 @@
 
             <div class="h-8 no-print"></div>
 
-            <!-- 圖 2: 詳細報價 -->
+            <!-- 圖 2: 詳細報價 (重構表頭消除空格) -->
             <div id="capture-detail" class="capture-box">
                 <div class="page-container shadow-sm">
                     <div class="text-center pt-3">
-                        <h1 class="text-2xl font-black tracking-widest">FCN報價單</h1>
+                        <h1 class="text-2xl font-black tracking-widest leading-none">FCN報價單</h1>
                         <div class="flex justify-between px-3 text-[9px] font-bold text-red-600 mt-1">
                             <span>幣別：{{ form.market === 'JP' ? 'JPY' : 'USD' }}</span>
                             <span>◎僅供內部參考，以實際成交為準 ◎2024/09起走勢</span>
                         </div>
                     </div>
-                    <table class="detail-table text-center mt-2">
-                        <tr class="bg-yellow-50"><td rowspan="2" width="22%">日期</td><td rowspan="2" width="10%">月</td><td colspan="3">條件 (%)</td><td rowspan="2" width="22%">Coupon</td></tr>
-                        <tr class="bg-white text-[8px]"><td>KO</td><td>Strike</td><td>KI</td></tr>
-                        <tr class="text-blue-700 font-black"><td>{{ form.date.split('-').slice(1).join('/') }}</td><td>{{ form.tenor }}</td><td>{{ form.koP.toFixed(2) }}%</td><td>{{ form.strikeP.toFixed(2) }}%</td><td>{{ form.kiP == 0 ? '-' : form.kiP.toFixed(2) + '%' }}</td><td>{{ form.coupon.toFixed(2) }}%</td></tr>
+                    
+                    <table class="detail-table mt-2">
+                        <thead>
+                            <tr class="bg-yellow-50 font-black">
+                                <th width="18%">日期</th><th width="10%">月</th><th width="18%">KO</th><th width="18%">Strike</th><th width="18%">KI</th><th width="18%">Coupon</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-blue-700 font-black">
+                                <td>{{ form.date.split('-').slice(1).join('/') }}</td><td>{{ form.tenor }}</td>
+                                <td>{{ form.koP.toFixed(2) }}%</td><td>{{ form.strikeP.toFixed(2) }}%</td><td>{{ form.kiP == 0 ? '-' : form.kiP.toFixed(2) + '%' }}</td><td>{{ form.coupon.toFixed(2) }}%</td>
+                            </tr>
+                        </tbody>
                     </table>
+
                     <div v-for="(stock, index) in stockData" :key="'item-'+stock.symbol">
                         <div class="orange-bar">標的 {{ index + 1 }} : {{ stock.symbol.replace('.T', '') }}</div>
                         <div class="row-container">
@@ -146,7 +151,7 @@
                                 </table>
                             </div>
                             <div class="chart-side">
-                                <div class="chart-box"><canvas :id="'chart-v5-' + index"></canvas></div>
+                                <div class="chart-box"><canvas :id="'chart-v51-' + index"></canvas></div>
                                 <div class="chart-legend-bottom">
                                     <div class="legend-item"><span class="legend-dash" style="border-color:#f97316"></span>KO</div>
                                     <div class="legend-item"><span class="legend-dash" style="border-color:#94a3b8"></span>Strike</div>
@@ -178,7 +183,6 @@
                 getStockName(s){ return stockNames[s.toUpperCase()] || ''; },
                 async fetchStock(ticker) {
                     const cb = new Date().getTime();
-                    // 更換代理伺服器至 corsproxy.io (速度更快)
                     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?range=2y&interval=1d&cb='+cb)}`;
                     try {
                         const res = await fetch(proxyUrl);
@@ -204,11 +208,10 @@
                     if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     
                     for (let i = 0; i < tickerList.length; i++) {
-                        const t = tickerList[i];
-                        this.progressText = `(${i+1}/${tickerList.length}) 正在讀取 ${t.replace('.T','')}...`;
-                        const data = await this.fetchStock(t);
+                        this.progressText = `(${i+1}/${tickerList.length}) 讀取 ${tickerList[i]}...`;
+                        const data = await this.fetchStock(tickerList[i]);
                         if (data) this.stockData.push(data);
-                        await new Promise(r => setTimeout(r, 400)); // 略微延時確保穩定
+                        await new Promise(r => setTimeout(r, 300));
                     }
 
                     if (this.stockData.length > 0) {
@@ -216,24 +219,23 @@
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.stockData.forEach((s, idx) => this.drawChart(idx, s));
-                            }, 800);
+                            }, 600);
                         });
-                    } else { alert('連線不穩定，請稍後再試或檢查代碼。'); }
+                    } else { alert('數據抓取失敗'); }
                     this.isSyncing = false;
                 },
                 drawChart(idx, stock) {
-                    const canvasId = 'chart-v5-' + idx;
+                    const canvasId = 'chart-v51-' + idx;
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
                     const ctx = canvas.getContext('2d');
                     const ko = stock.price * (this.form.koP / 100);
                     const strike = stock.price * (this.form.strikeP / 100);
                     const ki = this.form.kiP > 0 ? stock.price * (this.form.kiP / 100) : null;
-                    const minP = Math.min(...stock.history, ko, strike, ki || 99999);
-                    const maxP = Math.max(...stock.history, ko, strike, ki || 0);
+                    const allP = [...stock.history, ko, strike]; if(ki) allP.push(ki);
+                    const minP = Math.min(...allP); const maxP = Math.max(...allP);
 
-                    if (window['chart'+canvasId]) window['chart'+canvasId].destroy();
-                    window['chart'+canvasId] = new Chart(ctx, {
+                    new Chart(ctx, {
                         type: 'line',
                         data: {
                             labels: stock.labels,
@@ -247,7 +249,7 @@
                         options: {
                             animation: false, responsive: true, maintainAspectRatio: false,
                             layout: { padding: { right: 40 } },
-                            plugins: { legend: { display: false } },
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } }, // 禁用 tooltip 防止截圖黑塊
                             scales: { 
                                 x: { display: true, bounds: 'ticks', ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
                                 y: { position: 'right', min: minP * 0.94, max: maxP * 1.06, ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
@@ -259,7 +261,7 @@
                     this.isCapturing = true;
                     window.scrollTo(0,0);
                     const element = document.getElementById(type === 'summary' ? 'capture-summary' : 'capture-detail');
-                    await new Promise(r => setTimeout(r, 1000));
+                    await new Promise(r => setTimeout(r, 800));
                     try {
                         const canvas = await html2canvas(element, { 
                             scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 440, windowWidth: 440, scrollY: -window.scrollY 
