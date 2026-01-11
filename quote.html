@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v4.0</title>
+    <title>FCN專業報價系統 v4.1</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,8 +17,8 @@
         .glass-input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         .btn-premium { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; font-weight: 900; }
 
-        .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; }
-        .page-container { width: 410px; border: 1.5px solid #000; background: #fff; margin: 0 auto; overflow: hidden; }
+        .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; position: relative; }
+        .page-container { width: 410px; border: 1.5px solid #000; background: #fff; margin: 0 auto; overflow: visible; }
         
         .summary-header { font-size: 22px; font-weight: 900; text-align: center; border-bottom: 2px solid #000; padding: 12px; }
         .navy-cell { background: #2c3e50; color: white; border: 1px solid #000; text-align: center; font-size: 12px; font-weight: bold; padding: 10px 2px; }
@@ -30,13 +30,13 @@
         
         .row-container { display: flex; width: 100%; border-bottom: 1px solid #000; }
         .data-side { width: 125px; border-right: 1px solid #000; flex-shrink: 0; }
-        .chart-side { flex-grow: 1; padding: 0px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: visible; justify-content: center; }
-        .chart-box { height: 145px; width: 100%; } 
+        .chart-side { flex-grow: 1; padding: 0px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: visible; }
+        .chart-box { height: 140px; width: 100%; } 
         
-        .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 4px 0; font-weight: bold; color: #64748b; }
-        .legend-item { display: flex; align-items: center; gap: 4px; }
-        .legend-dash { width: 15px; height: 0px; border-top: 2px dashed; }
-        .legend-solid { width: 15px; height: 2px; background: #3b82f6; }
+        .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 2px 0; font-weight: bold; color: #64748b; }
+        .legend-item { display: flex; align-items: center; gap: 3px; }
+        .legend-dash { width: 12px; height: 0px; border-top: 2px dashed; }
+        .legend-solid { width: 12px; height: 2px; background: #3b82f6; }
 
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -49,16 +49,16 @@
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 mb-8 no-print">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2">Stability v4.0 Ultimate</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2">Stability v4.1 Final</p>
             </div>
 
             <div class="space-y-4">
                 <div class="flex bg-slate-100 p-1 rounded-xl">
-                    <button @click="form.market = 'US'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='US'?'bg-white shadow-sm text-blue-600':'text-slate-400']">US 美股市場</button>
-                    <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='JP'?'bg-white shadow-sm text-blue-600':'text-slate-400']">JP 日股市場</button>
+                    <button @click="form.market = 'US'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='US'?'bg-white shadow-sm text-blue-600':'text-slate-400']">US 美股</button>
+                    <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='JP'?'bg-white shadow-sm text-blue-600':'text-slate-400']">JP 日股</button>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1">連結標的代碼 (逗號分隔)</label>
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1">連結標的代碼</label>
                     <input v-model="form.tickers" class="w-full glass-input text-center text-lg font-black uppercase tracking-widest" placeholder="NVDA,TSM,AMD">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -66,7 +66,7 @@
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">報價日期</label><input v-model="form.date" type="date" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">天期 (月)</label><input v-model="form.tenor" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1 text-blue-600">利率 %</label><input v-model="form.coupon" type="number" class="w-full glass-input text-sm text-blue-600 font-bold"></div>
+                    <div><label class="text-[10px] font-black text-slate-500 mb-1 text-blue-600 font-bold">利率 %</label><input v-model="form.coupon" type="number" class="w-full glass-input text-sm text-blue-600 font-bold"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KO %</label><input v-model="form.koP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">Strike %</label><input v-model="form.strikeP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KI %</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
@@ -78,16 +78,16 @@
             </div>
         </div>
 
-        <!-- 2. 控制按鈕 -->
+        <!-- 2. 按鈕區 -->
         <div v-if="isGenerated" class="flex flex-col items-center gap-3 mb-8 no-print sticky top-2 z-[500]">
             <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定隱藏面板' }}</button>
             <div class="flex gap-3">
-                <button @click="capture('summary')" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載摘要卡</button>
-                <button @click="capture('detail')" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載詳細報價</button>
+                <button @click="capture('summary')" :disabled="isCapturing" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載摘要卡</button>
+                <button @click="capture('detail')" :disabled="isCapturing" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載詳細報價</button>
             </div>
         </div>
 
-        <!-- 3. 報價單 -->
+        <!-- 3. 報價單內容區 -->
         <div v-show="isGenerated" class="fade-in">
             <!-- 圖 1 -->
             <div id="capture-summary" class="capture-box">
@@ -155,7 +155,7 @@
 
     <script>
         const { createApp } = Vue;
-        const stockNames = {'TSM':'台績電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'};
+        const stockNames = {'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'};
 
         createApp({
             data() {
@@ -192,11 +192,10 @@
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
                     if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     
-                    // v4.0 序列式抓取：保證每一筆都成功，避開併發限制
                     for (const ticker of tickerList) {
                         const data = await this.fetchSingleStock(ticker);
                         if (data) this.stockData.push(data);
-                        await new Promise(r => setTimeout(r, 800)); // 故意等待確保伺服器不拒絕
+                        await new Promise(r => setTimeout(r, 700));
                     }
 
                     if (this.stockData.length > 0) {
@@ -207,9 +206,9 @@
                                     const canvasId = 'chart-obj-' + i;
                                     this.drawChart(canvasId, s);
                                 });
-                            }, 600);
+                            }, 800);
                         });
-                    } else { alert('所有數據抓取失敗，請確認標的代號或檢查網路。'); }
+                    } else { alert('數據抓取失敗'); }
                     this.isSyncing = false;
                 },
                 drawChart(canvasId, stock) {
@@ -239,7 +238,7 @@
                             layout: { padding: { right: 40 } },
                             plugins: { legend: { display: false } },
                             scales: { 
-                                x: { display: true, ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
+                                x: { display: true, bounds: 'ticks', ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
                                 y: { position: 'right', min: minP * 0.94, max: maxP * 1.06, ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
                             }
                         }
@@ -247,14 +246,25 @@
                 },
                 async capture(type) {
                     this.isCapturing = true;
+                    // 強制捲動到最上方確保截圖完整
+                    window.scrollTo(0,0);
                     const element = document.getElementById(type === 'summary' ? 'capture-summary' : 'capture-detail');
-                    await new Promise(r => setTimeout(r, 600));
-                    const canvas = await html2canvas(element, { scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 440 });
-                    const link = document.createElement('a');
-                    link.download = `FCN-${type}-${this.form.date}.png`;
-                    link.href = canvas.toDataURL('image/png');
-                    link.click();
-                    this.isCapturing = false;
+                    // 延長等待時間確保 Chart 已穩定渲染
+                    await new Promise(r => setTimeout(r, 1000));
+                    try {
+                        const canvas = await html2canvas(element, { 
+                            scale: 3, 
+                            useCORS: true, 
+                            backgroundColor: '#ffffff', 
+                            width: 440,
+                            windowWidth: 440, // 強制固定寬度以防截圖被切
+                            scrollY: -window.scrollY // 校正捲軸位移
+                        });
+                        const link = document.createElement('a');
+                        link.download = `FCN-${type}-${this.form.date}.png`;
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                    } catch (e) { alert('下載出錯'); } finally { this.isCapturing = false; }
                 }
             }
         }).mount('#app');
