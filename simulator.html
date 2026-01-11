@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業詢價模擬引擎 v3.1</title>
+    <title>FCN 專業詢價模擬引擎 v3.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #f8fafc; color: #1e293b; font-family: 'Inter', "Microsoft JhengHei", sans-serif; }
         .bank-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-        .input-light { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; }
+        .input-light { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 10px; border-radius: 10px; font-weight: bold; width: 100%; transition: 0.2s; }
         .input-light:focus { border-color: #3b82f6; background: white; outline: none; }
         .btn-navy { background: #1e293b; color: white; font-weight: 800; transition: 0.3s; }
         .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
@@ -23,34 +23,36 @@
         
         <div class="flex justify-between items-end mb-8">
             <div>
-                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase">FCN Quote</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Simulator Professional v3.1</p>
+                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN Quote</h1>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Professional Pricing Engine v3.2</p>
             </div>
             <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">LIVE DATA</span>
         </div>
 
         <!-- 1. 設定面板 -->
         <div class="bank-card p-6 mb-6">
-            <div class="space-y-5">
+            <div class="space-y-4">
                 <div>
                     <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs font-black text-slate-500 uppercase">連結標的 (Ticker)</label>
+                        <label class="text-xs font-black text-slate-500 uppercase">連結標的 (Tickers)</label>
                         <div class="flex gap-2">
-                            <button @click="form.market = 'US'" :class="['text-[10px] px-2 py-1 rounded font-bold', form.market==='US'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">US 美股</button>
-                            <button @click="form.market = 'JP'" :class="['text-[10px] px-2 py-1 rounded font-bold', form.market==='JP'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">JP 日股</button>
+                            <button @click="form.market = 'US'" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='US'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">US 美股</button>
+                            <button @click="form.market = 'JP'" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='JP'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">JP 日股</button>
                         </div>
                     </div>
-                    <input v-model="form.tickers" placeholder="例如: NVDA,TSLA,AMD" class="input-light text-center text-lg uppercase tracking-wider">
+                    <input v-model="form.tickers" placeholder="例如: NVDA,TSLA,ORCL" class="input-light text-center text-lg uppercase tracking-wider">
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div><label class="text-[10px] font-black text-slate-400 uppercase">天期 (Months)</label><input type="number" v-model="form.tenor" class="input-light"></div>
                     <div><label class="text-[10px] font-black text-slate-400 uppercase">UF% (Upfront Fee)</label><input type="number" v-model="form.margin" step="0.1" class="input-light text-blue-600"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">KO 價 (%)</label><input type="number" v-model="form.ko" class="input-light"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">保證領息 (月)</label><input type="number" v-model="form.guarantee" class="input-light text-red-500"></div>
                     <div><label class="text-[10px] font-black text-slate-400 uppercase">Strike (%)</label><input type="number" v-model="form.strike" class="input-light"></div>
                     <div><label class="text-[10px] font-black text-slate-400 uppercase">KI (%)</label><input type="number" v-model="form.ki" class="input-light"></div>
                 </div>
 
-                <button @click="simulate" :disabled="isSyncing" class="w-full btn-navy py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3">
+                <button @click="simulate" :disabled="isSyncing" class="w-full btn-navy py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 mt-2">
                     <i v-if="isSyncing" class="fa-solid fa-spinner animate-spin"></i>
                     {{ isSyncing ? '正在串接市場數據...' : '進行即時模擬詢價' }}
                 </button>
@@ -83,7 +85,7 @@
             </div>
         </div>
 
-        <!-- 3. 標的明細 (含補完之中文名稱) -->
+        <!-- 3. 標的明細 (含中文名稱) -->
         <div v-if="stockDetails.length > 0" class="bank-card p-6 mb-8">
             <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-widest">市場標的狀態</h3>
             <div class="space-y-4">
@@ -100,9 +102,9 @@
             </div>
         </div>
 
-        <p class="text-center text-[11px] font-bold text-slate-400 italic px-4 pb-20">
-            ※ 模擬引擎 v3.1：採用非線性衰減模型 (Non-linear Decay Model)<br>
-            實際配息以成交為準，本數據僅供詢價參考。
+        <p class="text-center text-[11px] font-bold text-slate-400 italic px-4 pb-20 leading-relaxed">
+            ※ v3.2 定價引擎：已整合 KO Level 及 Lock-in 期間成本。<br>
+            保證領息期間越長，年化配息將相應減少。
         </p>
 
     </div>
@@ -120,7 +122,7 @@
                     isSyncing: false,
                     result: null,
                     stockDetails: [],
-                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 75, ki: 55, margin: 1.5 }
+                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 75, ki: 55, ko: 100, guarantee: 1, margin: 1.5 }
                 }
             },
             methods: {
@@ -153,23 +155,29 @@
                             if(hv > maxHV) { maxHV = hv; worstTicker = t; }
                         }
 
-                        // --- v3.1 非線性定價引擎 ---
-                        // 1. 基本波動率利潤 (與波動率正相關)
-                        let volPremium = maxHV * 0.85;
-
-                        // 2. 保護縮減因子 (Strike/KI 越低，利潤衰減越快，但不會變負)
-                        // 使用 Power Function 模擬選擇權 Delta 變化
-                        let strikeFactor = Math.pow(this.form.strike / 100, 3.5); 
-                        let kiFactor = Math.pow(this.form.ki / 100, 0.5); 
-                        if(this.form.ki == 0) kiFactor = 0.4; // 無 KI 視為極高保護
-
-                        // 3. 資產數量溢價 (Worst-of 邏輯)
-                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.15;
-
-                        // 4. 最終計算
-                        let estimatedCoupon = rf + (volPremium * strikeFactor * kiFactor * assetMultiplier) - this.form.margin;
+                        // --- v3.2 旗艦定價引擎 ---
+                        let volPremium = maxHV * 0.92;
                         
-                        // 確保利率不為負值，最低給予基準利率
+                        // 1. 保護係數 (Strike & KI)
+                        let strikeFactor = Math.pow(this.form.strike / 100, 3.2); 
+                        let kiFactor = Math.pow(this.form.ki / 100, 0.4); 
+                        if(this.form.ki == 0) kiFactor = 0.5;
+
+                        // 2. KO 價係數 (KO 越低，產品越快結束，銀行風險小，利率低)
+                        // KO 為 100% 時基準為 1.0, 105% 時約增加 5-8% 的 Coupon
+                        let koFactor = Math.pow(this.form.ko / 100, 1.5);
+
+                        // 3. 保證領息扣除 (銀行成本)
+                        // 每多一個月保證領息，年化利率約減少 1.2% - 2.0%
+                        let guaranteeCost = (this.form.guarantee - 1) * 1.8;
+                        if(guaranteeCost < 0) guaranteeCost = 0;
+
+                        // 4. 資產數量溢價
+                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.18;
+
+                        // 5. 最終計算
+                        let estimatedCoupon = rf + (volPremium * strikeFactor * kiFactor * koFactor * assetMultiplier) - guaranteeCost - this.form.margin;
+                        
                         if(estimatedCoupon < rf) estimatedCoupon = rf;
 
                         this.result = {
