@@ -3,13 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v5.1</title>
+    <title>FCN專業報價系統 v5.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        * { box-sizing: border-box; }
         body { background: #fafafa; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         [v-cloak] { display: none; }
         
@@ -17,9 +18,9 @@
         .glass-input:focus { border-color: #1e40af; outline: none; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
         .btn-premium { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; font-weight: 900; transition: all 0.3s; }
 
-        /* 截圖區寬度固定 */
-        .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; }
-        .page-container { width: 410px; border: 1.5px solid #000; background: #fff; margin: 0 auto; overflow: visible; }
+        /* 截圖區 - 增加寬度緩衝確保邊框完整 */
+        .capture-box { width: 460px; margin: 0 auto; background: white; padding: 20px; }
+        .page-container { width: 410px; border: 2px solid #000 !important; background: #fff; margin: 0 auto; overflow: hidden; position: relative; }
         
         /* 摘要卡樣式 */
         .summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
@@ -27,15 +28,15 @@
         .navy-cell { background: #2c3e50; color: white; border: 1px solid #000; text-align: center; font-size: 12px; font-weight: bold; padding: 10px 2px; }
         .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 8px 2px; height: 50px; }
 
-        /* 詳細表樣式 - 修正空白格 */
-        .orange-bar { background: #fbbf24; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: 900; font-size: 13px; }
-        .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: 0.5px solid #000; }
+        /* 詳細表樣式 */
+        .orange-bar { background: #fbbf24; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: 900; font-size: 13px; width: 100%; }
+        .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; border: none; }
         .detail-table th, .detail-table td { border: 1px solid #000; font-size: 11px; font-weight: bold; padding: 6px 2px; text-align: center; }
         
-        .row-container { display: flex; width: 100%; border-bottom: 1px solid #000; }
+        .row-container { display: flex; width: 100%; border-bottom: 1px solid #000; background: #fff; }
         .data-side { width: 125px; border-right: 1px solid #000; flex-shrink: 0; }
-        .chart-side { flex-grow: 1; padding: 0px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: visible; }
-        .chart-box { height: 145px; width: 100%; } 
+        .chart-side { flex-grow: 1; padding: 5px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
+        .chart-box { height: 145px; width: 100%; position: relative; } 
         
         .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 4px 0; font-weight: bold; color: #64748b; }
         .legend-item { display: flex; align-items: center; gap: 3px; }
@@ -50,7 +51,7 @@
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 mb-8 no-print fade-in">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Pricing Terminal v5.1 Official</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Stability Terminal v5.2</p>
             </div>
 
             <div class="space-y-4">
@@ -72,10 +73,9 @@
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">Strike %</label><input v-model="form.strikeP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KI % (無填0)</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
                 </div>
-                
                 <button @click="generate" :disabled="isSyncing" class="w-full btn-premium py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
                     <i v-if="isSyncing" class="fa-solid fa-circle-notch animate-spin"></i>
-                    {{ isSyncing ? '正在抓取標的資料...' : '生成 FCN 專業報價單' }}
+                    {{ isSyncing ? '正在抓取數據...' : '生成 FCN 專業報價單' }}
                 </button>
                 <div v-if="isSyncing" class="text-center font-bold text-blue-600 text-[10px] animate-pulse">{{ progressText }}</div>
             </div>
@@ -83,7 +83,7 @@
 
         <!-- 2. 控制按鈕 -->
         <div v-if="isGenerated" class="flex flex-col items-center gap-3 mb-8 no-print sticky top-2 z-[500]">
-            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定準備截圖' }}</button>
+            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定隱藏面板' }}</button>
             <div class="flex gap-3">
                 <button @click="capture('summary')" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖1 (摘要卡)</button>
                 <button @click="capture('detail')" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖2 (詳細報價)</button>
@@ -113,7 +113,7 @@
 
             <div class="h-8 no-print"></div>
 
-            <!-- 圖 2: 詳細報價 (重構表頭消除空格) -->
+            <!-- 圖 2: 詳細報價 -->
             <div id="capture-detail" class="capture-box">
                 <div class="page-container shadow-sm">
                     <div class="text-center pt-3">
@@ -151,7 +151,7 @@
                                 </table>
                             </div>
                             <div class="chart-side">
-                                <div class="chart-box"><canvas :id="'chart-v51-' + index"></canvas></div>
+                                <div class="chart-box"><canvas :id="'chart-v52-' + index"></canvas></div>
                                 <div class="chart-legend-bottom">
                                     <div class="legend-item"><span class="legend-dash" style="border-color:#f97316"></span>KO</div>
                                     <div class="legend-item"><span class="legend-dash" style="border-color:#94a3b8"></span>Strike</div>
@@ -208,10 +208,10 @@
                     if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     
                     for (let i = 0; i < tickerList.length; i++) {
-                        this.progressText = `(${i+1}/${tickerList.length}) 讀取 ${tickerList[i]}...`;
+                        this.progressText = `正在讀取 ${tickerList[i]}...`;
                         const data = await this.fetchStock(tickerList[i]);
                         if (data) this.stockData.push(data);
-                        await new Promise(r => setTimeout(r, 300));
+                        await new Promise(r => setTimeout(r, 600));
                     }
 
                     if (this.stockData.length > 0) {
@@ -219,13 +219,13 @@
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.stockData.forEach((s, idx) => this.drawChart(idx, s));
-                            }, 600);
+                            }, 800);
                         });
-                    } else { alert('數據抓取失敗'); }
+                    }
                     this.isSyncing = false;
                 },
                 drawChart(idx, stock) {
-                    const canvasId = 'chart-v51-' + idx;
+                    const canvasId = 'chart-v52-' + idx;
                     const canvas = document.getElementById(canvasId);
                     if (!canvas) return;
                     const ctx = canvas.getContext('2d');
@@ -248,8 +248,8 @@
                         },
                         options: {
                             animation: false, responsive: true, maintainAspectRatio: false,
-                            layout: { padding: { right: 40 } },
-                            plugins: { legend: { display: false }, tooltip: { enabled: false } }, // 禁用 tooltip 防止截圖黑塊
+                            layout: { padding: { right: 45 } }, // 加大右側空間防止溢出
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
                             scales: { 
                                 x: { display: true, bounds: 'ticks', ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
                                 y: { position: 'right', min: minP * 0.94, max: maxP * 1.06, ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
@@ -261,7 +261,7 @@
                     this.isCapturing = true;
                     window.scrollTo(0,0);
                     const element = document.getElementById(type === 'summary' ? 'capture-summary' : 'capture-detail');
-                    await new Promise(r => setTimeout(r, 800));
+                    await new Promise(r => setTimeout(r, 1000));
                     try {
                         const canvas = await html2canvas(element, { 
                             scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 440, windowWidth: 440, scrollY: -window.scrollY 
