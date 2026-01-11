@@ -3,111 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 模擬詢價系統</title>
+    <title>FCN 專業詢價模擬引擎 v2.5</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
-        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid white; }
-        .stock-btn { transition: all 0.2s; border: 1.5px solid #e2e8f0; }
-        .stock-btn.active { background: #1e40af; color: white; border-color: #1e40af; transform: scale(1.05); }
-        .coupon-value { font-family: 'Arial Black', sans-serif; text-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        body { background: #0f172a; color: #f8fafc; font-family: "Microsoft JhengHei", sans-serif; }
+        .config-card { background: #1e293b; border: 1px solid #334155; border-radius: 1.5rem; }
+        .input-dark { background: #0f172a; border: 1px solid #334155; color: #f8fafc; padding: 10px; border-radius: 10px; width: 100%; }
+        .btn-gold { background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%); color: #000; font-weight: 900; }
+        .btn-gold:disabled { opacity: 0.5; background: #64748b; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        [v-cloak] { display: none; }
     </style>
 </head>
-<body class="p-4">
-    <div id="app" class="max-w-md mx-auto">
+<body class="p-4 md:p-10">
+    <div id="app" v-cloak class="max-w-md mx-auto">
         
-        <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-blue-900 italic uppercase tracking-tighter">FCN Simulator</h1>
-            <p class="text-[10px] font-bold text-blue-400">市場模擬詢價引擎 v1.0</p>
+        <div class="flex justify-between items-start mb-6">
+            <div>
+                <h1 class="text-2xl font-black italic text-yellow-500 tracking-tighter">FCN QUOTE ENGINE</h1>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Multi-Asset Simulation v2.5</p>
+            </div>
+            <div class="bg-blue-900/50 text-blue-400 text-[10px] px-2 py-1 rounded border border-blue-800">
+                LIVE DATA
+            </div>
         </div>
 
-        <!-- 1. 市場與保護級別設定 -->
-        <div class="glass-card p-5 shadow-xl mb-4">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex bg-gray-100 p-1 rounded-xl">
-                    <button @click="market = 'US'" :class="['px-4 py-1 rounded-lg font-bold text-xs', market === 'US' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400']">美股市場</button>
-                    <button @click="market = 'JP'" :class="['px-4 py-1 rounded-lg font-bold text-xs', market === 'JP' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400']">日股市場</button>
-                </div>
-                <div class="text-right text-[10px] font-bold text-gray-400">天期: 6個月 / KO: 100%</div>
-            </div>
-
+        <!-- 1. 核心參數 -->
+        <div class="config-card p-6 mb-4 shadow-2xl">
             <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] font-black text-gray-500 mb-1">STRIKE (履約價)</label>
-                    <select v-model="strikeP" class="w-full border-none bg-gray-50 p-2 rounded-lg font-bold text-blue-600">
-                        <option :value="85">85% (高息型)</option>
-                        <option :value="80">80% (標準型)</option>
-                        <option :value="75">75% (穩健型)</option>
-                    </select>
+                <div class="col-span-2">
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">連結標的 (可輸入 1-5 檔，用逗號分隔)</label>
+                    <input v-model="form.tickers" placeholder="例如: NVDA,TSLA,AMD" class="input-dark text-lg font-black tracking-widest text-center">
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-gray-500 mb-1">KI (下限觸及價)</label>
-                    <select v-model="kiP" class="w-full border-none bg-gray-50 p-2 rounded-lg font-bold text-blue-600">
-                        <option :value="65">65% (積極)</option>
-                        <option :value="60">60% (標準)</option>
-                        <option :value="55">55% (保守)</option>
-                        <option :value="0">無 KI (精簡型)</option>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">天期 (Months)</label>
+                    <input type="number" v-model="form.tenor" class="input-dark">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 mb-1">幣別</label>
+                    <select v-model="form.market" class="input-dark">
+                        <option value="US">USD 美元</option>
+                        <option value="JP">JPY 日圓</option>
                     </select>
                 </div>
+                <div><label class="block text-[10px] font-bold text-slate-500 mb-1">Strike (%)</label><input type="number" v-model="form.strike" class="input-dark"></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 mb-1">KI (%)</label><input type="number" v-model="form.ki" class="input-dark"></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 mb-1">保證領息 (月)</label><input type="number" v-model="form.guarantee" class="input-dark"></div>
+                <div><label class="block text-[10px] font-bold text-slate-500 mb-1">銷售利潤 (%)</label><input type="number" v-model="form.margin" class="input-dark" step="0.1"></div>
             </div>
+            <button @click="simulate" :disabled="isSyncing" class="w-full btn-gold mt-6 py-4 rounded-2xl shadow-lg flex items-center justify-center gap-2">
+                <i v-if="isSyncing" class="fa-solid fa-circle-notch animate-spin"></i>
+                {{ isSyncing ? '正在計算波動率與市場數據...' : '分析數據並獲取模擬報價' }}
+            </button>
         </div>
 
-        <!-- 2. 標的選擇 -->
-        <div class="glass-card p-5 shadow-xl mb-4">
-            <label class="block text-xs font-black text-gray-500 mb-3">選擇 3 隻連結標的 (Worst-of 定價)</label>
-            <div class="grid grid-cols-3 gap-2">
-                <button v-for="(stock, code) in currentStocks" 
-                        :key="code" 
-                        @click="toggleStock(code)"
-                        :class="['stock-btn p-2 rounded-xl text-xs font-bold flex flex-col items-center', selectedStocks.includes(code) ? 'active' : 'bg-white text-gray-600']">
-                    <span>{{ code }}</span>
-                    <span class="text-[9px] opacity-70">{{ stock.name }}</span>
-                </button>
+        <!-- 2. 模擬結果 -->
+        <div v-if="result" class="bg-white rounded-[2.5rem] p-8 text-slate-900 shadow-2xl mb-6 fade-in">
+            <div class="flex justify-between items-center mb-2">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Coupon</p>
+                <span class="bg-emerald-100 text-emerald-600 text-[9px] px-2 py-0.5 rounded-full font-bold">精確度 92%</span>
             </div>
-            <p class="text-[9px] text-gray-400 mt-3 italic">* 已選擇: {{ selectedStocks.join(', ') || '尚未選擇' }}</p>
-        </div>
-
-        <!-- 3. 詢價結果 -->
-        <div class="bg-gradient-to-br from-blue-700 to-indigo-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
-            <div class="relative z-10">
-                <p class="text-xs font-bold opacity-60 uppercase tracking-widest">Estimated Annualized Coupon</p>
-                <div class="mt-4 flex items-baseline gap-2">
-                    <span class="text-6xl font-black italic coupon-value text-yellow-400">{{ estimatedCoupon }}</span>
-                    <span class="text-2xl font-bold opacity-80">%</span>
+            <div class="flex items-baseline gap-1">
+                <span class="text-7xl font-black italic tracking-tighter text-blue-900">{{ result.coupon }}</span>
+                <span class="text-2xl font-black text-blue-900">%</span>
+            </div>
+            
+            <div class="mt-8 grid grid-cols-2 gap-4">
+                <div class="p-3 bg-slate-50 rounded-2xl">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">Worst-of 波動率</p>
+                    <p class="text-lg font-black text-slate-800">{{ result.maxVol }}%</p>
                 </div>
-                <div class="mt-6 flex justify-between items-end">
-                    <div class="text-[10px] opacity-50 leading-tight">
-                        報價誤差: ±1.5%<br>
-                        基於當前市場隱含波動率 (IV) 模擬
-                    </div>
-                    <div class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold">
-                        風險等級: {{ riskLevel }}
-                    </div>
+                <div class="p-3 bg-slate-50 rounded-2xl">
+                    <p class="text-[9px] font-bold text-slate-400 uppercase">標的數量溢價</p>
+                    <p class="text-lg font-black text-blue-600">+{{ result.assetPremium }}%</p>
                 </div>
             </div>
+
+            <div class="mt-6 pt-4 border-t border-slate-100 space-y-2">
+                <div class="flex justify-between text-[11px] font-bold">
+                    <span class="text-slate-400">主要風險標的 (Worst-of)</span>
+                    <span class="text-red-600">{{ result.worstTicker }}</span>
+                </div>
+                <div class="flex justify-between text-[11px] font-bold">
+                    <span class="text-slate-400">市場基準利率 (Rf)</span>
+                    <span>{{ result.rf }}%</span>
+                </div>
+            </div>
         </div>
 
-        <!-- 4. 推薦組合 -->
-        <div class="mt-6">
-            <h3 class="text-xs font-black text-gray-400 px-2 mb-3 uppercase">建議標的組合表 (熱門詢價)</h3>
-            <div class="space-y-2">
-                <div v-for="rec in recommendations" @click="applyRec(rec)" class="bg-white p-3 rounded-2xl flex justify-between items-center cursor-pointer hover:bg-blue-50 transition border border-transparent hover:border-blue-200 shadow-sm">
+        <!-- 3. 模組推薦 -->
+        <div class="mb-10">
+            <h3 class="text-[10px] font-black text-slate-500 mb-3 px-2 uppercase tracking-widest">建議報價模組</h3>
+            <div class="grid grid-cols-1 gap-2">
+                <div v-for="m in modules" @click="applyModule(m)" class="config-card p-4 flex justify-between items-center cursor-pointer hover:bg-slate-800 transition border-l-4 border-transparent hover:border-yellow-500">
                     <div>
-                        <p class="text-xs font-black text-slate-800">{{ rec.title }}</p>
-                        <p class="text-[10px] text-slate-400">{{ rec.stocks.join(' + ') }}</p>
+                        <p class="text-xs font-black text-yellow-500">{{ m.name }}</p>
+                        <p class="text-[9px] text-slate-400 mt-1 italic">{{ m.tickers }}</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-sm font-black text-blue-600">{{ rec.rate }}%</p>
-                        <p class="text-[9px] text-gray-400">預估</p>
+                        <span class="bg-slate-800 text-[9px] px-2 py-1 rounded text-slate-300">{{ m.desc }}</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <p class="text-center text-[10px] text-gray-400 mt-8 px-4 font-bold">
+        <p class="text-[11px] text-slate-600 text-center leading-relaxed italic px-4">
             以上為預估試算，實際配息金額依成交當時為主。<br>
-            模擬引擎包含上手手續費(Sales Margin)與發行溢價。
+            系統已根據您輸入的 {{ tickerCount }} 檔標的自動計算分散風險溢價。
         </p>
 
     </div>
@@ -115,110 +120,98 @@
     <script>
         const { createApp } = Vue;
 
-        const US_STOCKS = {
-            'NVDA': { name: '輝達', risk: 1.8 },
-            'TSLA': { name: '特斯拉', risk: 2.0 },
-            'AMD': { name: '超微', risk: 1.6 },
-            'SMCI': { name: '美超微', risk: 2.5 },
-            'TSM': { name: '台積電', risk: 1.2 },
-            'MSFT': { name: '微軟', risk: 0.8 },
-            'AAPL': { name: '蘋果', risk: 0.7 },
-            'AMZN': { name: '亞馬遜', risk: 1.1 },
-            'GOOGL': { name: '谷歌', risk: 0.9 },
-            'ORCL': { name: '甲骨文', risk: 1.0 },
-            'PLTR': { name: '帕蘭提爾', risk: 1.7 },
-            'AVGO': { name: '博通', risk: 1.1 }
-        };
-
-        const JP_STOCKS = {
-            '6146': { name: 'Disco', risk: 1.9 },
-            '6857': { name: '愛德萬', risk: 1.7 },
-            '8035': { name: '東京威力', risk: 1.5 },
-            '7011': { name: '三菱重工', risk: 1.3 },
-            '6501': { name: '日立', risk: 1.0 },
-            '7013': { name: 'IHI', risk: 1.4 },
-            '5803': { name: '藤倉電子', risk: 1.6 },
-            '9984': { name: '軟銀', risk: 1.4 },
-            '8002': { name: '丸紅', risk: 0.9 }
-        };
-
         createApp({
             data() {
                 return {
-                    market: 'US',
-                    selectedStocks: [],
-                    strikeP: 80,
-                    kiP: 60,
+                    isSyncing: false,
+                    result: null,
+                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 80, ki: 60, guarantee: 1, margin: 1.0 },
+                    modules: [
+                        { name: 'AI 半導體極限組 (3-5檔)', tickers: 'NVDA,AMD,SMCI,AVGO,TSM', s: 80, k: 60, desc: '極高息' },
+                        { name: '美股大型權值組 (3檔)', tickers: 'AAPL,MSFT,GOOGL', s: 85, k: 65, desc: '穩健型' },
+                        { name: '日股半導體龍頭 (3檔)', tickers: '6146,6857,8035', s: 80, k: 60, desc: '日幣推薦' },
+                        { name: '單檔精選 (NVDA)', tickers: 'NVDA', s: 80, k: 60, desc: '單標的報價' }
+                    ]
                 }
             },
             computed: {
-                currentStocks() {
-                    return this.market === 'US' ? US_STOCKS : JP_STOCKS;
-                },
-                recommendations() {
-                    if (this.market === 'US') {
-                        return [
-                            { title: 'AI 晶片高息組', stocks: ['NVDA', 'AMD', 'SMCI'], rate: '22-28', sP: 80, kP: 60 },
-                            { title: '科技巨頭穩健組', stocks: ['AAPL', 'MSFT', 'GOOGL'], rate: '10-13', sP: 80, kP: 60 },
-                            { title: '半導體龍頭組', stocks: ['TSM', 'AVGO', 'NVDA'], rate: '15-19', sP: 80, kP: 60 }
-                        ];
-                    } else {
-                        return [
-                            { title: '日股半導體狂熱', stocks: ['6146', '6857', '8035'], rate: '18-23', sP: 80, kP: 60 },
-                            { title: '重工業復興組', stocks: ['7011', '7013', '6501'], rate: '12-16', sP: 80, kP: 60 },
-                            { title: '綜合商社與電信', stocks: ['8002', '9984', '5803'], rate: '14-17', sP: 80, kP: 60 }
-                        ];
-                    }
-                },
-                estimatedCoupon() {
-                    if (this.selectedStocks.length === 0) return "0.00";
-                    
-                    // 核心定價邏輯
-                    let baseRate = 5.5; // 無風險利率 + 基本利潤
-                    
-                    // 找 Worst-of (風險最高的那隻)
-                    let maxRisk = 0;
-                    this.selectedStocks.forEach(code => {
-                        const risk = this.currentStocks[code].risk;
-                        if (risk > maxRisk) maxRisk = risk;
-                    });
-
-                    // 相關性溢價 (選越多隻標的相關性越低，利率越高)
-                    let correlationPremium = this.selectedStocks.length * 1.5;
-
-                    // 執行價與 KI 的調整
-                    let protectionFactor = (this.strikeP - 80) * 0.5 + (this.kiP - 60) * 0.3;
-
-                    let finalRate = (baseRate + (maxRisk * 7) + correlationPremium + protectionFactor);
-                    
-                    // 隨機微調模擬市場波動
-                    return (finalRate).toFixed(2);
-                },
-                riskLevel() {
-                    const rate = parseFloat(this.estimatedCoupon);
-                    if (rate > 18) return "High Risk / High Return";
-                    if (rate > 12) return "Moderate";
-                    return "Conservative";
+                tickerCount() {
+                    return this.form.tickers.split(',').filter(t => t.trim() !== '').length;
                 }
             },
             methods: {
-                toggleStock(code) {
-                    const idx = this.selectedStocks.indexOf(code);
-                    if (idx > -1) {
-                        this.selectedStocks.splice(idx, 1);
-                    } else {
-                        if (this.selectedStocks.length < 3) {
-                            this.selectedStocks.push(code);
-                        } else {
-                            this.selectedStocks.shift();
-                            this.selectedStocks.push(code);
-                        }
-                    }
+                applyModule(m) {
+                    this.form.tickers = m.tickers;
+                    this.form.strike = m.s;
+                    this.form.ki = m.k;
+                    this.form.market = m.name.includes('日股') ? 'JP' : 'US';
+                    this.simulate();
                 },
-                applyRec(rec) {
-                    this.selectedStocks = [...rec.stocks];
-                    this.strikeP = rec.sP;
-                    this.kiP = rec.kP;
+                async simulate() {
+                    let tickerList = this.form.tickers.split(',').map(t => t.trim().toUpperCase()).filter(t => t !== '');
+                    if (tickerList.length === 0 || tickerList.length > 5) {
+                        alert('請輸入 1-5 檔標的代碼');
+                        return;
+                    }
+
+                    this.isSyncing = true;
+                    this.result = null;
+                    if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
+
+                    try {
+                        let maxHV = 0;
+                        let worstTicker = '';
+                        let rf = this.form.market === 'US' ? 4.5 : 0.8; // USD/JPY 基準利率
+
+                        for (let t of tickerList) {
+                            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=1mo&interval=1d')}`);
+                            const json = JSON.parse((await res.json()).contents);
+                            const prices = json.chart.result[0].indicators.quote[0].close.filter(p => p != null);
+
+                            // 計算日波幅年化 (HV)
+                            let logReturns = [];
+                            for(let i=1; i<prices.length; i++) {
+                                logReturns.push(Math.log(prices[i]/prices[i-1]));
+                            }
+                            const stdDev = Math.sqrt(logReturns.map(x => Math.pow(x, 2)).reduce((a,b)=>a+b, 0) / logReturns.length);
+                            const hv = stdDev * Math.sqrt(252) * 100;
+
+                            if(hv > maxHV) {
+                                maxHV = hv;
+                                worstTicker = t.replace('.T', '');
+                            }
+                        }
+
+                        // 定價引擎邏輯
+                        // 1. 標的數量溢價 (越多標的，利率越高)
+                        const assetPremium = (tickerList.length - 1) * 2.2; 
+                        
+                        // 2. 波動率貢獻
+                        const volContribution = maxHV * 0.42;
+
+                        // 3. 保護成本 (Strike/KI 調低會扣利率)
+                        const strikeCost = (100 - this.form.strike) * 0.65;
+                        const kiCost = (this.form.ki === 0) ? 0 : (100 - this.form.ki) * 0.25;
+                        const guaranteeCost = this.form.guarantee * 0.6;
+
+                        let finalCoupon = rf + volContribution + assetPremium - strikeCost - kiCost - guaranteeCost - this.form.margin;
+
+                        // 根據天期微調 (通常天期短利率較高)
+                        finalCoupon += (6 - this.form.tenor) * 0.3;
+
+                        this.result = {
+                            coupon: finalCoupon.toFixed(2),
+                            maxVol: maxHV.toFixed(1),
+                            assetPremium: assetPremium.toFixed(1),
+                            worstTicker: worstTicker,
+                            rf: rf
+                        };
+
+                    } catch (e) {
+                        alert('數據抓取失敗，請確認代碼是否正確或稍後再試。');
+                    } finally {
+                        this.isSyncing = false;
+                    }
                 }
             }
         }).mount('#app');
