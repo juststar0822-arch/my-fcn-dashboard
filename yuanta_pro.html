@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 專業配置試算 v8.6</title>
+    <title>元元致富 - 專業配置精算 v8.7</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #f8fafc; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         .bank-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; }
-        .res-card { background: #0f172a; color: white; border-radius: 2rem; }
+        .res-card { background: #1e293b; color: white; border-radius: 2rem; }
         .input-box { background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px; width: 100%; font-weight: 800; text-align: center; font-size: 16px; }
         .gender-btn { flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; font-size: 12px; border: 1.5px solid #e2e8f0; transition: 0.3s; }
         .gender-male.active { background: #2563eb; color: white; border-color: #2563eb; }
@@ -26,8 +26,8 @@
     <div id="app" v-cloak class="max-w-md mx-auto pb-20">
         
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">專業配置試算</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">Portfolio & Cashflow Simulator v8.6</p>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">專業配置精算</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">Portfolio & Cashflow Simulator v8.7</p>
         </div>
 
         <!-- 模式切換 -->
@@ -75,7 +75,7 @@
             <!-- 撥回比例設定 -->
             <div class="bg-orange-50 p-5 rounded-2xl border border-orange-100">
                 <div class="flex justify-between items-center mb-1">
-                    <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 現金流 / {{ 100 - cashPayoutRatio }}% 留存扣費</label>
+                    <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 現金流 / {{ 100 - cashPayoutRatio }}% 留存滾入</label>
                     <i class="fa-solid fa-hand-holding-dollar text-orange-400"></i>
                 </div>
                 <input type="range" min="0" max="100" step="5" v-model.number="cashPayoutRatio" class="slider payout-slider">
@@ -97,12 +97,12 @@
                 </div>
             </div>
 
-            <!-- 財富雙享專用模擬 -->
-            <div v-if="targetA === 'yuanta' || targetB === 'yuanta'" class="bg-blue-50 p-4 rounded-2xl border border-blue-100">
+            <!-- 只有選財富雙享時才顯示淨值模擬與加碼 -->
+            <div v-if="targetA === 'yuanta' || (isPortfolio && targetB === 'yuanta')" class="bg-blue-50 p-4 rounded-2xl border border-blue-100 fade-in">
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-[10px] font-black text-blue-700 uppercase italic">Yuanta NAV: <b>{{ form.nav_yuanta.toFixed(2) }}</b></span>
                     <div class="flex items-center gap-1">
-                        <input type="checkbox" v-model="form.hasBonus" id="b3"><label for="b3" class="text-[10px] font-bold text-blue-700 cursor-pointer">觸及10.3加碼</label>
+                        <input type="checkbox" v-model="form.hasBonus" id="b4"><label for="b4" class="text-[10px] font-bold text-blue-700 cursor-pointer">本月曾觸及10.3加碼</label>
                     </div>
                 </div>
                 <input type="range" min="7.5" max="11.5" step="0.01" v-model.number="form.nav_yuanta" class="slider">
@@ -128,34 +128,32 @@
 
             <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
                 <div>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">剩餘再投入金額</p>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">剩餘滾入本金</p>
                     <p class="text-2xl font-black italic" :class="actualReinvest >= 0 ? 'text-emerald-400':'text-red-400'">NT$ {{ formatNum(actualReinvest, 0) }}</p>
                 </div>
                 <div class="text-right border-l border-white/10">
-                    <p class="text-[10px] font-bold text-white/40 uppercase italic px-1">組合總年化收益</p>
+                    <p class="text-[10px] font-bold text-white/40 uppercase italic px-1">年化預估收益</p>
                     <p class="text-xl font-black text-white italic">{{ annualRate }} %</p>
                 </div>
             </div>
         </div>
 
-        <!-- 3. ACTUARIAL SUMMARY (費用與流向) -->
+        <!-- 3. ACTUARIAL SUMMARY -->
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10">
             <h3 class="text-slate-800 mb-4 border-b pb-2 uppercase flex justify-between">
                 <span>Actuarial Summary</span>
                 <span class="text-blue-600 font-black italic text-[9px]">元元致富專業精算</span>
             </h3>
             <div class="space-y-4">
-                <!-- 第一段：撥回總量 -->
                 <div class="flex justify-between items-center">
-                    <span class="text-slate-800">每月撥回總額 (扣費前)</span>
+                    <span class="text-slate-800">每月撥回淨值總額 (扣費前)</span>
                     <span class="text-slate-900 font-black text-sm">NT$ {{ formatNum(grossPayoutTWD, 0) }}</span>
                 </div>
 
-                <!-- 第二段：費用明細 (費用來源說明) -->
                 <div class="bg-slate-50 p-3 rounded-xl space-y-1.5 border border-slate-100">
                     <div class="flex justify-between text-slate-400">
                         <span>保單管理費 (300萬減免)</span>
-                        <span>{{ form.amountTWD >= 300 ? '已免收' : '- NT$ 100' }}</span>
+                        <span :class="form.amountTWD >= 300 ? 'text-emerald-600' : ''">{{ form.amountTWD >= 300 ? '已免收' : '- NT$ 100' }}</span>
                     </div>
                     <div class="flex justify-between text-slate-400">
                         <span>保單行政費 ({{ adminRate }}%)</span>
@@ -167,7 +165,6 @@
                     </div>
                 </div>
 
-                <!-- 第三段：最終分配 -->
                 <div class="pt-2 border-t space-y-2">
                     <div class="flex justify-between items-center">
                         <span class="text-blue-700 font-black">最終現金領取 ({{ cashPayoutRatio }}%)</span>
@@ -175,7 +172,7 @@
                     </div>
                     <div class="flex justify-between items-center">
                         <div class="flex flex-col">
-                            <span class="text-emerald-700">留存再投入餘額</span>
+                            <span class="text-emerald-700">留存滾入餘額</span>
                             <span class="text-[9px] text-slate-400">(留存{{ 100-cashPayoutRatio }}% 扣除上述費用後)</span>
                         </div>
                         <span class="text-emerald-800 font-black">NT$ {{ formatNum(actualReinvest, 0) }}</span>
@@ -184,10 +181,6 @@
             </div>
         </div>
 
-        <p class="text-[10px] font-bold text-slate-400 text-center leading-relaxed italic px-4 pb-20">
-            ※ 本試算之撥回金額係依據標的機制模擬，實際依基金公司及元大人壽公告為準。<br>
-            ※ 若留存比例不足以扣除保單費用，差額將由現金領取部分扣抵。
-        </p>
     </div>
 
     <script>
@@ -207,11 +200,11 @@
                     cashPayoutRatio: 100,
                     targetA: 'yuanta',
                     targetB: 'allianz',
-                    rates: { USD: 32.5 },
+                    rates: { USD: 31.59 },
                     form: {
-                        type: 'life', gender: 'male', age: 40, amountTWD: 300, year: 1,
-                        nav_yuanta: 10.99, nav_allianz: 8.56, nav_custom: 10.00,
-                        unitPayout_custom: 0.0500, hasBonus: true
+                        type: 'life', gender: 'female', age: 30, amountTWD: 300, year: 1,
+                        nav_yuanta: 11.04, nav_allianz: 8.56, nav_custom: 10.00,
+                        unitPayout_custom: 0.0500, hasBonus: false
                     }
                 }
             },
@@ -227,7 +220,6 @@
                 },
                 grossPayoutTWD() { return Math.round(this.payoutA + this.payoutB); },
                 
-                // 費用計算
                 adminRate() {
                     if (this.form.year >= 5) return 0;
                     if (this.form.year === 4) return this.form.amountTWD >= 1000 ? 0.1 : 0.12;
@@ -243,26 +235,30 @@
                 maintenanceFeeTWD() { return this.form.amountTWD >= 300 ? 0 : 100; },
                 totalFeesTWD() { return this.adminFeeTWD + this.coiFeeTWD + this.maintenanceFeeTWD; },
 
-                // --- 核心邏輯修正：以「總撥回」為分配基準 ---
-                // 客戶預期領取的現金流
                 netCashInHand() {
-                    const targetCash = Math.round(this.grossPayoutTWD * (this.cashPayoutRatio / 100));
-                    // 防呆：如果費用高到連留存部分都扣不完，必須從現金扣
-                    const remaining = this.grossPayoutTWD - targetCash;
-                    if (remaining < this.totalFeesTWD) {
-                        const shortfall = this.totalFeesTWD - remaining;
+                    const gross = this.grossPayoutTWD;
+                    const fees = this.totalFeesTWD;
+                    const targetCash = Math.round(gross * (this.cashPayoutRatio / 100));
+                    const targetReinvest = gross - targetCash;
+
+                    // 邏輯修正：如果滾入部分不足以付保費，從現金扣
+                    if (targetReinvest >= fees) {
+                        return targetCash;
+                    } else {
+                        const shortfall = fees - targetReinvest;
                         return Math.max(0, targetCash - shortfall);
                     }
-                    return targetCash;
                 },
-                // 留存在帳戶再投入的餘額 (即 30% 部分扣除全部費用)
                 actualReinvest() {
-                    const remaining = this.grossPayoutTWD - this.netCashInHand;
-                    return remaining - this.totalFeesTWD;
+                    const gross = this.grossPayoutTWD;
+                    const fees = this.totalFeesTWD;
+                    const targetCash = Math.round(gross * (this.cashPayoutRatio / 100));
+                    const targetReinvest = gross - targetCash;
+                    
+                    return Math.max(0, targetReinvest - fees);
                 },
                 annualRate() {
                     if (this.form.amountTWD === 0) return 0;
-                    // 以總淨收益（包含再投入）計算年化
                     const totalNet = this.netCashInHand + this.actualReinvest;
                     return ((totalNet * 12) / (this.form.amountTWD * 10000) * 100).toFixed(2);
                 }
