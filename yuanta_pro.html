@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 專業精算終端 v9.8</title>
+    <title>元元致富 - 專業配置精算 v9.9</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -29,8 +29,8 @@
     <div id="app" v-cloak class="max-w-md mx-auto pb-20">
         
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase leading-none">元元致富 <span class="text-blue-600 font-bold">專業精算</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">MDTWD0002 & Allianz v9.8</p>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase leading-none">元元致富 <span class="text-blue-600 font-bold">精算終端</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">MDTWD0002 & Allianz v9.9</p>
         </div>
 
         <!-- 模式切換 -->
@@ -41,18 +41,17 @@
 
         <!-- 1. 輸入面板 -->
         <div class="bank-card p-6 mb-4 space-y-6">
-            <!-- 險種切換 -->
             <div class="flex bg-slate-100 p-1 rounded-xl gap-1">
                 <button @click="form.type = 'annuity'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='annuity'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額年金險</button>
                 <button @click="form.type = 'life'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='life'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額萬能壽險</button>
             </div>
 
-            <!-- 標的配置 -->
+            <!-- 標的配置區 -->
             <div class="space-y-4">
-                <!-- 標的 A 配置 -->
+                <!-- 標的 A -->
                 <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
                     <div class="flex justify-between items-center mb-3">
-                        <span class="text-[11px] font-black text-slate-400 uppercase">標的 A {{ isPortfolio ? allocationA + '%' : '' }}</span>
+                        <span class="text-[11px] font-black text-slate-400 uppercase italic">標的 A {{ isPortfolio ? allocationA + '%' : '' }}</span>
                         <span :class="targetA === 'yuanta' ? 'tag-blue' : 'tag-green'">{{ targetA === 'yuanta' ? 'TWD' : 'USD' }}</span>
                     </div>
                     <select v-model="targetA" class="input-box text-xs py-2 mb-3 shadow-sm">
@@ -65,7 +64,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-slate-500 uppercase">淨值 (NAV)</label>
-                            <input type="number" v-model.number="form.nav_A" step="0.01" class="input-box bg-white text-sm py-2">
+                            <input type="number" v-model.number="form.nav_A" step="0.0001" class="input-box bg-white text-sm py-2">
                         </div>
                         <div v-if="targetA === 'yuanta'" class="flex items-center pt-4 justify-center">
                             <input type="checkbox" v-model="form.bonus_A" id="ba" class="w-5 h-5 cursor-pointer">
@@ -78,10 +77,10 @@
                     </div>
                 </div>
 
-                <!-- 標的 B 配置 -->
+                <!-- 標的 B -->
                 <div v-if="isPortfolio" class="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 fade-in">
                     <div class="flex justify-between items-center mb-3">
-                        <span class="text-[11px] font-black text-slate-400 uppercase">標的 B {{ 100 - allocationA }}%</span>
+                        <span class="text-[11px] font-black text-slate-400 uppercase italic">標的 B {{ 100 - allocationA }}%</span>
                         <span :class="targetB === 'yuanta' ? 'tag-blue' : 'tag-green'">{{ targetB === 'yuanta' ? 'TWD' : 'USD' }}</span>
                     </div>
                     <select v-model="targetB" class="input-box text-xs py-2 mb-3 shadow-sm">
@@ -93,7 +92,7 @@
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-slate-500 uppercase">淨值 (NAV)</label>
-                            <input type="number" v-model.number="form.nav_B" step="0.01" class="input-box bg-white text-sm py-2">
+                            <input type="number" v-model.number="form.nav_B" step="0.0001" class="input-box bg-white text-sm py-2">
                         </div>
                         <div v-if="targetB === 'yuanta'" class="flex items-center pt-4 justify-center">
                             <input type="checkbox" v-model="form.bonus_B" id="bb" class="w-5 h-5 cursor-pointer">
@@ -107,11 +106,11 @@
                 </div>
             </div>
 
-            <!-- 撥回比例設定 -->
+            <!-- 撥回分配 -->
             <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100">
                 <div class="flex justify-between items-center mb-1 px-1">
                     <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 領現 / {{ 100 - cashPayoutRatio }}% 滾入</label>
-                    <i class="fa-solid fa-hand-holding-dollar text-orange-400"></i>
+                    <i class="fa-solid fa-piggy-bank text-orange-400"></i>
                 </div>
                 <input type="range" min="0" max="100" step="5" v-model.number="cashPayoutRatio" class="slider payout-slider">
             </div>
@@ -123,23 +122,22 @@
                         <option :value="1">1-3 年</option><option :value="4">第 4 年</option><option :value="5">5 年起</option>
                     </select>
                 </div>
-                <div class="col-span-1">
-                    <label class="text-[10px] font-black text-slate-500 mb-2 uppercase text-center">性別</label>
+                <div><label class="text-[10px] font-black text-slate-500 mb-2 uppercase text-center">性別</label>
                     <div class="flex gap-1">
                         <button @click="form.gender = 'male'" :class="['gender-btn', form.gender==='male'?'active':'bg-slate-50 text-slate-400']">男</button>
                         <button @click="form.gender = 'female'" :class="['gender-btn', form.gender==='female'?'active':'bg-slate-50 text-slate-400']">女</button>
                     </div>
                 </div>
-                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase text-center">年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
+                <div><label class="text-[10px] font-black text-slate-500 mb-1 uppercase text-center">年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
             </div>
             
-            <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4">
+            <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4 px-1">
                 <span>美金匯率: <b>{{ rates.USD }}</b></span>
                 <span @click="initData" class="cursor-pointer text-blue-600 font-black italic"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin':isSyncing}"></i>SYNC MARKET DATA</span>
             </div>
         </div>
 
-        <!-- 2. 精算結果展示 -->
+        <!-- 2. 結果卡片 -->
         <div class="res-card p-8 shadow-xl mb-4 overflow-hidden border-b-8 border-blue-500">
             <p class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 italic text-center">預估每月現金實領 ({{ cashPayoutRatio }}%)</p>
             <div class="flex items-baseline gap-2 justify-center">
@@ -155,35 +153,34 @@
             </div>
         </div>
 
-        <!-- 3. ACTUARIAL SUMMARY -->
+        <!-- 3. 明細總結 -->
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10 shadow-sm">
             <h3 class="text-slate-800 mb-4 border-b pb-2 uppercase flex justify-between font-black italic">
                 <span>Actuarial Summary</span>
-                <span class="text-blue-600">v9.8</span>
+                <span class="text-blue-600">v9.9</span>
             </h3>
             <div class="space-y-4">
                 <div class="flex justify-between items-center text-slate-800 font-black text-xs"><span>每月撥回總額 (合計約當台幣)</span><span>NT$ {{ formatNum(grossPayoutTWD, 0) }}</span></div>
                 
-                <!-- 拆解費用細項 -->
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2.5">
                     <p class="text-[9px] font-black text-red-500 uppercase tracking-widest">● 保單規費扣除明細</p>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between text-slate-500">
                         <span>保單行政費 ({{ adminRate }}%)</span>
                         <span class="text-slate-700">- NT$ {{ formatNum(adminFeeTWD, 0) }}</span>
                     </div>
-                    <div class="flex justify-between">
-                        <span>壽險成本 (COI - {{form.type==='annuity'?'免收':form.age+'歲'}})</span>
+                    <div class="flex justify-between text-slate-500">
+                        <span>壽險成本 (COI - {{form.type==='annuity'?'年金險':form.age+'歲'}})</span>
                         <span :class="form.type==='annuity'?'text-emerald-600':'text-slate-700'">
-                            {{ form.type==='annuity' ? 'NT$ 0' : '- NT$ ' + formatNum(coiFeeTWD, 0) }}
+                            {{ form.type==='annuity' ? 'NT$ 0 (免收)' : '- NT$ ' + formatNum(coiFeeTWD, 0) }}
                         </span>
                     </div>
-                    <div class="flex justify-between">
+                    <div class="flex justify-between text-slate-500">
                         <span>保單維護費 (100元)</span>
                         <span :class="form.amountTWD >= 300 ? 'text-emerald-600':'text-slate-700'">
                             {{ form.amountTWD >= 300 ? 'NT$ 0 (滿額優惠)' : '- NT$ 100' }}
                         </span>
                     </div>
-                    <div class="flex justify-between border-t border-slate-200 pt-2 font-black text-red-600">
+                    <div class="flex justify-between border-t border-slate-200 pt-2 mt-1 font-black text-red-600">
                         <span>總保單規費合計</span>
                         <span>- NT$ {{ formatNum(totalFeesTWD, 0) }}</span>
                     </div>
@@ -192,7 +189,7 @@
                 <div class="pt-2 border-t space-y-2">
                     <div class="flex justify-between items-center text-slate-800 font-black"><span>預估可分配淨收益 (撥回 - 規費)</span><span>NT$ {{ formatNum(totalNetAvailable, 0) }}</span></div>
                     <div class="flex justify-between items-center bg-blue-50/50 p-2.5 rounded-lg">
-                        <span class="text-blue-700 font-black">最終現金領取 ({{ cashPayoutRatio }}%)</span>
+                        <span class="text-blue-700 font-black">現金領取 ({{ cashPayoutRatio }}%)</span>
                         <span class="text-blue-800 font-black">NT$ {{ formatNum(netCashInHand, 0) }}</span>
                     </div>
                 </div>
@@ -204,8 +201,8 @@
         const { createApp } = Vue;
 
         const COI_TABLE = {
-            male: { 15:0.25, 20:0.36, 25:0.41, 30:0.55, 35:0.81, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 80:37.65, 100:214.87, 110:833.33 },
-            female: { 15:0.11, 20:0.15, 25:0.20, 30:0.26, 35:0.37, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 80:23.99, 100:208.32, 110:833.33 }
+            male: { 15:0.25, 16:0.28, 17:0.32, 18:0.34, 19:0.36, 20:0.36, 21:0.37, 22:0.38, 23:0.39, 24:0.39, 25:0.41, 26:0.42, 27:0.43, 28:0.45, 29:0.47, 30:0.55, 31:0.58, 32:0.62, 33:0.67, 34:0.73, 35:0.81, 36:0.89, 37:0.97, 38:1.06, 39:1.16, 40:1.27, 41:1.39, 42:1.51, 43:1.64, 44:1.78, 45:2.01, 46:2.17, 47:2.34, 48:2.52, 49:2.71, 50:2.89, 51:3.10, 52:3.32, 53:3.56, 54:3.82, 55:4.22, 56:4.51, 57:4.84, 58:5.19, 59:5.57, 60:6.22, 61:6.67, 62:7.18, 63:7.74, 64:8.37, 65:9.39, 66:10.19, 67:11.12, 68:12.18, 69:13.36, 70:15.42, 75:23.90, 80:37.65, 85:58.46, 90:90.68, 100:214.87, 110:833.33 },
+            female: { 15:0.11, 16:0.12, 17:0.13, 18:0.14, 19:0.15, 20:0.15, 21:0.16, 22:0.16, 23:0.17, 24:0.17, 25:0.20, 26:0.21, 27:0.22, 28:0.23, 29:0.24, 30:0.26, 31:0.28, 32:0.30, 33:0.32, 34:0.34, 35:0.37, 36:0.40, 37:0.43, 38:0.46, 39:0.50, 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 56:1.92, 57:2.06, 58:2.22, 59:2.41, 60:2.77, 61:3.00, 62:3.27, 63:3.57, 64:3.91, 65:4.67, 66:5.12, 67:5.66, 68:6.27, 69:6.97, 70:8.10, 75:13.61, 80:23.99, 85:41.28, 90:71.99, 100:208.32, 110:833.33 }
         };
 
         createApp({
@@ -234,7 +231,6 @@
                 payoutA() { return this.calcPayout(this.targetA, this.unitsA, this.form.nav_A, this.form.bonus_A, this.form.payout_A_usd); },
                 payoutB() { return this.calcPayout(this.targetB, this.unitsB, this.form.nav_B, this.form.bonus_B, this.form.payout_B_usd); },
                 grossPayoutTWD() { return Math.round(this.payoutA + this.payoutB); },
-                
                 adminRate() {
                     if (this.form.year >= 5) return 0;
                     if (this.form.year === 4) return this.form.amountTWD >= 1000 ? 0.1 : 0.12;
@@ -269,7 +265,7 @@
                 calcUnits(type, amt, nav) {
                     if (amt <= 0) return 0;
                     if (type === 'yuanta') return (amt * 10000) / 10;
-                    return (amt * 10000 / this.rates.USD) / (nav || 8.56);
+                    return (amt * 10000 / this.rates.USD) / (nav || 8.5646);
                 },
                 calcPayout(type, units, nav, bonus, upUSD) {
                     if (units <= 0) return 0;
@@ -286,18 +282,19 @@
                     this.isSyncing = true;
                     try {
                         const cb = new Date().getTime();
-                        // 匯率
+                        // 同步匯率
                         const rateRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?range=1d&interval=1d&cb='+cb)}`);
                         const rateJson = await rateRes.json();
                         const nr = rateJson.chart.result[0].meta.regularMarketPrice;
                         if(nr) this.rates.USD = parseFloat(nr.toFixed(3));
 
-                        // 安聯淨值 (0P0000X12R.HK)
+                        // 同步安聯 (0P0000X12R.HK)
                         const allianzRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/0P0000X12R.HK?range=1d&interval=1d&cb='+cb)}`);
                         const allianzJson = await allianzRes.json();
                         const navA = allianzJson.chart.result[0].meta.regularMarketPrice;
                         if(navA) {
                             const val = parseFloat(navA.toFixed(4));
+                            // 自動更新標的 A 或 B 為安聯的欄位
                             if(this.targetA === 'allianz') this.form.nav_A = val;
                             if(this.targetB === 'allianz') this.form.nav_B = val;
                         }
