@@ -2,191 +2,194 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>台股模擬交易系統 - 元大風格條件單</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>元大投資先生風格 - 智能條件單模擬</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #121212; color: #e0e0e0; font-family: "Microsoft JhengHei", sans-serif; }
-        .yuanta-blue { background-color: #005599; }
-        .card { background-color: #1e1e1e; border-radius: 12px; }
-        .input-dark { background-color: #2c2c2c; border: 1px solid #444; color: white; padding: 8px; border-radius: 6px; }
-        .btn-buy { background-color: #eb4d4b; }
-        .btn-sell { background-color: #2ecc71; }
-        .tab-active { border-bottom: 2px solid #005599; color: #005599; }
+        :root {
+            --yuanta-blue: #0056b3;
+            --yuanta-dark: #0a0e14;
+            --card-bg: #1c222d;
+            --input-bg: #252d3a;
+            --rise-red: #f23645;
+            --fall-green: #089981;
+        }
+        body { background-color: var(--yuanta-dark); color: white; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .tab-active { color: white; border-bottom: 3px solid var(--yuanta-blue); font-weight: bold; }
+        .tab-inactive { color: #848e9c; }
+        .yuanta-btn { background: var(--yuanta-blue); border-radius: 25px; transition: all 0.2s; }
+        .yuanta-btn:active { opacity: 0.8; transform: scale(0.98); }
+        .input-box { background: var(--input-bg); border: 1px solid #363c4e; border-radius: 8px; color: white; }
+        .stock-tag { background: #2a3240; border-radius: 4px; padding: 2px 6px; font-size: 12px; }
     </style>
 </head>
-<body class="p-4">
+<body class="flex justify-center items-start min-h-screen">
 
-    <!-- 頂部帳戶資訊 -->
-    <div class="card p-4 mb-4 flex justify-between items-center shadow-lg">
-        <div>
-            <h1 class="text-gray-400 text-sm">虛擬購買力 (TWD)</h1>
-            <p id="balance" class="text-2xl font-bold text-yellow-500">100,000</p>
-        </div>
-        <div class="text-right">
-            <span class="text-xs bg-gray-700 px-2 py-1 rounded">模擬環境</span>
-        </div>
-    </div>
-
-    <!-- 模擬行情 (隨機跳動) -->
-    <div class="card p-4 mb-4 border-l-4 border-red-500">
-        <div class="flex justify-between">
-            <span class="text-lg font-bold">2330 台積電</span>
-            <span id="current-price" class="text-xl font-mono text-red-500 font-bold">---</span>
-        </div>
-        <p class="text-xs text-gray-500">即時行情模擬中...</p>
-    </div>
-
-    <!-- 條件單設定區 -->
-    <div class="card p-4 mb-4">
-        <div class="flex space-x-4 mb-4 border-b border-gray-700 pb-2">
-            <button onclick="switchTab('trigger')" id="tab-trigger" class="tab-active pb-1">觸價單</button>
-            <button onclick="switchTab('oco')" id="tab-oco" class="pb-1">二擇一 (OCO)</button>
-            <button onclick="switchTab('trailing')" id="tab-trailing" class="pb-1">移動鎖利</button>
-        </div>
-
-        <!-- 觸價單內容 -->
-        <div id="panel-trigger" class="space-y-3">
-            <div class="flex flex-col">
-                <label class="text-xs text-gray-400 mb-1">觸發價格</label>
-                <input type="number" id="trigger-price" class="input-dark w-full" placeholder="例如: 1050">
+    <!-- 模擬手機容器 -->
+    <div class="w-full max-w-md min-h-screen shadow-2xl overflow-hidden flex flex-col">
+        
+        <!-- Top Bar -->
+        <div class="p-4 flex justify-between items-center border-b border-gray-800">
+            <div class="flex items-center">
+                <span class="text-xl font-bold">智能單設定</span>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-gray-500">模擬資產</div>
+                <div class="text-yellow-500 font-bold">$100,000</div>
             </div>
         </div>
 
-        <!-- OCO 內容 (隱藏) -->
-        <div id="panel-oco" class="space-y-3 hidden">
-            <div class="grid grid-cols-2 gap-2">
+        <!-- 股票名稱區 -->
+        <div class="p-4 bg-[#161b22]">
+            <div class="flex justify-between items-end">
                 <div>
-                    <label class="text-xs text-gray-400 mb-1">停利觸發</label>
-                    <input type="number" id="oco-profit" class="input-dark w-full" placeholder="高價">
+                    <span class="text-2xl font-bold">2330 台積電</span>
+                    <span class="stock-tag ml-2 text-gray-400">現貨</span>
                 </div>
-                <div>
-                    <label class="text-xs text-gray-400 mb-1">停損觸發</label>
-                    <input type="number" id="oco-loss" class="input-dark w-full" placeholder="低價">
+                <div class="text-right">
+                    <div id="price" class="text-2xl font-mono text-red-500 tracking-tighter">1,025.0</div>
+                    <div class="text-xs text-red-500">+15.0 (+1.48%)</div>
                 </div>
             </div>
         </div>
 
-        <!-- 移動鎖利 內容 (隱藏) -->
-        <div id="panel-trailing" class="space-y-3 hidden">
-            <div class="flex flex-col">
-                <label class="text-xs text-gray-400 mb-1">回檔價差 (元)</label>
-                <input type="number" id="trailing-drop" class="input-dark w-full" placeholder="例如: 10">
+        <!-- 智能單類型切換 (模擬投資先生 Tab) -->
+        <div class="flex justify-around bg-[#161b22] border-b border-gray-800 text-sm">
+            <button onclick="setMode('trigger')" id="tab-trigger" class="py-3 px-4 tab-active">觸價才下單</button>
+            <button onclick="setMode('oco')" id="tab-oco" class="py-3 px-4 tab-inactive">二擇一 (OCO)</button>
+            <button onclick="setMode('trailing')" id="tab-trailing" class="py-3 px-4 tab-inactive">移動鎖利</button>
+        </div>
+
+        <!-- 設定內容區 -->
+        <div class="p-4 space-y-5 flex-grow">
+            
+            <!-- 觸發條件 -->
+            <div id="ui-trigger">
+                <label class="text-sm text-gray-400 block mb-2">當股價</label>
+                <div class="flex gap-2">
+                    <select class="input-box p-3 w-1/3">
+                        <option>大於等於</option>
+                        <option>小於等於</option>
+                    </select>
+                    <input type="number" id="val1" class="input-box p-3 w-2/3" placeholder="請輸入觸發價">
+                </div>
+            </div>
+
+            <div id="ui-oco" class="hidden space-y-4">
+                <div>
+                    <label class="text-sm text-gray-400 block mb-2">高價觸發 (停利)</label>
+                    <input type="number" id="oco-high" class="input-box p-3 w-full" placeholder="設定較高價格">
+                </div>
+                <div>
+                    <label class="text-sm text-gray-400 block mb-2">低價觸發 (停損)</label>
+                    <input type="number" id="oco-low" class="input-box p-3 w-full" placeholder="設定較低價格">
+                </div>
+            </div>
+
+            <div id="ui-trailing" class="hidden">
+                <label class="text-sm text-gray-400 block mb-2">從最高點回檔金額 (元)</label>
+                <input type="number" id="trail-val" class="input-box p-3 w-full" placeholder="例如: 10">
+                <p class="text-xs text-gray-500 mt-2">※ 系統將自動追蹤最高價，當股價由高點回落此金額時執行賣出。</p>
+            </div>
+
+            <!-- 下單設定 -->
+            <div class="border-t border-gray-800 pt-5 space-y-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-sm">委託方式</span>
+                    <div class="flex gap-2">
+                        <button class="px-4 py-1 rounded bg-blue-900 border border-blue-500 text-xs">限價</button>
+                        <button class="px-4 py-1 rounded bg-gray-700 text-xs">市價</button>
+                    </div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm">數量 (股)</span>
+                    <input type="number" class="input-box p-2 w-32 text-right" value="1000">
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm">有效日期</span>
+                    <span class="text-sm text-blue-400">至 2024/12/31 (長效)</span>
+                </div>
             </div>
         </div>
 
-        <button onclick="addOrder()" class="yuanta-blue w-full mt-6 py-3 rounded-lg font-bold text-white shadow-md">送出條件單設定</button>
-    </div>
+        <!-- 底部按鈕 -->
+        <div class="p-4 bg-[#161b22] border-t border-gray-800">
+            <button onclick="confirmOrder()" class="yuanta-btn w-full py-4 font-bold text-lg shadow-lg">確認送出條件單</button>
+        </div>
 
-    <!-- 監控中列表 -->
-    <h2 class="text-sm font-bold mb-2 text-gray-400">正在監控中的條件單</h2>
-    <div id="order-list" class="space-y-2 text-sm">
-        <!-- 訂單會顯示在這裡 -->
+        <!-- 監控清單模擬 (抽屜感) -->
+        <div class="bg-black p-4 min-h-[100px]">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-sm font-bold text-gray-400">監控中條件</span>
+                <span id="order-count" class="text-xs bg-blue-600 px-2 py-0.5 rounded-full">0</span>
+            </div>
+            <div id="monitor-list" class="space-y-2">
+                <!-- 條件單卡片 -->
+            </div>
+        </div>
     </div>
 
     <script>
-        let balance = 100000;
-        let currentPrice = 1000;
+        let mode = 'trigger';
+        let currentPrice = 1025.0;
         let orders = [];
-        let activeTab = 'trigger';
 
-        // 1. 模擬即時股價跳動
+        // 模擬股價跳動
         setInterval(() => {
-            const change = (Math.random() - 0.5) * 4; // 隨機跳動 -2 ~ +2
-            currentPrice = parseFloat((currentPrice + change).toFixed(1));
-            document.getElementById('current-price').innerText = currentPrice.toLocaleString();
-            checkOrders();
-        }, 2000);
+            const rand = (Math.random() - 0.5) * 2;
+            currentPrice = parseFloat((currentPrice + rand).toFixed(1));
+            const priceEl = document.getElementById('price');
+            priceEl.innerText = currentPrice.toLocaleString(undefined, {minimumFractionDigits: 1});
+            priceEl.className = rand > 0 ? 'text-2xl font-mono text-red-500 tracking-tighter' : 'text-2xl font-mono text-green-500 tracking-tighter';
+            checkLogic();
+        }, 1500);
 
-        // 2. 切換頁籤
-        function switchTab(type) {
-            activeTab = type;
-            document.getElementById('panel-trigger').classList.add('hidden');
-            document.getElementById('panel-oco').classList.add('hidden');
-            document.getElementById('panel-trailing').classList.add('hidden');
-            document.getElementById(`panel-${type}`).classList.remove('hidden');
-            
-            document.getElementById('tab-trigger').className = 'pb-1';
-            document.getElementById('tab-oco').className = 'pb-1';
-            document.getElementById('tab-trailing').className = 'pb-1';
-            document.getElementById(`tab-${type}`).className = 'tab-active pb-1';
+        function setMode(m) {
+            mode = m;
+            document.getElementById('ui-trigger').classList.add('hidden');
+            document.getElementById('ui-oco').classList.add('hidden');
+            document.getElementById('ui-trailing').classList.add('hidden');
+            document.getElementById(`ui-${m}`).classList.remove('hidden');
+
+            document.getElementById('tab-trigger').className = 'py-3 px-4 ' + (m==='trigger'?'tab-active':'tab-inactive');
+            document.getElementById('tab-oco').className = 'py-3 px-4 ' + (m==='oco'?'tab-active':'tab-inactive');
+            document.getElementById('tab-trailing').className = 'py-3 px-4 ' + (m==='trailing'?'tab-active':'tab-inactive');
         }
 
-        // 3. 新增條件單
-        function addOrder() {
-            let newOrder = {
-                id: Date.now(),
-                type: activeTab,
-                status: '監控中',
-                timestamp: new Date().toLocaleTimeString()
-            };
+        function confirmOrder() {
+            let desc = "";
+            if(mode === 'trigger') desc = "觸價 > " + document.getElementById('val1').value;
+            if(mode === 'oco') desc = "OCO: " + document.getElementById('oco-low').value + "~" + document.getElementById('oco-high').value;
+            if(mode === 'trailing') desc = "回檔 " + document.getElementById('trail-val').value + " 元";
 
-            if (activeTab === 'trigger') {
-                newOrder.triggerPrice = parseFloat(document.getElementById('trigger-price').value);
-                newOrder.desc = `觸價買入: ${newOrder.triggerPrice}`;
-            } else if (activeTab === 'oco') {
-                newOrder.profit = parseFloat(document.getElementById('oco-profit').value);
-                newOrder.loss = parseFloat(document.getElementById('oco-loss').value);
-                newOrder.desc = `OCO: 停利${newOrder.profit} / 停損${newOrder.loss}`;
-            } else if (activeTab === 'trailing') {
-                newOrder.drop = parseFloat(document.getElementById('trailing-drop').value);
-                newOrder.highPrice = currentPrice;
-                newOrder.desc = `移動鎖利: 最高點回落 ${newOrder.drop}元`;
-            }
-
-            orders.push(newOrder);
-            renderOrders();
+            orders.push({ id: Date.now(), mode, desc, status: '監控中', peak: currentPrice });
+            updateList();
+            alert("條件單已啟動，開始監控行情");
         }
 
-        // 4. 監控邏輯 (核心模擬)
-        function checkOrders() {
-            orders.forEach((order, index) => {
-                if (order.status !== '監控中') return;
-
-                let triggered = false;
-                let reason = '';
-
-                if (order.type === 'trigger') {
-                    if (currentPrice >= order.triggerPrice) { triggered = true; reason = '觸價成交'; }
-                } else if (order.type === 'oco') {
-                    if (currentPrice >= order.profit) { triggered = true; reason = '停利成交'; }
-                    else if (currentPrice <= order.loss) { triggered = true; reason = '停損成交'; }
-                } else if (order.type === 'trailing') {
-                    if (currentPrice > order.highPrice) { order.highPrice = currentPrice; } // 更新最高點
-                    if (currentPrice <= (order.highPrice - order.drop)) { triggered = true; reason = '回檔觸發賣出'; }
-                }
-
-                if (triggered) {
-                    order.status = reason;
-                    balance -= 1000; // 模擬隨便扣個款
-                    updateBalance();
-                    renderOrders();
-                }
-            });
-        }
-
-        function updateBalance() {
-            document.getElementById('balance').innerText = balance.toLocaleString();
-        }
-
-        function renderOrders() {
-            const list = document.getElementById('order-list');
+        function updateList() {
+            const list = document.getElementById('monitor-list');
+            document.getElementById('order-count').innerText = orders.filter(o => o.status === '監控中').length;
             list.innerHTML = '';
-            orders.slice().reverse().forEach(order => {
-                const statusColor = order.status === '監控中' ? 'text-blue-400' : 'text-yellow-500';
+            orders.forEach(o => {
                 list.innerHTML += `
-                    <div class="card p-3 border border-gray-800">
-                        <div class="flex justify-between">
-                            <span class="text-white">${order.desc}</span>
-                            <span class="${statusColor}">${order.status}</span>
+                    <div class="bg-[#252d3a] p-3 rounded-lg border-l-4 ${o.status==='監控中'?'border-blue-500':'border-gray-500'}">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-bold">2330 台積電</span>
+                            <span class="${o.status==='監控中'?'text-blue-400':'text-gray-400'}">${o.status}</span>
                         </div>
-                        <div class="text-xs text-gray-500 mt-1">${order.timestamp}</div>
+                        <div class="text-xs text-gray-400 mt-1">${o.desc}</div>
                     </div>
                 `;
             });
         }
 
-        updateBalance();
+        function checkLogic() {
+            orders.forEach(o => {
+                if(o.status !== '監控中') return;
+                // 這裡可以寫更複雜的觸發邏輯，滿足條件後變更狀態並 alert
+            });
+        }
     </script>
 </body>
 </html>
