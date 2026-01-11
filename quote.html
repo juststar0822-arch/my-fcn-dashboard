@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業報價系統 v3.1 (2026數據修復版)</title>
+    <title>FCN 專業報價系統 v3.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -29,6 +29,8 @@
         .market-btn { padding: 4px 14px; border-radius: 20px; font-size: 11px; font-weight: bold; cursor: pointer; border: 1px solid #ccc; }
         .market-btn.active { background: #1e40af; color: white; border-color: #1e40af; }
         [v-cloak] { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -36,7 +38,7 @@
         
         <!-- 1. 輸入面板 -->
         <div v-if="!isLocked" class="no-print p-4 bg-white shadow-md mb-6 max-w-md mx-auto rounded-b-xl border-t-4 border-blue-800">
-            <h2 class="font-black text-blue-900 mb-3 text-lg italic">FCN報價系統 v3.1</h2>
+            <h2 class="font-black text-blue-900 mb-3 text-lg italic">FCN報價系統 v3.2</h2>
             <div class="flex gap-2 mb-4">
                 <div @click="form.market = 'US'" :class="['market-btn', form.market === 'US' ? 'active' : '']">美股市場</div>
                 <div @click="form.market = 'JP'" :class="['market-btn', form.market === 'JP' ? 'active' : '']">日股市場</div>
@@ -53,11 +55,12 @@
                 <div>KI % (無填0) <input v-model="form.kiP" type="number" class="w-full border p-2 rounded mt-1"></div>
             </div>
             <button @click="generate" :disabled="isSyncing" class="w-full mt-5 bg-blue-800 text-white font-black py-3 rounded-xl shadow-lg hover:bg-blue-900 transition">
-                {{ isSyncing ? '正在同步 2026 最新股價...' : '生成精確報價預覽' }}
+                <span v-if="isSyncing">正在連線 Yahoo Finance...</span>
+                <span v-else>生成 2026 精確報價預覽</span>
             </button>
         </div>
 
-        <!-- 2. 控制按鈕 -->
+        <!-- 2. 控制按鈕 (僅在生成後顯示) -->
         <div v-if="isGenerated" class="flex flex-col items-center gap-3 mb-8 no-print sticky top-2 z-[100]">
             <button @click="isLocked = !isLocked" class="bg-black text-white px-8 py-2 rounded-full font-bold shadow-md text-xs italic">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定準備截圖' }}</button>
             <div class="flex gap-3">
@@ -66,8 +69,8 @@
             </div>
         </div>
 
-        <!-- 3. 預覽畫面 (預設隱藏) -->
-        <div v-if="isGenerated" class="fade-in">
+        <!-- 3. 預覽畫面 (v-show 保證 Chart.js 正常渲染) -->
+        <div v-show="isGenerated" class="fade-in">
             <!-- 圖 1 (摘要卡) -->
             <div id="capture-summary" class="capture-box">
                 <div class="page-container shadow-xl">
@@ -143,14 +146,14 @@
                 return {
                     isLocked: false, isCapturing: false, isGenerated: false, isSyncing: false,
                     form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'Nomura', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL' },
-                    stockData: [], charts: []
+                    stockData: []
                 }
             },
             methods: {
                 getStockName(s){ return stockNames[s.toUpperCase()] || ''; },
                 async generate() {
                     this.isSyncing = true;
-                    this.isGenerated = false; // 先隱藏預覽
+                    this.isGenerated = false;
                     this.stockData = [];
                     
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
@@ -158,36 +161,50 @@
 
                     try {
                         for (let t of tickerList) {
-                            // 使用 5y 範圍確保 2026 年初數據完整
-                            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=5y&interval=1d')}`);
-                            const json = JSON.parse((await res.json()).contents);
-                            const result = json.chart.result[0];
-                            const prices = result.indicators.quote[0].close;
-                            const timestamps = result.timestamp;
-                            
-                            // 只取最近 600 個交易日（涵蓋 2024, 2025, 2026）
-                            const validData = [];
-                            const validLabels = [];
-                            for(let i = prices.length - 600; i < prices.length; i++) {
-                                if(prices[i] != null) {
-                                    validData.push(prices[i]);
-                                    const d = new Date(timestamps[i] * 1000);
-                                    validLabels.push(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
+                            try {
+                                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=2y&interval=1d')}`);
+                                const json = JSON.parse((await res.json()).contents);
+                                if (!json.chart || !json.chart.result) continue;
+                                
+                                const result = json.chart.result[0];
+                                const prices = result.indicators.quote[0].close;
+                                const timestamps = result.timestamp;
+                                
+                                // 過濾掉空值並取最近 600 筆
+                                const validPrices = [];
+                                const validLabels = [];
+                                const startIndex = Math.max(0, prices.length - 600);
+                                
+                                for(let i = startIndex; i < prices.length; i++) {
+                                    if(prices[i] != null) {
+                                        validPrices.push(prices[i]);
+                                        const d = new Date(timestamps[i] * 1000);
+                                        validLabels.push(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
+                                    }
                                 }
-                            }
 
-                            this.stockData.push({ 
-                                symbol: t, 
-                                price: validData[validData.length - 1].toFixed(2), 
-                                history: validData,
-                                labels: validLabels
-                            });
+                                this.stockData.push({ 
+                                    symbol: t, 
+                                    price: validPrices[validPrices.length - 1].toFixed(2), 
+                                    history: validPrices,
+                                    labels: validLabels
+                                });
+                            } catch (err) { console.error('單一標的抓取失敗:', t); }
                         }
-                        this.isGenerated = true;
-                        // 確保 DOM 已渲染
-                        setTimeout(() => this.stockData.forEach((s, i) => this.drawChart(i, s)), 300);
+                        
+                        if (this.stockData.length > 0) {
+                            this.isGenerated = true;
+                            // 確保 Vue 渲染完成後繪圖
+                            this.$nextTick(() => {
+                                setTimeout(() => {
+                                    this.stockData.forEach((s, i) => this.drawChart(i, s));
+                                }, 500);
+                            });
+                        } else {
+                            alert('無法抓取任何標的數據，請檢查代碼。');
+                        }
                     } catch (e) {
-                        alert('數據抓取失敗，請確認代碼是否正確或稍後再試。');
+                        alert('連線逾時，請再試一次。');
                     } finally {
                         this.isSyncing = false;
                     }
@@ -196,7 +213,6 @@
                     const canvas = document.getElementById('chart-' + idx);
                     if(!canvas) return;
                     
-                    // 銷毀舊圖表
                     const existingChart = Chart.getChart(canvas);
                     if (existingChart) existingChart.destroy();
 
@@ -226,13 +242,8 @@
                             animation: false, responsive: true, maintainAspectRatio: false,
                             plugins: { legend: { display: false } },
                             scales: { 
-                                x: { display: true, ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } }, 
-                                y: { 
-                                    position: 'right', 
-                                    min: Math.floor(minP - padding), max: Math.ceil(maxP + padding),
-                                    ticks: { font: { size: 9, weight: 'bold' } }, 
-                                    grid: { color: '#f0f0f0' } 
-                                } 
+                                x: { display: true, ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
+                                y: { position: 'right', min: Math.floor(minP - padding), max: Math.ceil(maxP + padding), ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
                             }
                         }
                     });
@@ -240,7 +251,7 @@
                 async capture(type) {
                     this.isCapturing = true;
                     const element = document.getElementById(type === 'summary' ? 'capture-summary' : 'capture-detail');
-                    await new Promise(r => setTimeout(r, 500));
+                    await new Promise(r => setTimeout(r, 600));
                     try {
                         const canvas = await html2canvas(element, { scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 430 });
                         const link = document.createElement('a');
