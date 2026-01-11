@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業詢價模擬引擎 v3.0</title>
+    <title>FCN 專業詢價模擬引擎 v3.1</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,11 +11,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #f8fafc; color: #1e293b; font-family: 'Inter', "Microsoft JhengHei", sans-serif; }
         .bank-card { background: white; border-radius: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.05); }
-        .input-light { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; transition: 0.2s; }
-        .input-light:focus { border-color: #3b82f6; background: white; outline: none; box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
+        .input-light { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; }
+        .input-light:focus { border-color: #3b82f6; background: white; outline: none; }
         .btn-navy { background: #1e293b; color: white; font-weight: 800; transition: 0.3s; }
-        .btn-navy:hover { background: #0f172a; transform: translateY(-1px); }
-        .btn-navy:disabled { opacity: 0.4; transform: none; }
         .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
         [v-cloak] { display: none; }
     </style>
@@ -25,18 +23,15 @@
         
         <div class="flex justify-between items-end mb-8">
             <div>
-                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter">FCN QUOTE</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Simulator Professional v3.0</p>
+                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase">FCN Quote</h1>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest">Simulator Professional v3.1</p>
             </div>
-            <div class="text-right">
-                <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">REAL-TIME DATA</span>
-            </div>
+            <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">LIVE DATA</span>
         </div>
 
         <!-- 1. 設定面板 -->
         <div class="bank-card p-6 mb-6">
             <div class="space-y-5">
-                <!-- 市場與標的 -->
                 <div>
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-xs font-black text-slate-500 uppercase">連結標的 (Ticker)</label>
@@ -45,28 +40,14 @@
                             <button @click="form.market = 'JP'" :class="['text-[10px] px-2 py-1 rounded font-bold', form.market==='JP'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">JP 日股</button>
                         </div>
                     </div>
-                    <input v-model="form.tickers" placeholder="例如: NVDA,AAPL,TSLA" class="input-light text-center text-lg uppercase tracking-wider">
-                    <p class="text-[9px] text-slate-400 mt-2 italic">* 請輸入 1-5 檔代碼，用逗號隔開</p>
+                    <input v-model="form.tickers" placeholder="例如: NVDA,TSLA,AMD" class="input-light text-center text-lg uppercase tracking-wider">
                 </div>
 
-                <!-- 參數調整 -->
                 <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">天期 (Months)</label>
-                        <input type="number" v-model="form.tenor" class="input-light">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">UF% (Upfront Fee)</label>
-                        <input type="number" v-model="form.margin" step="0.1" class="input-light text-blue-600">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">Strike (%)</label>
-                        <input type="number" v-model="form.strike" class="input-light">
-                    </div>
-                    <div>
-                        <label class="text-[10px] font-black text-slate-400 uppercase">KI (%)</label>
-                        <input type="number" v-model="form.ki" class="input-light">
-                    </div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">天期 (Months)</label><input type="number" v-model="form.tenor" class="input-light"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">UF% (Upfront Fee)</label><input type="number" v-model="form.margin" step="0.1" class="input-light text-blue-600"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">Strike (%)</label><input type="number" v-model="form.strike" class="input-light"></div>
+                    <div><label class="text-[10px] font-black text-slate-400 uppercase">KI (%)</label><input type="number" v-model="form.ki" class="input-light"></div>
                 </div>
 
                 <button @click="simulate" :disabled="isSyncing" class="w-full btn-navy py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3">
@@ -97,40 +78,41 @@
                     <div class="text-right">
                         <p class="text-[10px] font-bold text-white/40 uppercase">Market Base (Rf)</p>
                         <p class="text-xl font-black italic">{{ result.rf }}%</p>
-                        <p class="text-[9px] font-bold text-white/40 mt-1 uppercase">{{ form.market === 'US' ? 'USD Libor' : 'JPY Libor' }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 3. 標的明細 (修正抓不到名稱問題) -->
+        <!-- 3. 標的明細 (含補完之中文名稱) -->
         <div v-if="stockDetails.length > 0" class="bank-card p-6 mb-8">
             <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-widest">市場標的狀態</h3>
             <div class="space-y-4">
                 <div v-for="s in stockDetails" class="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div class="flex-1">
                         <p class="text-sm font-black text-slate-800">{{ s.symbol.replace('.T','') }}</p>
-                        <p class="text-[10px] text-slate-400 font-bold truncate pr-4">{{ s.name }}</p>
+                        <p class="text-[10px] text-slate-400 font-bold">{{ s.name }}</p>
                     </div>
                     <div class="text-right">
                         <p class="text-xs font-black text-slate-800">{{ s.hv.toFixed(1) }}%</p>
-                        <p class="text-[9px] font-bold text-slate-400 uppercase">Volatility</p>
+                        <p class="text-[9px] font-bold text-slate-400 uppercase">Vol</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 4. 免責聲明 -->
-        <p class="text-center text-[11px] font-bold text-slate-400 leading-relaxed italic px-4 pb-20">
-            ※ 以上數據係依據市場即時波動率、股息率及基準利率之模型預估。<br>
-            正式報價受發行商額度、Correlation及市場隱含波動率(IV)影響。<br>
-            以上內容僅供內部參考，實際配息以成交為準。
+        <p class="text-center text-[11px] font-bold text-slate-400 italic px-4 pb-20">
+            ※ 模擬引擎 v3.1：採用非線性衰減模型 (Non-linear Decay Model)<br>
+            實際配息以成交為準，本數據僅供詢價參考。
         </p>
 
     </div>
 
     <script>
         const { createApp } = Vue;
+        const stockNames = {
+            'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏',
+            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'
+        };
 
         createApp({
             data() {
@@ -138,76 +120,67 @@
                     isSyncing: false,
                     result: null,
                     stockDetails: [],
-                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 80, ki: 60, margin: 1.0 }
+                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 75, ki: 55, margin: 1.5 }
                 }
             },
             methods: {
                 async simulate() {
                     let tickerList = this.form.tickers.split(',').map(t => t.trim().toUpperCase()).filter(t => t !== '');
-                    if (tickerList.length === 0 || tickerList.length > 5) {
-                        alert('請輸入 1-5 檔代碼'); return;
-                    }
+                    if (tickerList.length === 0) return;
 
                     this.isSyncing = true;
                     this.result = null;
                     this.stockDetails = [];
-
-                    // 日股代碼自動處理
-                    if(this.form.market === 'JP') {
-                        tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
-                    }
+                    if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
 
                     try {
                         let maxHV = 0;
                         let worstTicker = '';
-                        let rf = this.form.market === 'US' ? 4.8 : 0.8; // 當前美金/日幣基準利率預估
+                        let rf = this.form.market === 'US' ? 4.8 : 0.8;
 
                         for (let t of tickerList) {
-                            // 抓取過去 30 天的歷史數據
                             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=1mo&interval=1d')}`);
                             const json = JSON.parse((await res.json()).contents);
                             const quote = json.chart.result[0];
                             const prices = quote.indicators.quote[0].close.filter(p => p != null);
                             
-                            // 修正名稱抓取問題：嘗試從 meta 抓取 shortName 或 longName
-                            const displayName = quote.meta.symbol.replace('.T','') + ' Asset'; // 預設
-
-                            // 計算日波幅年化 (HV)
                             let logReturns = [];
-                            for(let i=1; i<prices.length; i++) {
-                                logReturns.push(Math.log(prices[i]/prices[i-1]));
-                            }
+                            for(let i=1; i<prices.length; i++) logReturns.push(Math.log(prices[i]/prices[i-1]));
                             const stdDev = Math.sqrt(logReturns.map(x => Math.pow(x, 2)).reduce((a,b)=>a+b, 0) / logReturns.length);
                             const hv = stdDev * Math.sqrt(252) * 100;
 
-                            this.stockDetails.push({ symbol: t, name: quote.meta.symbol, hv: hv });
-
-                            if(hv > maxHV) {
-                                maxHV = hv;
-                                worstTicker = t.replace('.T', '');
-                            }
+                            this.stockDetails.push({ symbol: t, name: stockNames[t] || t.replace('.T',''), hv: hv });
+                            if(hv > maxHV) { maxHV = hv; worstTicker = t; }
                         }
 
-                        // 定價公式修正 (FCN v3 引擎)
-                        const assetPremium = (tickerList.length - 1) * 2.3; // 數量溢價
-                        const volImpact = maxHV * 0.45; // 波動率權重
-                        const protectionFactor = ((100 - this.form.strike) * 0.7) + ((100 - this.form.ki) * 0.3);
+                        // --- v3.1 非線性定價引擎 ---
+                        // 1. 基本波動率利潤 (與波動率正相關)
+                        let volPremium = maxHV * 0.85;
+
+                        // 2. 保護縮減因子 (Strike/KI 越低，利潤衰減越快，但不會變負)
+                        // 使用 Power Function 模擬選擇權 Delta 變化
+                        let strikeFactor = Math.pow(this.form.strike / 100, 3.5); 
+                        let kiFactor = Math.pow(this.form.ki / 100, 0.5); 
+                        if(this.form.ki == 0) kiFactor = 0.4; // 無 KI 視為極高保護
+
+                        // 3. 資產數量溢價 (Worst-of 邏輯)
+                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.15;
+
+                        // 4. 最終計算
+                        let estimatedCoupon = rf + (volPremium * strikeFactor * kiFactor * assetMultiplier) - this.form.margin;
                         
-                        let finalCoupon = rf + volImpact + assetPremium - protectionFactor - this.form.margin;
-                        
-                        // 天期微調 (短天期固定成本較高)
-                        finalCoupon += (6 - this.form.tenor) * 0.4;
+                        // 確保利率不為負值，最低給予基準利率
+                        if(estimatedCoupon < rf) estimatedCoupon = rf;
 
                         this.result = {
-                            coupon: finalCoupon.toFixed(2),
+                            coupon: estimatedCoupon.toFixed(2),
                             maxVol: maxHV.toFixed(1),
-                            worstTicker: worstTicker,
+                            worstTicker: worstTicker.replace('.T', ''),
                             rf: rf,
                             date: new Date().toLocaleTimeString()
                         };
-
                     } catch (e) {
-                        alert('詢價失敗！請檢查代碼是否正確。例如 NVDA (美股) 或 6146 (日股選日股模式)');
+                        alert('詢價失敗，請檢查代碼。');
                     } finally {
                         this.isSyncing = false;
                     }
