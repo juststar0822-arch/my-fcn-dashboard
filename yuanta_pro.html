@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 專業台幣精算終端 v7.4</title>
+    <title>元元致富 - 專業台幣精算系統 v7.5</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #f8fafc; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
-        .bank-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 25px rgba(0,0,0,0.05); }
+        .bank-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .res-card { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; border-radius: 2rem; }
         .input-box { background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 12px; width: 100%; font-weight: 800; text-align: center; }
         .gender-btn { flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; font-size: 13px; transition: 0.3s; border: 1.5px solid #e2e8f0; }
@@ -28,8 +28,8 @@
     <div id="app" v-cloak class="max-w-md mx-auto pb-20">
         
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">台幣精算終端</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center">Stability v7.4 - TWD Payout Master</p>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">精算終端</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center">Stability v7.5 - Full TWD Logic</p>
         </div>
 
         <!-- 1. 標的選擇 -->
@@ -37,7 +37,7 @@
             <div @click="setTarget('yuanta')" :class="['target-card flex justify-between items-center', activeTarget === 'yuanta' ? 'active' : '']">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i class="fa-solid fa-vault text-xs"></i></div>
-                    <div><p class="text-sm font-black">財富雙享類全委 (台幣)</p><p class="text-[8px] text-slate-400">雙重撥回機制 (0.045+0.05)</p></div>
+                    <div><p class="text-sm font-black">財富雙享類全委 (台幣)</p><p class="text-[8px] text-slate-400">雙重撥回 0.045 + 0.05</p></div>
                 </div>
                 <div class="text-right"><p class="text-xs font-black text-blue-600">{{ form.nav_yuanta }}</p></div>
             </div>
@@ -53,7 +53,7 @@
             <div @click="setTarget('custom')" :class="['target-card flex justify-between items-center', activeTarget === 'custom' ? 'active' : '']">
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><i class="fa-solid fa-gear text-xs"></i></div>
-                    <div><p class="text-sm font-black">自定義境外標的 (美金)</p><p class="text-[8px] text-slate-400">手動設定淨值與撥回</p></div>
+                    <div><p class="text-sm font-black">自定義境外標的 (美金)</p><p class="text-[8px] text-slate-400">手動設定美金淨值與撥回</p></div>
                 </div>
                 <i v-if="activeTarget === 'custom'" class="fa-solid fa-pen-to-square text-[10px] text-slate-400"></i>
             </div>
@@ -69,7 +69,7 @@
             <!-- 動態輸入區 -->
             <div v-if="activeTarget === 'yuanta'" class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
                 <div class="flex justify-between items-end mb-2">
-                    <label class="text-[11px] font-black text-slate-500 italic">調整模擬淨值 (NAV)</label>
+                    <label class="text-[11px] font-black text-slate-500 italic">模擬帳戶淨值 (NAV)</label>
                     <span class="text-2xl font-black text-blue-700 font-mono">{{ simNAV.toFixed(2) }}</span>
                 </div>
                 <input type="range" min="7.5" max="11.5" step="0.01" v-model.number="simNAV" class="slider">
@@ -81,7 +81,7 @@
 
             <div v-else class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">美金基金淨值 (NAV)</label>
+                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">基金淨值 (NAV USD)</label>
                     <input type="number" v-model.number="currentNAV" step="0.01" class="input-box bg-white">
                 </div>
                 <div>
@@ -101,10 +101,10 @@
                 <div><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">被保人年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
             </div>
 
-            <!-- 金額與年度 -->
+            <!-- 金額與年度 (統一為台幣) -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-1">
-                    <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-tighter">投入金額 (台幣 萬)</label>
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-tighter">投入金額 (萬台幣)</label>
                     <input type="number" v-model.number="form.amountTWD" class="input-box">
                 </div>
                 <div class="col-span-1">
@@ -116,7 +116,7 @@
             </div>
             
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4">
-                <span>即時匯率: {{ rates.USD }}</span>
+                <span>美金匯率: {{ rates.USD }}</span>
                 <span @click="initData" class="cursor-pointer text-blue-600 font-black"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin': isSyncing}"></i>重新同步市場數據</span>
             </div>
         </div>
@@ -149,7 +149,7 @@
         <!-- 4. 費用明細 -->
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10">
             <h3 class="text-slate-800 mb-3 border-b pb-2 uppercase flex justify-between">
-                <span>TWD Payout Breakdown</span>
+                <span>TWD Cashflow Breakdown</span>
                 <span class="text-blue-600 font-black italic text-[9px]">元元致富台幣精算</span>
             </h3>
             <div class="space-y-2.5">
@@ -170,9 +170,9 @@
         </div>
 
         <p class="text-[10px] font-bold text-slate-400 text-center leading-relaxed italic px-4 pb-20">
-            ※ 本試算模擬保戶以台幣投入美金標的之情境。<br>
-            ※ 投入金額達 300 萬台幣即享 100 元維護費減免優惠。<br>
-            ※ 實際數據請以保單月結單及元大人壽最新公告為準。
+            ※ 本試算統一以「台幣」作為輸入與產出單位，方便業代解說。<br>
+            ※ 美金標的會自動依即時匯率換算投資單位數與配息金額。<br>
+            ※ 實際配息依保單月結單與結算日淨值為準。
         </p>
     </div>
 
@@ -227,18 +227,21 @@
                         if (this.activeTarget === 'custom') this.form.unitPayout_custom = val;
                     }
                 },
-                // 核心計算：台幣投入轉美金單位數
+                // 單位數 = (台幣金額*10000 / 匯率) / 買入淨值
                 totalUnits() {
                     const amountUSD = (this.form.amountTWD * 10000) / this.rates.USD;
-                    // 財富雙享初始面額10元，安聯與自定義依當前淨值買入
                     const purchaseNAV = this.activeTarget === 'yuanta' ? 10 : this.currentNAV;
                     return amountUSD / purchaseNAV;
                 },
+                // 總撥回台幣 = 單位數 * 每單位美金撥回 * 匯率
                 grossPayoutTWD() {
+                    if (this.activeTarget === 'yuanta') {
+                        return this.totalUnits * this.currentUnitPayout;
+                    }
                     const grossUSD = this.totalUnits * this.currentUnitPayout;
                     return grossUSD * this.rates.USD;
                 },
-                // 費用皆以台幣計價扣除
+                // 費用判定 (統一台幣)
                 adminRate() {
                     if (this.form.year >= 5) return 0;
                     if (this.form.year === 4) return this.form.amountTWD >= 1000 ? 0.1 : 0.12;
@@ -258,24 +261,21 @@
                 }
             },
             methods: {
-                setTarget(t) { 
-                    this.activeTarget = t; 
-                },
+                setTarget(t) { this.activeTarget = t; },
                 formatNum(n, d = 0) { return parseFloat(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); },
                 async initData() {
                     this.isSyncing = true;
                     try {
                         const cb = new Date().getTime();
-                        // 1. 抓匯率
                         const rateRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?range=1d&interval=1d&cb='+cb)}`);
                         const rateJson = await rateRes.json();
                         this.rates.USD = rateJson.chart.result[0].meta.regularMarketPrice;
-                        // 2. 抓安聯 AM穩定淨值
+
                         const allianzRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/0P0000X12R.HK?range=1d&interval=1d&cb='+cb)}`);
                         const allianzJson = await allianzRes.json();
                         const navA = allianzJson.chart.result[0].meta.regularMarketPrice;
                         if(navA) this.form.nav_allianz = navA.toFixed(4);
-                    } catch (e) { console.error('Data sync failed'); }
+                    } catch (e) { console.error('Market sync failed'); }
                     this.isSyncing = false;
                 }
             },
