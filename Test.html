@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元大證券 - 精確手續費試算</title>
+    <title>元大證券 - 專業手續費試算</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root {
@@ -14,78 +14,84 @@
         }
         body { background-color: var(--yuanta-dark); color: white; font-family: -apple-system, sans-serif; }
         .input-box { background: var(--input-bg); border: 1px solid #363c4e; border-radius: 8px; color: white; width: 100%; padding: 12px; text-align: right; font-size: 18px; font-family: monospace; }
-        .result-row { display: flex; justify-between; margin-bottom: 8px; font-size: 14px; color: #848e9c; }
+        .result-row { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; color: #848e9c; }
         .result-val { color: white; font-weight: bold; }
         .tab-btn { padding: 12px 0; width: 50%; text-align: center; border-bottom: 2px solid transparent; color: #848e9c; }
         .active-tab { border-bottom: 2px solid var(--yuanta-blue); color: white; font-weight: bold; }
+        .info-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #2a3240; color: #aaa; }
     </style>
 </head>
 <body class="p-4 flex justify-center">
 
     <div class="w-full max-w-md bg-[#161b22] rounded-2xl shadow-xl overflow-hidden border border-gray-800">
-        <!-- Header -->
-        <div class="p-4 border-b border-gray-800 text-center font-bold text-lg">
-            元大證券費率試算
+        <div class="p-4 border-b border-gray-800 text-center">
+            <h1 class="font-bold text-lg italic tracking-widest text-blue-400">YUANTA</h1>
+            <p class="text-[10px] text-gray-500">台美股交易成本試算系統</p>
         </div>
 
-        <!-- Tabs -->
         <div class="flex">
-            <button onclick="switchTab('tw')" id="btn-tw" class="tab-btn active-tab">台股 (TWD)</button>
-            <button onclick="switchTab('us')" id="btn-us" class="tab-btn">美股 (USD)</button>
+            <button onclick="switchTab('tw')" id="btn-tw" class="tab-btn active-tab">台股交易</button>
+            <button onclick="switchTab('us')" id="btn-us" class="tab-btn">美股複委託</button>
         </div>
 
         <div class="p-6 space-y-6">
             
-            <!-- 台股部分 -->
+            <!-- 台股試算 -->
             <div id="panel-tw" class="space-y-4">
-                <div>
-                    <label class="text-xs text-gray-500 block mb-1">成交價格 x 股數</label>
-                    <div class="flex gap-2">
-                        <input type="number" id="tw-price" class="input-box" placeholder="單價" oninput="calcTW()">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">成交價 (TWD)</label>
+                        <input type="number" id="tw-price" class="input-box" placeholder="0.0" oninput="calcTW()">
+                    </div>
+                    <div>
+                        <label class="text-xs text-gray-500 block mb-1">股數 <span id="tw-type-tag" class="info-tag ml-1">整張</span></label>
                         <input type="number" id="tw-qty" class="input-box" value="1000" oninput="calcTW()">
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-xs text-gray-500 block mb-1">手續費折讓 (請輸入折數，如 2.8 折填 2.8)</label>
+                    <label class="text-xs text-gray-500 block mb-1">手續費折讓 (Key-in 折數，如 2.8 折)</label>
                     <div class="relative">
-                        <input type="number" id="tw-discount" class="input-box" value="6" oninput="calcTW()">
+                        <input type="number" id="tw-discount" class="input-box" value="6" step="0.1" oninput="calcTW()">
                         <span class="absolute left-3 top-3.5 text-blue-400 text-sm">折</span>
                     </div>
                 </div>
 
-                <div class="bg-[#1c222d] p-4 rounded-xl space-y-3">
+                <div class="bg-[#1c222d] p-4 rounded-xl space-y-3 border border-gray-800">
                     <div class="result-row">
                         <span>成交金額</span>
                         <span id="tw-total" class="result-val">$0</span>
                     </div>
-                    <div class="result-row">
-                        <span>手續費 (1.425‰ x 折讓)</span>
-                        <span id="tw-fee" class="result-val text-blue-400">$0</span>
+                    <div class="result-row items-center">
+                        <span>手續費 (1.425‰ × 折讓)</span>
+                        <div class="text-right">
+                            <span id="tw-fee" class="result-val text-blue-400">$0</span>
+                            <p id="tw-min-note" class="text-[9px] text-gray-500">(整張低消$20)</p>
+                        </div>
                     </div>
                     <div class="result-row">
                         <span>證券交易稅 (3‰)</span>
                         <span id="tw-tax" class="result-val text-orange-400">$0</span>
                     </div>
-                    <div class="border-t border-gray-700 pt-3">
+                    
+                    <div class="border-t border-gray-700 pt-3 mt-2 space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-sm">買入總成本 (含手續費)</span>
+                            <span class="text-sm">買入預計總支出</span>
                             <span id="tw-buy" class="text-xl text-red-500 font-bold">$0</span>
                         </div>
-                        <div class="flex justify-between items-center mt-2">
-                            <span class="text-sm">賣出實收 (扣除手續費+稅)</span>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm">賣出預計實收</span>
                             <span id="tw-sell" class="text-xl text-green-500 font-bold">$0</span>
                         </div>
                     </div>
                 </div>
-                <p class="text-[10px] text-gray-500 text-center">※ 台股手續費基本低消為 20 元</p>
             </div>
 
-            <!-- 美股部分 -->
+            <!-- 美股試算 -->
             <div id="panel-us" class="hidden space-y-4">
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs text-gray-500 block mb-1">美股單價</label>
+                        <label class="text-xs text-gray-500 block mb-1">美股股價 (USD)</label>
                         <input type="number" id="us-price" class="input-box" placeholder="0.00" oninput="calcUS()">
                     </div>
                     <div>
@@ -94,12 +100,12 @@
                     </div>
                 </div>
 
-                <div class="bg-blue-900/10 border border-blue-500/20 p-4 rounded-xl text-sm">
-                    元大美股複委託優惠費率：<span class="text-blue-400 font-bold">0.1%</span><br>
-                    (目前設定：無最低手續費低消限制)
+                <div class="bg-blue-900/10 border border-blue-500/20 p-4 rounded-xl text-xs">
+                    <span class="text-blue-400 font-bold">元大美股優惠費率：</span>
+                    成交金額 <span class="text-white">0.1%</span>，<span class="text-white">無最低收費</span>。
                 </div>
 
-                <div class="bg-[#1c222d] p-4 rounded-xl space-y-3">
+                <div class="bg-[#1c222d] p-4 rounded-xl space-y-3 border border-gray-800">
                     <div class="result-row">
                         <span>成交總額</span>
                         <span id="us-total" class="result-val">$0.00</span>
@@ -108,9 +114,9 @@
                         <span>手續費 (0.1%)</span>
                         <span id="us-fee" class="result-val text-blue-400">$0.00</span>
                     </div>
-                    <div class="border-t border-gray-700 pt-3">
+                    <div class="border-t border-gray-700 pt-3 mt-2">
                         <div class="flex justify-between items-center">
-                            <span>買入預計總支出</span>
+                            <span>買入預計總成本</span>
                             <span id="us-net" class="text-xl text-red-500 font-bold">$0.00</span>
                         </div>
                     </div>
@@ -129,41 +135,52 @@
         }
 
         function calcTW() {
-            const p = parseFloat(document.getElementById('tw-price').value) || 0;
-            const q = parseFloat(document.getElementById('tw-qty').value) || 0;
-            const d = parseFloat(document.getElementById('tw-discount').value) || 10;
+            const price = parseFloat(document.getElementById('tw-price').value) || 0;
+            const qty = parseFloat(document.getElementById('tw-qty').value) || 0;
+            const disc = parseFloat(document.getElementById('tw-discount').value) || 10;
             
-            const total = Math.round(p * q);
+            const total = Math.round(price * qty);
             
-            // 1. 手續費計算：成交金額 * 0.001425 * 折數/10 (低消20元)
-            let fee = Math.floor(total * 0.001425 * (d / 10));
-            if (total > 0 && fee < 20) fee = 20;
+            // 判斷整張或零股低消
+            let minFee = 20;
+            let typeText = "整張";
+            if (qty < 1000) {
+                minFee = 1;
+                typeText = "零股";
+            }
+            document.getElementById('tw-type-tag').innerText = typeText;
+            document.getElementById('tw-min-note').innerText = `(${typeText}低消$${minFee})`;
 
-            // 2. 證交稅計算：成交金額 * 0.003
+            // 手續費計算 (千分之 1.425 * 折讓)
+            let fee = Math.floor(total * 0.001425 * (disc / 10));
+            if (total > 0 && fee < minFee) fee = minFee; 
+
+            // 證交稅計算 (千分之 3)
             const tax = Math.floor(total * 0.003);
 
             document.getElementById('tw-total').innerText = '$' + total.toLocaleString();
             document.getElementById('tw-fee').innerText = '$' + fee.toLocaleString();
             document.getElementById('tw-tax').innerText = '$' + tax.toLocaleString();
             
-            // 買入總成本 = 成交價 + 手續費
+            // 買入支付 = 金額 + 手續費
             document.getElementById('tw-buy').innerText = '$' + (total + fee).toLocaleString();
-            // 賣出實收 = 成交價 - (手續費 + 證交稅)
+            // 賣出實收 = 金額 - 手續費 - 證交稅
             document.getElementById('tw-sell').innerText = '$' + (total - fee - tax).toLocaleString();
         }
 
         function calcUS() {
             const p = parseFloat(document.getElementById('us-price').value) || 0;
             const q = parseFloat(document.getElementById('us-qty').value) || 0;
-            
             const total = p * q;
-            // 元大美股 0.1% 成交金額
-            const fee = total * 0.001;
+            const fee = total * 0.001; // 0.1% 無低消
 
             document.getElementById('us-total').innerText = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('us-fee').innerText = '$' + fee.toLocaleString(undefined, {minimumFractionDigits: 2});
             document.getElementById('us-net').innerText = '$' + (total + fee).toLocaleString(undefined, {minimumFractionDigits: 2});
         }
+
+        // 初始化計算一次
+        calcTW();
     </script>
 </body>
 </html>
