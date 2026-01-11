@@ -3,189 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 報價生成系統</title>
+    <title>FCN 專業報價系統</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background: #f0f2f5; }
-        .page-break { page-break-after: always; }
-        /* 模擬圖片中的報價單樣式 */
-        .report-table th { background-color: #1e3a8a; color: white; border: 1px solid #ddd; padding: 8px; }
-        .report-table td { border: 1px solid #ddd; padding: 8px; text-align: center; font-weight: bold; }
-        .chart-container { height: 200px; width: 100%; }
-        @media print { .no-print { display: none; } .print-area { background: white; width: 210mm; height: 297mm; padding: 10mm; margin: 0 auto; } }
+        body { background: #fff; font-family: "Microsoft JhengHei", sans-serif; }
+        .report-border { border: 2px solid #000; }
+        .bg-fcn-blue { background-color: #fef9c3; } /* 黃底 */
+        .header-cell { background-color: #fff; border: 1px solid #000; text-align: center; font-weight: bold; font-size: 14px; }
+        .data-table td { border: 1px solid #000; padding: 4px 8px; font-weight: bold; font-size: 16px; }
+        .stock-header { background-color: #fbbf24; border-top: 2px solid #000; border-bottom: 2px solid #000; padding: 2px; text-align: center; font-weight: 900; }
+        .chart-box { height: 160px; width: 100%; }
+        /* 隱藏滾動條但保持功能 */
+        ::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-4">
-    <div id="app" class="max-w-5xl mx-auto">
+<body>
+    <div id="app" class="p-2">
         
-        <!-- 輸入表單 (no-print) -->
-        <div class="no-print bg-white p-6 rounded-xl shadow-lg mb-10">
-            <h2 class="text-2xl font-black mb-4 text-blue-800">FCN 報價輸入面板</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div><label class="block text-xs font-bold">報價日期</label><input type="date" v-model="form.date" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">發行機構</label><input v-model="form.issuer" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">年化利率 (%)</label><input type="number" v-model="form.coupon" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">天期 (月)</label><input type="number" v-model="form.tenor" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">KO (%)</label><input type="number" v-model="form.koP" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">Strike (%)</label><input type="number" v-model="form.strikeP" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">KI (%) - NA請填0</label><input type="number" v-model="form.kiP" class="w-full p-2 border rounded"></div>
-                <div><label class="block text-xs font-bold">標的 (逗號分隔)</label><input v-model="form.tickers" placeholder="TSM,NVDA,TSLA" class="w-full p-2 border rounded"></div>
+        <!-- 輸入面板 (截圖前可隱藏) -->
+        <div v-if="!isLocked" class="bg-gray-100 p-4 rounded-xl mb-4 text-sm">
+            <h2 class="font-bold mb-2">報價參數輸入</h2>
+            <div class="grid grid-cols-2 gap-2">
+                <input v-model="form.date" type="text" placeholder="日期 (2025/12/31)" class="p-1 border">
+                <input v-model="form.tenor" type="number" placeholder="天期 (6)" class="p-1 border">
+                <input v-model="form.koP" type="number" placeholder="KO % (100)" class="p-1 border">
+                <input v-model="form.strikeP" type="number" placeholder="Strike % (83.07)" class="p-1 border">
+                <input v-model="form.kiP" type="text" placeholder="KI % (NA)" class="p-1 border">
+                <input v-model="form.coupon" type="number" placeholder="Coupon % (18)" class="p-1 border">
+                <input v-model="form.tickers" placeholder="標的 (TSM,NVDA,TSLA)" class="col-span-2 p-1 border">
             </div>
-            <button @click="generateReport" class="mt-6 w-full bg-blue-600 text-white font-black py-3 rounded-lg hover:bg-blue-700 transition">生成報價單</button>
+            <button @click="generate" class="w-full mt-3 bg-blue-600 text-white py-2 rounded font-bold">生成報價單 (抓取最新價)</button>
         </div>
 
-        <!-- 預覽區域 (print-area) -->
-        <div v-if="showReport" class="print-area space-y-10">
-            
-            <!-- 第一頁：報價摘要 -->
-            <div class="bg-white border-2 border-black p-4 w-full max-w-xl mx-auto page-break shadow-xl">
-                <div class="flex justify-between border-b-2 border-black pb-2 mb-4">
-                    <span class="font-black text-xl">報價日期 {{ form.date }}</span>
-                </div>
-                <table class="w-full border-collapse">
-                    <tr>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300 w-1/4">發行機構</th>
-                        <td class="p-2 border border-slate-300 text-xl">{{ form.issuer }}</td>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300 w-1/4">提前出場價 (KO)</th>
-                        <td class="p-2 border border-slate-300 text-2xl text-blue-700">{{ form.koP }}%</td>
-                    </tr>
-                    <tr>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300">計價幣別</th>
-                        <td class="p-2 border border-slate-300">USD</td>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300" rowspan="2">履約價 (Strike)</th>
-                        <td class="p-2 border border-slate-300 text-2xl text-red-600" rowspan="2">{{ form.strikeP }}%</td>
-                    </tr>
-                    <tr>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300">交易類型</th>
-                        <td class="p-2 border border-slate-300">FCN</td>
-                    </tr>
-                    <tr>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300">天期(月)</th>
-                        <td class="p-2 border border-slate-300">{{ form.tenor }}</td>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300" rowspan="2">觸及生效價 (KI)</th>
-                        <td class="p-2 border border-slate-300 text-2xl font-black text-red-500" rowspan="2">{{ form.kiP == 0 ? 'NA' : form.kiP + '%' }}</td>
-                    </tr>
-                    <tr>
-                        <th class="bg-slate-800 text-white p-2 border border-slate-300">年化報酬率</th>
-                        <td class="p-2 border border-slate-300 text-2xl font-black text-orange-500">{{ form.coupon }}%</td>
-                    </tr>
-                </table>
-                <div class="bg-blue-100 p-2 mt-4 text-center font-black">連結標的</div>
-                <div v-for="t in stockData" class="text-center py-2 border-b font-bold">{{ t.symbol }}</div>
+        <button @click="isLocked = !isLocked" class="mb-2 text-xs text-blue-500 font-bold">
+            {{ isLocked ? '📂 顯示輸入框' : '🔒 鎖定畫面準備截圖' }}
+        </button>
+
+        <!-- 報價單本體 (截圖區域) -->
+        <div id="report" class="report-border max-w-[500px] mx-auto">
+            <!-- 標題欄 -->
+            <div class="text-center py-2 relative">
+                <h1 class="text-2xl font-black tracking-widest">FCN報價</h1>
+                <p class="text-[9px] text-red-600 font-bold">◎僅供內部參考，一切以實際成交狀況為主 ◎標的近600個交易日走勢供參考</p>
+                <p class="absolute left-2 bottom-0 text-[10px] text-red-600 font-bold">交割幣別：USD</p>
             </div>
 
-            <!-- 第二頁：詳細圖表 -->
-            <div class="bg-white p-6 shadow-2xl border min-h-screen">
-                <div class="text-center mb-6">
-                    <h1 class="text-3xl font-black italic border-b-4 border-yellow-500 inline-block">FCN 報價單 (詳細)</h1>
-                </div>
+            <!-- 核心條件表 -->
+            <table class="w-full data-table text-center">
+                <tr class="bg-yellow-50">
+                    <td class="bg-gray-100">日期</td>
+                    <td class="bg-gray-100">天期(月)</td>
+                    <td colspan="3">條件</td>
+                    <td class="bg-gray-100">Coupon</td>
+                </tr>
+                <tr class="bg-white">
+                    <td class="text-blue-600">{{ form.date }}</td>
+                    <td class="text-blue-600">{{ form.tenor }}</td>
+                    <td class="text-[10px]">出場價 KO</td>
+                    <td class="text-[10px]">履約價 Strike</td>
+                    <td class="text-[10px]">下限價 KI</td>
+                    <td class="text-blue-600">{{ form.coupon.toFixed(2) }}%</td>
+                </tr>
+                <tr>
+                    <td colspan="2"></td>
+                    <td class="text-blue-600">{{ form.koP.toFixed(2) }}%</td>
+                    <td class="text-blue-600">{{ form.strikeP.toFixed(2) }}%</td>
+                    <td class="text-blue-600">{{ form.kiP || 'NA' }}</td>
+                    <td></td>
+                </tr>
+            </table>
+
+            <!-- 標的循環 -->
+            <div v-for="(stock, index) in stockData" :key="stock.symbol">
+                <div class="stock-header text-sm italic">標的 {{ index + 1 }}</div>
                 
-                <div v-for="(stock, index) in stockData" :key="stock.symbol" class="mb-8 border-b-2 pb-6">
-                    <div class="grid grid-cols-3 gap-4 mb-4">
-                        <div class="bg-yellow-500 text-white p-2 text-center font-black">{{ stock.symbol }}</div>
-                        <div class="col-span-2 grid grid-cols-4 gap-2 text-center text-xs">
-                            <div class="border p-1">收盤價<br>{{ stock.price }}</div>
-                            <div class="border p-1">KO<br>{{ (stock.price * form.koP/100).toFixed(2) }}</div>
-                            <div class="border p-1">Strike<br>{{ (stock.price * form.strikeP/100).toFixed(2) }}</div>
-                            <div class="border p-1">KI<br>{{ form.kiP == 0 ? '-' : (stock.price * form.kiP/100).toFixed(2) }}</div>
+                <div class="flex">
+                    <!-- 左側數據 -->
+                    <div class="w-2/5 border-r border-black">
+                        <table class="w-full data-table text-sm">
+                            <tr><td colspan="2" class="text-center text-blue-800 text-lg py-1">{{ stock.symbol }}</td></tr>
+                            <tr><td colspan="2" class="text-center text-yellow-600 text-xs pb-1">{{ getStockName(stock.symbol) }}</td></tr>
+                            <tr class="text-[11px]"><td class="bg-gray-50">前一日收盤價：</td><td class="text-right">{{ stock.price }}</td></tr>
+                            <tr class="text-[11px]"><td class="bg-gray-50">KO</td><td class="text-right">{{ (stock.price * form.koP/100).toFixed(2) }}</td></tr>
+                            <tr class="text-[11px]"><td class="bg-gray-50">Strike</td><td class="text-right">{{ (stock.price * form.strikeP/100).toFixed(2) }}</td></tr>
+                            <tr class="text-[11px]"><td class="bg-gray-50">KI</td><td class="text-right">{{ form.kiP === 'NA' ? '-' : (stock.price * parseFloat(form.kiP)/100).toFixed(2) }}</td></tr>
+                        </table>
+                    </div>
+                    <!-- 右側圖表 -->
+                    <div class="w-3/5 p-1 relative">
+                        <div class="chart-box">
+                            <canvas :id="'chart-' + index"></canvas>
                         </div>
                     </div>
-                    <div class="chart-container">
-                        <canvas :id="'chart-' + index"></canvas>
-                    </div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
         const { createApp } = Vue;
-
-        createApp({
-            data() {
-                return {
-                    form: {
-                        date: new Date().toISOString().split('T')[0],
-                        issuer: 'Nomura',
-                        coupon: 18.00,
-                        tenor: 6,
-                        koP: 100,
-                        strikeP: 83.07,
-                        kiP: 0,
-                        tickers: 'TSM,NVDA,TSLA'
-                    },
-                    showReport: false,
-                    stockData: [],
-                    charts: []
-                }
-            },
-            methods: {
-                async generateReport() {
-                    this.showReport = true;
-                    this.stockData = [];
-                    const tickerList = this.form.tickers.split(',').map(s => s.trim().toUpperCase());
-                    
-                    for (let t of tickerList) {
-                        const data = await this.fetchHistory(t);
-                        this.stockData.push(data);
-                    }
-
-                    // 等待 DOM 更新後畫圖
-                    setTimeout(() => {
-                        this.stockData.forEach((stock, index) => {
-                            this.renderChart(index, stock);
-                        });
-                    }, 500);
-                },
-                async fetchHistory(ticker) {
-                    // 使用 Allorigins 代理抓取 Yahoo Finance 資料
-                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=2y&interval=1d`;
-                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                    const json = await res.json();
-                    const result = JSON.parse(json.contents).chart.result[0];
-                    
-                    const prices = result.indicators.quote[0].close;
-                    const timestamps = result.timestamp;
-                    const currentPrice = prices[prices.length - 1].toFixed(2);
-                    
-                    return {
-                        symbol: ticker,
-                        price: currentPrice,
-                        history: prices.slice(-600), // 取最近 600 筆
-                        labels: timestamps.slice(-600).map(ts => new Date(ts * 1000).toLocaleDateString())
-                    };
-                },
-                renderChart(index, stock) {
-                    const ctx = document.getElementById(`chart-${index}`).getContext('2d');
-                    const koVal = stock.price * (this.form.koP / 100);
-                    const strikeVal = stock.price * (this.form.strikeP / 100);
-                    const kiVal = this.form.kiP > 0 ? stock.price * (this.form.kiP / 100) : null;
-
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: {
-                            labels: stock.labels,
-                            datasets: [
-                                { label: '收盤價', data: stock.history, borderColor: 'blue', borderWidth: 1, pointRadius: 0 },
-                                { label: 'KO', data: Array(600).fill(koVal), borderColor: 'orange', borderDash: [5,5], borderWidth: 2, pointRadius: 0 },
-                                { label: 'Strike', data: Array(600).fill(strikeVal), borderColor: 'red', borderDash: [2,2], borderWidth: 2, pointRadius: 0 },
-                                ...(kiVal ? [{ label: 'KI', data: Array(600).fill(kiVal), borderColor: 'black', borderWidth: 1, pointRadius: 0 }] : [])
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: { x: { display: false }, y: { position: 'right' } },
-                            plugins: { legend: { display: false } }
-                        }
-                    });
-                }
-            }
-        }).mount('#app');
-    </script>
-</body>
-</html>
+        const stockNames = {'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':
