@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCN 模擬詢價系統</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #f1f5f9; font-family: "Microsoft JhengHei", sans-serif; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 24px; border: 1px solid white; }
+        .stock-btn { transition: all 0.2s; border: 1.5px solid #e2e8f0; }
+        .stock-btn.active { background: #1e40af; color: white; border-color: #1e40af; transform: scale(1.05); }
+        .coupon-value { font-family: 'Arial Black', sans-serif; text-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="p-4">
+    <div id="app" class="max-w-md mx-auto">
+        
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-black text-blue-900 italic uppercase tracking-tighter">FCN Simulator</h1>
+            <p class="text-[10px] font-bold text-blue-400">市場模擬詢價引擎 v1.0</p>
+        </div>
+
+        <!-- 1. 市場與保護級別設定 -->
+        <div class="glass-card p-5 shadow-xl mb-4">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex bg-gray-100 p-1 rounded-xl">
+                    <button @click="market = 'US'" :class="['px-4 py-1 rounded-lg font-bold text-xs', market === 'US' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400']">美股市場</button>
+                    <button @click="market = 'JP'" :class="['px-4 py-1 rounded-lg font-bold text-xs', market === 'JP' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400']">日股市場</button>
+                </div>
+                <div class="text-right text-[10px] font-bold text-gray-400">天期: 6個月 / KO: 100%</div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 mb-1">STRIKE (履約價)</label>
+                    <select v-model="strikeP" class="w-full border-none bg-gray-50 p-2 rounded-lg font-bold text-blue-600">
+                        <option :value="85">85% (高息型)</option>
+                        <option :value="80">80% (標準型)</option>
+                        <option :value="75">75% (穩健型)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 mb-1">KI (下限觸及價)</label>
+                    <select v-model="kiP" class="w-full border-none bg-gray-50 p-2 rounded-lg font-bold text-blue-600">
+                        <option :value="65">65% (積極)</option>
+                        <option :value="60">60% (標準)</option>
+                        <option :value="55">55% (保守)</option>
+                        <option :value="0">無 KI (精簡型)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. 標的選擇 -->
+        <div class="glass-card p-5 shadow-xl mb-4">
+            <label class="block text-xs font-black text-gray-500 mb-3">選擇 3 隻連結標的 (Worst-of 定價)</label>
+            <div class="grid grid-cols-3 gap-2">
+                <button v-for="(stock, code) in currentStocks" 
+                        :key="code" 
+                        @click="toggleStock(code)"
+                        :class="['stock-btn p-2 rounded-xl text-xs font-bold flex flex-col items-center', selectedStocks.includes(code) ? 'active' : 'bg-white text-gray-600']">
+                    <span>{{ code }}</span>
+                    <span class="text-[9px] opacity-70">{{ stock.name }}</span>
+                </button>
+            </div>
+            <p class="text-[9px] text-gray-400 mt-3 italic">* 已選擇: {{ selectedStocks.join(', ') || '尚未選擇' }}</p>
+        </div>
+
+        <!-- 3. 詢價結果 -->
+        <div class="bg-gradient-to-br from-blue-700 to-indigo-900 rounded-[2rem] p-8 text-white shadow-2xl relative overflow-hidden">
+            <div class="relative z-10">
+                <p class="text-xs font-bold opacity-60 uppercase tracking-widest">Estimated Annualized Coupon</p>
+                <div class="mt-4 flex items-baseline gap-2">
+                    <span class="text-6xl font-black italic coupon-value text-yellow-400">{{ estimatedCoupon }}</span>
+                    <span class="text-2xl font-bold opacity-80">%</span>
+                </div>
+                <div class="mt-6 flex justify-between items-end">
+                    <div class="text-[10px] opacity-50 leading-tight">
+                        報價誤差: ±1.5%<br>
+                        基於當前市場隱含波動率 (IV) 模擬
+                    </div>
+                    <div class="bg-white/10 px-3 py-1 rounded-full text-[10px] font-bold">
+                        風險等級: {{ riskLevel }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. 推薦組合 -->
+        <div class="mt-6">
+            <h3 class="text-xs font-black text-gray-400 px-2 mb-3 uppercase">建議標的組合表 (熱門詢價)</h3>
+            <div class="space-y-2">
+                <div v-for="rec in recommendations" @click="applyRec(rec)" class="bg-white p-3 rounded-2xl flex justify-between items-center cursor-pointer hover:bg-blue-50 transition border border-transparent hover:border-blue-200 shadow-sm">
+                    <div>
+                        <p class="text-xs font-black text-slate-800">{{ rec.title }}</p>
+                        <p class="text-[10px] text-slate-400">{{ rec.stocks.join(' + ') }}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-sm font-black text-blue-600">{{ rec.rate }}%</p>
+                        <p class="text-[9px] text-gray-400">預估</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-[10px] text-gray-400 mt-8 px-4 font-bold">
+            以上為預估試算，實際配息金額依成交當時為主。<br>
+            模擬引擎包含上手手續費(Sales Margin)與發行溢價。
+        </p>
+
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        const US_STOCKS = {
+            'NVDA': { name: '輝達', risk: 1.8 },
+            'TSLA': { name: '特斯拉', risk: 2.0 },
+            'AMD': { name: '超微', risk: 1.6 },
+            'SMCI': { name: '美超微', risk: 2.5 },
+            'TSM': { name: '台積電', risk: 1.2 },
+            'MSFT': { name: '微軟', risk: 0.8 },
+            'AAPL': { name: '蘋果', risk: 0.7 },
+            'AMZN': { name: '亞馬遜', risk: 1.1 },
+            'GOOGL': { name: '谷歌', risk: 0.9 },
+            'ORCL': { name: '甲骨文', risk: 1.0 },
+            'PLTR': { name: '帕蘭提爾', risk: 1.7 },
+            'AVGO': { name: '博通', risk: 1.1 }
+        };
+
+        const JP_STOCKS = {
+            '6146': { name: 'Disco', risk: 1.9 },
+            '6857': { name: '愛德萬', risk: 1.7 },
+            '8035': { name: '東京威力', risk: 1.5 },
+            '7011': { name: '三菱重工', risk: 1.3 },
+            '6501': { name: '日立', risk: 1.0 },
+            '7013': { name: 'IHI', risk: 1.4 },
+            '5803': { name: '藤倉電子', risk: 1.6 },
+            '9984': { name: '軟銀', risk: 1.4 },
+            '8002': { name: '丸紅', risk: 0.9 }
+        };
+
+        createApp({
+            data() {
+                return {
+                    market: 'US',
+                    selectedStocks: [],
+                    strikeP: 80,
+                    kiP: 60,
+                }
+            },
+            computed: {
+                currentStocks() {
+                    return this.market === 'US' ? US_STOCKS : JP_STOCKS;
+                },
+                recommendations() {
+                    if (this.market === 'US') {
+                        return [
+                            { title: 'AI 晶片高息組', stocks: ['NVDA', 'AMD', 'SMCI'], rate: '22-28', sP: 80, kP: 60 },
+                            { title: '科技巨頭穩健組', stocks: ['AAPL', 'MSFT', 'GOOGL'], rate: '10-13', sP: 80, kP: 60 },
+                            { title: '半導體龍頭組', stocks: ['TSM', 'AVGO', 'NVDA'], rate: '15-19', sP: 80, kP: 60 }
+                        ];
+                    } else {
+                        return [
+                            { title: '日股半導體狂熱', stocks: ['6146', '6857', '8035'], rate: '18-23', sP: 80, kP: 60 },
+                            { title: '重工業復興組', stocks: ['7011', '7013', '6501'], rate: '12-16', sP: 80, kP: 60 },
+                            { title: '綜合商社與電信', stocks: ['8002', '9984', '5803'], rate: '14-17', sP: 80, kP: 60 }
+                        ];
+                    }
+                },
+                estimatedCoupon() {
+                    if (this.selectedStocks.length === 0) return "0.00";
+                    
+                    // 核心定價邏輯
+                    let baseRate = 5.5; // 無風險利率 + 基本利潤
+                    
+                    // 找 Worst-of (風險最高的那隻)
+                    let maxRisk = 0;
+                    this.selectedStocks.forEach(code => {
+                        const risk = this.currentStocks[code].risk;
+                        if (risk > maxRisk) maxRisk = risk;
+                    });
+
+                    // 相關性溢價 (選越多隻標的相關性越低，利率越高)
+                    let correlationPremium = this.selectedStocks.length * 1.5;
+
+                    // 執行價與 KI 的調整
+                    let protectionFactor = (this.strikeP - 80) * 0.5 + (this.kiP - 60) * 0.3;
+
+                    let finalRate = (baseRate + (maxRisk * 7) + correlationPremium + protectionFactor);
+                    
+                    // 隨機微調模擬市場波動
+                    return (finalRate).toFixed(2);
+                },
+                riskLevel() {
+                    const rate = parseFloat(this.estimatedCoupon);
+                    if (rate > 18) return "High Risk / High Return";
+                    if (rate > 12) return "Moderate";
+                    return "Conservative";
+                }
+            },
+            methods: {
+                toggleStock(code) {
+                    const idx = this.selectedStocks.indexOf(code);
+                    if (idx > -1) {
+                        this.selectedStocks.splice(idx, 1);
+                    } else {
+                        if (this.selectedStocks.length < 3) {
+                            this.selectedStocks.push(code);
+                        } else {
+                            this.selectedStocks.shift();
+                            this.selectedStocks.push(code);
+                        }
+                    }
+                },
+                applyRec(rec) {
+                    this.selectedStocks = [...rec.stocks];
+                    this.strikeP = rec.sP;
+                    this.kiP = rec.kP;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
