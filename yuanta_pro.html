@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 旗艦自動化精算系統 v7.1</title>
+    <title>元元致富 - 專業自動化精算 v7.3</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -12,11 +12,11 @@
         body { background: #f8fafc; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         .bank-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 25px rgba(0,0,0,0.05); }
         .res-card { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; border-radius: 2rem; }
-        .input-box { background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; width: 100%; font-weight: 800; text-align: center; }
+        .input-box { background: #f1f5f9; border: 1.5px solid #e2e8f0; border-radius: 12px; padding: 12px; width: 100%; font-weight: 800; text-align: center; }
         .gender-btn { flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; font-size: 13px; transition: 0.3s; border: 1.5px solid #e2e8f0; }
         .gender-male.active { background: #2563eb; color: white; border-color: #2563eb; }
         .gender-female.active { background: #db2777; color: white; border-color: #db2777; }
-        .target-card { border: 2.5px solid #f1f5f9; transition: all 0.3s; cursor: pointer; }
+        .target-card { border: 2.5px solid #f1f5f9; transition: all 0.3s; cursor: pointer; padding: 15px; border-radius: 1.25rem; background: #fff; }
         .target-card.active { border-color: #2563eb; background: #eff6ff; }
         [v-cloak] { display: none; }
         .checkbox-container { display: flex; align-items: center; gap: 10px; background: #fff7ed; padding: 12px; border-radius: 15px; border: 1px solid #ffedd5; }
@@ -26,30 +26,57 @@
     <div id="app" v-cloak class="max-w-md mx-auto pb-20">
         
         <div class="text-center mb-6">
-            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">旗艦精算</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center">MDTWD0002 & Allianz Auto-Terminal</p>
+            <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">精算終端</span></h1>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center">Stability v7.3 - Multi-Target System</p>
         </div>
 
-        <!-- 1. 標的選擇 -->
-        <div class="bank-card p-4 mb-4 space-y-2">
-            <div @click="setTarget('yuanta')" :class="['target-card p-4 rounded-2xl flex justify-between items-center', activeTarget === 'yuanta' ? 'active' : '']">
-                <div><p class="text-sm font-black">財富雙享類全委 (台幣)</p><p class="text-[9px] text-slate-400 italic">MDTWD0002</p></div>
-                <div class="text-right"><p class="text-xs font-black text-blue-600">NAV: {{ form.nav_yuanta }}</p><p class="text-[8px] font-bold text-slate-300">AUTO</p></div>
+        <!-- 1. 標的選擇選單 -->
+        <div class="bank-card p-3 mb-4 space-y-2">
+            <div @click="setTarget('yuanta')" :class="['target-card flex justify-between items-center', activeTarget === 'yuanta' ? 'active' : '']">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><i class="fa-solid fa-vault"></i></div>
+                    <div><p class="text-sm font-black">財富雙享 (台幣)</p><p class="text-[8px] text-slate-400">0.045 + 加碼 0.05</p></div>
+                </div>
+                <div class="text-right"><p class="text-xs font-black text-blue-600">{{ form.nav_yuanta }}</p></div>
             </div>
-            <div @click="setTarget('allianz')" :class="['target-card p-4 rounded-2xl flex justify-between items-center', activeTarget === 'allianz' ? 'active' : '']">
-                <div><p class="text-sm font-black">安聯收益成長-AM穩定 (美金)</p><p class="text-[9px] text-slate-400 italic">LU0823380231</p></div>
-                <div class="text-right"><p class="text-xs font-black text-emerald-600">NAV: {{ form.nav_allianz }}</p><p class="text-[8px] font-bold text-slate-300">LIVE</p></div>
+
+            <div @click="setTarget('allianz')" :class="['target-card flex justify-between items-center', activeTarget === 'allianz' ? 'active' : '']">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600"><i class="fa-solid fa-chart-line"></i></div>
+                    <div><p class="text-sm font-black">安聯收益成長 (美元)</p><p class="text-[8px] text-slate-400">固定撥回 $0.055</p></div>
+                </div>
+                <div class="text-right"><p class="text-xs font-black text-emerald-600">{{ form.nav_allianz }}</p></div>
+            </div>
+
+            <div @click="setTarget('custom')" :class="['target-card flex justify-between items-center', activeTarget === 'custom' ? 'active' : '']">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600"><i class="fa-solid fa-gear"></i></div>
+                    <div><p class="text-sm font-black">自定義標的 (美元)</p><p class="text-[8px] text-slate-400">手動輸入撥回金額</p></div>
+                </div>
+                <i v-if="activeTarget === 'custom'" class="fa-solid fa-pen-to-square text-[10px] text-slate-400"></i>
             </div>
         </div>
 
-        <!-- 2. 核心輸入面板 -->
+        <!-- 2. 輸入面板 -->
         <div class="bank-card p-6 mb-4 space-y-5">
-            <!-- 險種與基本資訊 -->
             <div class="flex bg-slate-100 p-1 rounded-xl gap-1">
                 <button @click="form.type = 'annuity'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='annuity'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額年金險</button>
                 <button @click="form.type = 'life'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='life'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額萬能壽險</button>
             </div>
 
+            <!-- 自定義與安聯的淨值輸入 -->
+            <div v-if="activeTarget !== 'yuanta'" class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">基金淨值 (NAV)</label>
+                    <input type="number" v-model.number="currentNAV" step="0.01" class="input-box bg-white">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">每單位撥回 (USD)</label>
+                    <input type="number" v-model.number="currentUnitPayout" step="0.0001" :disabled="activeTarget === 'allianz'" class="input-box bg-white">
+                </div>
+            </div>
+
+            <!-- 性別年齡 -->
             <div class="grid grid-cols-2 gap-4">
                 <div><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">被保人性別</label>
                     <div class="flex gap-1">
@@ -60,18 +87,17 @@
                 <div><label class="block text-[10px] font-black text-slate-500 mb-2 uppercase">被保人年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
             </div>
 
-            <!-- 加碼勾選 (僅財富雙享顯示) -->
+            <!-- 加碼勾選 (僅財富雙享) -->
             <div v-if="activeTarget === 'yuanta'" class="checkbox-container">
                 <input type="checkbox" v-model="form.hasBonusTriggered" id="bonus" class="w-5 h-5 cursor-pointer">
-                <label for="bonus" class="text-xs font-black text-orange-700 cursor-pointer ml-2">
+                <label for="bonus" class="text-xs font-black text-orange-700 cursor-pointer ml-2 italic">
                     本月曾觸及 10.3 加碼門檻 (啟動 0.05)
                 </label>
             </div>
 
-            <!-- 金額與年度 -->
             <div class="grid grid-cols-2 gap-4">
                 <div class="col-span-1">
-                    <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">投入/保險金額 ({{ activeTarget==='yuanta'?'萬台幣':'萬美金' }})</label>
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 uppercase tracking-tighter">投入/保險金額 ({{ activeTarget==='yuanta'?'萬台幣':'萬美金' }})</label>
                     <input type="number" v-model.number="form.amount" class="input-box">
                 </div>
                 <div class="col-span-1">
@@ -84,7 +110,7 @@
             
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4">
                 <span>美金匯率: {{ rates.USD }}</span>
-                <span @click="initData" class="cursor-pointer text-blue-600"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin': isSyncing}"></i>同步最新市場淨值</span>
+                <span @click="initData" class="cursor-pointer text-blue-600"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin': isSyncing}"></i>同步市場數據</span>
             </div>
         </div>
 
@@ -104,31 +130,42 @@
                         <p class="text-3xl font-black text-yellow-400 italic">{{ currentUnitPayout }} <span class="text-xs">{{ activeTarget === 'yuanta' ? '元' : 'USD' }}</span></p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] font-bold text-white/40 uppercase">預估累積單位數</p>
+                        <p class="text-[10px] font-bold text-white/40 uppercase">累積單位數</p>
                         <p class="text-xl font-black text-white italic">{{ formatNum(totalUnits, 2) }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 4. 費用細節 -->
+        <!-- 4. 費用明細 -->
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10">
             <h3 class="text-slate-800 mb-3 border-b pb-2 uppercase flex justify-between">
-                <span>Monthly Fee Breakdown</span>
+                <span>Fee Breakdown</span>
                 <span class="text-blue-600 font-black italic">元元致富專屬</span>
             </h3>
-            <div class="space-y-2">
+            <div class="space-y-2.5">
                 <div class="flex justify-between"><span>每月撥回總額</span><span class="text-slate-900">{{ activeTarget==='yuanta'?'NT$':'$' }} {{ formatNum(grossPayout, 2) }}</span></div>
-                <div class="flex justify-between pt-1 border-t border-dashed"><span>保單維護費 (300萬免收)</span><span :class="amountInTWD >= 300 ? 'text-emerald-500':'text-red-500'">{{ amountInTWD >= 300 ? '高保費優惠 $0' : 'NT$ 100' }}</span></div>
+                
+                <!-- 跨標的管理費判定 -->
+                <div class="flex justify-between pt-1 border-t border-dashed">
+                    <span>保單維護費 (300萬免收)</span>
+                    <span :class="amountInTWD >= 300 ? 'text-emerald-500':'text-red-500'">
+                        {{ amountInTWD >= 300 ? '高保費優惠 $0' : (activeTarget === 'yuanta' ? 'NT$ 100' : '$ ' + formatNum(100/rates.USD, 2)) }}
+                    </span>
+                </div>
+
                 <div class="flex justify-between"><span>保單行政費 ({{ adminRate }}%)</span><span class="text-red-500">- {{ activeTarget==='yuanta'?'NT$':'$' }} {{ formatNum(adminFee, 2) }}</span></div>
                 <div class="flex justify-between"><span>壽險成本 (COI - {{form.age}}歲)</span><span class="text-red-500">- {{ activeTarget==='yuanta'?'NT$':'$' }} {{ formatNum(coiFee, 2) }}</span></div>
-                <div class="flex justify-between border-t pt-2 mt-2 font-black text-slate-900 text-sm"><span>預估每月實領淨額</span><span>{{ activeTarget==='yuanta'?'NT$':'$' }} {{ formatNum(netPayout, 2) }}</span></div>
+                <div class="flex justify-between border-t pt-2 mt-2 font-black text-slate-900 text-sm">
+                    <span>預估每月實領淨額</span>
+                    <span class="text-blue-700 underline">{{ activeTarget==='yuanta'?'NT$':'$' }} {{ formatNum(netPayout, activeTarget==='yuanta'?0:2) }}</span>
+                </div>
             </div>
         </div>
 
         <p class="text-[10px] font-bold text-slate-400 text-center leading-relaxed italic px-4 pb-20">
-            ※ 標的代號：財富雙享(MDTWD0002)、安聯(LU0823380231)。<br>
-            ※ 行政費預設 1000 萬以下階層。實際配息與匯率依保單公告為準。
+            ※ 投入金額滿 300 萬台幣（美金標的依即時匯率換算）即免收 100 元保單維護費。<br>
+            ※ 數據同步 Yahoo Finance。實際配息以成交當日淨值與匯率為準。
         </p>
     </div>
 
@@ -146,29 +183,46 @@
                     activeTarget: 'yuanta',
                     isSyncing: false,
                     isGenerated: true,
-                    rates: { USD: 32.5 },
+                    rates: { USD: 32.55 },
                     form: {
                         type: 'life', gender: 'male', age: 40, amount: 300, year: 1,
-                        nav_yuanta: 10.99, nav_allianz: 8.56, 
+                        nav_yuanta: 10.99, nav_allianz: 8.56, nav_custom: 10.00,
+                        unitPayout_custom: 0.0500,
                         hasBonusTriggered: true
                     }
                 }
             },
             computed: {
-                currentNAV() { return this.activeTarget === 'yuanta' ? this.form.nav_yuanta : this.form.nav_allianz; },
-                amountInTWD() {
-                    return this.activeTarget === 'allianz' ? (this.form.amount * this.rates.USD) : this.form.amount;
-                },
-                currentUnitPayout() {
-                    if (this.activeTarget === 'yuanta') {
-                        let p = this.currentNAV >= 8.0 ? 0.045 : 0;
-                        if (this.form.hasBonusTriggered) p += 0.05;
-                        return p;
+                currentNAV: {
+                    get() {
+                        if (this.activeTarget === 'yuanta') return this.form.nav_yuanta;
+                        if (this.activeTarget === 'allianz') return this.form.nav_allianz;
+                        return this.form.nav_custom;
+                    },
+                    set(val) {
+                        if (this.activeTarget === 'yuanta') this.form.nav_yuanta = val;
+                        else if (this.activeTarget === 'allianz') this.form.nav_allianz = val;
+                        else this.form.nav_custom = val;
                     }
-                    return 0.055; 
+                },
+                currentUnitPayout: {
+                    get() {
+                        if (this.activeTarget === 'yuanta') {
+                            let p = this.currentNAV >= 8.0 ? 0.045 : 0;
+                            if (this.form.hasBonusTriggered) p += 0.05;
+                            return p;
+                        }
+                        if (this.activeTarget === 'allianz') return 0.055;
+                        return this.form.unitPayout_custom;
+                    },
+                    set(val) {
+                        if (this.activeTarget === 'custom') this.form.unitPayout_custom = val;
+                    }
+                },
+                amountInTWD() {
+                    return (this.activeTarget === 'allianz' || this.activeTarget === 'custom') ? (this.form.amount * this.rates.USD) : this.form.amount;
                 },
                 totalUnits() {
-                    // 台幣標的以初始面額 10 元計算單位數，美金標的以當前淨值計算
                     const baseNav = this.activeTarget === 'yuanta' ? 10 : this.currentNAV;
                     return (this.form.amount * 10000) / baseNav;
                 },
@@ -182,12 +236,12 @@
                 coiFee() {
                     const rates = COI_TABLE[this.form.gender];
                     const ageKey = Object.keys(rates).reverse().find(k => k <= this.form.age) || 15;
-                    const feeTWD = (this.activeTarget === 'allianz' ? this.form.amount * this.rates.USD : this.form.amount) * rates[ageKey];
-                    return this.activeTarget === 'allianz' ? feeTWD / this.rates.USD : feeTWD;
+                    const feeTWD = (this.activeTarget === 'yuanta' ? this.form.amount : this.form.amount * this.rates.USD) * rates[ageKey];
+                    return (this.activeTarget === 'allianz' || this.activeTarget === 'custom') ? feeTWD / this.rates.USD : feeTWD;
                 },
                 maintFee() {
                     const feeTWD = this.amountInTWD >= 300 ? 0 : 100;
-                    return this.activeTarget === 'allianz' ? feeTWD / this.rates.USD : feeTWD;
+                    return (this.activeTarget === 'allianz' || this.activeTarget === 'custom') ? feeTWD / this.rates.USD : feeTWD;
                 },
                 totalMonthlyFees() { return this.adminFee + this.coiFee + this.maintFee; },
                 netPayout() {
@@ -199,20 +253,18 @@
             methods: {
                 setTarget(t) { 
                     this.activeTarget = t; 
-                    if(t === 'allianz' && this.form.amount > 100) this.form.amount = 10;
                     if(t === 'yuanta' && this.form.amount < 100) this.form.amount = 300;
+                    if(t !== 'yuanta' && this.form.amount >= 100) this.form.amount = 10;
                 },
                 formatNum(n, d = 0) { return parseFloat(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); },
                 async initData() {
                     this.isSyncing = true;
                     try {
                         const cb = new Date().getTime();
-                        // 1. 抓最新匯率
                         const rateRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?range=1d&interval=1d&cb='+cb)}`);
                         const rateJson = await rateRes.json();
                         this.rates.USD = rateJson.chart.result[0].meta.regularMarketPrice;
 
-                        // 2. 抓安聯 AM穩定 (USD) 淨值
                         const allianzRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/0P0000X12R.HK?range=1d&interval=1d&cb='+cb)}`);
                         const allianzJson = await allianzRes.json();
                         const navA = allianzJson.chart.result[0].meta.regularMarketPrice;
