@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 旗艦智慧精算系統 v9.0</title>
+    <title>元元致富 - 組合精準精算系統 v9.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -11,8 +11,8 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         body { background: #f8fafc; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         .bank-card { background: white; border-radius: 2rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 15px rgba(0,0,0,0.03); }
-        .res-card { background: #1e293b; color: white; border-radius: 2rem; position: relative; }
-        .input-box { background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 12px; width: 100%; font-weight: 800; text-align: center; font-size: 16px; }
+        .res-card { background: #1e293b; color: white; border-radius: 2rem; }
+        .input-box { background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 10px; width: 100%; font-weight: 800; text-align: center; font-size: 16px; }
         .gender-btn { flex: 1; padding: 10px; border-radius: 10px; font-weight: bold; font-size: 12px; border: 1.5px solid #e2e8f0; transition: 0.3s; }
         .gender-male.active { background: #2563eb; color: white; border-color: #2563eb; }
         .gender-female.active { background: #db2777; color: white; border-color: #db2777; }
@@ -20,109 +20,119 @@
         .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #2563eb; border-radius: 50%; border: 3px solid white; cursor: pointer; }
         .payout-slider::-webkit-slider-thumb { background: #f59e0b; }
         [v-cloak] { display: none; }
+        .tag-blue { background: #eff6ff; color: #1e40af; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
+        .tag-green { background: #ecfdf5; color: #065f46; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
     </style>
 </head>
 <body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-md mx-auto pb-20">
         
-        <!-- Header -->
         <div class="text-center mb-6">
             <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase">元元致富 <span class="text-blue-600 font-bold">精算終端</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">MDTWD0002 Auto-Terminal v9.0</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">Portfolio Dual-Engine v9.2</p>
         </div>
 
-        <!-- 配置模式 -->
+        <!-- 模式切換 -->
         <div class="flex bg-white p-1 rounded-2xl shadow-sm border border-slate-100 mb-4">
             <button @click="isPortfolio = false" :class="['flex-1 py-2 rounded-xl text-xs font-black transition', !isPortfolio ? 'bg-slate-800 text-white' : 'text-slate-400']">單一標的</button>
             <button @click="isPortfolio = true" :class="['flex-1 py-2 rounded-xl text-xs font-black transition', isPortfolio ? 'bg-slate-800 text-white' : 'text-slate-400']">投資組合</button>
         </div>
 
-        <!-- 1. 標的配置 -->
-        <div class="bank-card p-6 mb-4 space-y-5">
-            <div class="flex bg-slate-100 p-1 rounded-xl gap-1">
-                <button @click="form.type = 'annuity'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='annuity'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額年金險</button>
-                <button @click="form.type = 'life'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.type==='life'?'bg-white shadow-sm text-blue-600':'text-slate-400']">變額萬能壽險</button>
-            </div>
-
-            <div v-if="isPortfolio" class="space-y-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">標的 A 分配: {{ allocationA }}%</label>
-                    <select v-model="targetA" class="input-box text-xs py-2 mb-2">
-                        <option value="yuanta">財富雙享類全委 (台幣)</option>
-                        <option value="allianz">安聯收益成長-AM (美金)</option>
-                    </select>
-                    <input type="range" min="0" max="100" v-model.number="allocationA" class="slider">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">標的 B 分配: {{ 100 - allocationA }}%</label>
-                    <select v-model="targetB" class="input-box text-xs py-2">
+        <!-- 1. 標的配置區 -->
+        <div class="bank-card p-6 mb-4 space-y-6">
+            <!-- 標的選擇與分配比例 -->
+            <div class="space-y-4">
+                <!-- 標的 A 區塊 -->
+                <div class="p-4 rounded-2xl border border-slate-100 bg-slate-50/50">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[11px] font-black text-slate-400 uppercase">標的 A {{ isPortfolio ? allocationA + '%' : '' }}</span>
+                        <span :class="targetA === 'yuanta' ? 'tag-blue' : 'tag-green'">{{ targetA === 'yuanta' ? 'TWD' : 'USD' }}</span>
+                    </div>
+                    <select v-model="targetA" class="input-box text-xs py-2 mb-3">
                         <option value="yuanta">財富雙享類全委 (台幣)</option>
                         <option value="allianz">安聯收益成長-AM (美金)</option>
                         <option value="custom">自定義標的 (美金)</option>
                     </select>
+                    <input v-if="isPortfolio" type="range" min="0" max="100" v-model.number="allocationA" class="slider mb-3">
+                    
+                    <!-- 標的 A 專屬參數連動 -->
+                    <div v-if="targetA === 'yuanta'" class="space-y-2 fade-in">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black text-blue-600">NAV: {{ form.nav_A_yuanta.toFixed(2) }}</span>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" v-model="form.bonus_A" id="ba"><label for="ba" class="text-[9px] font-bold text-blue-400 cursor-pointer">觸及10.3加碼</label>
+                            </div>
+                        </div>
+                        <input type="range" min="7.5" max="11.5" step="0.01" v-model.number="form.nav_A_yuanta" class="slider">
+                    </div>
+                    <div v-else class="grid grid-cols-2 gap-2 fade-in">
+                        <div><label class="text-[9px] font-bold text-emerald-600 uppercase">淨值 (NAV)</label><input type="number" v-model.number="form.nav_A_usd" step="0.01" class="input-box bg-white text-xs py-1"></div>
+                        <div><label class="text-[9px] font-bold text-emerald-600 uppercase">撥回 (USD)</label><input type="number" v-model.number="form.payout_A_usd" step="0.0001" :disabled="targetA==='allianz'" class="input-box bg-white text-xs py-1 text-blue-600"></div>
+                    </div>
+                </div>
+
+                <!-- 標的 B 區塊 (僅在組合模式顯示) -->
+                <div v-if="isPortfolio" class="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 fade-in">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-[11px] font-black text-slate-400 uppercase">標的 B {{ 100 - allocationA }}%</span>
+                        <span :class="targetB === 'yuanta' ? 'tag-blue' : 'tag-green'">{{ targetB === 'yuanta' ? 'TWD' : 'USD' }}</span>
+                    </div>
+                    <select v-model="targetB" class="input-box text-xs py-2 mb-3">
+                        <option value="yuanta">財富雙享類全委 (台幣)</option>
+                        <option value="allianz">安聯收益成長-AM (美金)</option>
+                        <option value="custom">自定義標的 (美金)</option>
+                    </select>
+                    
+                    <!-- 標的 B 專屬參數連動 -->
+                    <div v-if="targetB === 'yuanta'" class="space-y-2 fade-in">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[10px] font-black text-blue-600">NAV: {{ form.nav_B_yuanta.toFixed(2) }}</span>
+                            <div class="flex items-center gap-1">
+                                <input type="checkbox" v-model="form.bonus_B" id="bb"><label for="bb" class="text-[9px] font-bold text-blue-400 cursor-pointer">觸及10.3加碼</label>
+                            </div>
+                        </div>
+                        <input type="range" min="7.5" max="11.5" step="0.01" v-model.number="form.nav_B_yuanta" class="slider">
+                    </div>
+                    <div v-else class="grid grid-cols-2 gap-2 fade-in">
+                        <div><label class="text-[9px] font-bold text-emerald-600 uppercase">淨值 (NAV)</label><input type="number" v-model.number="form.nav_B_usd" step="0.01" class="input-box bg-white text-xs py-1"></div>
+                        <div><label class="text-[9px] font-bold text-emerald-600 uppercase">撥回 (USD)</label><input type="number" v-model.number="form.payout_B_usd" step="0.0001" :disabled="targetB==='allianz'" class="input-box bg-white text-xs py-1 text-blue-600"></div>
+                    </div>
                 </div>
             </div>
-            <div v-else>
-                <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">選擇主投資標的</label>
-                <select v-model="targetA" class="input-box text-sm">
-                    <option value="yuanta">財富雙享類全委 (台幣)</option>
-                    <option value="allianz">安聯收益成長-AM (美金)</option>
-                    <option value="custom">自定義境外標的 (美金)</option>
-                </select>
-            </div>
 
-            <!-- 撥回比例設定 -->
+            <!-- 撥回領現比例 -->
             <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                <div class="flex justify-between items-center mb-1">
+                <div class="flex justify-between items-center mb-1 px-1">
                     <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 領現 / {{ 100 - cashPayoutRatio }}% 滾入</label>
-                    <i class="fa-solid fa-piggy-bank text-orange-400"></i>
+                    <i class="fa-solid fa-hand-holding-dollar text-orange-400"></i>
                 </div>
                 <input type="range" min="0" max="100" step="5" v-model.number="cashPayoutRatio" class="slider payout-slider">
             </div>
 
-            <!-- 財富雙享模擬與自動加碼 -->
-            <div v-if="hasYuanta" class="bg-blue-50 p-4 rounded-2xl border border-blue-100 fade-in">
-                <div class="flex justify-between items-center mb-1 px-1">
-                    <span class="text-[10px] font-black text-blue-700 uppercase italic">Yuanta NAV: <b>{{ form.nav_yuanta.toFixed(2) }}</b></span>
-                    <span v-if="form.nav_yuanta >= 10.3" class="text-[9px] bg-emerald-500 text-white px-2 py-0.5 rounded font-black">🔥 啟動加碼</span>
-                </div>
-                <input type="range" min="7.5" max="11.5" step="0.01" v-model.number="form.nav_yuanta" class="slider">
-                <div class="flex items-center gap-2 mt-2 bg-white/60 p-2 rounded-xl border border-orange-100">
-                    <input type="checkbox" v-model="form.hasBonusTriggered" id="b_auto" class="w-4 h-4">
-                    <label for="b_auto" class="text-[10px] font-black text-orange-700 cursor-pointer">本月曾觸及 10.3 加碼門檻</label>
-                </div>
-            </div>
-
-            <!-- 安聯/自定義 淨值手動校準 -->
-            <div v-if="hasUSD" class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100 grid grid-cols-2 gap-4 fade-in">
-                <div><label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">美金基金淨值</label><input type="number" v-model.number="form.nav_usd" step="0.01" class="input-box bg-white"></div>
-                <div><label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase">每單位撥回 (USD)</label><input type="number" v-model.number="form.unitPayout_usd" step="0.0001" :disabled="!isCustomActive" class="input-box bg-white text-blue-700"></div>
-            </div>
-
-            <!-- 基本參數 -->
+            <!-- 保單基本參數 -->
             <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-1"><label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">投入總額 (萬台幣)</label><input type="number" v-model.number="form.amountTWD" class="input-box"></div>
-                <div class="col-span-1"><label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">保單年度</label>
+                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase px-1">投入金額 (萬台幣)</label><input type="number" v-model.number="form.amountTWD" class="input-box"></div>
+                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase px-1">保單年度</label>
                     <select v-model.number="form.year" class="input-box text-sm">
                         <option :value="1">1-3 年</option><option :value="4">第 4 年</option><option :value="5">5 年起</option>
                     </select>
                 </div>
-                <div><label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">被保人性別</label>
+                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase px-1">性別</label>
                     <div class="flex gap-1">
                         <button @click="form.gender = 'male'" :class="['gender-btn', form.gender==='male'?'active':'bg-slate-50 text-slate-400']">男</button>
                         <button @click="form.gender = 'female'" :class="['gender-btn', form.gender==='female'?'active':'bg-slate-50 text-slate-400']">女</button>
                     </div>
                 </div>
-                <div><label class="block text-[10px] font-black text-slate-500 mb-1 uppercase">被保人年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
+                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase px-1">年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
             </div>
             
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4">
                 <span>美金匯率: <b>{{ rates.USD }}</b></span>
-                <span @click="initData" class="cursor-pointer text-blue-600 font-black italic"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin':isSyncing}"></i>SYNC MARKET DATA</span>
+                <span @click="initData" class="cursor-pointer text-blue-600 font-black italic"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin':isSyncing}"></i>SYNC DATA</span>
             </div>
         </div>
 
-        <!-- 2. 結果展示卡片 -->
+        <!-- 2. 精算結果卡片 -->
         <div class="res-card p-8 shadow-xl mb-4 overflow-hidden border-b-8 border-blue-500">
             <p class="text-xs font-bold text-white/40 uppercase tracking-widest mb-4 italic">每月現金實領 ({{ cashPayoutRatio }}%)</p>
             <div class="flex items-baseline gap-2">
@@ -131,27 +141,27 @@
             </div>
             <div class="mt-8 pt-6 border-t border-white/10 grid grid-cols-2 gap-4">
                 <div><p class="text-[10px] font-bold text-slate-400 uppercase italic">剩餘滾入本金</p><p class="text-2xl font-black italic text-emerald-400">NT$ {{ formatNum(actualReinvest, 0) }}</p></div>
-                <div class="text-right border-l border-white/10"><p class="text-[10px] font-bold text-white/40 uppercase italic">組合年化收益</p><p class="text-xl font-black text-white italic">{{ annualRate }} %</p></div>
+                <div class="text-right border-l border-white/10 px-2"><p class="text-[10px] font-bold text-white/40 uppercase italic">預估年化收益</p><p class="text-xl font-black text-white italic">{{ annualRate }} %</p></div>
             </div>
         </div>
 
         <!-- 3. 精算明細 -->
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10">
             <h3 class="text-slate-800 mb-4 border-b pb-2 uppercase flex justify-between font-black">
-                <span>Actuarial Summary</span>
-                <span class="text-blue-600 italic">穩定精算 v9.0</span>
+                <span>Portfolio Actuarial Summary</span>
+                <span class="text-blue-600">v9.2</span>
             </h3>
             <div class="space-y-4">
-                <div class="flex justify-between items-center text-slate-800"><span>每月撥回總額 (合計約當台幣)</span><span class="text-slate-900 font-black text-sm">NT$ {{ formatNum(grossPayoutTWD, 0) }}</span></div>
-                <div class="bg-slate-50 p-3 rounded-xl space-y-1.5 border border-slate-100">
-                    <div class="flex justify-between text-slate-400"><span>保單管理費 (300萬減免)</span><span :class="form.amountTWD >= 300 ? 'text-emerald-600' : ''">{{ form.amountTWD >= 300 ? '已免收' : '- NT$ 100' }}</span></div>
-                    <div class="flex justify-between text-slate-400"><span>保單行政費 ({{ adminRate }}%)</span><span>- NT$ {{ formatNum(adminFeeTWD, 0) }}</span></div>
-                    <div v-if="form.type==='life'" class="flex justify-between text-slate-400"><span>壽險成本 (COI-{{form.age}}歲)</span><span>- NT$ {{ formatNum(coiFeeTWD, 0) }}</span></div>
+                <div class="flex justify-between items-center"><span>每月撥回總額 (合計約當台幣)</span><span class="text-slate-900 font-black text-sm">NT$ {{ formatNum(grossPayoutTWD, 0) }}</span></div>
+                <div class="bg-slate-50 p-3 rounded-xl space-y-1.5 border border-slate-100 italic">
+                    <div class="flex justify-between"><span>標的 A ({{ getTargetName(targetA) }} {{ isPortfolio ? allocationA+'%' : '' }})</span><span>+ NT$ {{ formatNum(payoutA, 0) }}</span></div>
+                    <div v-if="isPortfolio" class="flex justify-between"><span>標的 B ({{ getTargetName(targetB) }} {{ 100-allocationA+'%' }})</span><span>+ NT$ {{ formatNum(payoutB, 0) }}</span></div>
+                    <div class="flex justify-between border-t pt-1 mt-1 text-red-400 font-black"><span>保單總規費 (行政費+壽險成本)</span><span>- NT$ {{ formatNum(totalFeesTWD, 0) }}</span></div>
                 </div>
                 <div class="pt-2 border-t space-y-2">
                     <div class="flex justify-between items-center text-slate-800 font-black"><span>預估可分配淨收益</span><span>NT$ {{ formatNum(totalNetAvailable, 0) }}</span></div>
                     <div class="flex justify-between items-center bg-blue-50/50 p-2 rounded-lg">
-                        <span class="text-blue-700 font-black">最終現金領取 ({{ cashPayoutRatio }}%)</span>
+                        <span class="text-blue-700 font-black">現金領取 ({{ cashPayoutRatio }}%)</span>
                         <span class="text-blue-800 font-black">NT$ {{ formatNum(netCashInHand, 0) }}</span>
                     </div>
                 </div>
@@ -163,8 +173,8 @@
         const { createApp } = Vue;
 
         const COI_TABLE = {
-            male: { 15:0.25, 20:0.36, 25:0.41, 30:0.55, 35:0.81, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 80:37.65, 90:90.68, 100:214.87 },
-            female: { 15:0.11, 20:0.15, 25:0.20, 30:0.26, 35:0.37, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 80:23.99, 90:71.99, 100:208.32 }
+            male: { 15:0.25, 20:0.36, 25:0.41, 30:0.55, 35:0.81, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 80:37.65, 100:214.87 },
+            female: { 15:0.11, 20:0.15, 25:0.20, 30:0.26, 35:0.37, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 80:23.99, 100:208.32 }
         };
 
         createApp({
@@ -172,28 +182,25 @@
                 return {
                     isPortfolio: false, isSyncing: false,
                     targetA: 'yuanta', targetB: 'allianz', allocationA: 100, cashPayoutRatio: 100,
-                    rates: { USD: 32.55 },
+                    rates: { USD: 31.59 },
                     form: {
-                        type: 'life', gender: 'male', age: 40, amountTWD: 300, year: 1,
-                        nav_yuanta: 10.99, nav_usd: 8.56, unitPayout_usd: 0.0550, hasBonusTriggered: true
+                        type: 'life', gender: 'female', age: 30, amountTWD: 300, year: 1,
+                        nav_A_yuanta: 11.04, nav_A_usd: 8.56, payout_A_usd: 0.0550, bonus_A: false,
+                        nav_B_yuanta: 11.04, nav_B_usd: 8.56, payout_B_usd: 0.0550, bonus_B: false,
                     }
                 }
             },
             computed: {
-                hasYuanta() { return this.targetA === 'yuanta' || (this.isPortfolio && this.targetB === 'yuanta'); },
-                hasUSD() { return this.targetA !== 'yuanta' || (this.isPortfolio && this.targetB !== 'yuanta'); },
-                isCustomActive() { return this.targetA === 'custom' || (this.isPortfolio && this.targetB === 'custom'); },
-                
-                grossPayoutTWD() {
-                    const weightA = this.isPortfolio ? (this.allocationA / 100) : 1;
-                    const payoutA = this.calcTargetPayout(this.targetA, this.form.amountTWD * weightA);
-                    let payoutB = 0;
-                    if (this.isPortfolio) {
-                        const weightB = (100 - this.allocationA) / 100;
-                        payoutB = this.calcTargetPayout(this.targetB, this.form.amountTWD * weightB);
-                    }
-                    return Math.round(payoutA + payoutB);
+                payoutA() {
+                    const weight = this.isPortfolio ? (this.allocationA / 100) : 1;
+                    return this.calcSpecPayout(this.targetA, this.form.amountTWD * weight, 'A');
                 },
+                payoutB() {
+                    if (!this.isPortfolio) return 0;
+                    const weight = (100 - this.allocationA) / 100;
+                    return this.calcSpecPayout(this.targetB, this.form.amountTWD * weight, 'B');
+                },
+                grossPayoutTWD() { return Math.round(this.payoutA + this.payoutB); },
                 adminRate() {
                     if (this.form.year >= 5) return 0;
                     if (this.form.year === 4) return this.form.amountTWD >= 1000 ? 0.1 : 0.12;
@@ -220,16 +227,23 @@
                 }
             },
             methods: {
-                calcTargetPayout(t, amt) {
+                getTargetName(t) {
+                    if(t === 'yuanta') return '財富雙享';
+                    if(t === 'allianz') return '安聯收益';
+                    return '自定義';
+                },
+                calcSpecPayout(type, amt, slot) {
                     if (amt <= 0) return 0;
-                    if (t === 'yuanta') {
+                    if (type === 'yuanta') {
+                        const nav = slot === 'A' ? this.form.nav_A_yuanta : this.form.nav_B_yuanta;
+                        const bonus = slot === 'A' ? this.form.bonus_A : this.form.bonus_B;
                         const units = (amt * 10000) / 10;
-                        let up = this.form.nav_yuanta >= 8.0 ? 0.045 : 0;
-                        if (this.form.hasBonusTriggered || this.form.nav_yuanta >= 10.3) up += 0.05;
+                        let up = nav >= 8.0 ? 0.045 : 0;
+                        if (bonus || nav >= 10.3) up += 0.05;
                         return units * up;
                     } else {
-                        const nav = this.form.nav_usd;
-                        const upUSD = (t === 'allianz') ? 0.055 : this.form.unitPayout_usd;
+                        const nav = slot === 'A' ? this.form.nav_A_usd : this.form.nav_B_usd;
+                        const upUSD = slot === 'A' ? this.form.payout_A_usd : this.form.payout_B_usd;
                         const units = (amt * 10000 / this.rates.USD) / nav;
                         return units * upUSD * this.rates.USD;
                     }
@@ -239,17 +253,17 @@
                     this.isSyncing = true;
                     try {
                         const cb = new Date().getTime();
-                        // 1. 匯率同步 (corsproxy.io)
                         const rateRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/USDTWD=X?range=1d&interval=1d&cb='+cb)}`);
                         const rateJson = await rateRes.json();
                         this.rates.USD = rateJson.chart.result[0].meta.regularMarketPrice;
-
-                        // 2. 安聯 AM 穩定月收同步 (0P0000X12R.HK)
                         const allianzRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/0P0000X12R.HK?range=1d&interval=1d&cb='+cb)}`);
                         const allianzJson = await allianzRes.json();
                         const navA = allianzJson.chart.result[0].meta.regularMarketPrice;
-                        if(navA) this.form.nav_usd = navA.toFixed(4);
-                    } catch (e) { console.error('Market data sync error'); }
+                        if(navA) {
+                            this.form.nav_A_usd = parseFloat(navA.toFixed(4));
+                            this.form.nav_B_usd = parseFloat(navA.toFixed(4));
+                        }
+                    } catch (e) { console.error('Sync failed'); }
                     this.isSyncing = false;
                 }
             },
