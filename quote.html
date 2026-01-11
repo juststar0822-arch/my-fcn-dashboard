@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v3.9</title>
+    <title>FCN專業報價系統 v4.0</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -17,17 +17,13 @@
         .glass-input:focus { border-color: #3b82f6; outline: none; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
         .btn-premium { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; font-weight: 900; }
 
-        /* 截圖緩衝區 */
         .capture-box { width: 440px; margin: 0 auto; background: white; padding: 15px; }
         .page-container { width: 410px; border: 1.5px solid #000; background: #fff; margin: 0 auto; overflow: hidden; }
         
-        /* 摘要卡樣式 */
-        .summary-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .summary-header { font-size: 22px; font-weight: 900; text-align: center; border-bottom: 2px solid #000; padding: 12px; background: #fff; }
+        .summary-header { font-size: 22px; font-weight: 900; text-align: center; border-bottom: 2px solid #000; padding: 12px; }
         .navy-cell { background: #2c3e50; color: white; border: 1px solid #000; text-align: center; font-size: 12px; font-weight: bold; padding: 10px 2px; }
         .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 8px 2px; height: 50px; }
 
-        /* 詳細報價樣式 */
         .orange-bar { background: #fbbf24; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: 900; font-size: 13px; }
         .detail-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
         .detail-table td { border: 1px solid #000; font-size: 11px; font-weight: bold; padding: 4px 2px; }
@@ -35,9 +31,8 @@
         .row-container { display: flex; width: 100%; border-bottom: 1px solid #000; }
         .data-side { width: 125px; border-right: 1px solid #000; flex-shrink: 0; }
         .chart-side { flex-grow: 1; padding: 0px 5px 2px 0px; background: #fff; display: flex; flex-direction: column; overflow: visible; justify-content: center; }
-        .chart-box { height: 140px; width: 100%; } 
+        .chart-box { height: 145px; width: 100%; } 
         
-        /* 下方圖例虛線樣式 */
         .chart-legend-bottom { display: flex; justify-content: center; gap: 8px; font-size: 8px; padding: 4px 0; font-weight: bold; color: #64748b; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .legend-dash { width: 15px; height: 0px; border-top: 2px dashed; }
@@ -53,8 +48,8 @@
         <!-- 1. 輸入面板 -->
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-xl border border-slate-100 mb-8 no-print">
             <div class="text-center mb-6">
-                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2">Pricing Terminal v3.9 Stable</p>
+                <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase">FCN專業報價系統</h1>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2">Stability v4.0 Ultimate</p>
             </div>
 
             <div class="space-y-4">
@@ -74,11 +69,11 @@
                     <div><label class="text-[10px] font-black text-slate-500 mb-1 text-blue-600">利率 %</label><input v-model="form.coupon" type="number" class="w-full glass-input text-sm text-blue-600 font-bold"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KO %</label><input v-model="form.koP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">Strike %</label><input v-model="form.strikeP" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">KI % (無填0)</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
+                    <div><label class="text-[10px] font-black text-slate-500 mb-1">KI %</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
                 </div>
                 <button @click="generate" :disabled="isSyncing" class="w-full btn-premium py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
                     <i v-if="isSyncing" class="fa-solid fa-circle-notch animate-spin"></i>
-                    {{ isSyncing ? '正在重試抓取所有數據...' : '生成 FCN 專業報價單' }}
+                    {{ isSyncing ? '正在逐一安全抓取標的數據...' : '生成 FCN 專業報價單' }}
                 </button>
             </div>
         </div>
@@ -92,7 +87,7 @@
             </div>
         </div>
 
-        <!-- 3. 內容區 -->
+        <!-- 3. 報價單 -->
         <div v-show="isGenerated" class="fade-in">
             <!-- 圖 1 -->
             <div id="capture-summary" class="capture-box">
@@ -106,7 +101,7 @@
                         <tr><td class="navy-cell text-orange-400 font-bold">保證領息</td><td class="white-cell text-orange-500 font-black">{{ form.guarantee }}</td></tr>
                         <tr><td class="navy-cell">年化報酬</td><td class="white-cell text-blue-700 font-black text-2xl" colspan="3">{{ form.coupon.toFixed(2) }}%</td></tr>
                     </table>
-                    <div class="bg-blue-50 text-center py-2 font-black border-t border-b border-black text-xs">連結標的</div>
+                    <div class="bg-blue-50 text-center py-2 font-bold border-t border-b border-black text-xs uppercase">連結標的</div>
                     <div v-for="s in stockData" :key="'sum-'+s.symbol" class="text-center py-3 border-b border-gray-100 font-black text-lg">
                         {{ s.symbol.replace('.T', '') }} {{ getStockName(s.symbol) }}
                     </div>
@@ -136,7 +131,7 @@
                             <div class="data-side">
                                 <table class="detail-table w-full h-full border-none">
                                     <tr><td colspan="2" class="text-center text-blue-900 text-sm py-2 leading-tight">{{ getStockName(stock.symbol) }}</td></tr>
-                                    <tr class="bg-slate-50"><td>收盤價</td><td class="text-right">{{ stock.price }}</td></tr>
+                                    <tr class="bg-slate-50"><td>前日收盤</td><td class="text-right">{{ stock.price }}</td></tr>
                                     <tr><td>KO</td><td class="text-right">{{ (stock.price * form.koP/100).toFixed(2) }}</td></tr>
                                     <tr><td>Strike</td><td class="text-right">{{ (stock.price * form.strikeP/100).toFixed(2) }}</td></tr>
                                     <tr><td>KI</td><td class="text-right">{{ form.kiP == 0 ? '-' : (stock.price * form.kiP/100).toFixed(2) }}</td></tr>
@@ -160,7 +155,7 @@
 
     <script>
         const { createApp } = Vue;
-        const stockNames = {'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'};
+        const stockNames = {'TSM':'台績電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'};
 
         createApp({
             data() {
@@ -172,60 +167,54 @@
             },
             methods: {
                 getStockName(s){ return stockNames[s.toUpperCase()] || ''; },
-                async fetchWithRetry(ticker, retries = 2) {
-                    for (let i = 0; i <= retries; i++) {
-                        try {
-                            const cacheBuster = new Date().getTime();
-                            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?range=2y&interval=1d&cb='+cacheBuster)}`);
-                            const json = JSON.parse((await res.json()).contents);
-                            if (!json.chart || !json.chart.result) throw new Error('Data Empty');
-                            
-                            const result = json.chart.result[0];
-                            const prices = result.indicators.quote[0].close;
-                            const timestamps = result.timestamp;
-                            const startDate = new Date('2024/09/01').getTime() / 1000;
-                            const validPrices = []; const validLabels = [];
-                            
-                            for(let j = 0; j < prices.length; j++) {
-                                if(prices[j] != null && timestamps[j] >= startDate) {
-                                    validPrices.push(prices[j]);
-                                    const d = new Date(timestamps[j] * 1000);
-                                    validLabels.push(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
-                                }
+                async fetchSingleStock(ticker) {
+                    try {
+                        const cb = new Date().getTime() + Math.random();
+                        const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?range=2y&interval=1d&cb='+cb)}`);
+                        const json = JSON.parse((await res.json()).contents);
+                        const result = json.chart.result[0];
+                        const prices = result.indicators.quote[0].close;
+                        const timestamps = result.timestamp;
+                        const startDate = new Date('2024/09/01').getTime() / 1000;
+                        const validPrices = []; const validLabels = [];
+                        for(let i = 0; i < prices.length; i++) {
+                            if(prices[i] != null && timestamps[i] >= startDate) {
+                                validPrices.push(prices[i]);
+                                const d = new Date(timestamps[i] * 1000);
+                                validLabels.push(`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}`);
                             }
-                            return { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
-                        } catch (e) {
-                            if (i === retries) return null;
-                            await new Promise(r => setTimeout(r, 500)); // 失敗後等待 0.5 秒再試
                         }
-                    }
+                        return { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
+                    } catch (e) { return null; }
                 },
                 async generate() {
-                    this.isSyncing = true; this.isGenerated = false;
+                    this.isSyncing = true; this.isGenerated = false; this.stockData = [];
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
                     if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     
-                    const results = await Promise.all(tickerList.map(t => this.fetchWithRetry(t)));
-                    this.stockData = results.filter(r => r !== null);
-                    
-                    if (this.stockData.length === 0) {
-                        alert('無法抓取數據，請檢查代碼或網路環境。');
-                    } else {
+                    // v4.0 序列式抓取：保證每一筆都成功，避開併發限制
+                    for (const ticker of tickerList) {
+                        const data = await this.fetchSingleStock(ticker);
+                        if (data) this.stockData.push(data);
+                        await new Promise(r => setTimeout(r, 800)); // 故意等待確保伺服器不拒絕
+                    }
+
+                    if (this.stockData.length > 0) {
                         this.isGenerated = true;
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.stockData.forEach((s, i) => {
                                     const canvasId = 'chart-obj-' + i;
-                                    const el = document.getElementById(canvasId);
-                                    if(el) this.drawChart(canvasId, s);
+                                    this.drawChart(canvasId, s);
                                 });
-                            }, 500);
+                            }, 600);
                         });
-                    }
+                    } else { alert('所有數據抓取失敗，請確認標的代號或檢查網路。'); }
                     this.isSyncing = false;
                 },
                 drawChart(canvasId, stock) {
                     const canvas = document.getElementById(canvasId);
+                    if (!canvas) return;
                     const ctx = canvas.getContext('2d');
                     const ko = stock.price * (this.form.koP / 100);
                     const strike = stock.price * (this.form.strikeP / 100);
@@ -233,7 +222,8 @@
                     const minP = Math.min(...stock.history, ko, strike, ki || 99999);
                     const maxP = Math.max(...stock.history, ko, strike, ki || 0);
 
-                    new Chart(ctx, {
+                    if (window['chartInstance'+canvasId]) window['chartInstance'+canvasId].destroy();
+                    window['chartInstance'+canvasId] = new Chart(ctx, {
                         type: 'line',
                         data: {
                             labels: stock.labels,
@@ -246,11 +236,11 @@
                         },
                         options: {
                             animation: false, responsive: true, maintainAspectRatio: false,
-                            layout: { padding: { right: 35 } },
+                            layout: { padding: { right: 40 } },
                             plugins: { legend: { display: false } },
                             scales: { 
                                 x: { display: true, ticks: { font: { size: 7 }, maxRotation: 45, minRotation: 45, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } }, 
-                                y: { position: 'right', min: minP * 0.95, max: maxP * 1.05, ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
+                                y: { position: 'right', min: minP * 0.94, max: maxP * 1.06, ticks: { font: { size: 9, weight: 'bold' } }, grid: { color: '#f0f0f0' } } 
                             }
                         }
                     });
