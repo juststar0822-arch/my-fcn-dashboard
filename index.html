@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上新莊分行 - FCN 旗艦管理系統 v23</title>
+    <title>上新莊分行 - FCN 旗艦管理系統 v24</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -30,12 +30,12 @@
 <body class="p-4 md:p-10 text-slate-800">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
         <!-- 登入介面 -->
-        <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[1000] flex items-center justify-center p-6">
+        <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[1000] flex items-center justify-center p-6 text-slate-800">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
                 <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono text-slate-800">
-                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg">登入</button>
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg text-white">登入</button>
             </div>
         </div>
 
@@ -50,18 +50,18 @@
                 <div class="ml-auto flex items-center pr-3"><i @click="loadCSVData" class="fa-solid fa-rotate text-gray-300 cursor-pointer" :class="{'animate-spin': isSyncing}"></i></div>
             </div>
 
-            <!-- 時間與來源 -->
+            <!-- 時間顯示 -->
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
                 <span>Data: data.csv</span>
-                <span v-if="lastUpdated">最後更新: {{ lastUpdated }}</span>
+                <span v-if="lastUpdated">最後同步: {{ lastUpdated }}</span>
             </div>
 
             <!-- 管理員介面 -->
             <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10">
-                <div class="fcn-card text-center">
+                <div class="fcn-card text-center text-slate-800">
                     <h3 class="font-black mb-4 italic text-gray-400 uppercase">Admin Access</h3>
-                    <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" placeholder="管理員密碼" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center text-xl outline-none border-2 focus:border-blue-500">
-                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">驗證管理員</button>
+                    <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" placeholder="管理員密碼" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center text-xl outline-none border-2 focus:border-blue-500 font-mono text-slate-800">
+                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white">驗證身分</button>
                 </div>
             </div>
 
@@ -71,25 +71,25 @@
                         <h2 class="text-xl font-black italic">系統資料同步 (CSV)</h2>
                         <button @click="view = 'branch'"><i class="fa-solid fa-xmark text-xl text-gray-300"></i></button>
                     </div>
-                    <div class="space-y-6">
-                        <div class="bg-blue-50 p-4 rounded-2xl text-left">
+                    <div class="space-y-6 text-slate-800">
+                        <div class="bg-blue-50 p-4 rounded-2xl">
                             <label class="block text-[10px] font-black text-blue-400 mb-1 uppercase italic">GitHub Token</label>
-                            <input v-model="githubToken" type="password" placeholder="ghp_..." class="w-full bg-transparent border-b border-blue-200 p-2 text-sm outline-none font-mono text-blue-800">
+                            <input v-model="githubToken" type="password" class="w-full bg-transparent border-b border-blue-200 p-2 text-sm outline-none font-mono text-blue-800">
                         </div>
-                        <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-10 text-center hover:bg-gray-50 transition">
+                        <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-10 text-center hover:bg-gray-50 transition cursor-pointer">
                             <input type="file" id="csvFile" accept=".csv" class="hidden" @change="handleFileUpload">
                             <label for="csvFile" class="cursor-pointer block">
                                 <i class="fa-solid fa-file-csv text-5xl text-blue-500 mb-3"></i>
-                                <p class="font-black text-gray-700">{{ fileName || '選擇 data.csv 檔案' }}</p>
+                                <p class="font-black text-gray-700">{{ fileName || '選取新 data.csv' }}</p>
                             </label>
                         </div>
-                        <button @click="uploadToGithub" :disabled="isUploading || !githubToken || !selectedFile" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl disabled:opacity-20">確認上傳更新</button>
+                        <button @click="uploadToGithub" :disabled="isUploading || !githubToken || !selectedFile" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl text-white disabled:opacity-20">更新資料</button>
                         <p v-if="uploadStatus" class="text-center text-xs font-black italic text-green-500">{{ uploadStatus }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- 預警中心 (精化互斥邏輯) -->
+            <!-- 預警中心 (修復重複分類邏輯) -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-hidden text-slate-800">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
@@ -98,20 +98,20 @@
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.id"></client-card>
-                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic">目前無符合條件案件</div>
+                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic">目前無此類案件</div>
             </div>
 
             <!-- 其他視圖 (資產管理, 客戶, 業務員) -->
             <div v-if="view === 'branch'" class="space-y-4 fade-in">
                 <h2 class="text-xl font-black px-2 italic uppercase">Branch Summary</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">{{ curr }} 庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black">{{ curr==='JPY'?countJPY:countUSD }} 筆</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50">萬</span></div>
+                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">{{ curr }} 庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black text-white">{{ curr==='JPY'?countJPY:countUSD }} 筆</span></div>
+                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 text-white">萬</span></div>
                 </div>
             </div>
 
             <div v-if="view === 'client'" class="space-y-4 fade-in text-slate-800">
-                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-6">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-6 text-slate-800">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.id"></client-card>
             </div>
 
@@ -132,8 +132,8 @@
             props: ['item'],
             template: `
                 <div class="fcn-card fade-in text-slate-800 shadow-sm border border-gray-100">
-                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>保證領息鎖定期</span></div>
-                    <div class="flex justify-between items-start mb-6 text-slate-800">
+                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1 text-[8px]"></i>保證領息鎖定期</span></div>
+                    <div class="flex justify-between items-start mb-6">
                         <div>
                             <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
                             <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest">
@@ -147,10 +147,10 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
                         <div v-for="s in item.stocks" :key="s.code" class="stock-tag">
                             <p class="text-[11px] font-black text-blue-500 leading-none">{{ s.code.replace('.T', '') }}</p>
-                            <p class="text-[9px] font-bold text-gray-400 mb-1 leading-tight h-5 overflow-hidden">{{ getStockName(s.code) }}</p>
+                            <p class="text-[9px] font-bold text-gray-400 mb-1 leading-tight h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-gray-800">{{ formatNum(s.current) }}</p>
                             <p class="text-[11px] font-black" :class="isLocked(item) ? 'text-gray-400' : perfColor(item, s)">{{ getPerf(item, s) }}%</p>
                         </div>
@@ -158,7 +158,7 @@
 
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
                         <div class="space-y-1.5">
-                            <p>庫存金額: <span class="text-gray-900 font-black italic">{{ item.amount === 0 ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
+                            <p>庫存金額: <span class="text-gray-900 font-black italic">{{ (item.amount === 0 || !item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
                             <p>到期日: <span class="text-blue-500 italic font-black text-sm">{{ item.expiry }}</span></p>
                         </div>
                         <div class="text-right space-y-1.5">
@@ -214,37 +214,36 @@
                 countUSD() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (i.amount||0), 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (i.amount||0), 0); },
-                settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && i.amount === 0).length; },
-                settlingUSD() { return this.inventory.filter(i => i.currency === 'USD' && i.amount === 0).length; },
+                settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && (!i.amount || i.amount === 0)).length; },
+                settlingUSD() { return this.inventory.filter(i => i.currency === 'USD' && (!i.amount || i.amount === 0)).length; },
                 monthlyJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (((i.amount||0) * 10000 * i.coupon / 100) / 12), 0); },
                 monthlyUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (((i.amount||0) * 10000 * i.coupon / 100) / 12), 0); },
                 salesSummary() {
                     const map = {}; this.inventory.forEach(i => map[i.sales] = (map[i.sales] || 0) + 1);
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // 精確互斥分類
+                // --- 嚴格互斥分類邏輯 ---
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
                 partKOList() { 
                     return this.inventory.filter(i => {
                         const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
-                        const allKO = koCount === i.stocks.length;
-                        // 曾經 KO: 至少 1 檔達標，且未達標標的數量 > 1，且未全數達標
-                        return koCount >= 1 && koCount < i.stocks.length - 1 && !allKO;
+                        const remaining = i.stocks.length - koCount;
+                        // 曾經 KO: 至少 1 檔達標，且未達標標的數量大於 1
+                        return koCount >= 1 && remaining > 1;
                     });
                 },
                 nearKOList() { 
                     return this.inventory.filter(i => {
                         const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
-                        const allKO = koCount === i.stocks.length;
-                        // 即將 KO: 只剩剛好 1 檔未達標，且標的總數 > 1，且未全數達標
-                        return koCount === i.stocks.length - 1 && i.stocks.length > 1 && !allKO;
+                        const remaining = i.stocks.length - koCount;
+                        // 即將 KO: 剛好只剩 1 檔未達標
+                        return remaining === 1 && i.stocks.length > 1;
                     });
                 },
                 exitList() { 
                     return this.inventory.filter(i => {
                         const allKO = i.stocks.every(s => ((s.current/s.init)*100) >= i.koP);
-                        const started = new Date() >= new Date(i.koStart);
-                        return allKO && started;
+                        return allKO;
                     });
                 },
                 currentAlertList() { 
@@ -272,7 +271,7 @@
                 },
                 async uploadToGithub() {
                     this.isUploading = true;
-                    this.uploadStatus = '正在聯繫伺服器...';
+                    this.uploadStatus = '同步中...';
                     localStorage.setItem('fcn_token', this.githubToken);
                     const owner = 'juststar0822-arch'; const repo = 'my-fcn-dashboard'; const path = 'data.csv';
                     try {
@@ -287,7 +286,7 @@
                                 headers: { 'Authorization': `token ${this.githubToken}`, 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ message: 'Sync', content: content, sha: fileData.sha })
                             });
-                            if (putRes.ok) { this.uploadStatus = '✅ 更新成功！'; setTimeout(() => location.reload(), 1500); }
+                            if (putRes.ok) { this.uploadStatus = '✅ 成功'; setTimeout(() => location.reload(), 1500); }
                         };
                         reader.readAsDataURL(this.selectedFile);
                     } catch (error) { this.uploadStatus = '❌ 失敗'; } finally { this.isUploading = false; }
