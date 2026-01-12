@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上新莊分行 - FCN 管理系統 v32</title>
+    <title>上新莊分行 - FCN 管理系統 v33</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -30,7 +30,7 @@
 <body class="p-4 md:p-10 text-slate-800">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
         
-        <!-- 登入介面 -->
+        <!-- 登入介面 (保持不變) -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[1000] flex items-center justify-center p-6 text-slate-800">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl text-white"></i></div>
@@ -49,44 +49,19 @@
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
                 <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear"></i></button>
                 <div class="ml-auto flex items-center pr-3">
-                    <i @click="loadCSVData" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
+                    <i @click="fetchRealPrices" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
+            <!-- 狀態條：顯示最後更新時間 -->
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
-                <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-500"></i> REAL-TIME PRICES</span>
-                <span v-if="lastUpdated">Last Update: {{ lastUpdated }}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-500"></i> Yahoo Finance Live</span>
+                <span v-if="lastUpdated">Updated: {{ lastUpdated }}</span>
             </div>
 
-            <!-- 管理員介面 -->
-            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10">
-                <div class="fcn-card text-center">
-                    <h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest">Admin Security</h3>
-                    <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center text-xl outline-none border-2 focus:border-blue-500 font-mono text-slate-800">
-                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">VERIFY</button>
-                </div>
-            </div>
-
-            <div v-if="view === 'admin_panel'" class="fade-in space-y-4">
-                <div class="fcn-card text-slate-800 text-center">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="text-xl font-black italic uppercase">CSV Data Sync</h2>
-                        <button @click="view = 'branch'"><i class="fa-solid fa-xmark text-xl text-gray-300"></i></button>
-                    </div>
-                    <div class="space-y-6">
-                        <input v-model="githubToken" type="password" placeholder="GitHub Token (ghp_...)" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-sm text-center">
-                        <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-10 text-center hover:bg-gray-50 transition cursor-pointer relative">
-                            <input type="file" id="csvFile" accept=".csv" class="hidden" @change="handleFileUpload">
-                            <label for="csvFile" class="cursor-pointer block">
-                                <i class="fa-solid fa-file-csv text-5xl text-blue-500 mb-3"></i>
-                                <p class="font-black text-gray-700">{{ fileName || 'Drop data.csv here' }}</p>
-                            </label>
-                        </div>
-                        <button @click="uploadToGithub" :disabled="isUploading || !githubToken || !selectedFile" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl disabled:opacity-20 uppercase">Update Dashboard</button>
-                        <p v-if="uploadStatus" class="text-center text-xs font-black italic text-green-500">{{ uploadStatus }}</p>
-                    </div>
-                </div>
-            </div>
+            <!-- 管理員、資產管理視圖 (略...) -->
+            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10"><div class="fcn-card text-center"><h3 class="font-black mb-4 text-gray-400 uppercase">Admin Access</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">VERIFY</button></div></div>
+            <div v-if="view === 'admin_panel'" class="fade-in space-y-4"><div class="fcn-card text-center text-slate-800"><div class="flex justify-between items-center mb-6"><h2 class="text-xl font-black italic uppercase">CSV Data Sync</h2><button @click="view = 'branch'"><i class="fa-solid fa-xmark text-xl text-gray-300"></i></button></div><div class="space-y-6"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden"><label for="csvFile" class="block font-black text-gray-700 cursor-pointer">Choose data.csv</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase">Sync Now</button><p v-if="uploadStatus" class="text-xs font-black text-green-500 uppercase">{{ uploadStatus }}</p></div></div></div>
 
             <!-- 預警中心 -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
@@ -99,20 +74,19 @@
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.id"></client-card>
-                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs">No Matching Data</div>
             </div>
 
-            <!-- 其他主視圖 -->
+            <!-- 主視圖 -->
             <div v-if="view === 'branch'" class="space-y-4 fade-in">
                 <h2 class="text-xl font-black px-2 italic uppercase">Branch Summary</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">Portfolio size</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black text-white text-center">{{ curr==='JPY'?countJPY:countUSD }}筆</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span></div>
+                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">Total size</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black text-white text-center">{{ curr==='JPY'?countJPY:countUSD }}筆</span></div>
+                    <div class="text-5xl font-black italic font-mono tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 uppercase">萬</span></div>
                 </div>
             </div>
 
             <div v-if="view === 'client'" class="space-y-4 fade-in">
-                <input v-model="search" type="text" placeholder="🔍 Search Name or SN..." class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-6 text-slate-800">
+                <input v-model="search" type="text" placeholder="🔍 Search Client Name or SN..." class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-6 text-slate-800">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.id"></client-card>
             </div>
 
@@ -145,7 +119,7 @@
                             </div>
                         </div>
                         <div class="text-right">
-                            <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic tracking-tighter">配息: {{ item.coupon }}%</div>
+                            <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic">配息: {{ item.coupon }}%</div>
                             <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase">業務: {{ item.sales }}</div>
                         </div>
                     </div>
@@ -155,7 +129,7 @@
                             <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                             <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
                             
-                            <!-- 關鍵修正：目前股價顯示精確到小數點兩位，不捨去 -->
+                            <!-- 目前股價：移除無條件捨去，精確到兩位小數 -->
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-gray-800">{{ formatPrice(s.current) }}</p>
                             
                             <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight text-left px-1">
@@ -231,7 +205,6 @@
                     const map = {}; this.inventory.forEach(i => map[i.sales] = (map[i.sales] || 0) + 1);
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 分類邏輯 ---
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
                 observationList() {
                     const now = new Date();
@@ -338,7 +311,7 @@
                     this.isSyncing = true;
                     const symbols = [...new Set(this.inventory.flatMap(i => i.stocks.map(s => s.code)))];
                     try {
-                        // 更換為更快速的代理 corsproxy.io，並加入隨機參數避開快取
+                        // 更換為更強大的代理 corsproxy.io，加入隨機變數 bypass 所有快取
                         const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}&rnd=${Date.now()}`;
                         const response = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
                         const data = await response.json();
@@ -348,7 +321,7 @@
                                 item.stocks.forEach(stock => {
                                     const q = quotes.find(quote => quote.symbol === stock.code);
                                     if (q) {
-                                        // 儲存原始數字，不再透過 Math.floor 處理
+                                        // 直接抓取 regularMarketPrice，不進行任何捨去
                                         stock.current = q.regularMarketPrice;
                                     }
                                 });
