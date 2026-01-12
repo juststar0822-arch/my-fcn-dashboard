@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v65.Pro_Shield</title>
+    <title>上新莊分行 - FCN 管理系統 v65.Pro_Shield_Plus</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -21,6 +21,8 @@
         .breach-tag { background: #fee2e2; color: #ef4444; font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
         .ko-tag { background: #d1fae5; color: #059669; font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
         .soon-tag { background: #fef3c7; color: #d97706; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
+        .near-obs-tag { background: #ebf5ff; color: #2563eb; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; border: 1px dashed #2563eb; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -30,7 +32,7 @@
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-bolt text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic tracking-tighter">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono">
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono tracking-widest">
                 <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
             </div>
         </div>
@@ -52,19 +54,22 @@
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
                     <button @click="alertTab = 'everKO'" :class="['risk-tab', alertTab === 'everKO' ? 'active' : '']">曾經KO({{everKOList.length}})</button>
+                    <button @click="alertTab = 'nearObs'" :class="['risk-tab', alertTab === 'nearObs' ? 'active' : '']">即將觀察({{nearObsList.length}})</button>
                     <button @click="alertTab = 'soon'" :class="['risk-tab', alertTab === 'soon' ? 'active' : '']">即將出場({{soonExitList.length}})</button>
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
-                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">即將到期({{expiringList.length}})</button>
+                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期({{expiringList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
                 <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic text-xs tracking-widest uppercase">No Records Found</div>
             </div>
 
+            <!-- Client View -->
             <div v-if="view === 'client'" class="space-y-4">
                 <input v-model="search" type="text" placeholder="🔍 搜尋客戶或編號..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 mb-4 border-none">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
+            <!-- Branch Summary -->
             <div v-if="view === 'branch'" class="space-y-4">
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card bg-slate-800 text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-600' : ''">
                     <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Total Assets</span><span>{{ curr }}</span></div>
@@ -72,6 +77,7 @@
                 </div>
             </div>
             
+            <!-- Sales View -->
             <div v-if="view === 'sales'" class="space-y-4">
                 <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg mb-4 border-none">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
@@ -123,6 +129,7 @@
 
                             <div v-if="checkKI(item, s)" class="breach-tag">曾觸及 KI</div>
                             <div v-if="checkEverKO(item, s)" class="ko-tag">曾觸及 KO</div>
+                            <div v-if="checkNearObsSoon(item, s)" class="near-obs-tag">準觀察期(差3%)</div>
                             <div v-if="checkSoon(item, s)" class="soon-tag">離KO差3%</div>
                         </div>
                     </div>
@@ -154,6 +161,15 @@
                 checkEverKO(item, s) {
                     const max = this.priceData[s.code]?.histMaxAfterKOStart?.[item.sn];
                     return max && (max / s.init * 100) >= item.koP;
+                },
+                checkNearObsSoon(item, s) {
+                    if (!item.koStart) return false;
+                    const diffDays = (new Date(String(item.koStart).replace(/-/g, '/')) - new Date()) / 86400000;
+                    if (diffDays <= 0 || diffDays > 3) return false;
+                    const cur = this.priceData[s.code]?.current;
+                    if (!cur) return false;
+                    const perf = (cur / s.init * 100);
+                    return (perf / item.koP) >= 0.97;
                 },
                 checkSoon(item, s) {
                     const cur = this.priceData[s.code]?.current;
@@ -193,6 +209,36 @@
                         return max && (max / s.init * 100) >= i.koP;
                     }));
                 },
+                nearObsList() {
+                    const today = new Date();
+                    return this.inventory.filter(i => {
+                        if (!i.koStart) return false;
+                        const start = new Date(String(i.koStart).replace(/-/g, '/'));
+                        const diffDays = (start - today) / 86400000;
+                        if (diffDays <= 0 || diffDays > 3) return false;
+                        return i.stocks?.some(s => {
+                            const cur = this.priceMap[s.code]?.current;
+                            return cur && (cur / (s.init * i.koP / 100)) >= 0.97;
+                        });
+                    });
+                },
+                soonExitList() {
+                    return this.inventory.filter(i => {
+                        if (!i.koStart) return false;
+                        const start = new Date(String(i.koStart).replace(/-/g, '/'));
+                        if (new Date() < start) return false;
+                        const reachedKO = i.stocks.filter(s => {
+                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                            return max && (max / s.init * 100) >= i.koP;
+                        });
+                        if (i.stocks.length - reachedKO.length === 1) {
+                            const last = i.stocks.find(s => !reachedKO.includes(s));
+                            const cur = this.priceMap[last.code]?.current;
+                            return cur && (cur / (last.init * i.koP / 100)) >= 0.97;
+                        }
+                        return false;
+                    });
+                },
                 exitList() {
                     const today = new Date();
                     return this.inventory.filter(i => {
@@ -205,25 +251,6 @@
                         });
                     });
                 },
-                soonExitList() {
-                    return this.inventory.filter(i => {
-                        if (!i.koStart) return false;
-                        const start = new Date(String(i.koStart).replace(/-/g, '/'));
-                        if (new Date() < start) return false;
-                        
-                        const reachedKO = i.stocks.filter(s => {
-                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
-                            return max && (max / s.init * 100) >= i.koP;
-                        });
-
-                        if (i.stocks.length - reachedKO.length === 1) {
-                            const last = i.stocks.find(s => !reachedKO.includes(s));
-                            const cur = this.priceMap[last.code]?.current;
-                            return cur && (cur / (last.init * i.koP / 100)) >= 0.97;
-                        }
-                        return false;
-                    });
-                },
                 expiringList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
@@ -234,7 +261,7 @@
                     });
                 },
                 currentAlertList() { 
-                    const m = {ki:this.kiList, everKO:this.everKOList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList};
+                    const m = {ki:this.kiList, everKO:this.everKOList, nearObs:this.nearObsList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList};
                     return m[this.alertTab] || [];
                 },
                 clientFilteredList() { 
@@ -287,7 +314,6 @@
                 async fetchHistory() {
                     this.isSyncing = true;
                     const now = Math.floor(Date.now() / 1000);
-                    // 為了 KI 抓取從最早下單日開始的資料
                     const taskMap = new Map();
                     this.inventory.forEach(inv => {
                         const start = Math.floor(new Date(String(inv.date).replace(/-/g, '/')).getTime() / 1000);
@@ -306,11 +332,9 @@
                             const quote = res.indicators.quote[0];
                             const timestamps = res.timestamp;
                             
-                            // 存儲歷史最低 (下單日至今)
                             const validLows = quote.low.filter(v => v != null);
                             this.priceMap[task.sym].histMinByDate[task.dateStr] = Math.min(...validLows, res.meta.regularMarketPrice);
 
-                            // 針對特定合約計算 KO (觀察起始日至今)
                             this.inventory.filter(inv => inv.date === task.dateStr).forEach(inv => {
                                 if (!inv.koStart) return;
                                 const koStartTs = Math.floor(new Date(String(inv.koStart).replace(/-/g, '/')).getTime() / 1000);
@@ -318,12 +342,7 @@
                                 timestamps.forEach((ts, idx) => {
                                     if (ts >= koStartTs && quote.high[idx] != null) highsAfterKO.push(quote.high[idx]);
                                 });
-                                if (highsAfterKO.length > 0) {
-                                    this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = Math.max(...highsAfterKO, res.meta.regularMarketPrice);
-                                } else {
-                                    // 若尚未到觀察日，以現價暫代判斷
-                                    this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = res.meta.regularMarketPrice;
-                                }
+                                this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = highsAfterKO.length > 0 ? Math.max(...highsAfterKO, res.meta.regularMarketPrice) : res.meta.regularMarketPrice;
                             });
                         } catch (e) {}
                         await new Promise(r => setTimeout(r, 50));
