@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v50.Elite</title>
+    <title>上新莊分行 - FCN 管理系統 v51.Elite</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -34,10 +34,10 @@
         <!-- 登入介面 -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-lock text-2xl"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
                 <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
-                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-xl uppercase">Login</button>
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
             </div>
         </div>
 
@@ -58,12 +58,12 @@
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
                 <span class="flex items-center gap-1">
                     <i class="fa-solid fa-circle text-[6px]" :class="isSyncing ? 'text-blue-500 animate-pulse' : 'text-green-500'"></i> 
-                    High-Precision Price Engine
+                    Non-Rounding Precision Mode
                 </span>
                 <span v-if="lastUpdated">Updated: {{ lastUpdated }}</span>
             </div>
 
-            <!-- 預警中心 (全新互斥分頁邏輯) -->
+            <!-- 預警中心 -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
@@ -74,37 +74,21 @@
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn"></client-card>
-                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs">No Matching Records</div>
+                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs">No Data Found</div>
             </div>
 
-            <!-- 資產管理視圖 -->
-            <div v-if="view === 'branch'" class="space-y-4 fade-in">
-                <h2 class="text-xl font-black px-2 italic uppercase text-slate-800">Portfolio Summary</h2>
+            <!-- 其他主視圖 (資產管理, 客戶, 業務員) -->
+            <div v-if="view === 'branch'" class="space-y-4 fade-in text-slate-800">
+                <h2 class="text-xl font-black px-2 italic uppercase">Portfolio Summary</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
                     <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase"><span>Portfolio Size</span><span>{{ curr==='JPY'?countJPY:countUSD }}筆</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50">萬</span></div>
+                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span></div>
                 </div>
             </div>
-
-            <!-- 客戶列表 & 業務員 (保持穩定功能) -->
-            <div v-if="view === 'client'" class="space-y-4 fade-in">
-                <input v-model="search" type="text" placeholder="🔍 Search Name or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800">
-                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn"></client-card>
-            </div>
-            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800">
-                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg">
-                    <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
-                </select>
-                <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn"></client-card>
-            </div>
-
-            <!-- 管理員介面 -->
-            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10">
-                <div class="fcn-card text-center"><h3 class="font-black mb-4 text-gray-400 uppercase text-xs">Admin Verification</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">VERIFY</button></div>
-            </div>
-            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 max-w-sm mx-auto">
-                <div class="fcn-card text-center text-slate-800"><h2 class="text-xl font-black italic mb-6">DATA SYNC</h2><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl mb-4 text-center text-sm font-mono text-slate-800 border-none"><div class="border-4 border-dashed rounded-[2rem] p-8 mb-4 cursor-pointer hover:bg-gray-50"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden"><label for="csvFile" class="block font-black text-gray-500 cursor-pointer">{{ fileName || 'Select data.csv' }}</label></div><button @click="uploadToGithub" :disabled="isUploading" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase">{{ isUploading ? 'Syncing...' : 'Confirm Upload' }}</button></div>
-            </div>
+            <div v-if="view === 'client'" class="space-y-4 fade-in"><input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold pl-6 text-slate-800"><client-card v-for="item in clientFilteredList" :item="item" :key="item.sn"></client-card></div>
+            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800"><select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono"><option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option></select><client-card v-for="item in salesFilteredList" :item="item" :key="item.sn"></client-card></div>
+            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center"><div class="fcn-card text-slate-800"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Access</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white">VERIFY</button></div></div>
+            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800"><div class="fcn-card text-slate-800 text-left"><h2 class="text-xl font-black italic mb-6">CSV DATA SYNC</h2><div class="space-y-6 text-slate-800 font-mono"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800 text-center"><label for="csvFile" class="block font-black text-gray-700 cursor-pointer text-slate-800 text-center">Drop data.csv here</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white">Sync to Server</button></div></div></div>
 
         </template>
     </div>
@@ -116,46 +100,59 @@
         const ClientCard = {
             props: ['item'],
             template: `
-                <div class="fcn-card fade-in border border-gray-100 shadow-sm text-left">
-                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>鎖定期</span></div>
+                <div class="fcn-card fade-in text-slate-800 border border-gray-100 shadow-sm text-left">
+                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>保證領息鎖定期</span></div>
                     <div class="flex justify-between items-start mb-6">
                         <div class="text-left">
                             <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
-                            <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
+                            <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest text-slate-800">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
                         </div>
                         <div class="text-right">
-                            <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic">票息: {{ item.coupon }}%</div>
-                            <div class="text-[9px] text-gray-400 font-bold mt-1">業務: {{ item.sales }}</div>
+                            <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic tracking-tighter text-center px-2">配息: {{ item.coupon }}%</div>
+                            <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase text-right">業務: {{ item.sales }}</div>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag">
+                        <div v-for="s in item.stocks" :key="s.code" class="stock-tag">
                             <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
-                            <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden">{{ getStockName(s.code) }}</p>
+                            <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
+                            
+                            <!-- 價格顯示：強制不進位 -->
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
-                            <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1">
-                                <p>KO: <span class="text-slate-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
-                                <p>KI: <span class="text-slate-600">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
+                            
+                            <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
+                                <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
+                                <p>KI: <span class="text-slate-800 font-black text-[7px]">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
                             </div>
                             <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
-                        <div class="space-y-1.5"><p>本金: <span class="text-gray-900 font-black italic">{{ item.amount }} 萬</span></p><p>到期: <span class="text-blue-500 font-black italic text-sm">{{ item.expiry }}</span></p></div>
-                        <div class="text-right space-y-1.5"><p>月票息</p><p class="text-emerald-600 font-black text-xl italic">{{ item.currency==='JPY'?'¥':'$' }}{{ formatNum(calcMonthly(item)) }}</p></div>
+                        <div class="space-y-1.5 text-left"><p>庫存金額: <span class="text-gray-900 font-black italic">{{ (!item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p><p>到期日期: <span class="text-blue-500 italic font-black text-sm">{{ item.expiry }}</span></p></div>
+                        <div class="text-right space-y-1.5"><p>月票息</p><p class="text-emerald-600 font-black text-xl italic text-right">{{ item.currency==='JPY'?'¥':'$' }}{{ formatNum(calcMonthly(item)) }}</p></div>
                     </div>
                     <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase tracking-widest italic">
-                        <span>KO: <span class="text-slate-800 font-black">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': hasBreachedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black">{{ item.koStart }}</span></span>
+                        <span>KO: <span class="text-slate-800 font-black text-[10px]">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black text-[10px]">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': hasBreachedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black text-[10px]">{{ item.koStart }}</span></span>
                     </div>
                 </div>
             `,
             methods: {
                 formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
-                formatPrice(n){ return n ? parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '---'; },
+                // 改進版不進位顯示邏輯
+                formatPrice(n){ 
+                    if (!n || n == 0) return '---';
+                    let val = parseFloat(n);
+                    // 強制執行無條件捨去至小數點第二位
+                    return (Math.floor(val * 100) / 100).toFixed(2);
+                },
                 calcMonthly(i){ return ((i.amount||0) * 10000 * (i.coupon/100)) / 12; },
                 getStockName(c){ return stockNames[c] || c; },
-                getPerf(i,s){ return (s.init && s.current) ? ((s.current/s.init)*100).toFixed(2) : '100.00'; },
+                getPerf(i,s){ 
+                    if (!s.init || !s.current || s.current <= 0) return '0.00';
+                    return ((s.current/s.init)*100).toFixed(2); 
+                },
                 perfColor(i,s){ 
+                    if (!s.current || s.current <= 0) return 'text-gray-300';
                     const p = parseFloat(this.getPerf(i,s));
                     if(p >= i.koP) return 'text-success';
                     if(p <= i.kiP) return 'text-danger';
@@ -190,34 +187,34 @@
                     const map = {}; this.inventory.forEach(i => map[i.sales] = (map[i.sales] || 0) + 1);
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 預警核心邏輯 V50 ---
+                // --- 修正後的互斥分頁邏輯 ---
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
                 observationList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
                         const start = new Date(i.koStart);
                         const diff = Math.ceil((start - now) / 86400000);
-                        if (!(diff >= 0 && diff <= 3)) return false; // 距起始日 0~3 天
+                        if (!(diff >= 0 && diff <= 3)) return false;
                         const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                         const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
                         const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
-                        return (koCount === i.stocks.length) || (i.stocks.length - koCount === 1 && isNearPrice);
+                        return (i.stocks.length === koCount) || (i.stocks.length - koCount === 1 && isNearPrice);
                     });
                 },
                 partKOList() { 
                     return this.inventory.filter(i => {
-                        if (new Date() < new Date(i.koStart)) return false; // 已過起始日
+                        if (new Date() < new Date(i.koStart)) return false; // 起始日未到，屬於 Observation
                         const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                         const remaining = i.stocks.length - koCount;
                         const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
                         const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
-                        // 曾經 KO：至少 1 檔達標，且未全數達標，且排除掉符合「即將 KO」定義的案件
+                        // 曾經 KO 判定：有股票 KO 且剩餘超過 1 檔，或剩餘 1 檔但不到 97%
                         return koCount >= 1 && koCount < i.stocks.length && !(remaining === 1 && isNearPrice);
                     });
                 },
                 nearKOList() { 
                     return this.inventory.filter(i => {
-                        if (new Date() < new Date(i.koStart)) return false; // 已過起始日
+                        if (new Date() < new Date(i.koStart)) return false; 
                         const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                         if (i.stocks.length - koCount !== 1) return false;
                         const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
@@ -227,7 +224,7 @@
                 expiringList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
-                        const diff = (new Date(i.expiry) - now) / 86400000;
+                        const diff = Math.ceil((new Date(i.expiry) - now) / 86400000);
                         return diff >= 0 && diff <= 7;
                     });
                 },
@@ -250,12 +247,10 @@
             methods: {
                 formatNum(n) { return Math.floor(n).toLocaleString(); },
                 login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); } },
-                checkAdminPass() { if (this.adminPassInput === this.adminPass) { this.view = 'admin_panel'; } else { alert('Access Denied'); } },
+                checkAdminPass() { if (this.adminPassInput === this.adminPass) { this.view = 'admin_panel'; } else { alert('ERR'); } },
                 handleFileUpload(e) { const f = e.target.files[0]; if(f){ this.selectedFile=f; this.fileName=f.name; } },
                 async uploadToGithub() {
-                    if(!this.selectedFile || !this.githubToken) return alert('Missing Data');
-                    this.isUploading = true;
-                    localStorage.setItem('fcn_token', this.githubToken);
+                    this.isUploading = true; this.uploadStatus = 'SYNCING...'; localStorage.setItem('fcn_token', this.githubToken);
                     try {
                         const owner='juststar0822-arch', repo='my-fcn-dashboard', path='data.csv';
                         const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {headers:{'Authorization':`token ${this.githubToken}`}});
@@ -265,34 +260,30 @@
                             const c = e.target.result.split(',')[1];
                             const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
                                 method:'PUT', headers:{'Authorization':`token ${this.githubToken}`,'Content-Type':'application/json'},
-                                body: JSON.stringify({message:'Web Update', content:c, sha:fd.sha})
+                                body: JSON.stringify({message:'Update', content:c, sha:fd.sha})
                             });
-                            if(pr.ok){ alert('Update Success'); location.reload(); }
+                            if(pr.ok){ alert('Success'); location.reload(); }
                         };
                         r.readAsDataURL(this.selectedFile);
                     } catch(e){ alert('Error'); } finally { this.isUploading=false; }
                 },
-                hasBreachedKI(i) {
-                    if (!i.stocks || i.kiP <= 0) return false;
-                    return i.stocks.some(s => s.current > 0 && ((s.current / s.init) * 100) <= i.kiP);
-                },
                 async loadCSVData() {
                     this.isSyncing = true;
                     try {
-                        const response = await fetch('data.csv?t=' + Date.now());
+                        const response = await fetch('data.csv?v=' + Date.now());
                         const csvText = await response.text();
                         Papa.parse(csvText, {
                             header: true, dynamicTyping: true, skipEmptyLines: true,
                             complete: (results) => {
                                 this.inventory = results.data.map(row => {
                                     const stocks = [];
-                                    for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({code: String(row[`s${i}_code`]), init: row[`s${i}_init`], current: row[`s${i}_init`]});
+                                    for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({code: String(row[`s${i}_code`]), init: row[`s${i}_init`], current: 0});
                                     return { ...row, stocks: stocks };
                                 });
                                 this.fetchRealPrices();
                             }
                         });
-                    } catch (e) { console.error("CSV Load Error"); } finally { this.isSyncing = false; }
+                    } catch (e) { console.error(e); } finally { this.isSyncing = false; }
                 },
                 async fetchRealPrices() {
                     if (this.inventory.length === 0) return;
@@ -300,23 +291,21 @@
                     const symbols = [...new Set(this.inventory.flatMap(i => i.stocks.map(s => s.code)))];
                     try {
                         await Promise.all(symbols.map(async (symbol) => {
-                            try {
-                                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d`;
-                                const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                                const data = await resp.json();
-                                const json = JSON.parse(data.contents);
-                                const price = json.chart.result[0].meta.regularMarketPrice;
-                                if (price) {
-                                    this.inventory.forEach(item => {
-                                        item.stocks.forEach(stock => {
-                                            if (stock.code === symbol) stock.current = price;
-                                        });
+                            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d&rnd=${Date.now()}`;
+                            const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                            const data = await resp.json();
+                            const json = JSON.parse(data.contents);
+                            const price = json.chart.result[0].meta.regularMarketPrice;
+                            if (price) {
+                                this.inventory.forEach(item => {
+                                    item.stocks.forEach(stock => {
+                                        if (stock.code === symbol) stock.current = price;
                                     });
-                                }
-                            } catch (err) { console.warn("Fetch Fail: " + symbol); }
+                                });
+                            }
                         }));
                         this.lastUpdated = new Date().toLocaleTimeString();
-                    } catch (e) { console.error("Refresh Error"); } finally { this.isSyncing = false; }
+                    } catch (e) { console.error("Error"); } finally { this.isSyncing = false; }
                 }
             },
             mounted() {
