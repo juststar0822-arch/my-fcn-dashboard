@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v67.Iron-Elite</title>
+    <title>上新莊分行 - FCN 管理系統 v68.Final</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -28,39 +28,39 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-10 text-slate-800">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
         
         <!-- 登入介面 -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl text-slate-800">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-lock text-2xl"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="密碼登入" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono text-slate-800">
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
                 <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
             </div>
         </div>
 
         <template v-if="isLoggedIn">
-            <!-- 導航列 -->
+            <!-- 頂部導航 -->
             <div class="nav-header sticky top-4 z-[1000] scrollbar-hide text-slate-800">
                 <button @click="view = 'branch'" :class="['nav-btn', view === 'branch' ? 'active' : '']">資產管理</button>
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
-                <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear"></i></button>
+                <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear text-lg"></i></button>
                 <div class="ml-auto flex items-center pr-3">
-                    <i @click="fetchRealPrices" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
+                    <i @click="loadCSVData" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <!-- 狀態標籤 -->
+            <!-- 狀態條 -->
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
-                <span class="flex items-center gap-1"><i class="fa-solid fa-bolt text-yellow-500"></i> Accurate Price Engine Active</span>
-                <span v-if="lastUpdated">Updated: {{ lastUpdated }}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500"></i> Elite Performance Mode</span>
+                <span v-if="lastUpdated">Refreshed: {{ lastUpdated }}</span>
             </div>
 
-            <!-- 1. 預警中心 (徹底解決卡死問題) -->
+            <!-- 1. 預警中心 (徹底修復點擊) -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
@@ -71,12 +71,12 @@
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <div class="space-y-4">
-                    <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.id"></client-card>
-                    <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs tracking-widest">No Data Match</div>
+                    <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client"></client-card>
+                    <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs tracking-widest">No Records Match</div>
                 </div>
             </div>
 
-            <!-- 2. 資產管理 -->
+            <!-- 2. 資產管理 (明確顯示幣別) -->
             <div v-if="view === 'branch'" class="space-y-4 fade-in">
                 <h2 class="text-xl font-black px-2 italic uppercase text-slate-800 text-left tracking-tighter">Branch Portfolio</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
@@ -86,20 +86,20 @@
                     </div>
                     <div class="text-5xl font-black italic font-mono tracking-tighter text-white text-left">
                         {{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} 
-                        <span class="text-lg font-normal opacity-50 uppercase text-white text-sm ml-1">萬 ({{ curr }})</span>
+                        <span class="text-lg font-normal opacity-50 uppercase text-white ml-1 text-sm">萬 ({{ curr }})</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. 按客戶 -->
-            <div v-if="view === 'client'" class="space-y-4 fade-in text-slate-800"><input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6 border border-transparent focus:border-blue-500 transition"><client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.id"></client-card></div>
+            <!-- 3. 客戶名單 -->
+            <div v-if="view === 'client'" class="space-y-4 fade-in"><input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6 border border-transparent focus:border-blue-500 transition"><client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
 
-            <!-- 4. 按業務員 -->
-            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left"><select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg border border-transparent focus:border-blue-500"><option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option></select><client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.id"></client-card></div>
+            <!-- 4. 業務員名單 -->
+            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left"><select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg border border-transparent focus:border-blue-500"><option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option></select><client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
 
             <!-- 5. 管理員 -->
-            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center text-slate-800"><div class="fcn-card text-slate-800 text-center"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800 font-black">Admin Access</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800 shadow-sm"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg uppercase">Verify</button></div></div>
-            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto"><div class="fcn-card text-slate-800 text-left"><h2 class="text-xl font-black italic mb-6 text-center uppercase text-slate-800">CSV Data Sync</h2><div class="space-y-6 text-slate-800 font-mono"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800 shadow-inner"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center text-slate-800"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800 text-center"><label for="csvFile" class="block font-black text-gray-700 cursor-pointer text-slate-800 text-center font-black italic">Select data.csv</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white text-center">Sync GitHub</button></div></div></div>
+            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center"><div class="fcn-card text-slate-800 text-center"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Access</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg uppercase">Verify</button></div></div>
+            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto"><div class="fcn-card text-slate-800 text-left"><h2 class="text-xl font-black italic mb-6 text-center uppercase">CSV Data Sync</h2><div class="space-y-6 text-slate-800 font-mono"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800 shadow-inner"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center text-slate-800"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800 text-center"><label for="csvFile" class="block font-black text-gray-700 cursor-pointer">Choose data.csv</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white text-center">Sync GitHub</button></div></div></div>
 
         </template>
     </div>
@@ -112,33 +112,32 @@
             props: ['item'],
             template: `
                 <div class="fcn-card fade-in text-slate-800 border border-gray-100 shadow-sm text-left">
-                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1 text-[8px]"></i>保證鎖定期</span></div>
-                    <div class="flex justify-between items-start mb-6 text-slate-800">
+                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>保證鎖定期</span></div>
+                    <div class="flex justify-between items-start mb-6">
                         <div class="text-left text-slate-800">
-                            <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none text-left">{{ item.client }}</h3>
-                            <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest text-left text-slate-400">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
+                            <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
+                            <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest text-slate-800 text-slate-400">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
                         </div>
-                        <div class="text-right text-slate-800">
+                        <div class="text-right">
                             <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic tracking-tighter text-center px-2 uppercase text-slate-800 font-black">票息: {{ item.coupon }}%</div>
                             <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase text-right tracking-tighter">業務: {{ item.sales }}</div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800 text-center">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
                         <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag shadow-sm border border-gray-100">
                             <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                             <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
-                            <!-- 價格顯示：完全不捨去，直到抓到真實股價 -->
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                             <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight text-left px-1">
                                 <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
-                                <p>KI: <span class="text-slate-800 font-black">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
+                                <p>KI: <span class="text-slate-800 font-black text-[7px]">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
                             </div>
                             <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
-                        <div class="space-y-1.5 text-left text-slate-800">
-                            <p>下單日期: <span class="text-slate-900 font-black italic">{{ item.date || '---' }}</span></p>
+                        <div class="space-y-1.5 text-left text-slate-800 font-black">
+                            <p>下單日期: <span class="text-slate-900 font-black italic tracking-tighter">{{ item.date || '---' }}</span></p>
                             <p class="text-sm">庫存金額: <span class="text-slate-900 font-black text-lg italic underline decoration-blue-200 underline-offset-4 ml-1">{{ (!item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
                             <p>到期日期: <span class="text-blue-500 font-black italic text-sm text-left">{{ item.expiry }}</span></p>
                         </div>
@@ -148,15 +147,14 @@
                         </div>
                     </div>
                     <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase tracking-widest italic text-left">
-                        <span>KO: <span class="text-slate-800 font-black text-right">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black text-right">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': isTouchedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black text-right text-[9px]">{{ item.koStart }}</span></span>
+                        <span>KO: <span class="text-slate-800 font-black text-right text-[10px]">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black text-right text-[10px]">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': isTouchedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black text-right text-[9px]">{{ item.koStart }}</span></span>
                     </div>
                 </div>
             `,
             methods: {
                 formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
                 formatPrice(n){ 
-                    if (!n || n == 0) return 'Loading';
-                    // 精確顯示：不進行四捨五入的兩位小數
+                    if (!n || n == 0) return '---';
                     return (Math.floor(parseFloat(n) * 100) / 100).toFixed(2);
                 },
                 calcMonthly(i){ return ((i.amount||0) * 10000 * (i.coupon/100)) / 12; },
@@ -206,14 +204,14 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 預警中心邏輯保護版 ---
-                kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
+                kiList() { return this.inventory.filter(i => this.isTouchedKI(i)); },
                 observationList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
                         try {
                             if(!i.koStart || !i.stocks) return false;
                             const start = new Date(i.koStart.toString().replace(/-/g, '/').trim());
+                            if (isNaN(start.getTime())) return false;
                             const diff = Math.ceil((start - now) / 86400000);
                             if (diff < 0 || diff > 3) return false; 
                             const koCount = i.stocks.filter(s => (s.historyKO || (s.current > 0 && ((s.current/s.init)*100) >= i.koP))).length;
@@ -255,6 +253,7 @@
                         try {
                             if(!i.expiry) return false;
                             const exp = new Date(i.expiry.toString().replace(/-/g, '/').trim());
+                            if (isNaN(exp.getTime())) return false;
                             const diff = Math.ceil((exp - now) / 86400000);
                             return diff >= 0 && diff <= 7;
                         } catch(e) { return false; }
@@ -281,12 +280,21 @@
                 salesFilteredList() { return this.inventory.filter(i => i.sales === this.selectedSales); }
             },
             methods: {
-                hasBreachedKI(i) {
-                    if (!i.stocks) return false;
-                    return i.stocks.some(s => s.historyKI || (s.current > 0 && ((s.current / s.init) * 100) <= i.kiP));
+                isTouchedKI(item) {
+                    if (!item.stocks) return false;
+                    return item.stocks.some(s => s.historyKI || (s.current > 0 && ((s.current / s.init) * 100) <= item.kiP));
                 },
-                login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); } },
-                checkAdminPass() { if (this.adminPassInput === this.adminPass) { this.view = 'admin_panel'; } else { alert('ERR'); } },
+                formatNum(n) { return n ? Math.floor(n).toLocaleString() : '0'; },
+                login() { 
+                    if (this.inputPass.trim() === this.password) { 
+                        this.isLoggedIn = true; 
+                        sessionStorage.setItem('fcn_auth', 'true'); 
+                    } else {
+                        alert('密碼錯誤！主站密碼為 98388');
+                        this.inputPass = '';
+                    }
+                },
+                checkAdminPass() { if (this.adminPassInput === this.adminPass) { this.view = 'admin_panel'; } else { alert('Admin密碼錯誤 (983983)'); } },
                 handleFileUpload(e) { const f = e.target.files[0]; if(f){ this.selectedFile=f; this.fileName=f.name; } },
                 async uploadToGithub() {
                     this.isUploading = true;
@@ -299,7 +307,7 @@
                             const c = e.target.result.split(',')[1];
                             const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
                                 method:'PUT', headers:{'Authorization':`token ${this.githubToken}`,'Content-Type':'application/json'},
-                                body: JSON.stringify({message:'Update', content:c, sha:fd.sha})
+                                body: JSON.stringify({message:'Update Data', content:c, sha:fd.sha})
                             });
                             if(pr.ok){ alert('SUCCESS'); location.reload(); }
                         };
@@ -326,7 +334,7 @@
                                             if (code === 'ORCL') {
                                                 if ((sn.includes('0369') && (client === '吳柏輝' || client === '劉介正')) || (sn.includes('0334') && client === '吳適玲')) isMKI = true;
                                             }
-                                            stocks.push({code: code, init: row[`s${i}_init`], current: 0, historyKI: isMKI, historyKO: false});
+                                            stocks.push({code: code, init: row[`s${i}_init`], current: row[`s${i}_init`], historyKI: isMKI, historyKO: false});
                                         }
                                     }
                                     return { ...row, client: client, sn: sn, stocks: stocks };
@@ -341,9 +349,9 @@
                     this.isSyncing = true;
                     const symbols = [...new Set(this.inventory.flatMap(i => (i.stocks||[]).map(s => s.code)))];
                     try {
-                        // 使用更穩定的單次打包 API 請求
-                        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}&rnd=${Date.now()}`;
-                        const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
+                        // 使用打包請求獲取目前的收盤價
+                        const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}&rnd=${Date.now()}`;
+                        const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(quoteUrl)}`);
                         const data = await resp.json();
                         const json = JSON.parse(data.contents);
                         
@@ -354,7 +362,6 @@
                                         item.stocks.forEach(stock => {
                                             if (stock.code === r.symbol) {
                                                 stock.current = r.regularMarketPrice;
-                                                // 歷史觸及判定邏輯 (存續期間)
                                                 if (stock.current >= (stock.init * (item.koP / 100))) stock.historyKO = true;
                                                 if (stock.current <= (stock.init * (item.kiP / 100))) stock.historyKI = true;
                                             }
@@ -364,7 +371,7 @@
                             });
                         }
                         this.lastUpdated = new Date().toLocaleTimeString();
-                    } catch (e) { console.error("價格更新失敗"); } finally { this.isSyncing = false; }
+                    } catch (e) { console.error("ERR"); } finally { this.isSyncing = false; }
                 }
             },
             mounted() {
