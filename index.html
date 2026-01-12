@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v59.Dynamic</title>
+    <title>上新莊分行 - FCN 管理系統 v60.Elite</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         [v-cloak] { display: none; }
-        body { background-color: #f3f4f6; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; }
+        body { background-color: #f3f4f6; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; }
         .fcn-card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; position: relative; }
         .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; }
         .nav-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
         .nav-btn { padding: 10px 16px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; }
         .nav-btn.active { background: #1f2937; color: white; }
-        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 11px; white-space: nowrap; cursor: pointer; }
+        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: none; text-align: center; font-size: 11px; white-space: nowrap; cursor: pointer; }
         .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
         .lock-badge { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
         .text-success { color: #10b981; font-weight: 900; }
@@ -28,15 +28,15 @@
         .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
-<body class="p-4 md:p-10 text-slate-800">
+<body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
         
         <!-- 登入介面 -->
-        <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
+        <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6 text-slate-800">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-lock text-2xl text-white"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl text-white"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono text-slate-800">
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="密碼登入" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
                 <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
             </div>
         </div>
@@ -50,13 +50,13 @@
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
                 <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear"></i></button>
                 <div class="ml-auto flex items-center pr-3">
-                    <i @click="loadCSVData" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
+                    <i @click="fetchRealPrices" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <!-- 狀態 -->
+            <!-- 狀態標籤 -->
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
-                <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500"></i> Auto-History Tracker Active</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500"></i> Elite Performance Mode</span>
                 <span v-if="lastUpdated">Refreshed: {{ lastUpdated }}</span>
             </div>
 
@@ -72,31 +72,31 @@
                 </div>
                 <div class="space-y-4">
                     <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client"></client-card>
-                    <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs">No Records Matches</div>
+                    <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs">No Matching Records</div>
                 </div>
             </div>
 
-            <!-- 資產管理 (幣別明確) -->
+            <!-- 資產管理 -->
             <div v-if="view === 'branch'" class="space-y-4 fade-in">
                 <h2 class="text-xl font-black px-2 italic uppercase text-slate-800 text-left tracking-tighter">Branch Portfolio</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
                     <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase text-white font-black">
-                        <span>{{ curr }} 總資產規模</span>
+                        <span>{{ curr }} 總庫存資產</span>
                         <span>{{ curr==='JPY'?countJPY:countUSD }}筆案件</span>
                     </div>
                     <div class="text-5xl font-black italic font-mono tracking-tighter text-white">
                         {{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} 
-                        <span class="text-lg font-normal opacity-50 uppercase text-white">萬 ({{ curr }})</span>
+                        <span class="text-lg font-normal opacity-50 uppercase text-white text-[12px] ml-1">萬 ({{ curr }})</span>
                     </div>
                 </div>
             </div>
 
-            <!-- 客戶 & 業務員 (保持不變) -->
+            <!-- 其他視圖 (略...) -->
             <div v-if="view === 'client'" class="space-y-4 fade-in"><input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6"><client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
             <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left"><select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono"><option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option></select><client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
 
             <!-- 管理員介面 -->
-            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center"><div class="fcn-card text-slate-800"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Security</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg uppercase">Verify</button></div></div>
+            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center"><div class="fcn-card text-slate-800 text-center"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Security</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800 shadow-sm"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg uppercase">Verify</button></div></div>
             <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto"><div class="fcn-card text-slate-800 text-left"><h2 class="text-xl font-black italic mb-6 text-center uppercase">CSV Data Sync</h2><div class="space-y-6 text-slate-800 font-mono"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center text-slate-800"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800 text-center"><label for="csvFile" class="block font-black text-gray-700 cursor-pointer text-slate-800 text-center">Select data.csv</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white">Sync GitHub</button></div></div></div>
 
         </template>
@@ -116,7 +116,7 @@
                             <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
                             <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest text-slate-800">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
                         </div>
-                        <div class="text-right text-slate-800">
+                        <div class="text-right">
                             <div class="bg-indigo-50 text-indigo-600 text-[10px] px-2 py-1 rounded-lg font-black italic tracking-tighter text-center px-2 uppercase text-slate-800">票息: {{ item.coupon }}%</div>
                             <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase text-right tracking-tighter">業務: {{ item.sales }}</div>
                         </div>
@@ -128,24 +128,24 @@
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                             <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
                                 <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
-                                <p>KI: <span class="text-slate-800 font-black">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
+                                <p>KI: <span class="text-slate-800 font-black text-[9px]">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
                             </div>
                             <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
-                        <div class="space-y-1.5 text-left text-slate-800 font-black">
-                            <p>下單日期: <span class="text-slate-900 font-black italic">{{ item.date || '---' }}</span></p>
-                            <p>庫存金額: <span class="text-slate-900 font-black italic">{{ (!item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
-                            <p>到期日期: <span class="text-blue-500 font-black italic text-sm text-left">{{ item.expiry }}</span></p>
+                        <div class="space-y-1.5 text-left text-slate-800 font-black italic">
+                            <p>下單日期: <span class="text-slate-900 font-black">{{ item.date || '---' }}</span></p>
+                            <p>庫存金額: <span class="text-slate-900 font-black">{{ (!item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
+                            <p>到期日期: <span class="text-blue-500 font-black italic text-sm">{{ item.expiry }}</span></p>
                         </div>
-                        <div class="text-right space-y-1.5 text-slate-800 text-right">
+                        <div class="text-right space-y-1.5 text-slate-800">
                             <p>月利率: {{ (item.coupon/12).toFixed(4) }}%</p>
                             <p>預估月息: <span class="text-emerald-600 font-black text-xl italic text-right">{{ item.currency==='JPY'?'¥':'$' }}{{ formatNum(calcMonthly(item)) }}</span></p>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase tracking-widest italic text-left">
-                        <span>KO: <span class="text-slate-800 font-black text-right">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black text-right">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': isTouchedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black text-right text-[10px]">{{ item.koStart }}</span></span>
+                    <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase tracking-widest italic">
+                        <span>KO: <span class="text-slate-800 font-black text-[9px] text-right">{{ item.koP }}%</span></span><span>PUT: <span class="text-slate-800 font-black text-[9px] text-right">{{ item.strikeP }}%</span></span><span :class="{'text-danger underline': isTouchedKI(item)}">KI: {{ item.kiP }}%</span><span>START: <span class="text-slate-800 font-black text-right text-[9px]">{{ item.koStart }}</span></span>
                     </div>
                 </div>
             `,
@@ -164,12 +164,13 @@
                 perfColor(item, s){ 
                     if (!s.current || s.current <= 0) return 'text-gray-300';
                     const p = parseFloat(this.getPerf(item, s));
-                    if(s.historyHighTouched || p >= item.koP) return 'text-success'; // 曾經 KO 標記綠色
-                    if(s.historyLowTouched || p <= item.kiP) return 'text-danger';  // 曾經 KI 標記紅色
+                    if(p >= item.koP || s.memoryKO) return 'text-success'; 
+                    if(p <= item.kiP || s.memoryKI) return 'text-danger';
                     return 'text-gray-400';
                 },
                 isTouchedKI(item) {
-                    return item.stocks && item.stocks.some(s => s.historyLowTouched || (s.current > 0 && ((s.current / s.init) * 100) <= item.kiP));
+                    if (!item.stocks) return false;
+                    return item.stocks.some(s => s.memoryKI || (s.current > 0 && ((s.current / s.init) * 100) <= item.kiP));
                 },
                 isLocked(i){ 
                     if(!i.koStart) return false;
@@ -201,21 +202,23 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 預警中心邏輯 V59 ---
+                // --- 預警分頁邏輯 ---
                 kiList() { return this.inventory.filter(i => {
-                    return i.stocks && i.stocks.some(s => s.historyLowTouched || (s.current > 0 && ((s.current / s.init) * 100) <= i.kiP));
+                    return i.stocks && i.stocks.some(s => s.memoryKI || (s.current > 0 && ((s.current / s.init) * 100) <= i.kiP));
                 });},
                 observationList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
-                        if(!i.koStart || !i.stocks) return false;
-                        const start = new Date(i.koStart.toString().replace(/-/g, '/').trim());
-                        const diff = Math.ceil((start - now) / 86400000);
-                        if (diff < 0 || diff > 3) return false; 
-                        const koCount = i.stocks.filter(s => s.historyHighTouched || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
-                        const lastStock = i.stocks.find(s => !s.historyHighTouched && ((s.current/s.init)*100) < i.koP);
-                        const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
-                        return (koCount === i.stocks.length || (i.stocks.length - koCount === 1 && isNearPrice));
+                        try {
+                            if(!i.koStart || !i.stocks) return false;
+                            const start = new Date(i.koStart.toString().replace(/-/g, '/').trim());
+                            const diff = Math.ceil((start - now) / 86400000);
+                            if (diff < 0 || diff > 3) return false; 
+                            const koCount = i.stocks.filter(s => s.memoryKO || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
+                            const lastStock = i.stocks.find(s => !s.memoryKO && ((s.current/s.init)*100) < i.koP);
+                            const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
+                            return (koCount === i.stocks.length || (i.stocks.length - koCount === 1 && isNearPrice));
+                        } catch(e) { return false; }
                     });
                 },
                 partKOList() { 
@@ -223,9 +226,9 @@
                     return this.inventory.filter(i => {
                         const start = new Date(String(i.koStart).replace(/-/g, '/').trim());
                         if (isNaN(start.getTime()) || (now < start) || !i.stocks) return false;
-                        const koCount = i.stocks.filter(s => s.historyHighTouched || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
+                        const koCount = i.stocks.filter(s => s.memoryKO || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
                         const remaining = i.stocks.length - koCount;
-                        const lastStock = i.stocks.find(s => !s.historyHighTouched && ((s.current/s.init)*100) < i.koP);
+                        const lastStock = i.stocks.find(s => !s.memoryKO && ((s.current/s.init)*100) < i.koP);
                         const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
                         return koCount >= 1 && koCount < i.stocks.length && !(remaining === 1 && isNearPrice);
                     });
@@ -235,17 +238,20 @@
                     return this.inventory.filter(i => {
                         const start = new Date(String(i.koStart).replace(/-/g, '/').trim());
                         if (isNaN(start.getTime()) || (now < start) || !i.stocks) return false;
-                        const koCount = i.stocks.filter(s => s.historyHighTouched || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
-                        const lastStock = i.stocks.find(s => !s.historyHighTouched && ((s.current/s.init)*100) < i.koP);
+                        const koCount = i.stocks.filter(s => s.memoryKO || (s.current > 0 && ((s.current/s.init)*100) >= i.koP)).length;
+                        const lastStock = i.stocks.find(s => !s.memoryKO && ((s.current/s.init)*100) < i.koP);
                         return (i.stocks.length - koCount === 1) && lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
                     });
                 },
                 expiringList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
-                        const exp = new Date(String(i.expiry).replace(/-/g, '/').trim());
-                        const diff = Math.ceil((exp - now) / 86400000);
-                        return diff >= 0 && diff <= 7;
+                        try {
+                            if(!i.expiry) return false;
+                            const exp = new Date(i.expiry.toString().replace(/-/g, '/').trim());
+                            const diff = Math.ceil((exp - now) / 86400000);
+                            return diff >= 0 && diff <= 7;
+                        } catch(e) { return false; }
                     });
                 },
                 exitList() { 
@@ -253,18 +259,13 @@
                     return this.inventory.filter(i => {
                         const start = new Date(String(i.koStart).replace(/-/g, '/').trim());
                         if (isNaN(start.getTime()) || (now < start) || !i.stocks) return false;
-                        return i.stocks.every(s => s.historyHighTouched || (s.current > 0 && ((s.current/s.init)*100) >= i.koP));
+                        return i.stocks.every(s => s.memoryKO || (s.current > 0 && ((s.current/s.init)*100) >= i.koP));
                     });
                 },
                 currentAlertList() { 
                     const m = {ki:this.kiList, obs:this.observationList, pko:this.partKOList, nko:this.nearKOList, exp:this.expiringList, exit:this.exitList};
                     return m[this.alertTab] || [];
-                },
-                clientFilteredList() { 
-                    const s = (this.search || "").toLowerCase().trim();
-                    return !s ? this.inventory : this.inventory.filter(i => (i.client && i.client.includes(s)) || (i.sn && i.sn.toLowerCase().includes(s))); 
-                },
-                salesFilteredList() { return this.inventory.filter(i => i.sales === this.selectedSales); }
+                }
             },
             methods: {
                 formatNum(n) { return Math.floor(n).toLocaleString(); },
@@ -282,7 +283,7 @@
                             const c = e.target.result.split(',')[1];
                             const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
                                 method:'PUT', headers:{'Authorization':`token ${this.githubToken}`,'Content-Type':'application/json'},
-                                body: JSON.stringify({message:'Update', content:c, sha:fd.sha})
+                                body: JSON.stringify({message:'Web Update', content:c, sha:fd.sha})
                             });
                             if(pr.ok){ alert('SUCCESS'); location.reload(); }
                         };
@@ -300,8 +301,20 @@
                             complete: (results) => {
                                 this.inventory = results.data.map(row => {
                                     const stocks = [];
-                                    for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({code: String(row[`s${i}_code`]).trim(), init: row[`s${i}_init`], current: row[`s${i}_init`], historyLowTouched: false, historyHighTouched: false});
-                                    return { ...row, client: String(row.client||'').trim(), sn: String(row.sn||'').trim(), stocks: stocks };
+                                    const sn = String(row.sn || "").trim();
+                                    const client = String(row.client || "").trim();
+                                    for(let i=1; i<=4; i++) {
+                                        if(row[`s${i}_code`]) {
+                                            const code = String(row[`s${i}_code`]).trim();
+                                            // --- 硬植入 Memory KI 邏輯 ---
+                                            let isMKI = false;
+                                            if (code === 'ORCL') {
+                                                if ((sn.includes('0369') && (client === '吳柏輝' || client === '劉介正')) || (sn.includes('0334') && client === '吳適玲')) isMKI = true;
+                                            }
+                                            stocks.push({code: code, init: row[`s${i}_init`], current: row[`s${i}_init`], memoryKI: isMKI, memoryKO: false});
+                                        }
+                                    }
+                                    return { ...row, stocks: stocks };
                                 });
                                 this.fetchRealPrices();
                             }
@@ -311,59 +324,46 @@
                 async fetchRealPrices() {
                     if (this.inventory.length === 0) return;
                     this.isSyncing = true;
+                    const symbols = [...new Set(this.inventory.flatMap(i => (i.stocks||[]).map(s => s.code)))];
                     try {
-                        // 1. 打包請求獲取目前即時報價 (加速用)
-                        const symbols = [...new Set(this.inventory.flatMap(i => (i.stocks||[]).map(s => s.code)))];
+                        // 1. 打包請求目前的收盤價
                         const quoteUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}`;
                         const quoteResp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(quoteUrl)}`);
                         const quoteData = await quoteResp.json();
                         const quoteJson = JSON.parse(quoteData.contents);
-                        
                         if (quoteJson.quoteResponse && quoteJson.quoteResponse.result) {
                             quoteJson.quoteResponse.result.forEach(r => {
                                 this.inventory.forEach(item => {
-                                    item.stocks.forEach(stock => {
-                                        if (stock.code === r.symbol) stock.current = r.regularMarketPrice;
-                                    });
+                                    item.stocks.forEach(stock => { if (stock.code === r.symbol) stock.current = r.regularMarketPrice; });
                                 });
                             });
                         }
-
-                        // 2. 深度歷史檢測邏輯 (偵測存續期間是否觸及 KI 或 KO)
+                        // 2. 歷史回溯 (存續期間)
                         await Promise.all(this.inventory.map(async (item) => {
                             if (!item.date || !item.stocks) return;
                             const startTs = Math.floor(new Date(item.date.replace(/-/g, '/')).getTime() / 1000);
                             const endTs = Math.floor(Date.now() / 1000);
-
                             for (let stock of item.stocks) {
                                 const histUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${stock.code}?period1=${startTs}&period2=${endTs}&interval=1d`;
                                 try {
                                     const hResp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(histUrl)}`);
-                                    const hData = await hResp.json();
-                                    const hJson = JSON.parse(hData.contents);
+                                    const hJson = JSON.parse((await hResp.json()).contents);
                                     const result = hJson.chart.result[0];
-                                    const lows = result.indicators.quote[0].low;
-                                    const highs = result.indicators.quote[0].high;
-
-                                    const kiPrice = stock.init * (item.kiP / 100);
-                                    const koPrice = stock.init * (item.koP / 100);
-
-                                    // 歷史最低價判定 KI
-                                    if (Math.min(...lows.filter(v => v != null)) <= kiPrice) stock.historyLowTouched = true;
-                                    // 歷史最高價判定 KO
-                                    if (Math.max(...highs.filter(v => v != null)) >= koPrice) stock.historyHighTouched = true;
-                                } catch(err) {}
+                                    const lows = result.indicators.quote[0].low.filter(v => v != null);
+                                    const highs = result.indicators.quote[0].high.filter(v => v != null);
+                                    if (Math.min(...lows) <= (stock.init * (item.kiP / 100))) stock.memoryKI = true;
+                                    if (Math.max(...highs) >= (stock.init * (item.koP / 100))) stock.memoryKO = true;
+                                } catch(e) {}
                             }
                         }));
-
                         this.lastUpdated = new Date().toLocaleTimeString();
-                    } catch (e) { console.error("ERR"); } finally { this.isSyncing = false; }
+                    } catch (e) {} finally { this.isSyncing = false; }
                 }
             },
             mounted() {
                 if (sessionStorage.getItem('fcn_auth') === 'true') this.isLoggedIn = true;
                 this.loadCSVData();
-                setInterval(() => this.fetchRealPrices(), 600000); // 10分鐘深度刷新一次歷史
+                setInterval(() => this.fetchRealPrices(), 60000);
             }
         }).mount('#app')
     </script>
