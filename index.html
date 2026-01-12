@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v57.Professional</title>
+    <title>上新莊分行 - FCN 管理系統 v58.Premium</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -11,22 +11,27 @@
     <style>
         [v-cloak] { display: none; }
         body { background-color: #f3f4f6; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; }
-        .fcn-card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; position: relative; }
-        .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; }
+        .fcn-card { background: white; border-radius: 32px; padding: 28px; margin-bottom: 24px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid #f1f5f9; position: relative; }
         .nav-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
-        .nav-btn { padding: 10px 16px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; border: none; }
+        .nav-btn { padding: 10px 18px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; border: none; }
         .nav-btn.active { background: #1f2937; color: white; }
-        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 11px; white-space: nowrap; cursor: pointer; }
+        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 11px; cursor: pointer; }
         .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
-        .text-success { color: #10b981; font-weight: 900; }
-        .text-danger { color: #ef4444; font-weight: 900; }
-        .breach-tag { background: #fee2e2; color: #ef4444; font-size: 9px; padding: 2px 5px; border-radius: 5px; margin-top: 4px; display: inline-block; font-weight: bold; }
-        .ko-tag { background: #d1fae5; color: #059669; font-size: 9px; padding: 2px 5px; border-radius: 5px; margin-top: 4px; display: inline-block; font-weight: bold; }
+        
+        /* 強化標籤 */
+        .stock-tag { background: #ffffff; border: 2px solid #f1f5f9; border-radius: 20px; padding: 12px 8px; text-align: center; transition: 0.3s; }
+        .stock-tag:hover { border-color: #e2e8f0; transform: translateY(-2px); }
+        .breach-tag { background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 6px; display: inline-block; font-weight: 900; }
+        .ko-tag { background: #d1fae5; color: #059669; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 6px; display: inline-block; font-weight: 900; }
+        
+        /* 金額與條件大字 */
+        .price-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; margin-bottom: 2px; }
+        .price-value { font-family: 'Monaco', 'Consolas', monospace; font-weight: 800; }
     </style>
 </head>
 <body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
-        <!-- 登入介面 (同前) -->
+        <!-- 登入與導覽 (同前) -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-lock text-2xl"></i></div>
@@ -36,59 +41,45 @@
             </div>
         </div>
 
-        <!-- 主內容 -->
         <template v-if="isLoggedIn">
             <div class="nav-header sticky top-4 z-[1000] scrollbar-hide text-slate-800">
                 <button @click="view = 'branch'" :class="['nav-btn', view === 'branch' ? 'active' : '']">資產管理</button>
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
-                <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear text-lg"></i></button>
                 <div class="ml-auto flex items-center pr-3">
                     <i @click="fetchHistoryData" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <div v-if="isSyncing" class="text-center py-2 text-[10px] text-blue-500 font-bold animate-pulse">歷史股價同步中 (KI:全期 / KO:觀察期)...</div>
-
-            <!-- 預警中心 -->
+            <!-- 數據視圖內容 (維持原樣) -->
             <div v-if="view === 'alerts'" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
-                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">全期曾觸KI({{kiList.length}})</button>
-                    <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">觀察期曾KO({{partKOList.length}})</button>
-                    <button @click="alertTab = 'obs'" :class="['risk-tab', alertTab === 'obs' ? 'active' : '']">即將觀察({{observationList.length}})</button>
-                    <button @click="alertTab = 'nko'" :class="['risk-tab', alertTab === 'nko' ? 'active' : '']">即將KO({{nearKOList.length}})</button>
-                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期({{expiringList.length}})</button>
+                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">全期觸KI({{kiList.length}})</button>
+                    <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">觀察期KO({{partKOList.length}})</button>
+                    <button @click="alertTab = 'obs'" :class="['risk-tab', alertTab === 'obs' ? 'active' : '']">即將觀察</button>
+                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client"></client-card>
             </div>
 
-            <!-- 其他視圖 (同前) -->
-            <div v-if="view === 'branch'" class="space-y-4">
-                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                    <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase text-white font-black"><span>Portfolio size</span><span>{{ curr==='JPY'?countJPY:countUSD }}筆</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span></div>
-                </div>
-            </div>
-
             <div v-if="view === 'client'" class="space-y-4">
-                <input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶或編號..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-8 mb-4">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card>
             </div>
 
+            <div v-if="view === 'branch'" class="space-y-4">
+                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card bg-slate-800 text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-700' : ''">
+                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase tracking-widest"><span>Total Portfolio</span><span>{{ curr }}</span></div>
+                    <div class="text-5xl font-black italic tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-xl">萬</span></div>
+                </div>
+            </div>
+            
             <div v-if="view === 'sales'" class="space-y-4">
-                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg">
+                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg mb-4">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
                 </select>
                 <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card>
-            </div>
-
-            <div v-if="view === 'admin_login'" class="max-w-sm mx-auto mt-10 text-center">
-                <div class="fcn-card">
-                    <h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs">Admin Security</h3>
-                    <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none">
-                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">VERIFY</button>
-                </div>
             </div>
         </template>
     </div>
@@ -100,52 +91,96 @@
         const ClientCard = {
             props: ['item'],
             template: `
-                <div class="fcn-card text-slate-800 border border-gray-100 shadow-sm text-left">
+                <div class="fcn-card">
+                    <!-- Top Info: Client & Amount -->
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
-                            <div class="text-[10px] text-gray-400 font-bold mt-2 uppercase tracking-widest">{{ item.sn }} <span :class="[item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span></div>
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded-full font-black tracking-tighter">{{ item.sn }}</span>
+                                <span :class="[item.currency === 'JPY' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-600']" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ item.currency }}</span>
+                            </div>
+                            <h3 class="text-4xl font-black text-slate-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
+                            <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase tracking-widest"><i class="fa-solid fa-user-tie mr-1"></i> {{ item.sales }} | <i class="fa-regular fa-calendar-check mr-1"></i> {{ item.date }} 下單</p>
                         </div>
                         <div class="text-right">
-                            <div class="bg-blue-50 text-blue-600 text-[10px] px-2 py-1 rounded-lg font-black italic">票息: {{ item.coupon }}%</div>
-                            <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase">業務: {{ item.sales }}</div>
+                            <p class="text-[11px] font-black text-slate-400 uppercase leading-none mb-1">庫存金額</p>
+                            <p class="text-4xl font-black text-blue-600 tracking-tighter italic leading-none">
+                                <span class="text-xl mr-1">{{ item.currency==='JPY'?'¥':'$' }}</span>{{ formatNum(item.amount) }}<span class="text-lg ml-1">萬</span>
+                            </p>
+                            <div class="mt-2 bg-indigo-50 text-indigo-600 text-[10px] px-3 py-1 rounded-full font-black inline-block">年化票息: {{ item.coupon }}%</div>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag">
-                            <p class="text-[11px] font-black text-blue-500 leading-none">{{ s.code.replace('.T', '') }}</p>
-                            <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden">{{ getStockName(s.code) }}</p>
-                            <p class="text-xl font-black leading-none my-1 tracking-tighter">{{ formatPrice(s.current) }}</p>
-                            <div class="text-[8px] font-bold text-gray-400 border-t pt-1 mt-1">
-                                <p>KO: <span class="text-slate-800">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
-                                <p>KI: <span class="text-slate-800">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
+
+                    <!-- Core Conditions Dashboard -->
+                    <div class="grid grid-cols-3 gap-4 bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
+                        <div class="text-center border-r border-slate-200">
+                            <p class="price-label text-emerald-500"><i class="fa-solid fa-arrow-trend-up"></i> KO 出場價</p>
+                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.koP }}%</p>
+                        </div>
+                        <div class="text-center border-r border-slate-200">
+                            <p class="price-label text-amber-500"><i class="fa-solid fa-shield-halved"></i> Strike 履約價</p>
+                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.strikeP }}%</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="price-label text-rose-500"><i class="fa-solid fa-skull-crossbones"></i> KI 落入價</p>
+                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.kiP > 0 ? item.kiP + '%' : 'None' }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Individual Stock Cards -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag shadow-sm">
+                            <div class="flex justify-between items-start px-1">
+                                <span class="text-[12px] font-black text-blue-600 uppercase">{{ s.code.replace('.T', '') }}</span>
+                                <span class="text-[11px] font-black" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
                             </div>
-                            <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
+                            <p class="text-[9px] font-bold text-gray-400 truncate mb-2 px-1">{{ getStockName(s.code) }}</p>
+                            <p class="text-2xl font-black text-slate-800 leading-none tracking-tighter mb-3">{{ formatPrice(s.current) }}</p>
+                            
+                            <!-- Detailed Condition Prices per Stock -->
+                            <div class="space-y-1 text-left px-1">
+                                <div class="flex justify-between text-[9px]">
+                                    <span class="text-gray-400">KO</span>
+                                    <span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span>
+                                </div>
+                                <div class="flex justify-between text-[9px]">
+                                    <span class="text-gray-400">Strike</span>
+                                    <span class="font-black text-amber-600">{{ formatPrice(s.init * (item.strikeP/100)) }}</span>
+                                </div>
+                                <div v-if="item.kiP > 0" class="flex justify-between text-[9px]">
+                                    <span class="text-gray-400">KI</span>
+                                    <span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span>
+                                </div>
+                            </div>
+
+                            <!-- Breach Status -->
                             <div v-if="s.histMin && (s.histMin/s.init*100) <= item.kiP" class="breach-tag">全期曾觸KI</div>
                             <div v-if="s.histMaxObs && (s.histMaxObs/s.init*100) >= item.koP" class="ko-tag">觀察期曾KO</div>
                         </div>
                     </div>
-                    <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase italic">
-                        <span>下單: {{ item.date }}</span><span>觀察起始: {{ item.koStart }}</span><span :class="{'text-danger': hasEverBreachedKI(item)}">KI: {{ item.kiP }}%</span>
+
+                    <!-- Footer Info -->
+                    <div class="flex justify-between items-center border-t pt-4 text-[11px] font-bold text-slate-400 uppercase tracking-tighter">
+                        <div><i class="fa-regular fa-clock mr-1"></i> 觀察期起始: <span class="text-slate-800 font-black">{{ item.koStart || 'N/A' }}</span></div>
+                        <div class="text-right">到期日: <span class="text-blue-500 font-black">{{ item.expiry }}</span></div>
                     </div>
                 </div>
             `,
             methods: {
-                formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toFixed(2); },
+                formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
+                formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); },
                 getStockName(c){ return stockNames[c] || c; },
                 getPerf(i,s){ return (!s.init || !s.current) ? '100.00' : ((s.current/s.init)*100).toFixed(2); },
                 perfColor(i,s){ 
                     const p = parseFloat(this.getPerf(i,s));
-                    if(p >= i.koP) return 'text-success';
-                    if(p <= i.kiP) return 'text-danger';
-                    return 'text-gray-400';
-                },
-                hasEverBreachedKI(i) {
-                    return (i.stocks || []).some(s => s.histMin > 0 && ((s.histMin / s.init) * 100) <= i.kiP);
+                    if(p >= i.koP) return 'text-emerald-500';
+                    if(p <= i.kiP) return 'text-rose-500';
+                    return 'text-slate-400';
                 }
             }
         };
 
+        // --- Vue App Logic (維持之前的歷史數據同步邏輯) ---
         createApp({
             components: { 'client-card': ClientCard },
             data() {
@@ -163,14 +198,8 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 預警中心邏輯修正 ---
-                kiList() { 
-                    return this.inventory.filter(i => i.kiP > 0 && (i.stocks || []).some(s => s.histMin > 0 && ((s.histMin / s.init) * 100) <= i.kiP)); 
-                },
-                partKOList() { 
-                    // 改為：只要觀察期內最高價觸及 KO 門檻
-                    return this.inventory.filter(i => (i.stocks || []).some(s => s.histMaxObs > 0 && ((s.histMaxObs / s.init) * 100) >= i.koP)); 
-                },
+                kiList() { return this.inventory.filter(i => i.kiP > 0 && (i.stocks || []).some(s => s.histMin > 0 && ((s.histMin / s.init) * 100) <= i.kiP)); },
+                partKOList() { return this.inventory.filter(i => (i.stocks || []).some(s => s.histMaxObs > 0 && ((s.histMaxObs / s.init) * 100) >= i.koP)); },
                 observationList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
@@ -178,14 +207,6 @@
                         const start = new Date(String(i.koStart).replace(/-/g, '/'));
                         const diff = Math.ceil((start - now) / 86400000);
                         return diff >= 0 && diff <= 3;
-                    });
-                },
-                nearKOList() { 
-                    return this.inventory.filter(i => {
-                        const koCount = (i.stocks || []).filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
-                        if (i.stocks.length - koCount !== 1) return false;
-                        const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
-                        return lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
                     });
                 },
                 expiringList() {
@@ -198,7 +219,7 @@
                     });
                 },
                 currentAlertList() { 
-                    const m = {ki:this.kiList, pko:this.partKOList, obs:this.observationList, nko:this.nearKOList, exp:this.expiringList};
+                    const m = {ki:this.kiList, pko:this.partKOList, obs:this.observationList, exp:this.expiringList};
                     return m[this.alertTab] || [];
                 },
                 clientFilteredList() { 
@@ -226,8 +247,8 @@
                                                 code: String(row[`s${i}_code`]).trim(), 
                                                 init: row[`s${i}_init`], 
                                                 current: row[`s${i}_init`],
-                                                histMin: row[`s${i}_init`], // 全期最低價
-                                                histMaxObs: 0               // 觀察期內最高價
+                                                histMin: row[`s${i}_init`],
+                                                histMaxObs: 0
                                             });
                                         }
                                     }
@@ -242,8 +263,6 @@
                     if (this.inventory.length === 0) return;
                     this.isSyncing = true;
                     const nowSec = Math.floor(Date.now() / 1000);
-                    
-                    // 為了加速，依據「股票代碼 + 下單日」分類任務
                     const taskMap = new Map();
                     this.inventory.forEach(item => {
                         if (!item.date || !item.stocks) return;
@@ -256,7 +275,6 @@
 
                     const results = {};
                     const tasks = Array.from(taskMap.values());
-                    
                     for (let i = 0; i < tasks.length; i++) {
                         const task = tasks[i];
                         try {
@@ -264,44 +282,32 @@
                             const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
                             const data = await resp.json();
                             const json = JSON.parse(data.contents);
-                            
                             if (json.chart.result?.[0]) {
                                 const res = json.chart.result[0];
-                                const quote = res.indicators.quote[0];
-                                const timestamps = res.timestamp; // 時間戳數組
-                                
                                 results[`${task.code}_${task.start}`] = {
-                                    timestamps: timestamps,
-                                    lows: quote.low,
-                                    highs: quote.high,
+                                    timestamps: res.timestamp,
+                                    lows: res.indicators.quote[0].low,
+                                    highs: res.indicators.quote[0].high,
                                     current: res.meta.regularMarketPrice
                                 };
                             }
-                        } catch (e) { console.warn(`Error: ${task.code}`); }
+                        } catch (e) { }
                         if (i % 5 === 0) await new Promise(r => setTimeout(r, 100));
                     }
 
-                    // 關鍵邏輯：回填數據並根據 koStart 過濾 KO
                     this.inventory.forEach(item => {
                         const startSec = Math.floor(new Date(String(item.date).replace(/-/g, '/')).getTime() / 1000);
                         const koStartSec = item.koStart ? Math.floor(new Date(String(item.koStart).replace(/-/g, '/')).getTime() / 1000) : 0;
-                        
                         item.stocks?.forEach(s => {
                             const res = results[`${s.code}_${startSec}`];
                             if (res) {
                                 s.current = res.current;
-                                // KI 判斷：全期最低
                                 s.histMin = Math.min(...res.lows.filter(v => v != null), res.current);
-                                
-                                // KO 判斷：過濾時間戳，只取大於等於觀察起始日的高價
-                                const obsHighs = res.highs.filter((val, idx) => {
-                                    return val != null && res.timestamps[idx] >= koStartSec;
-                                });
+                                const obsHighs = res.highs.filter((val, idx) => val != null && res.timestamps[idx] >= koStartSec);
                                 s.histMaxObs = obsHighs.length > 0 ? Math.max(...obsHighs, res.current) : 0;
                             }
                         });
                     });
-
                     this.isSyncing = false;
                 }
             },
