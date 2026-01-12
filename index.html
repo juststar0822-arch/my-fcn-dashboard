@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v61.Final</title>
+    <title>上新莊分行 - FCN 管理系統 v61.History_Pro</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -11,16 +11,21 @@
     <style>
         [v-cloak] { display: none; }
         body { background-color: #f1f5f9; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "Microsoft JhengHei", sans-serif; }
-        .fcn-card { background: white; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .nav-header { background: #ffffff; padding: 10px; border-radius: 30px; display: flex; gap: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; }
-        .nav-btn { padding: 10px 20px; border-radius: 20px; font-weight: 700; color: #64748b; transition: 0.3s; white-space: nowrap; font-size: 14px; }
+        .fcn-card { background: white; border-radius: 24px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+        .nav-header { background: #ffffff; padding: 10px; border-radius: 30px; display: flex; gap: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
+        .nav-btn { padding: 10px 20px; border-radius: 20px; font-weight: 700; color: #64748b; transition: 0.3s; white-space: nowrap; font-size: 14px; cursor: pointer; }
         .nav-btn.active { background: #1e2937; color: white; }
-        .risk-tab { padding: 12px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 12px; }
-        .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
-        .stock-tag { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; }
-        .tag-ki { background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
-        .tag-ko { background: #d1fae5; color: #059669; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
-        .tag-soon { background: #fef3c7; color: #d97706; font-size: 10px; padding: 2px 6px; border-radius: 4px; font-weight: 800; }
+        .risk-tab { padding: 12px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 12px; cursor: pointer; white-space: nowrap; }
+        .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: #eff6ff; }
+        .stock-tag { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; text-align: center; }
+        
+        .badge { font-size: 10px; padding: 2px 6px; border-radius: 6px; font-weight: 800; display: inline-block; margin-top: 4px; }
+        .badge-ki { background: #fee2e2; color: #ef4444; }
+        .badge-ko { background: #d1fae5; color: #059669; }
+        .badge-soon { background: #fef3c7; color: #d97706; }
+        .badge-exp { background: #f3f4f6; color: #64748b; border: 1px solid #d1d5db; }
+        
+        .api-status { font-size: 11px; font-weight: 800; color: #10b981; margin-right: 12px; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -28,9 +33,9 @@
         <!-- 登入頁面 -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-3xl p-8 w-full max-w-sm text-center shadow-2xl">
-                <h2 class="text-2xl font-black mb-6">FCN 管理系統 v61</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="請輸入密碼" class="w-full bg-gray-100 border-none p-4 rounded-xl text-center text-2xl mb-4 outline-none">
-                <button @click="login" class="w-full bg-blue-600 text-white p-4 rounded-xl font-bold text-lg">登入系統</button>
+                <h2 class="text-2xl font-black mb-6">FCN 管理系統 v61_H</h2>
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="請輸入密碼" class="w-full bg-gray-100 border-none p-4 rounded-xl text-center text-2xl mb-4 outline-none font-mono">
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-xl font-bold text-lg">登入系統</button>
             </div>
         </div>
 
@@ -41,12 +46,13 @@
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">客戶列表</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
                 <div class="ml-auto flex items-center pr-2">
-                    <i @click="loadCSVData" class="fa-solid fa-arrows-rotate text-blue-500 cursor-pointer" :class="{'animate-spin': isSyncing}"></i>
+                    <span class="api-status">● TD LIVE</span>
+                    <i @click="refreshAll" class="fa-solid fa-arrows-rotate text-blue-500 cursor-pointer" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
             <!-- 分行概況 -->
-            <div v-if="view === 'branch'" class="grid grid-cols-1 gap-4">
+            <div v-if="view === 'branch'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="fcn-card bg-slate-800 text-white border-none">
                     <div class="text-sm opacity-70 mb-1">Total JPY Portfolio</div>
                     <div class="text-4xl font-black italic">¥ {{ formatNum(totalJPY) }} <span class="text-lg">萬</span></div>
@@ -59,78 +65,111 @@
 
             <!-- 預警中心 -->
             <div v-if="view === 'alerts'" class="space-y-4">
-                <div class="flex bg-white rounded-xl shadow-sm mb-4 border border-gray-200">
-                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI ({{kiList.length}})</button>
-                    <button @click="alertTab = 'soon'" :class="['risk-tab', alertTab === 'soon' ? 'active' : '']">即將出場 ({{soonList.length}})</button>
+                <div class="flex bg-white rounded-xl shadow-sm mb-4 border border-gray-200 overflow-x-auto scrollbar-hide">
+                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及 KI ({{kiList.length}})</button>
+                    <button @click="alertTab = 'everKO'" :class="['risk-tab', alertTab === 'everKO' ? 'active' : '']">曾經 KO ({{everKOList.length}})</button>
+                    <button @click="alertTab = 'soon'" :class="['risk-tab', alertTab === 'soon' ? 'active' : '']">即將出場 ({{soonExitList.length}})</button>
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場 ({{exitList.length}})</button>
+                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期 ({{expiringList.length}})</button>
                 </div>
-                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :prices="priceMap"></client-card>
+                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
             <!-- 客戶列表 -->
             <div v-if="view === 'client'" class="space-y-4">
-                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號..." class="w-full p-4 rounded-2xl bg-white shadow-sm font-bold border-none outline-none">
-                <client-card v-for="item in filteredClients" :item="item" :key="item.sn" :prices="priceMap"></client-card>
+                <input v-model="search" type="text" placeholder="🔍 快速搜尋客戶姓名或案號..." class="w-full p-4 rounded-2xl bg-white shadow-sm font-bold border-none outline-none">
+                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
         </template>
     </div>
 
     <script>
         const { createApp, reactive } = Vue;
+        const TD_API_KEY = "324eeabe4700448ea99da98cafaa09ce"; 
 
         const ClientCard = {
-            props: ['item', 'prices'],
+            props: ['item', 'priceData'],
             template: `
-                <div class="fcn-card">
+                <div class="fcn-card" :class="{'opacity-70': isExited}">
+                    <div v-if="isExited" class="absolute top-0 right-0 bg-indigo-600 text-white px-4 py-1 font-black text-[10px] transform rotate-45 translate-x-4 translate-y-1">EXITED</div>
+                    
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <div class="text-[10px] font-black text-gray-400 mb-1">{{ item.sn }} | {{ item.sales }}</div>
+                            <div class="text-[10px] font-black text-gray-400 mb-1 uppercase">{{ item.sn }} | {{ item.sales }}</div>
                             <h3 class="text-2xl font-black text-slate-800">{{ item.client }}</h3>
+                            <div class="text-[10px] text-gray-400 font-bold mt-1">下單日: {{ item.date }}</div>
                         </div>
                         <div class="text-right">
                             <div class="text-2xl font-black text-blue-600 italic">
-                                {{ item.currency==='JPY'?'¥':'$' }} {{ item.amount }}萬
+                                {{ item.currency==='JPY'?'¥':'$' }} {{ formatNum(item.amount) }}萬
                             </div>
-                            <div class="text-[10px] font-bold text-gray-400">年化 {{ item.coupon }}%</div>
+                            <div class="mt-1 bg-indigo-50 text-indigo-600 text-[10px] px-2 py-0.5 rounded-full font-black inline-block">年化: {{ item.coupon }}%</div>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
                         <div v-for="s in item.stocks" :key="s.code" class="stock-tag">
                             <div class="flex justify-between items-center mb-1">
-                                <span class="text-xs font-black text-blue-600">{{ s.code }}</span>
-                                <span class="text-xs font-bold" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
+                                <span class="text-[11px] font-black text-blue-600">{{ s.code }}</span>
+                                <span class="text-[11px] font-bold" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
                             </div>
-                            <div class="text-lg font-black mb-2">{{ prices[s.code] || '---' }}</div>
-                            <div class="flex flex-wrap gap-1">
-                                <span v-if="isKI(item, s)" class="tag-ki">KI</span>
-                                <span v-if="isKO(item, s)" class="tag-ko">KO</span>
-                                <span v-if="isSoon(item, s)" class="tag-soon">3%內KO</span>
+                            <div class="text-xl font-black mb-2 text-slate-700">{{ formatPrice(priceData[s.code]?.current) }}</div>
+                            
+                            <div class="space-y-1 text-left px-1 border-t pt-2 text-[9px]">
+                                <div class="flex justify-between"><span class="text-gray-400">KO</span><span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></div>
+                                <div class="flex justify-between"><span class="text-gray-400">KI</span><span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span></div>
+                            </div>
+
+                            <div class="flex flex-wrap gap-1 justify-center mt-2">
+                                <span v-if="checkStockKI(item, s)" class="badge badge-ki">曾觸KI</span>
+                                <span v-if="checkStockKO(item, s)" class="badge badge-ko">曾達KO</span>
+                                <span v-if="checkStockSoon(item, s)" class="badge badge-soon">差3%KO</span>
                             </div>
                         </div>
                     </div>
 
-                    <div class="flex justify-between items-center text-[10px] font-bold text-gray-400 border-t pt-3">
-                        <div>下單日: {{ item.date }}</div>
-                        <div>到期日: <span class="text-blue-500">{{ item.expiry }}</span></div>
+                    <div class="flex justify-between items-center text-[10px] font-bold text-gray-400 border-t pt-3 uppercase">
+                        <div>觀察起始: {{ item.koStart || 'N/A' }}</div>
+                        <div>到期日: <span class="text-blue-500">{{ item.expiry }}</span> <span v-if="isExpiring" class="badge badge-exp !mt-0 ml-1">即將到期</span></div>
                     </div>
                 </div>
             `,
+            computed: {
+                isExited() {
+                    if (!this.item.koStart) return false;
+                    return this.item.stocks.every(s => this.checkStockKO(this.item, s));
+                },
+                isExpiring() {
+                    const diff = (new Date(this.item.expiry.replace(/-/g, '/')) - new Date()) / 86400000;
+                    return diff >= 0 && diff <= 3;
+                }
+            },
             methods: {
-                getPerf(item, s) {
-                    const cur = this.prices[s.code];
-                    return cur ? ((cur / s.init) * 100).toFixed(2) : '---';
+                formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
+                formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toFixed(2); },
+                getPerf(item, stock){ 
+                    const cur = this.priceData[stock.code]?.current;
+                    return cur ? ((cur / stock.init) * 100).toFixed(2) : '---'; 
                 },
-                perfColor(item, s) {
-                    const p = parseFloat(this.getPerf(item, s));
-                    if (isNaN(p)) return 'text-gray-400';
-                    return p >= item.koP ? 'text-emerald-500' : (p <= item.kiP ? 'text-rose-500' : 'text-gray-500');
+                perfColor(item, stock){ 
+                    const p = parseFloat(this.getPerf(item, stock));
+                    if(isNaN(p)) return 'text-slate-400';
+                    return p >= item.koP ? 'text-emerald-500' : (p <= item.kiP ? 'text-rose-500' : 'text-slate-400');
                 },
-                isKI(item, s) { return parseFloat(this.getPerf(item, s)) <= item.kiP; },
-                isKO(item, s) { return parseFloat(this.getPerf(item, s)) >= item.koP; },
-                isSoon(item, s) {
-                    const p = parseFloat(this.getPerf(item, s));
-                    return p < item.koP && p >= (item.koP - 3);
+                checkStockKI(item, s) {
+                    const min = this.priceData[s.code]?.histMinByDate?.[item.date];
+                    return min && (min / s.init * 100) <= item.kiP;
+                },
+                checkStockKO(item, s) {
+                    if (!item.koStart) return false;
+                    const max = this.priceData[s.code]?.histMaxAfterKOStart?.[item.sn];
+                    return max && (max / s.init * 100) >= item.koP;
+                },
+                checkStockSoon(item, s) {
+                    const cur = this.priceData[s.code]?.current;
+                    if (!cur || !item.koStart || this.checkStockKO(item, s)) return false;
+                    const ratio = cur / (s.init * item.koP / 100);
+                    return ratio >= 0.97 && ratio < 1.0;
                 }
             }
         };
@@ -139,76 +178,157 @@
             components: { 'client-card': ClientCard },
             data() {
                 return {
-                    isLoggedIn: false, inputPass: '', view: 'branch', alertTab: 'ki',
-                    inventory: [], priceMap: {}, search: '', isSyncing: false
+                    view: 'branch', isLoggedIn: false, inputPass: '', password: '98388',
+                    inventory: [], isSyncing: false, search: '', alertTab: 'ki',
+                    priceMap: reactive({})
                 }
             },
             computed: {
-                totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((a, b) => a + b.amount, 0); },
-                totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((a, b) => a + b.amount, 0); },
+                totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (i.amount||0), 0); },
+                totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (i.amount||0), 0); },
+                
                 kiList() { 
-                    return this.inventory.filter(i => i.stocks.some(s => {
-                        const p = (this.priceMap[s.code] / s.init) * 100;
-                        return p <= i.kiP;
+                    return this.inventory.filter(i => i.stocks?.some(s => {
+                        const min = this.priceMap[s.code]?.histMinByDate?.[i.date];
+                        return min && (min / s.init * 100) <= i.kiP;
                     }));
+                },
+                everKOList() { 
+                    return this.inventory.filter(i => i.stocks?.some(s => {
+                        const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                        return max && (max / s.init * 100) >= i.koP;
+                    }));
+                },
+                soonExitList() {
+                    return this.inventory.filter(i => {
+                        if (!i.koStart) return false;
+                        const reached = i.stocks.filter(s => {
+                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                            return max && (max / s.init * 100) >= i.koP;
+                        });
+                        if (reached.length === i.stocks.length - 1) {
+                            const remain = i.stocks.find(s => !reached.includes(s));
+                            const cur = this.priceMap[remain.code]?.current;
+                            return cur && (cur / (remain.init * i.koP / 100)) >= 0.97 && (cur / (remain.init * i.koP / 100)) < 1.0;
+                        }
+                        return false;
+                    });
                 },
                 exitList() {
-                    return this.inventory.filter(i => i.stocks.every(s => {
-                        const p = (this.priceMap[s.code] / s.init) * 100;
-                        return p >= i.koP;
-                    }));
+                    return this.inventory.filter(i => {
+                        if (!i.koStart) return false;
+                        return i.stocks?.every(s => {
+                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                            return max && (max / s.init * 100) >= i.koP;
+                        });
+                    });
                 },
-                soonList() {
-                    return this.inventory.filter(i => i.stocks.some(s => {
-                        const p = (this.priceMap[s.code] / s.init) * 100;
-                        return p < i.koP && p >= (i.koP - 3);
-                    }));
+                expiringList() {
+                    return this.inventory.filter(i => {
+                        const diff = (new Date(i.expiry.replace(/-/g, '/')) - new Date()) / 86400000;
+                        return diff >= 0 && diff <= 3;
+                    });
                 },
-                currentAlertList() {
-                    if (this.alertTab === 'ki') return this.kiList;
-                    if (this.alertTab === 'exit') return this.exitList;
-                    if (this.alertTab === 'soon') return this.soonList;
-                    return [];
+                currentAlertList() { 
+                    const m = { ki:this.kiList, everKO:this.everKOList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList };
+                    return m[this.alertTab] || [];
                 },
-                filteredClients() {
-                    const q = this.search.toLowerCase();
-                    return this.inventory.filter(i => i.client.includes(q) || i.sn.toLowerCase().includes(q));
+                clientFilteredList() { 
+                    const s = this.search.toLowerCase(); 
+                    return !s ? this.inventory : this.inventory.filter(i => i.client.includes(s) || i.sn.toLowerCase().includes(s)); 
                 }
             },
             methods: {
-                login() { if (this.inputPass === '98388') this.isLoggedIn = true; },
-                formatNum(n) { return n.toLocaleString(); },
+                formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
+                login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); this.loadCSVData(); } },
+                
                 async loadCSVData() {
+                    const response = await fetch('data.csv?v=' + Date.now());
+                    const text = await response.text();
+                    Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true, complete: (res) => {
+                        this.inventory = res.data.map(row => {
+                            const stocks = [];
+                            for(let i=1; i<=4; i++) if(row[`s${i}_code`]) {
+                                const code = String(row[`s${i}_code`]).toUpperCase().trim();
+                                stocks.push({ code, init: row[`s${i}_init`] });
+                                if (!this.priceMap[code]) this.priceMap[code] = { current: 0, histMinByDate: {}, histMaxAfterKOStart: {} };
+                            }
+                            return { ...row, stocks };
+                        });
+                        this.refreshAll();
+                    }});
+                },
+
+                async refreshAll() {
+                    if (this.isSyncing) return;
                     this.isSyncing = true;
-                    Papa.parse("data.csv", {
-                        download: true, header: true, dynamicTyping: true, skipEmptyLines: true,
-                        complete: (results) => {
-                            this.inventory = results.data.map(row => ({
-                                ...row,
-                                stocks: [
-                                    { code: row.s1_code, init: row.s1_init },
-                                    { code: row.s2_code, init: row.s2_init },
-                                    { code: row.s3_code, init: row.s3_init },
-                                    { code: row.s4_code, init: row.s4_init }
-                                ].filter(s => s.code)
-                            }));
-                            this.fetchPrices();
+                    const symbols = Object.keys(this.priceMap);
+                    
+                    try {
+                        // 1. 抓取現價
+                        const quoteUrl = `https://api.twelvedata.com/quote?symbol=${symbols.join(',')}&apikey=${TD_API_KEY}`;
+                        const quoteResp = await fetch(quoteUrl);
+                        const quoteData = await quoteResp.json();
+                        
+                        symbols.forEach(sym => {
+                            const sData = symbols.length === 1 ? quoteData : quoteData[sym];
+                            if (sData && sData.close) {
+                                this.priceMap[sym].current = parseFloat(sData.close);
+                                this.updateInstantData(sym, sData);
+                            }
+                        });
+
+                        // 2. 抓取歷史 (帶快取)
+                        const today = new Date().toISOString().split('T')[0];
+                        for (const sym of symbols) {
+                            const cacheKey = `h_v61_${sym}_${today}`;
+                            const cached = localStorage.getItem(cacheKey);
+                            
+                            if (cached) {
+                                this.processHistory(sym, JSON.parse(cached));
+                            } else {
+                                const url = `https://api.twelvedata.com/time_series?symbol=${sym}&interval=1day&outputsize=5000&apikey=${TD_API_KEY}`;
+                                const resp = await fetch(url);
+                                const res = await resp.json();
+                                if (res.values) {
+                                    this.processHistory(sym, res.values);
+                                    localStorage.setItem(cacheKey, JSON.stringify(res.values));
+                                    if (symbols.length > 1) await new Promise(r => setTimeout(r, 8000));
+                                }
+                            }
+                        }
+                    } catch (e) { console.error("Sync Error", e); }
+                    this.isSyncing = false;
+                },
+
+                processHistory(sym, values) {
+                    this.inventory.forEach(inv => {
+                        if (!inv.stocks.some(s => s.code === sym)) return;
+                        const orderDate = new Date(inv.date.replace(/-/g, '/'));
+                        const histLows = values.filter(v => new Date(v.datetime) >= orderDate).map(v => parseFloat(v.low));
+                        this.priceMap[sym].histMinByDate[inv.date] = Math.min(...histLows, this.priceMap[sym].current || 99999);
+
+                        if (inv.koStart) {
+                            const koDate = new Date(inv.koStart.replace(/-/g, '/'));
+                            const histHighs = values.filter(v => new Date(v.datetime) >= koDate).map(v => parseFloat(v.high));
+                            this.priceMap[sym].histMaxAfterKOStart[inv.sn] = Math.max(...histHighs, this.priceMap[sym].current || 0);
                         }
                     });
                 },
-                async fetchPrices() {
-                    // v61 使用簡單的模擬數據或您可以替換為實際 API
-                    const codes = [...new Set(this.inventory.flatMap(i => i.stocks.map(s => s.code)))];
-                    codes.forEach(code => {
-                        // 這裡應呼叫實際價格 API
-                        this.priceMap[code] = (Math.random() * 50 + 150).toFixed(2); 
+
+                updateInstantData(sym, sData) {
+                    this.inventory.forEach(inv => {
+                        if (!inv.stocks.some(s => s.code === sym)) return;
+                        const curMin = this.priceMap[sym].histMinByDate[inv.date] || 99999;
+                        if (parseFloat(sData.low) < curMin) this.priceMap[sym].histMinByDate[inv.date] = parseFloat(sData.low);
+                        if (inv.koStart) {
+                            const curMax = this.priceMap[sym].histMaxAfterKOStart[inv.sn] || 0;
+                            if (parseFloat(sData.high) > curMax) this.priceMap[sym].histMaxAfterKOStart[inv.sn] = parseFloat(sData.high);
+                        }
                     });
-                    this.isSyncing = false;
                 }
             },
-            mounted() {
-                this.loadCSVData();
-            }
+            mounted() { if (sessionStorage.getItem('fcn_auth') === 'true') { this.isLoggedIn = true; this.loadCSVData(); } }
         }).mount('#app');
     </script>
 </body>
