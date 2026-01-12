@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上新莊分行 - FCN 旗艦管理系統 v21</title>
+    <title>上新莊分行 - FCN 旗艦管理系統 v22</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -16,7 +16,7 @@
         .nav-header { background: white; padding: 10px; border-radius: 40px; display: flex; gap: 6px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; }
         .nav-btn { padding: 10px 18px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.3s; white-space: nowrap; font-size: 14px; }
         .nav-btn.active { background: #1f2937; color: white; }
-        .risk-tab { padding: 12px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 13px; }
+        .risk-tab { padding: 10px 4px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 12px; white-space: nowrap; }
         .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; }
         .lock-badge { background: #fffbeb; color: #b45309; border: 1px solid #fef3c7; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
         .text-success { color: #10b981; font-weight: 900; }
@@ -33,9 +33,9 @@
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[1000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
-                <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
-                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg">登入</button>
+                <h2 class="text-2xl font-black mb-2 italic text-slate-800">上新莊管理系統</h2>
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono text-slate-800">
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg text-white">登入</button>
             </div>
         </div>
 
@@ -46,7 +46,7 @@
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
-                <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear text-lg"></i></button>
+                <button @click="view = 'admin_login'" :class="['nav-btn', view.includes('admin') ? 'active' : '']"><i class="fa-solid fa-gear"></i></button>
                 <div class="ml-auto flex items-center pr-3"><i @click="loadCSVData" class="fa-solid fa-rotate text-gray-300 cursor-pointer" :class="{'animate-spin': isSyncing}"></i></div>
             </div>
 
@@ -56,99 +56,87 @@
                 <span v-if="lastUpdated">最後同步: {{ lastUpdated }}</span>
             </div>
 
-            <!-- 管理員驗證 -->
+            <!-- 管理員介面 -->
             <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10">
-                <div class="fcn-card text-center">
+                <div class="fcn-card text-center text-slate-800">
                     <h3 class="font-black mb-4 italic text-gray-400 uppercase">Admin Access</h3>
                     <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" placeholder="管理員密碼" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center text-xl outline-none border-2 focus:border-blue-500">
-                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black">驗證管理員</button>
+                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white">驗證身分</button>
                 </div>
             </div>
 
-            <!-- 管理員介面 -->
             <div v-if="view === 'admin_panel'" class="fade-in space-y-4">
-                <div class="fcn-card">
+                <div class="fcn-card text-slate-800">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-black italic">系統資料同步 (CSV)</h2>
                         <button @click="view = 'branch'"><i class="fa-solid fa-xmark text-xl text-gray-300"></i></button>
                     </div>
                     <div class="space-y-6">
-                        <div class="bg-blue-50 p-4 rounded-2xl text-left">
+                        <div class="bg-blue-50 p-4 rounded-2xl">
                             <label class="block text-[10px] font-black text-blue-400 mb-1 uppercase italic">GitHub Token</label>
-                            <input v-model="githubToken" type="password" placeholder="ghp_..." class="w-full bg-transparent border-b border-blue-200 p-2 text-sm outline-none font-mono">
+                            <input v-model="githubToken" type="password" class="w-full bg-transparent border-b border-blue-200 p-2 text-sm outline-none font-mono text-blue-800">
                         </div>
                         <div class="border-4 border-dashed border-gray-100 rounded-[2rem] p-10 text-center hover:bg-gray-50 transition cursor-pointer">
                             <input type="file" id="csvFile" accept=".csv" class="hidden" @change="handleFileUpload">
                             <label for="csvFile" class="cursor-pointer block">
                                 <i class="fa-solid fa-file-csv text-5xl text-blue-500 mb-3"></i>
-                                <p class="font-black text-gray-700">{{ fileName || '選取 data.csv 檔案' }}</p>
+                                <p class="font-black text-gray-700">{{ fileName || '選取新 data.csv' }}</p>
                             </label>
                         </div>
-                        <button @click="uploadToGithub" :disabled="isUploading || !githubToken || !selectedFile" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl disabled:opacity-20">
-                            {{ isUploading ? '同步中...' : '確認上傳並發佈' }}
-                        </button>
-                        <p v-if="uploadStatus" class="text-center text-xs font-black italic" :class="uploadStatus.includes('成功') ? 'text-green-500' : 'text-red-500'">{{ uploadStatus }}</p>
+                        <button @click="uploadToGithub" :disabled="isUploading || !githubToken || !selectedFile" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl text-white disabled:opacity-20">更新資料</button>
+                        <p v-if="uploadStatus" class="text-center text-xs font-black italic text-green-500">{{ uploadStatus }}</p>
                     </div>
                 </div>
             </div>
 
-            <!-- 1. 資產管理首頁 -->
-            <div v-if="view === 'branch'" class="space-y-4 fade-in">
-                <h2 class="text-xl font-black px-2 italic uppercase">Branch Summary</h2>
-                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">{{ curr }} 庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black">{{ curr==='JPY'?countJPY:countUSD }} 筆案件</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50">萬</span></div>
-                    <div class="mt-8 pt-4 border-t border-white/10 grid grid-cols-2 gap-4 text-xs font-bold italic text-white/70">
-                        <div><p class="opacity-50 uppercase text-[9px]">交割中(可續作資金)</p><p class="text-xl font-black text-white">{{ curr==='JPY'?settlingJPY:settlingUSD }} 筆</p></div>
-                        <div class="text-right"><p class="opacity-50 uppercase text-[9px]">本月預算總派息</p><p class="text-xl font-black text-white">{{ curr==='JPY'?'¥':'$' }}{{ formatNum(curr==='JPY'?monthlyJPY:monthlyUSD) }}</p></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 2. 預警中心 -->
+            <!-- 預警中心 (重新設計的分頁) -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
-                <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-hidden">
-                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及 KI ({{kiList.length}})</button>
-                    <button @click="alertTab = 'ko'" :class="['risk-tab', alertTab === 'ko' ? 'active' : '']">標的 KO ({{anyKOList.length}})</button>
-                    <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場 ({{exitList.length}})</button>
+                <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-hidden text-slate-800">
+                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">KI觸及({{kiList.length}})</button>
+                    <button @click="alertTab = 'part_ko'" :class="['risk-tab', alertTab === 'part_ko' ? 'active' : '']">曾經KO({{partKOList.length}})</button>
+                    <button @click="alertTab = 'near_ko'" :class="['risk-tab', alertTab === 'near_ko' ? 'active' : '']">即將KO({{nearKOList.length}})</button>
+                    <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.id"></client-card>
+                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic">目前無此類案件</div>
             </div>
 
-            <!-- 3. 業務員管理 -->
-            <div v-if="view === 'sales'" class="space-y-4 fade-in">
-                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-black text-blue-600 outline-none text-lg">
+            <!-- 其他視圖 (資產管理, 客戶, 業務員) -->
+            <div v-if="view === 'branch'" class="space-y-4 fade-in">
+                <h2 class="text-xl font-black px-2 italic uppercase">Branch Summary</h2>
+                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800 text-white':'bg-blue-600 text-white'">
+                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">{{ curr }} 庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black">{{ curr==='JPY'?countJPY:countUSD }} 筆</span></div>
+                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50">萬</span></div>
+                </div>
+            </div>
+
+            <div v-if="view === 'client'" class="space-y-4 fade-in text-slate-800">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none">
+                <client-card v-for="item in clientFilteredList" :item="item" :key="item.id"></client-card>
+            </div>
+
+            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800">
+                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-black text-blue-600 outline-none">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
                 </select>
                 <client-card v-for="item in salesFilteredList" :item="item" :key="item.id"></client-card>
-            </div>
-
-            <!-- 4. 客戶列表 -->
-            <div v-if="view === 'client'" class="space-y-4 fade-in">
-                <div class="relative">
-                    <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-12">
-                    <i class="fa-solid fa-magnifying-glass absolute left-5 top-5 text-gray-300"></i>
-                </div>
-                <client-card v-for="item in clientFilteredList" :item="item" :key="item.id"></client-card>
             </div>
         </template>
     </div>
 
     <script>
         const { createApp } = Vue
-        const stockNames = {'6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','NVDA':'輝達','TSLA':'特斯拉','TSM':'台積電','AMD':'超微','MU':'美光','ARM':'安謀','GOOG':'谷歌','AMZN':'亞遜','AVGO':'博通','MSFT':'微軟','META':'臉書','DELL':'戴爾','ORCL':'甲骨文','OKLO':'Oklo','PLTR':'帕蘭提爾','NFLX':'網飛','BRK.B':'波克夏'};
+        const stockNames = {'6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','NVDA':'輝達','TSLA':'特斯拉','TSM':'台積電','AMD':'超微','MU':'美光','ARM':'安謀','GOOG':'谷歌','AMZN':'亞馬遜','AVGO':'博通','MSFT':'微軟','META':'臉書','DELL':'戴爾','ORCL':'甲骨文','OKLO':'Oklo','PLTR':'帕蘭提爾','NFLX':'網飛','BRK.B':'波克夏'};
 
         const ClientCard = {
             props: ['item'],
             template: `
-                <div class="fcn-card fade-in text-slate-800">
-                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>保證領息鎖定期</span></div>
-                    
-                    <!-- 卡片頭部 -->
+                <div class="fcn-card fade-in text-slate-800 shadow-sm border border-gray-100">
+                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1 text-[8px]"></i>保證領息鎖定期</span></div>
                     <div class="flex justify-between items-start mb-6">
                         <div>
-                            <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic">{{ item.client }}</h3>
-                            <div class="flex items-center gap-1 mt-1 font-bold text-[10px] text-gray-400 uppercase tracking-widest">
+                            <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
+                            <div class="flex items-center gap-1 mt-2 font-bold text-[10px] text-gray-400 uppercase tracking-widest">
                                 {{ item.sn }} 
                                 <span :class="['currency-tag', item.currency === 'JPY' ? 'jpy-tag' : 'usd-tag']">{{ item.currency }}</span>
                             </div>
@@ -159,7 +147,6 @@
                         </div>
                     </div>
 
-                    <!-- 標的展示 -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
                         <div v-for="s in item.stocks" :key="s.code" class="stock-tag">
                             <p class="text-[11px] font-black text-blue-500 leading-none">{{ s.code.replace('.T', '') }}</p>
@@ -169,7 +156,6 @@
                         </div>
                     </div>
 
-                    <!-- 庫存資訊 -->
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
                         <div class="space-y-1.5">
                             <p>庫存金額: <span class="text-gray-900 font-black italic">{{ item.amount === 0 ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
@@ -181,14 +167,13 @@
                         </div>
                     </div>
 
-                    <!-- 合約條件 (加回來的區域) -->
                     <div class="flex justify-between items-center text-[9px] font-black bg-gray-50 p-3 rounded-2xl text-gray-400 uppercase tracking-widest italic">
                         <span>KO: <span class="text-gray-600">{{ item.koP }}%</span></span>
                         <span>PUT: <span class="text-blue-400">{{ item.strikeP }}%</span></span>
                         <span :class="{'text-danger underline': hasBreachedKI(item)}">
                             KI: <span :class="hasBreachedKI(item) ? 'text-danger' : 'text-gray-600'">{{ item.kiP > 0 ? item.kiP + '%' : 'NONE' }}</span>
                         </span>
-                        <span>Start: <span class="text-gray-600">{{ item.koStart }}</span></span>
+                        <span>KO Start: <span class="text-gray-600">{{ item.koStart }}</span></span>
                     </div>
                 </div>
             `,
@@ -205,11 +190,7 @@
                 },
                 hasBreachedKI(i) {
                     if (i.kiP <= 0) return false;
-                    // 如果是 EKI 類型，判斷第一個標的
-                    if (i.type === 'EKI' && i.stocks[0]) {
-                        return ((i.stocks[0].current / i.stocks[0].init) * 100) <= i.kiP;
-                    }
-                    // 普通類型只要有一個標的觸及 KI 就算
+                    if (i.type === 'EKI' && i.stocks[0]) return ((i.stocks[0].current / i.stocks[0].init) * 100) <= i.kiP;
                     return i.stocks.some(s => ((s.current / s.init) * 100) <= i.kiP);
                 },
                 isLocked(i){ return new Date() < new Date(i.koStart); }
@@ -233,20 +214,34 @@
                 countUSD() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (i.amount||0), 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (i.amount||0), 0); },
-                settlingJPY() { return this.inventory.filter(i => i.currency === 'JPY' && i.amount === 0).length; },
-                settlingUSD() { return this.inventory.filter(i => i.currency === 'USD' && i.amount === 0).length; },
-                monthlyJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (((i.amount||0) * 10000 * i.coupon / 100) / 12), 0); },
-                monthlyUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (((i.amount||0) * 10000 * i.coupon / 100) / 12), 0); },
                 salesSummary() {
                     const map = {}; this.inventory.forEach(i => map[i.sales] = (map[i.sales] || 0) + 1);
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
+                // 精細分類邏輯
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
-                anyKOList() { return this.inventory.filter(i => i.stocks.some(s => ((s.current/s.init)*100) >= i.koP) && !this.isExit(i) && (new Date() >= new Date(i.koStart))); },
-                exitList() { return this.inventory.filter(i => this.isExit(i)); },
+                partKOList() { 
+                    return this.inventory.filter(i => {
+                        const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
+                        return koCount > 0 && koCount < i.stocks.length - 1; 
+                    });
+                },
+                nearKOList() { 
+                    return this.inventory.filter(i => {
+                        const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
+                        return koCount === i.stocks.length - 1 && i.stocks.length > 1; 
+                    });
+                },
+                exitList() { 
+                    return this.inventory.filter(i => {
+                        const allKO = i.stocks.every(s => ((s.current/s.init)*100) >= i.koP);
+                        return allKO && (new Date() >= new Date(i.koStart));
+                    });
+                },
                 currentAlertList() { 
                     if(this.alertTab === 'ki') return this.kiList;
-                    if(this.alertTab === 'ko') return this.anyKOList;
+                    if(this.alertTab === 'part_ko') return this.partKOList;
+                    if(this.alertTab === 'near_ko') return this.nearKOList;
                     return this.exitList;
                 },
                 clientFilteredList() { 
@@ -268,11 +263,9 @@
                 },
                 async uploadToGithub() {
                     this.isUploading = true;
-                    this.uploadStatus = '正在聯繫伺服器...';
+                    this.uploadStatus = '同步中...';
                     localStorage.setItem('fcn_token', this.githubToken);
-                    const owner = 'juststar0822-arch'; 
-                    const repo = 'my-fcn-dashboard';
-                    const path = 'data.csv';
+                    const owner = 'juststar0822-arch'; const repo = 'my-fcn-dashboard'; const path = 'data.csv';
                     try {
                         const getUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
                         const res = await fetch(getUrl, { headers: { 'Authorization': `token ${this.githubToken}` } });
@@ -283,38 +276,24 @@
                             const putRes = await fetch(getUrl, {
                                 method: 'PUT',
                                 headers: { 'Authorization': `token ${this.githubToken}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ message: 'Sync via Dashboard', content: content, sha: fileData.sha })
+                                body: JSON.stringify({ message: 'Sync', content: content, sha: fileData.sha })
                             });
-                            if (putRes.ok) {
-                                this.uploadStatus = '✅ 同步成功！網頁即將刷新。';
-                                setTimeout(() => location.reload(), 1500);
-                            } else { this.uploadStatus = '❌ 失敗，請確認 Token。'; }
+                            if (putRes.ok) { this.uploadStatus = '✅ 成功'; setTimeout(() => location.reload(), 1500); }
                         };
                         reader.readAsDataURL(this.selectedFile);
-                    } catch (error) { this.uploadStatus = '❌ 錯誤'; }
-                    finally { this.isUploading = false; }
+                    } catch (error) { this.uploadStatus = '❌ 錯誤'; } finally { this.isUploading = false; }
                 },
                 hasBreachedKI(i) {
                     if (i.kiP <= 0) return false;
-                    if (i.type === 'EKI' && i.stocks[0]) {
-                        return ((i.stocks[0].current / i.stocks[0].init) * 100) <= i.kiP;
-                    }
+                    if (i.type === 'EKI' && i.stocks[0]) return ((i.stocks[0].current / i.stocks[0].init) * 100) <= i.kiP;
                     return i.stocks.some(s => ((s.current / s.init) * 100) <= i.kiP);
-                },
-                isExit(item) {
-                    const started = new Date() >= new Date(item.koStart);
-                    const allKO = item.stocks.every(s => ((s.current/s.init)*100) >= item.koP);
-                    return started && allKO;
                 },
                 async loadCSVData() {
                     this.isSyncing = true;
                     try {
                         const response = await fetch('data.csv?t=' + new Date().getTime());
                         const lastMod = response.headers.get('Last-Modified');
-                        if (lastMod) {
-                            const date = new Date(lastMod);
-                            this.lastUpdated = date.toLocaleString('zh-TW', { hour12: false });
-                        }
+                        if (lastMod) this.lastUpdated = new Date(lastMod).toLocaleString('zh-TW', { hour12: false });
                         const csvText = await response.text();
                         Papa.parse(csvText, {
                             header: true, dynamicTyping: true, skipEmptyLines: true,
@@ -329,8 +308,7 @@
                                 this.fetchRealPrices();
                             }
                         });
-                    } catch (e) { console.error(e); }
-                    finally { this.isSyncing = false; }
+                    } catch (e) { console.error(e); } finally { this.isSyncing = false; }
                 },
                 async fetchRealPrices() {
                     const symbols = [...new Set(this.inventory.flatMap(i => i.stocks.map(s => s.code)))];
