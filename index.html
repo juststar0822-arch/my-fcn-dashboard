@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 專業管理系統 v70</title>
+    <title>上新莊分行 - FCN 專業管理系統 v72</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -29,7 +29,7 @@
         <!-- 登入介面 (密碼: 98388) -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-lock text-2xl"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-bolt-lightning text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
                 <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono tracking-widest">
                 <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
@@ -44,39 +44,41 @@
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
                 <div class="ml-auto flex items-center pr-3">
-                    <span v-if="isSyncing" class="text-[10px] mr-2 font-black text-blue-500 italic animate-pulse">數據同步中...</span>
+                    <span v-if="isSyncing" class="text-[10px] mr-2 font-black text-blue-500 italic animate-pulse">連線中...</span>
                     <i @click="refreshAll" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
             <!-- 預警中心 -->
-            <div v-if="view === 'alerts'" class="space-y-4">
+            <div v-if="view === 'alerts' && inventory.length > 0" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
                     <button @click="alertTab = 'everKO'" :class="['risk-tab', alertTab === 'everKO' ? 'active' : '']">曾經KO({{everKOList.length}})</button>
                     <button @click="alertTab = 'soon'" :class="['risk-tab', alertTab === 'soon' ? 'active' : '']">即將出場({{soonExitList.length}})</button>
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
-                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">即將到期({{expiringList.length}})</button>
+                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期({{expiringList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
-            <!-- 客戶列表 -->
-            <div v-if="view === 'client'" class="space-y-4">
+            <!-- 其他視圖 -->
+            <div v-if="view === 'client' && inventory.length > 0" class="space-y-4">
                 <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或 SN..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none border-none">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
-            <!-- 資產管理 -->
-            <div v-if="view === 'branch'" class="space-y-4">
+            <div v-if="view === 'branch' && inventory.length > 0" class="space-y-4">
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-600' : 'bg-slate-800'">
-                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Total Assets</span><span>{{ curr }}</span></div>
+                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Portfolio Total</span><span>{{ curr }}</span></div>
                     <div class="text-5xl font-black italic tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-xl">萬</span></div>
                 </div>
             </div>
-            
-            <div v-if="inventory.length === 0 && !isSyncing" class="text-center py-20 text-slate-300 font-bold uppercase tracking-widest">
-                <i class="fa-solid fa-triangle-exclamation mb-2 text-2xl"></i><br>未讀取到資料，請確認 data.csv 位置
+
+            <!-- 無資料提示 -->
+            <div v-if="inventory.length === 0 && !isSyncing" class="fcn-card text-center py-20 text-slate-300">
+                <i class="fa-solid fa-file-csv text-5xl mb-4"></i>
+                <p class="font-bold">未讀取到 data.csv</p>
+                <p class="text-xs">請確保 data.csv 與本網頁在同一資料夾，或透過伺服器開啟。</p>
             </div>
         </template>
     </div>
@@ -84,8 +86,9 @@
     <script>
         const { createApp, reactive } = Vue;
         
-        // 帶入你的專屬 API KEY
+        // 核心配置
         const TD_API_KEY = "58c13a9bdeae41eb8b29bf3a75f34ffd"; 
+        const stockNames = {'6146':'Disco','6501':'日立','7011':'三菱重工','6857':'愛德萬','7012':'川崎重工','7013':'IHI重工','7974':'任天堂','8035':'東京威力','5803':'藤倉電子','8697':'日本交易所','8002':'丸紅','NVDA':'輝達','TSLA':'特斯拉','TSM':'台積電','AMD':'超微','MU':'美光','ARM':'安謀','GOOG':'谷歌','AMZN':'亞馬遜','AVGO':'博通','MSFT':'微軟','META':'臉書','DELL':'戴爾','ORCL':'甲骨文','OKLO':'Oklo','PLTR':'帕蘭提爾','NFLX':'網飛','BRK.B':'波克夏'};
 
         const ClientCard = {
             props: ['item', 'priceData'],
@@ -95,7 +98,7 @@
                         <div>
                             <span class="bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded-full font-black mr-2">{{ item.sn }}</span>
                             <h3 class="text-4xl font-black text-slate-800 tracking-tighter italic leading-none mt-2">{{ item.client }}</h3>
-                            <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase">{{ item.sales }} | {{ item.date }} 下單</p>
+                            <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase tracking-widest">{{ item.sales }} | {{ item.date }} 下單</p>
                         </div>
                         <div class="text-right">
                             <p class="text-4xl font-black text-blue-600 tracking-tighter italic leading-none">
@@ -189,6 +192,7 @@
                     return i.stocks?.every(s => this.checkEverKO(i, s));
                 }); },
                 expiringList() { return this.inventory.filter(i => {
+                    if(!i.expiry) return false;
                     const diff = Math.ceil((new Date(i.expiry.replace(/-/g, '/')) - new Date()) / 86400000);
                     return diff >= 0 && diff <= 3;
                 }); },
@@ -202,7 +206,14 @@
             methods: {
                 checkKI(i, s) { const min = this.priceMap[s.code]?.histMinByDate?.[i.date]; return min && (min / s.init * 100) <= i.kiP; },
                 checkEverKO(i, s) { const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn]; return max && (max / s.init * 100) >= i.koP; },
-                login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); this.loadCSVData(); } else { alert('密碼錯誤'); } },
+                login() { 
+                    if (this.inputPass === this.password) { 
+                        this.isLoggedIn = true; 
+                        sessionStorage.setItem('fcn_auth', 'true'); 
+                        // 先完成登入跳轉，再開始載入數據，避免卡死
+                        setTimeout(() => this.loadCSVData(), 100);
+                    } else { alert('密碼錯誤'); } 
+                },
                 async loadCSVData() {
                     this.isSyncing = true;
                     try {
@@ -220,40 +231,44 @@
                             });
                             this.refreshAll();
                         }});
-                    } catch (e) { this.isSyncing = false; console.warn("無法讀取 CSV"); }
+                    } catch (e) { 
+                        this.isSyncing = false; 
+                        console.error("CSV讀取失敗，可能是本地安全限制。"); 
+                    }
                 },
                 refreshAll() { this.fetchTDData(); },
                 async fetchTDData() {
                     this.isSyncing = true;
                     const symbols = Object.keys(this.priceMap);
+                    if (symbols.length === 0) { this.isSyncing = false; return; }
                     try {
-                        // 1. 現價 (批次)
-                        const quoteUrl = `https://api.twelvedata.com/quote?symbol=${symbols.join(',')}&apikey=${TD_API_KEY}`;
-                        const quoteData = await (await fetch(quoteUrl)).json();
+                        // 1. 即時報價
+                        const qUrl = `https://api.twelvedata.com/quote?symbol=${symbols.join(',')}&apikey=${TD_API_KEY}`;
+                        const qRes = await (await fetch(qUrl)).json();
                         symbols.forEach(sym => {
-                            const d = symbols.length === 1 ? quoteData : quoteData[sym];
+                            const d = symbols.length === 1 ? qRes : qRes[sym];
                             if (d && d.close) this.priceMap[sym].current = parseFloat(d.close);
                         });
-                        // 2. 歷史
+                        // 2. 歷史資料
                         for (const sym of symbols) {
-                            const url = `https://api.twelvedata.com/time_series?symbol=${sym}&interval=1day&outputsize=200&apikey=${TD_API_KEY}`;
-                            const res = await (await fetch(url)).json();
-                            if (res.values) {
+                            const hUrl = `https://api.twelvedata.com/time_series?symbol=${sym}&interval=1day&outputsize=200&apikey=${TD_API_KEY}`;
+                            const hRes = await (await fetch(hUrl)).json();
+                            if (hRes.values) {
                                 this.inventory.forEach(inv => {
                                     if (!inv.stocks?.find(s => s.code === sym)) return;
-                                    const oDate = new Date(inv.date.replace(/-/g, '/'));
-                                    const lows = res.values.filter(v => new Date(v.datetime) >= oDate).map(v => parseFloat(v.low));
-                                    this.priceMap[sym].histMinByDate[inv.date] = Math.min(...lows, this.priceMap[sym].current);
+                                    const oD = new Date(inv.date.replace(/-/g, '/'));
+                                    const lows = hRes.values.filter(v => new Date(v.datetime) >= oD).map(v => parseFloat(v.low));
+                                    this.priceMap[sym].histMinByDate[inv.date] = Math.min(...lows, this.priceMap[sym].current || 999999);
                                     if (inv.koStart) {
-                                        const kDate = new Date(inv.koStart.replace(/-/g, '/'));
-                                        const highs = res.values.filter(v => new Date(v.datetime) >= kDate).map(v => parseFloat(v.high));
-                                        this.priceMap[sym].histMaxAfterKOStart[inv.sn] = highs.length > 0 ? Math.max(...highs, this.priceMap[sym].current) : this.priceMap[sym].current;
+                                        const kD = new Date(inv.koStart.replace(/-/g, '/'));
+                                        const highs = hRes.values.filter(v => new Date(v.datetime) >= kD).map(v => parseFloat(v.high));
+                                        this.priceMap[sym].histMaxAfterKOStart[inv.sn] = highs.length > 0 ? Math.max(...highs, this.priceMap[sym].current || 0) : this.priceMap[sym].current;
                                     }
                                 });
                             }
-                            await new Promise(r => setTimeout(r, 600)); // 防止頻率限流
+                            await new Promise(r => setTimeout(r, 600)); // 避免被API封鎖
                         }
-                    } catch (e) { console.error("API Error"); }
+                    } catch (e) { console.error("API 請求錯誤"); }
                     this.isSyncing = false;
                 }
             },
