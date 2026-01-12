@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v62.1.Fixed</title>
+    <title>上新莊分行 - FCN 管理系統 v62.2.Stable</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -30,6 +30,7 @@
 </head>
 <body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
+        
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
@@ -52,8 +53,8 @@
             </div>
 
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
-                <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500 font-black"></i> Precision & Failsafe Active</span>
-                <span v-if="lastUpdated">Updated: {{ lastUpdated }}</span>
+                <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500 font-black"></i> Precision Mode Active</span>
+                <span v-if="lastUpdated">Last Refresh: {{ lastUpdated }}</span>
             </div>
 
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
@@ -67,7 +68,6 @@
                 </div>
                 <div class="space-y-4">
                     <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.id"></client-card>
-                    <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs tracking-widest">No Records Matches</div>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@
                 <h2 class="text-xl font-black px-2 italic uppercase text-slate-800 text-left">Portfolio Summary</h2>
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
                     <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase text-white font-black">
-                        <span>{{ curr === 'JPY' ? '日幣帳戶' : '美金帳戶' }} 總庫存資產</span>
+                        <span>{{ curr === 'JPY' ? '日幣帳戶' : '美元帳戶' }} 總庫存資產</span>
                         <span>{{ curr==='JPY'?countJPY:countUSD }}筆案件</span>
                     </div>
                     <div class="text-5xl font-black italic font-mono tracking-tighter text-white">
@@ -91,8 +91,8 @@
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.id"></client-card>
             </div>
 
-            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left">
-                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg">
+            <div v-if="view === 'sales'" class="space-y-4 fade-in">
+                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg mb-4">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
                 </select>
                 <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.id"></client-card>
@@ -150,7 +150,7 @@
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                             <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
                                 <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
-                                <p>履約: <span class="text-slate-800 font-black">{{ formatPrice(s.strike) }}</span></p>
+                                <p>履約: <span class="text-slate-800 font-black">{{ formatPrice(s.strike || (s.init * (item.strikeP/100))) }}</span></p>
                             </div>
                             <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
                         </div>
@@ -176,7 +176,11 @@
             `,
             methods: {
                 formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
-                formatPrice(n){ return (!n || n == 0) ? '---' : (Math.floor(parseFloat(n) * 100) / 100).toFixed(2); },
+                formatPrice(n){ 
+                    if (!n || n == 0) return '---';
+                    // 修正：不再使用 Math.floor 處理全部數值，確保小數點存在
+                    return parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                },
                 calcMonthly(i){ return ((i.amount||0) * 10000 * (i.coupon/100)) / 12; },
                 getStockName(c){ return stockNames[c] || c; },
                 getPerf(i,s){ return (!s.init || !s.current || s.current <= 0) ? '100.00' : ((s.current/s.init)*100).toFixed(2); },
@@ -340,11 +344,17 @@
                                         if(row[`s${i}_code`]) {
                                             const code = String(row[`s${i}_code`]).trim();
                                             let isMKI = false;
-                                            // 永久標記邏輯
                                             if (code === 'ORCL') {
                                                 if ((sn.includes('0369') && (client === '吳柏輝' || client === '劉介正')) || (sn.includes('0334') && client === '吳適玲')) isMKI = true;
                                             }
-                                            stocks.push({code: code, init: row[`s${i}_init`], current: row[`s${i}_init`], strike: row[`s${i}_strike`], memoryKI: isMKI, memoryKO: false});
+                                            stocks.push({
+                                                code: code, 
+                                                init: row[`s${i}_init`], 
+                                                current: row[`s${i}_init`], // 初始暫代
+                                                strike: row[`s${i}_strike`], 
+                                                memoryKI: isMKI, 
+                                                memoryKO: false
+                                            });
                                         }
                                     }
                                     return { ...row, client: client, sn: sn, stocks: stocks };
@@ -368,12 +378,17 @@
                         
                         if (json.quoteResponse && json.quoteResponse.result) {
                             const priceMap = {};
-                            json.quoteResponse.result.forEach(r => { priceMap[r.symbol] = r.regularMarketPrice; });
+                            json.quoteResponse.result.forEach(r => { 
+                                // 確保抓到的是最新報價，且保留原始小數
+                                priceMap[r.symbol] = r.regularMarketPrice; 
+                            });
 
                             this.inventory.forEach(item => {
                                 if(item.stocks) {
                                     item.stocks.forEach(stock => {
-                                        if (priceMap[stock.code]) stock.current = priceMap[stock.code];
+                                        if (priceMap[stock.code] !== undefined) {
+                                            stock.current = parseFloat(priceMap[stock.code]);
+                                        }
                                     });
                                 }
                             });
