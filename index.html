@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v60.FastUpdate</title>
+    <title>上新莊分行 - FCN 管理系統 v61.Final</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -15,7 +15,7 @@
         .nav-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
         .nav-btn { padding: 10px 18px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; border: none; }
         .nav-btn.active { background: #1f2937; color: white; }
-        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 11px; cursor: pointer; }
+        .risk-tab { padding: 12px 14px; font-weight: 800; color: #94a3b8; border-bottom: 3px solid transparent; flex: 1; text-align: center; font-size: 11px; cursor: pointer; white-space: nowrap; }
         .risk-tab.active { color: #2563eb; border-bottom-color: #2563eb; background: rgba(37, 99, 235, 0.05); }
         .stock-tag { background: #ffffff; border: 2px solid #f1f5f9; border-radius: 20px; padding: 12px 8px; text-align: center; }
         .breach-tag { background: #fee2e2; color: #ef4444; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 6px; display: inline-block; font-weight: 900; }
@@ -42,34 +42,35 @@
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
                 <div class="ml-auto flex items-center pr-3">
-                    <span v-if="isSyncing" class="text-[10px] text-blue-500 font-black animate-pulse mr-2">更新中</span>
+                    <span v-if="isSyncing" class="text-[10px] text-blue-500 font-black animate-pulse mr-2">同步中</span>
                     <i @click="refreshAll" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <!-- 預警中心 -->
+            <!-- 預警中心 (含已出場) -->
             <div v-if="view === 'alerts'" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
-                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">全期觸KI({{kiList.length}})</button>
-                    <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">觀察期KO({{partKOList.length}})</button>
+                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">曾觸KI({{kiList.length}})</button>
+                    <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">部分KO({{partKOList.length}})</button>
+                    <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                     <button @click="alertTab = 'obs'" :class="['risk-tab', alertTab === 'obs' ? 'active' : '']">即將觀察</button>
                     <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client" :global-prices="priceMap"></client-card>
             </div>
 
-            <!-- 按客戶 -->
-            <div v-if="view === 'client'" class="space-y-4">
-                <input v-model="search" type="text" placeholder="🔍 搜尋客戶或編號..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-8 mb-4 border-none focus:ring-2 ring-blue-500">
-                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client" :global-prices="priceMap"></client-card>
-            </div>
-
             <!-- 資產管理 -->
             <div v-if="view === 'branch'" class="space-y-4">
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card bg-slate-800 text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-700' : ''">
-                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase tracking-widest"><span>Total Portfolio</span><span>{{ curr }}</span></div>
+                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Total Portfolio</span><span>{{ curr }}</span></div>
                     <div class="text-5xl font-black italic tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-xl">萬</span></div>
                 </div>
+            </div>
+
+            <!-- 按客戶搜尋 -->
+            <div v-if="view === 'client'" class="space-y-4">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶或編號..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-8 mb-4 border-none">
+                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client" :global-prices="priceMap"></client-card>
             </div>
 
             <!-- 按業務員 -->
@@ -97,7 +98,7 @@
                                 <span :class="[item.currency === 'JPY' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-600']" class="text-[10px] px-2 py-0.5 rounded-full font-black">{{ item.currency }}</span>
                             </div>
                             <h3 class="text-4xl font-black text-slate-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
-                            <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase tracking-widest">{{ item.sales }} | {{ item.date }} 下單</p>
+                            <p class="text-[11px] text-gray-400 font-bold mt-2 tracking-widest">{{ item.sales }} | {{ item.date }} 下單</p>
                         </div>
                         <div class="text-right">
                             <p class="text-[11px] font-black text-slate-400 uppercase leading-none mb-1">庫存金額</p>
@@ -124,7 +125,7 @@
                         </div>
                     </div>
 
-                    <!-- 股票區塊：即時從 globalPrices 取值 -->
+                    <!-- 股票區塊 -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag shadow-sm">
                             <div class="flex justify-between items-start px-1">
@@ -132,19 +133,17 @@
                                 <span class="text-[11px] font-black" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
                             </div>
                             <p class="text-[9px] font-bold text-gray-400 truncate mb-2 px-1">{{ getStockName(s.code) }}</p>
-                            <!-- 這裡直接顯示全局統一的最新價 -->
                             <p class="text-2xl font-black text-slate-800 leading-none tracking-tighter mb-3">
                                 {{ formatPrice(globalPrices[s.code]?.current) }}
                             </p>
                             
                             <div class="space-y-1 text-left px-1 border-t pt-2">
                                 <div class="flex justify-between text-[9px]"><span class="text-gray-400 font-bold">KO</span><span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></div>
-                                <div class="flex justify-between text-[9px]"><span class="text-gray-400 font-bold">Strike</span><span class="font-black text-amber-600">{{ formatPrice(s.init * (item.strikeP/100)) }}</span></div>
                                 <div v-if="item.kiP > 0" class="flex justify-between text-[9px]"><span class="text-gray-400 font-bold">KI</span><span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span></div>
                             </div>
 
-                            <div v-if="globalPrices[s.code]?.histMinByDate?.[item.date] <= (s.init * item.kiP / 100)" class="breach-tag">全期曾觸KI</div>
-                            <div v-if="globalPrices[s.code]?.histMaxObsByDate?.[item.sn] >= (s.init * item.koP / 100)" class="ko-tag">觀察期曾KO</div>
+                            <div v-if="isKI(item, s)" class="breach-tag">全期曾觸KI</div>
+                            <div v-if="isKO(item, s)" class="ko-tag">觀察期曾KO</div>
                         </div>
                     </div>
 
@@ -160,14 +159,21 @@
                 getStockName(c){ return stockNames[c] || c; },
                 getPerf(item, stock){ 
                     const current = this.globalPrices[stock.code]?.current;
-                    if (!stock.init || !current) return '100.00';
-                    return ((current / stock.init) * 100).toFixed(2); 
+                    return (!stock.init || !current) ? '100.00' : ((current / stock.init) * 100).toFixed(2); 
                 },
                 perfColor(item, stock){ 
                     const p = parseFloat(this.getPerf(item, stock));
                     if(p >= item.koP) return 'text-emerald-500';
                     if(p <= item.kiP) return 'text-rose-500';
                     return 'text-slate-400';
+                },
+                isKI(item, stock) {
+                    const hMin = this.globalPrices[stock.code]?.histMinByDate?.[item.date];
+                    return hMin && hMin <= (stock.init * item.kiP / 100);
+                },
+                isKO(item, stock) {
+                    const hMax = this.globalPrices[stock.code]?.histMaxObsByDate?.[item.sn];
+                    return hMax && hMax >= (stock.init * item.koP / 100);
                 }
             }
         };
@@ -178,7 +184,7 @@
                 return {
                     view: 'branch', isLoggedIn: false, inputPass: '', password: '98388',
                     inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
-                    priceMap: reactive({}) // 全局股價地圖
+                    priceMap: reactive({})
                 }
             },
             computed: {
@@ -190,8 +196,27 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                kiList() { return this.inventory.filter(i => i.kiP > 0 && (i.stocks || []).some(s => this.priceMap[s.code]?.histMinByDate?.[i.date] <= (s.init * i.kiP / 100))); },
-                partKOList() { return this.inventory.filter(i => (i.stocks || []).some(s => this.priceMap[s.code]?.histMaxObsByDate?.[i.sn] >= (s.init * i.koP / 100))); },
+                kiList() { 
+                    return this.inventory.filter(i => (i.stocks || []).some(s => {
+                        const hMin = this.priceMap[s.code]?.histMinByDate?.[i.date];
+                        return hMin && hMin <= (s.init * i.kiP / 100);
+                    }));
+                },
+                exitList() { 
+                    return this.inventory.filter(i => (i.stocks || []).every(s => {
+                        const hMax = this.priceMap[s.code]?.histMaxObsByDate?.[i.sn];
+                        return hMax && hMax >= (s.init * i.koP / 100);
+                    }));
+                },
+                partKOList() {
+                    return this.inventory.filter(i => {
+                        const koCount = (i.stocks || []).filter(s => {
+                            const hMax = this.priceMap[s.code]?.histMaxObsByDate?.[i.sn];
+                            return hMax && hMax >= (s.init * i.koP / 100);
+                        }).length;
+                        return koCount > 0 && koCount < i.stocks.length;
+                    });
+                },
                 observationList() {
                     const now = new Date();
                     return this.inventory.filter(i => {
@@ -211,7 +236,7 @@
                     });
                 },
                 currentAlertList() { 
-                    const m = {ki:this.kiList, pko:this.partKOList, obs:this.observationList, exp:this.expiringList};
+                    const m = {ki:this.kiList, exit:this.exitList, pko:this.partKOList, obs:this.observationList, exp:this.expiringList};
                     return m[this.alertTab] || [];
                 },
                 clientFilteredList() { 
@@ -237,11 +262,11 @@
                                     const stocks = [];
                                     for(let i=1; i<=4; i++) {
                                         if(row[`s${i}_code`]) {
-                                            const code = String(row[`s${i}_code`]).trim();
+                                            const code = String(row[`s${i}_code`]).toUpperCase().trim();
                                             stocks.push({ code, init: row[`s${i}_init`] });
-                                            // 初始化全局 priceMap 結構
+                                            // 【關鍵修正】初始化股價地圖，先給初始價
                                             if (!this.priceMap[code]) {
-                                                this.priceMap[code] = { current: 0, histMinByDate: {}, histMaxObsByDate: {} };
+                                                this.priceMap[code] = { current: row[`s${i}_init`], histMinByDate: {}, histMaxObsByDate: {} };
                                             }
                                         }
                                     }
@@ -253,79 +278,9 @@
                     } catch (e) { this.isSyncing = false; }
                 },
 
-                // 快軌：一次抓取所有股票的最新價
                 async fetchCurrentPrices() {
                     const symbols = Object.keys(this.priceMap);
                     if (symbols.length === 0) return;
                     try {
-                        // 使用 Yahoo Finance Multi-Quote API
                         const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}`;
-                        const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                        const data = await resp.json();
-                        const json = JSON.parse(data.contents);
-                        
-                        json.quoteResponse.result.forEach(q => {
-                            if (this.priceMap[q.symbol]) {
-                                this.priceMap[q.symbol].current = q.regularMarketPrice;
-                            }
-                        });
-                    } catch (e) { console.error("即時股價更新失敗"); }
-                },
-
-                // 慢軌：背景處理複雜的歷史 KI/KO 判斷
-                async fetchHistoryData() {
-                    this.isSyncing = true;
-                    const nowSec = Math.floor(Date.now() / 1000);
-                    
-                    // 找出 股票+日期 的唯一組合，減少 API 請求
-                    const taskMap = new Map();
-                    this.inventory.forEach(item => {
-                        const startSec = Math.floor(new Date(String(item.date).replace(/-/g, '/')).getTime() / 1000);
-                        item.stocks.forEach(s => {
-                            const key = `${s.code}_${startSec}`;
-                            if (!taskMap.has(key)) taskMap.set(key, { code: s.code, start: startSec, dateStr: item.date });
-                        });
-                    });
-
-                    const tasks = Array.from(taskMap.values());
-                    for (let i = 0; i < tasks.length; i++) {
-                        const task = tasks[i];
-                        try {
-                            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${task.code}?period1=${task.start}&period2=${nowSec}&interval=1d`;
-                            const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                            const data = await resp.json();
-                            const json = JSON.parse(data.contents);
-                            
-                            if (json.chart.result?.[0]) {
-                                const res = json.chart.result[0];
-                                const lows = res.indicators.quote[0].low.filter(v => v != null);
-                                const highs = res.indicators.quote[0].high;
-                                const stamps = res.timestamp;
-                                
-                                // 全期最低價 (存入 histMinByDate)
-                                this.priceMap[task.code].histMinByDate[task.dateStr] = Math.min(...lows, res.meta.regularMarketPrice);
-                                
-                                // 為每個合約單獨判斷觀察期最高價
-                                this.inventory.filter(inv => inv.date === task.dateStr).forEach(inv => {
-                                    const koStartSec = inv.koStart ? Math.floor(new Date(String(inv.koStart).replace(/-/g, '/')).getTime() / 1000) : 0;
-                                    const obsHighs = highs.filter((val, idx) => val != null && stamps[idx] >= koStartSec);
-                                    this.priceMap[task.code].histMaxObsByDate[inv.sn] = obsHighs.length > 0 ? Math.max(...obsHighs, res.meta.regularMarketPrice) : 0;
-                                });
-                            }
-                        } catch (e) { }
-                        if (i % 3 === 0) await new Promise(r => setTimeout(r, 200)); // 避免觸發 API 限制
-                    }
-                    this.isSyncing = false;
-                }
-            },
-            mounted() {
-                if (sessionStorage.getItem('fcn_auth') === 'true') { this.isLoggedIn = true; this.loadCSVData(); }
-                // 每 30 秒自動更新一次即時股價
-                setInterval(() => {
-                    if (this.isLoggedIn) this.fetchCurrentPrices();
-                }, 30000);
-            }
-        }).mount('#app');
-    </script>
-</body>
-</html>
+                        const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(
