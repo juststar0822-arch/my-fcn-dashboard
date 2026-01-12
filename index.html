@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v66.Ultra_TwelveData</title>
+    <title>上新莊分行 - FCN 管理系統 v67</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -21,7 +21,7 @@
         .breach-tag { background: #fee2e2; color: #ef4444; font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
         .ko-tag { background: #d1fae5; color: #059669; font-size: 9px; padding: 2px 6px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
         .soon-tag { background: #fef3c7; color: #d97706; font-size: 10px; padding: 2px 8px; border-radius: 6px; margin-top: 4px; display: inline-block; font-weight: 900; }
-        .api-status { font-size: 10px; font-weight: 900; color: #10b981; margin-right: 10px; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -29,10 +29,10 @@
         <!-- 登入介面 (密碼: 98388) -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-bolt-lightning text-2xl"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-bolt text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono">
-                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg">ENTER PRO</button>
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="請輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono tracking-widest">
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">LOGIN</button>
             </div>
         </div>
 
@@ -43,15 +43,21 @@
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
-                
-                <div class="ml-auto flex items-center pr-4">
-                    <span class="api-status">● TwelveData LIVE</span>
+                <div class="ml-auto flex items-center pr-3">
+                    <span v-if="isSyncing" class="text-[10px] mr-2 font-black text-blue-500 italic">抓取中...</span>
                     <i @click="refreshAll" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <!-- 預警分頁 -->
-            <div v-if="view === 'alerts'" class="space-y-4">
+            <!-- 錯誤提示與手動上傳備案 -->
+            <div v-if="inventory.length === 0" class="fcn-card text-center py-10">
+                <p class="text-slate-400 font-bold mb-4">無法讀取資料，請手動選取 data.csv 檔案</p>
+                <input type="file" @change="handleFileUpload" accept=".csv" class="hidden" id="fileInput">
+                <label for="fileInput" class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black cursor-pointer shadow-lg hover:bg-blue-700 transition">上傳 data.csv</label>
+            </div>
+
+            <!-- 預警中心 -->
+            <div v-if="view === 'alerts' && inventory.length > 0" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
                     <button @click="alertTab = 'everKO'" :class="['risk-tab', alertTab === 'everKO' ? 'active' : '']">曾經KO({{everKOList.length}})</button>
@@ -62,15 +68,16 @@
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
-            <!-- 客戶與資產 View 與之前相同，代碼精簡化 -->
-            <div v-if="view === 'client'" class="space-y-4">
-                <input v-model="search" type="text" placeholder="🔍 快速搜尋..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold border-none outline-none">
+            <!-- 客戶列表 -->
+            <div v-if="view === 'client' && inventory.length > 0" class="space-y-4">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或 SN..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none border-none">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
-            <div v-if="view === 'branch'" class="space-y-4">
+            <!-- 資產管理 -->
+            <div v-if="view === 'branch' && inventory.length > 0" class="space-y-4">
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-600' : 'bg-slate-800'">
-                    <div class="flex justify-between mb-2 font-black text-xs opacity-70"><span>Total Portfolio</span><span>{{ curr }}</span></div>
+                    <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Portfolio</span><span>{{ curr }}</span></div>
                     <div class="text-5xl font-black italic tracking-tighter">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-xl">萬</span></div>
                 </div>
             </div>
@@ -79,9 +86,10 @@
 
     <script>
         const { createApp, reactive } = Vue;
-
-        // 請在此處填入你的 Twelve Data API Key
-        const TD_API_KEY = "324eeabe4700448ea99da98cafaa09ce"; 
+        
+        // 已填入你的 API KEY
+        const TD_API_KEY = "58c13a9bdeae41eb8b29bf3a75f34ffd"; 
+        const stockNames = {'6146':'Disco','6501':'日立','7011':'三菱重工','6857':'愛德萬','7012':'川崎重工','7013':'IHI重工','7974':'任天堂','8035':'東京威力','5803':'藤倉電子','8697':'日本交易所','8002':'丸紅','NVDA':'輝達','TSLA':'特斯拉','TSM':'台積電','AMD':'超微','MU':'美光','ARM':'安謀','GOOG':'谷歌','AMZN':'亞馬遜','AVGO':'博通','MSFT':'微軟','META':'臉書','DELL':'戴爾','ORCL':'甲骨文','OKLO':'Oklo','PLTR':'帕蘭提爾','NFLX':'網飛','BRK.B':'波克夏'};
 
         const ClientCard = {
             props: ['item', 'priceData'],
@@ -90,51 +98,47 @@
                     <div class="flex justify-between items-start mb-6">
                         <div>
                             <span class="bg-slate-900 text-white text-[10px] px-2 py-0.5 rounded-full font-black mr-2">{{ item.sn }}</span>
-                            <h3 class="text-4xl font-black text-slate-800 italic leading-none mt-2">{{ item.client }}</h3>
+                            <h3 class="text-4xl font-black text-slate-800 tracking-tighter italic leading-none mt-2">{{ item.client }}</h3>
                             <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase">{{ item.sales }} | {{ item.date }} 下單</p>
                         </div>
                         <div class="text-right">
-                            <p class="text-4xl font-black text-blue-600 italic leading-none">
-                                <span class="text-xl mr-1">{{ item.currency==='JPY'?'¥':'$' }}</span>{{ formatNum(item.amount) }}<span class="text-lg">萬</span>
+                            <p class="text-4xl font-black text-blue-600 tracking-tighter italic leading-none">
+                                <span class="text-xl mr-1">{{ item.currency==='JPY'?'¥':'$' }}</span>{{ formatNum(item.amount) }}<span class="text-lg ml-1">萬</span>
                             </p>
-                            <div class="mt-2 bg-indigo-50 text-indigo-600 text-[10px] px-3 py-1 rounded-full font-black">年化: {{ item.coupon }}%</div>
+                            <div class="mt-2 bg-indigo-50 text-indigo-600 text-[10px] px-3 py-1 rounded-full font-black inline-block">年化: {{ item.coupon }}%</div>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         <div v-for="s in item.stocks" :key="s.code" class="stock-tag shadow-sm">
                             <div class="flex justify-between items-start px-1 mb-1">
                                 <span class="text-[12px] font-black text-blue-600">{{ s.code }}</span>
                                 <span class="text-[11px] font-black" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
                             </div>
-                            <p class="text-2xl font-black text-slate-800 tracking-tighter mb-3">{{ formatPrice(priceData[s.code]?.current) }}</p>
-                            
+                            <p class="text-2xl font-black text-slate-800 leading-none tracking-tighter mb-3">{{ formatPrice(priceData[s.code]?.current) }}</p>
                             <div class="space-y-1 text-left px-1 border-t pt-2 text-[9px]">
-                                <div class="flex justify-between"><span class="text-gray-400">KO</span><span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></div>
-                                <div class="flex justify-between"><span class="text-gray-400">KI</span><span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span></div>
+                                <div class="flex justify-between text-gray-400"><span>KO</span><span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></div>
+                                <div class="flex justify-between text-gray-400"><span>KI</span><span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span></div>
                             </div>
-
-                            <!-- 標籤邏輯 -->
                             <div v-if="checkKI(item, s)" class="breach-tag">曾觸及 KI</div>
                             <div v-if="checkEverKO(item, s)" class="ko-tag">曾觸及 KO</div>
                             <div v-if="checkSoon(item, s)" class="soon-tag">離KO差3%</div>
                         </div>
                     </div>
                     <div class="flex justify-between items-center border-t pt-4 text-[10px] font-black text-slate-400 uppercase">
-                        <div>觀察期起始: {{ item.koStart || 'N/A' }}</div>
-                        <div>到期日: <span class="text-blue-500">{{ item.expiry }}</span></div>
+                        <div>觀察期起始: <span class="text-slate-800">{{ item.koStart || 'N/A' }}</span></div>
+                        <div class="text-right">到期日: <span class="text-blue-500">{{ item.expiry }}</span></div>
                     </div>
                 </div>
             `,
             methods: {
                 formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
-                formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toFixed(2); },
-                getPerf(item, stock){ 
-                    const cur = this.priceData[stock.code]?.current;
-                    return cur ? ((cur / stock.init) * 100).toFixed(2) : '100.00'; 
+                formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); },
+                getPerf(item, s){ 
+                    const cur = this.priceData[s.code]?.current;
+                    return cur ? ((cur / s.init) * 100).toFixed(2) : '100.00'; 
                 },
-                perfColor(item, stock){ 
-                    const p = parseFloat(this.getPerf(item, stock));
+                perfColor(item, s){ 
+                    const p = parseFloat(this.getPerf(item, s));
                     if(p >= item.koP) return 'text-emerald-500';
                     if(p <= item.kiP) return 'text-rose-500';
                     return 'text-slate-400';
@@ -168,11 +172,15 @@
             computed: {
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (i.amount||0), 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (i.amount||0), 0); },
-                kiList() { return this.inventory.filter(i => i.stocks?.some(s => { const min = this.priceMap[s.code]?.histMinByDate?.[i.date]; return min && (min / s.init * 100) <= i.kiP; })); },
-                everKOList() { return this.inventory.filter(i => i.stocks?.some(s => { const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn]; return max && (max / s.init * 100) >= i.koP; })); },
+                salesSummary() {
+                    const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
+                    return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
+                },
+                kiList() { return this.inventory.filter(i => i.stocks?.some(s => this.checkKI(i, s))); },
+                everKOList() { return this.inventory.filter(i => i.stocks?.some(s => this.checkEverKO(i, s))); },
                 soonExitList() { return this.inventory.filter(i => {
                     if (!i.koStart || new Date() < new Date(i.koStart.replace(/-/g, '/'))) return false;
-                    const reached = i.stocks.filter(s => { const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn]; return max && (max / s.init * 100) >= i.koP; });
+                    const reached = i.stocks.filter(s => this.checkEverKO(i, s));
                     if (i.stocks.length - reached.length === 1) {
                         const last = i.stocks.find(s => !reached.includes(s));
                         const cur = this.priceMap[last.code]?.current;
@@ -182,7 +190,7 @@
                 }); },
                 exitList() { return this.inventory.filter(i => {
                     if (!i.koStart || new Date() < new Date(i.koStart.replace(/-/g, '/'))) return false;
-                    return i.stocks?.every(s => { const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn]; return max && (max / s.init * 100) >= i.koP; });
+                    return i.stocks?.every(s => this.checkEverKO(i, s));
                 }); },
                 expiringList() { return this.inventory.filter(i => {
                     const diff = (new Date(i.expiry.replace(/-/g, '/')) - new Date()) / 86400000;
@@ -192,74 +200,71 @@
                     const m = {ki:this.kiList, everKO:this.everKOList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList};
                     return m[this.alertTab] || [];
                 },
-                clientFilteredList() { const s = this.search.toLowerCase(); return !s ? this.inventory : this.inventory.filter(i => i.client.includes(s) || i.sn.toLowerCase().includes(s)); }
+                clientFilteredList() { const s = this.search.toLowerCase(); return !s ? this.inventory : this.inventory.filter(i => i.client.includes(s) || i.sn.toLowerCase().includes(s)); },
+                salesFilteredList() { return this.inventory.filter(i => i.sales === this.selectedSales); }
             },
             methods: {
-                login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); this.loadCSVData(); } },
-                refreshAll() { this.fetchTDData(); },
-                async loadCSVData() {
-                    const response = await fetch('data.csv?v=' + Date.now());
-                    const text = await response.text();
-                    Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true, complete: (res) => {
-                        this.inventory = res.data.map(row => {
-                            const stocks = [];
-                            for(let i=1; i<=4; i++) if(row[`s${i}_code`]) {
-                                const code = String(row[`s${i}_code`]).toUpperCase().trim();
-                                stocks.push({ code, init: row[`s${i}_init`] });
-                                if (!this.priceMap[code]) this.priceMap[code] = { current: 0, histMinByDate: {}, histMaxAfterKOStart: {} };
-                            }
-                            return { ...row, stocks };
-                        });
-                        this.refreshAll();
-                    }});
+                checkKI(i, s) { const min = this.priceMap[s.code]?.histMinByDate?.[i.date]; return min && (min / s.init * 100) <= i.kiP; },
+                checkEverKO(i, s) { const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn]; return max && (max / s.init * 100) >= i.koP; },
+                login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); this.loadCSVData(); } else { alert('密碼錯誤'); } },
+                handleFileUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        Papa.parse(file, { header: true, dynamicTyping: true, skipEmptyLines: true, complete: (res) => this.processInventory(res.data) });
+                    }
                 },
-                /**
-                 * 使用 Twelve Data 進行批次抓取 (速度快 10 倍)
-                 */
+                async loadCSVData() {
+                    try {
+                        const response = await fetch('data.csv?v=' + Date.now());
+                        const text = await response.text();
+                        Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true, complete: (res) => this.processInventory(res.data) });
+                    } catch (e) { console.warn("自動讀取失敗，等待手動上傳"); }
+                },
+                processInventory(data) {
+                    this.inventory = data.map(row => {
+                        const stocks = [];
+                        for(let i=1; i<=4; i++) if(row[`s${i}_code`]) {
+                            const code = String(row[`s${i}_code`]).toUpperCase().replace('.T', '').trim();
+                            stocks.push({ code, init: row[`s${i}_init`] });
+                            if (!this.priceMap[code]) this.priceMap[code] = { current: 0, histMinByDate: {}, histMaxAfterKOStart: {} };
+                        }
+                        return { ...row, stocks };
+                    });
+                    this.refreshAll();
+                },
+                refreshAll() { this.fetchTDData(); },
                 async fetchTDData() {
                     this.isSyncing = true;
                     const symbols = Object.keys(this.priceMap);
-                    
                     try {
-                        // 1. 抓取現價 (批次請求)
+                        // 1. 現價
                         const quoteUrl = `https://api.twelvedata.com/quote?symbol=${symbols.join(',')}&apikey=${TD_API_KEY}`;
                         const quoteResp = await fetch(quoteUrl);
                         const quoteData = await quoteResp.json();
-                        
                         symbols.forEach(sym => {
-                            const sData = symbols.length === 1 ? quoteData : quoteData[sym];
-                            if (sData && sData.close) this.priceMap[sym].current = parseFloat(sData.close);
+                            const d = symbols.length === 1 ? quoteData : quoteData[sym];
+                            if (d && d.close) this.priceMap[sym].current = parseFloat(d.close);
                         });
-
-                        // 2. 抓取歷史 (KI/KO 判斷用)
-                        // 注意：免費版限制每分鐘請求頻率，這裡採用逐個抓取歷史
+                        // 2. 歷史
                         for (const sym of symbols) {
                             const url = `https://api.twelvedata.com/time_series?symbol=${sym}&interval=1day&outputsize=200&apikey=${TD_API_KEY}`;
-                            const resp = await fetch(url);
-                            const res = await resp.json();
-                            
+                            const res = await (await fetch(url)).json();
                             if (res.values) {
-                                const values = res.values;
                                 this.inventory.forEach(inv => {
-                                    const stock = inv.stocks?.find(s => s.code === sym);
-                                    if (!stock) return;
-
-                                    // 計算 KI (從下單日至今的最低點)
-                                    const orderDate = new Date(inv.date.replace(/-/g, '/'));
-                                    const histLows = values.filter(v => new Date(v.datetime) >= orderDate).map(v => parseFloat(v.low));
-                                    this.priceMap[sym].histMinByDate[inv.date] = Math.min(...histLows, this.priceMap[sym].current);
-
-                                    // 計算 KO (從觀察起始日至今的最高點)
+                                    if (!inv.stocks?.find(s => s.code === sym)) return;
+                                    const oDate = new Date(inv.date.replace(/-/g, '/'));
+                                    const lows = res.values.filter(v => new Date(v.datetime) >= oDate).map(v => parseFloat(v.low));
+                                    this.priceMap[sym].histMinByDate[inv.date] = Math.min(...lows, this.priceMap[sym].current);
                                     if (inv.koStart) {
-                                        const koStartDate = new Date(inv.koStart.replace(/-/g, '/'));
-                                        const histHighs = values.filter(v => new Date(v.datetime) >= koStartDate).map(v => parseFloat(v.high));
-                                        this.priceMap[sym].histMaxAfterKOStart[inv.sn] = histHighs.length > 0 ? Math.max(...histHighs, this.priceMap[sym].current) : this.priceMap[sym].current;
+                                        const kDate = new Date(inv.koStart.replace(/-/g, '/'));
+                                        const highs = res.values.filter(v => new Date(v.datetime) >= kDate).map(v => parseFloat(v.high));
+                                        this.priceMap[sym].histMaxAfterKOStart[inv.sn] = highs.length > 0 ? Math.max(...highs, this.priceMap[sym].current) : this.priceMap[sym].current;
                                     }
                                 });
                             }
-                            await new Promise(r => setTimeout(r, 500)); // 避免觸發頻率限制
+                            await new Promise(r => setTimeout(r, 600)); // 避免 API 限流
                         }
-                    } catch (e) { console.error("API Error"); }
+                    } catch (e) { console.error("API Error", e); }
                     this.isSyncing = false;
                 }
             },
