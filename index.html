@@ -78,40 +78,11 @@
                     <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span></div>
                 </div>
             </div>
+            <div v-if="view === 'client'" class="space-y-4 fade-in"><input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6"><client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
+            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left"><select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono"><option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option></select><client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card></div>
 
-            <div v-if="view === 'client'" class="space-y-4 fade-in">
-                <input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6">
-                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card>
-            </div>
-
-            <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left">
-                <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono">
-                    <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
-                </select>
-                <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card>
-            </div>
-
-            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center">
-                <div class="fcn-card text-slate-800 text-center">
-                    <h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Security</h3>
-                    <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800 shadow-sm">
-                    <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg">VERIFY</button>
-                </div>
-            </div>
-
-            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto">
-                <div class="fcn-card text-slate-800 text-left">
-                    <h2 class="text-xl font-black italic mb-6 text-center">CSV DATA SYNC</h2>
-                    <div class="space-y-6 text-slate-800 font-mono">
-                        <input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800">
-                        <div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center">
-                            <input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800">
-                            <label for="csvFile" class="block font-black text-gray-500 cursor-pointer">Choose data.csv</label>
-                        </div>
-                        <button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white">Sync GitHub</button>
-                    </div>
-                </div>
-            </div>
+            <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center"><div class="fcn-card text-slate-800 text-center"><h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Security</h3><input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800 shadow-sm"><button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black text-white shadow-lg">VERIFY</button></div></div>
+            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto"><div class="fcn-card text-slate-800 text-left"><h2 class="text-xl font-black italic mb-6 text-center">CSV DATA SYNC</h2><div class="space-y-6 text-slate-800 font-mono"><input v-model="githubToken" type="password" placeholder="Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800"><div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center"><input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800"><label for="csvFile" class="block font-black text-gray-500 cursor-pointer">Choose data.csv</label></div><button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase text-white">Sync GitHub</button></div></div></div>
         </template>
     </div>
 
@@ -144,7 +115,6 @@
                                 <p>KI: <span class="text-slate-800 font-black">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
                             </div>
                             <p class="text-[11px] font-black mt-1" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</p>
-                            <p v-if="s.minHistoryPerf <= item.kiP" class="text-[8px] text-red-500 font-black mt-1">歷史曾觸KI</p>
                         </div>
                     </div>
                     <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
@@ -184,8 +154,7 @@
                 },
                 hasBreachedKI(i) {
                     if (!i.stocks || i.kiP <= 0) return false;
-                    // 這裡改為：只要任一股票「歷史最低收盤價」或「當前價」觸發 KI
-                    return i.stocks.some(s => (s.minHistoryPerf && s.minHistoryPerf <= i.kiP) || (s.current > 0 && ((s.current / s.init) * 100) <= i.kiP));
+                    return i.stocks.some(s => s.current > 0 && ((s.current / s.init) * 100) <= i.kiP);
                 },
                 isLocked(i){ 
                     if(!i.koStart) return false;
@@ -218,12 +187,9 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
+                // --- 預警中心整合邏輯 ---
                 kiList() { 
-                    return this.inventory.filter(i => {
-                        if (!i.stocks || i.kiP <= 0) return false;
-                        // 判定條件：只要任一標的的「歷史最低收盤價百分比」曾低於或等於 kiP
-                        return i.stocks.some(s => s.minHistoryPerf && s.minHistoryPerf <= i.kiP);
-                    }); 
+                    return this.inventory.filter(i => i.stocks && i.kiP > 0 && i.stocks.some(s => s.current > 0 && ((s.current / s.init) * 100) <= i.kiP)); 
                 },
                 observationList() {
                     const now = new Date();
@@ -233,7 +199,10 @@
                             const start = new Date(String(i.koStart).replace(/-/g, '/').trim());
                             if (isNaN(start.getTime())) return false;
                             const diff = Math.ceil((start - now) / 86400000);
+                            
+                            // 距離觀察期開始只剩 3 天且尚未進入觀察期
                             if (diff < 0 || diff > 3) return false;
+
                             const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                             const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
                             const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
@@ -243,14 +212,14 @@
                 },
                 partKOList() { 
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false;
+                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
                         const koCount = (i.stocks || []).filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                         return koCount >= 1 && koCount < i.stocks.length;
                     });
                 },
                 nearKOList() { 
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false;
+                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
                         const koCount = (i.stocks || []).filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                         if (i.stocks.length - koCount !== 1) return false;
                         const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
@@ -268,7 +237,7 @@
                 },
                 exitList() { 
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false;
+                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
                         return i.stocks && i.stocks.length > 0 && i.stocks.every(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP);
                     });
                 },
@@ -322,7 +291,7 @@
                             complete: (results) => {
                                 this.inventory = results.data.map(row => {
                                     const stocks = [];
-                                    for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({code: String(row[`s${i}_code`]).trim(), init: row[`s${i}_init`], current: row[`s${i}_init`], minHistoryPerf: 100});
+                                    for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({code: String(row[`s${i}_code`]).trim(), init: row[`s${i}_init`], current: row[`s${i}_init`]});
                                     return { 
                                         ...row, 
                                         client: row.client ? String(row.client).trim() : '',
@@ -338,54 +307,20 @@
                 async fetchRealPrices() {
                     if (this.inventory.length === 0) return;
                     this.isSyncing = true;
-                    const nowTs = Math.floor(Date.now() / 1000);
-                    
-                    // 為了效率，先整理所有需要查詢的代碼與它們的最早下單日
-                    const symbolDateMap = {};
-                    this.inventory.forEach(item => {
-                        const startTs = item.date ? Math.floor(new Date(item.date).getTime() / 1000) : nowTs - (86400 * 30);
-                        (item.stocks || []).forEach(s => {
-                            if (!symbolDateMap[s.code] || startTs < symbolDateMap[s.code]) {
-                                symbolDateMap[s.code] = startTs;
-                            }
-                        });
-                    });
-
-                    const symbols = Object.keys(symbolDateMap);
-
+                    const symbols = [...new Set(this.inventory.flatMap(i => (i.stocks||[]).map(s => s.code)))];
                     try {
                         await Promise.all(symbols.map(async (symbol) => {
                             try {
-                                const startTs = symbolDateMap[symbol];
-                                // 抓取從下單日到現在的歷史收盤價數據
-                                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?period1=${startTs}&period2=${nowTs}&interval=1d`;
+                                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1m&range=1d`;
                                 const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
                                 const data = await resp.json();
                                 const json = JSON.parse(data.contents);
-                                
-                                const result = json.chart.result[0];
-                                const currentPrice = result.meta.regularMarketPrice;
-                                const adjCloses = result.indicators.adjclose[0].adjclose; // 取得所有收盤價
-                                
-                                if (currentPrice) {
+                                const price = json.chart.result[0].meta.regularMarketPrice;
+                                if (price) {
                                     this.inventory.forEach(item => {
                                         if(item.stocks) {
                                             item.stocks.forEach(stock => {
-                                                if (stock.code === symbol) {
-                                                    stock.current = currentPrice;
-                                                    // 計算該合約日期之後的最低收盤價百分比
-                                                    const itemStartTs = item.date ? new Date(item.date).getTime() : 0;
-                                                    const validCloses = result.timestamp
-                                                        .map((t, idx) => ({ts: t * 1000, price: adjCloses[idx]}))
-                                                        .filter(d => d.ts >= itemStartTs && d.price != null)
-                                                        .map(d => (d.price / stock.init) * 100);
-                                                    
-                                                    if (validCloses.length > 0) {
-                                                        stock.minHistoryPerf = Math.min(...validCloses, (currentPrice / stock.init) * 100);
-                                                    } else {
-                                                        stock.minHistoryPerf = (currentPrice / stock.init) * 100;
-                                                    }
-                                                }
+                                                if (stock.code === symbol) stock.current = price;
                                             });
                                         }
                                     });
@@ -399,7 +334,7 @@
             mounted() {
                 if (sessionStorage.getItem('fcn_auth') === 'true') this.isLoggedIn = true;
                 this.loadCSVData();
-                setInterval(() => this.fetchRealPrices(), 600000); // 歷史數據不需要更新太頻繁，改為10分鐘
+                setInterval(() => this.fetchRealPrices(), 60000);
             }
         }).mount('#app')
     </script>
