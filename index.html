@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v65.Professional</title>
+    <title>上新莊分行 - FCN 管理系統 v65.Pro_Shield</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -25,7 +25,7 @@
 </head>
 <body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-4xl mx-auto">
-        <!-- Login UI (同前) -->
+        <!-- Login UI -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-bolt text-2xl"></i></div>
@@ -50,19 +50,19 @@
             <!-- Alerts View -->
             <div v-if="view === 'alerts'" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto scrollbar-hide border border-gray-100">
-                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">曾觸KI({{kiList.length}})</button>
+                    <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
+                    <button @click="alertTab = 'everKO'" :class="['risk-tab', alertTab === 'everKO' ? 'active' : '']">曾經KO({{everKOList.length}})</button>
                     <button @click="alertTab = 'soon'" :class="['risk-tab', alertTab === 'soon' ? 'active' : '']">即將出場({{soonExitList.length}})</button>
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
-                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期</button>
+                    <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">即將到期({{expiringList.length}})</button>
                 </div>
-                <!-- 用 v-if 確保資料存在才渲染卡片，防止空白 -->
-                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :global-prices="priceMap"></client-card>
+                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
                 <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic text-xs tracking-widest uppercase">No Records Found</div>
             </div>
 
             <div v-if="view === 'client'" class="space-y-4">
                 <input v-model="search" type="text" placeholder="🔍 搜尋客戶或編號..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 mb-4 border-none">
-                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :global-prices="priceMap"></client-card>
+                <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
             <div v-if="view === 'branch'" class="space-y-4">
@@ -76,7 +76,7 @@
                 <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg mb-4 border-none">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
                 </select>
-                <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn" :global-prices="priceMap"></client-card>
+                <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
         </template>
     </div>
@@ -86,9 +86,9 @@
         const stockNames = {'6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','NVDA':'輝達','TSLA':'特斯拉','TSM':'台積電','AMD':'超微','MU':'美光','ARM':'安謀','GOOG':'谷歌','AMZN':'亞馬遜','AVGO':'博通','MSFT':'微軟','META':'臉書','DELL':'戴爾','ORCL':'甲骨文','OKLO':'Oklo','PLTR':'帕蘭提爾','NFLX':'網飛','BRK.B':'波克夏'};
 
         const ClientCard = {
-            props: ['item', 'globalPrices'],
+            props: ['item', 'priceData'],
             template: `
-                <div class="fcn-card" v-if="item && item.stocks">
+                <div class="fcn-card">
                     <div class="flex justify-between items-start mb-6">
                         <div>
                             <div class="flex items-center gap-2 mb-1">
@@ -107,21 +107,6 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-4 bg-slate-50 rounded-2xl p-4 mb-6 border border-slate-100">
-                        <div class="text-center border-r border-slate-200">
-                            <p class="text-[10px] font-black text-emerald-500 mb-1 uppercase">KO 出場</p>
-                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.koP }}%</p>
-                        </div>
-                        <div class="text-center border-r border-slate-200">
-                            <p class="text-[10px] font-black text-amber-500 mb-1 uppercase">Strike 履約</p>
-                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.strikeP }}%</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-[10px] font-black text-rose-500 mb-1 uppercase">KI 落入</p>
-                            <p class="text-xl font-black text-slate-800 leading-none">{{ item.kiP > 0 ? item.kiP + '%' : 'None' }}</p>
-                        </div>
-                    </div>
-
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
                         <div v-for="s in item.stocks" :key="s.code" class="stock-tag shadow-sm">
                             <div class="flex justify-between items-start px-1">
@@ -129,22 +114,21 @@
                                 <span class="text-[11px] font-black" :class="perfColor(item, s)">{{ getPerf(item, s) }}%</span>
                             </div>
                             <p class="text-[9px] font-bold text-gray-400 truncate mb-1 px-1">{{ getStockName(s.code) }}</p>
-                            <p class="text-2xl font-black text-slate-800 leading-none tracking-tighter mb-3">{{ formatPrice(globalPrices[s.code]?.current) }}</p>
+                            <p class="text-2xl font-black text-slate-800 leading-none tracking-tighter mb-3">{{ formatPrice(priceData[s.code]?.current) }}</p>
                             
                             <div class="space-y-1 text-left px-1 border-t pt-2">
                                 <div class="flex justify-between text-[9px]"><span class="text-gray-400 font-bold">KO</span><span class="font-black text-emerald-600">{{ formatPrice(s.init * (item.koP/100)) }}</span></div>
                                 <div class="flex justify-between text-[9px]"><span class="text-gray-400 font-bold">KI</span><span class="font-black text-rose-600">{{ formatPrice(s.init * (item.kiP/100)) }}</span></div>
                             </div>
 
-                            <!-- 標籤邏輯 -->
-                            <div v-if="isKI(item, s)" class="breach-tag">全期曾觸KI</div>
-                            <div v-if="isReachedKO(item, s)" class="ko-tag">全期曾觸KO</div>
-                            <div v-if="isSoon(item, s)" class="soon-tag">離KO差3%</div>
+                            <div v-if="checkKI(item, s)" class="breach-tag">曾觸及 KI</div>
+                            <div v-if="checkEverKO(item, s)" class="ko-tag">曾觸及 KO</div>
+                            <div v-if="checkSoon(item, s)" class="soon-tag">離KO差3%</div>
                         </div>
                     </div>
 
                     <div class="flex justify-between items-center border-t pt-4 text-[10px] font-black text-slate-400 uppercase">
-                        <div>觀察期起始: <span class="text-slate-800 font-black">{{ item.koStart || 'N/A' }}</span></div>
+                        <div>觀察起始日: <span class="text-slate-800 font-black">{{ item.koStart || 'N/A' }}</span></div>
                         <div class="text-right">到期日: <span class="text-blue-500 font-black">{{ item.expiry }}</span></div>
                     </div>
                 </div>
@@ -154,8 +138,8 @@
                 formatPrice(n){ return (!n || n == 0) ? '---' : parseFloat(n).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}); },
                 getStockName(c){ return stockNames[c] || c; },
                 getPerf(item, stock){ 
-                    const current = this.globalPrices[stock.code]?.current;
-                    return (!stock.init || !current) ? '100.00' : ((current / stock.init) * 100).toFixed(2); 
+                    const cur = this.priceData[stock.code]?.current;
+                    return (!stock.init || !cur) ? '100.00' : ((cur / stock.init) * 100).toFixed(2); 
                 },
                 perfColor(item, stock){ 
                     const p = parseFloat(this.getPerf(item, stock));
@@ -163,23 +147,20 @@
                     if(p <= item.kiP) return 'text-rose-500';
                     return 'text-slate-400';
                 },
-                isKI(item, s) {
-                    const hMin = this.globalPrices[s.code]?.histMinByDate?.[item.date];
-                    return hMin && (hMin / s.init * 100) <= item.kiP;
+                checkKI(item, s) {
+                    const min = this.priceData[s.code]?.histMinByDate?.[item.date];
+                    return min && (min / s.init * 100) <= item.kiP;
                 },
-                isReachedKO(item, s) {
-                    // 使用全期最高價判斷
-                    const hMax = this.globalPrices[s.code]?.histMaxAllByDate?.[item.sn];
-                    return hMax && (hMax / s.init * 100) >= item.koP;
+                checkEverKO(item, s) {
+                    const max = this.priceData[s.code]?.histMaxAfterKOStart?.[item.sn];
+                    return max && (max / s.init * 100) >= item.koP;
                 },
-                isSoon(item, s) {
-                    const cur = this.globalPrices[s.code]?.current;
-                    const hMax = this.globalPrices[s.code]?.histMaxAllByDate?.[item.sn];
-                    // 如果已經觸過 KO 就不用顯示差3%
-                    if (hMax && (hMax / s.init * 100) >= item.koP) return false;
-                    if (!cur) return false;
-                    const perf = (cur / s.init * 100);
-                    return perf < item.koP && (perf / item.koP) >= 0.97;
+                checkSoon(item, s) {
+                    const cur = this.priceData[s.code]?.current;
+                    const everKO = this.checkEverKO(item, s);
+                    if (!cur || everKO) return false;
+                    const p = (cur / s.init * 100);
+                    return p < item.koP && (p / item.koP) >= 0.97;
                 }
             }
         };
@@ -194,8 +175,6 @@
                 }
             },
             computed: {
-                countJPY() { return this.inventory.filter(i => i.currency === 'JPY').length; },
-                countUSD() { return this.inventory.filter(i => i.currency === 'USD').length; },
                 totalJPY() { return this.inventory.filter(i => i.currency === 'JPY').reduce((s, i) => s + (i.amount||0), 0); },
                 totalUSD() { return this.inventory.filter(i => i.currency === 'USD').reduce((s, i) => s + (i.amount||0), 0); },
                 salesSummary() {
@@ -203,9 +182,15 @@
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
                 kiList() { 
-                    return this.inventory.filter(i => (i.stocks || []).some(s => {
-                        const hMin = this.priceMap[s.code]?.histMinByDate?.[i.date];
-                        return hMin && (hMin / s.init * 100) <= i.kiP;
+                    return this.inventory.filter(i => i.stocks?.some(s => {
+                        const min = this.priceMap[s.code]?.histMinByDate?.[i.date];
+                        return min && (min / s.init * 100) <= i.kiP;
+                    }));
+                },
+                everKOList() {
+                    return this.inventory.filter(i => i.stocks?.some(s => {
+                        const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                        return max && (max / s.init * 100) >= i.koP;
                     }));
                 },
                 exitList() {
@@ -213,44 +198,28 @@
                     return this.inventory.filter(i => {
                         if (!i.koStart) return false;
                         const start = new Date(String(i.koStart).replace(/-/g, '/'));
-                        if (today < start) return false; // 必須進入觀察期
-                        // 邏輯：所有標的「全期歷史最高」皆達 KO
+                        if (today < start) return false;
                         return i.stocks?.every(s => {
-                            const hMax = this.priceMap[s.code]?.histMaxAllByDate?.[i.sn];
-                            return hMax && (hMax / s.init * 100) >= i.koP;
+                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                            return max && (max / s.init * 100) >= i.koP;
                         });
                     });
                 },
                 soonExitList() {
-                    const today = new Date();
                     return this.inventory.filter(i => {
                         if (!i.koStart) return false;
                         const start = new Date(String(i.koStart).replace(/-/g, '/'));
-                        const diffDays = (start - today) / 86400000;
+                        if (new Date() < start) return false;
                         
-                        // 計算有多少標的「全期曾觸及 KO」
-                        const reachedCount = (i.stocks || []).filter(s => {
-                            const hMax = this.priceMap[s.code]?.histMaxAllByDate?.[i.sn];
-                            return hMax && (hMax / s.init * 100) >= i.koP;
-                        }).length;
+                        const reachedKO = i.stocks.filter(s => {
+                            const max = this.priceMap[s.code]?.histMaxAfterKOStart?.[i.sn];
+                            return max && (max / s.init * 100) >= i.koP;
+                        });
 
-                        // 判斷是否剩一檔且差 3%
-                        const isOneLeftSoon = (i.stocks.length - reachedCount === 1) && (() => {
-                            const last = i.stocks.find(s => {
-                                const hMax = this.priceMap[s.code]?.histMaxAllByDate?.[i.sn];
-                                return !hMax || (hMax / s.init * 100) < i.koP;
-                            });
+                        if (i.stocks.length - reachedKO.length === 1) {
+                            const last = i.stocks.find(s => !reachedKO.includes(s));
                             const cur = this.priceMap[last.code]?.current;
-                            if (!cur) return false;
-                            return (cur / (last.init * i.koP / 100)) >= 0.97;
-                        })();
-
-                        // A. 觀察期內：剩一檔且差 3%
-                        if (diffDays <= 0) return isOneLeftSoon;
-                        
-                        // B. 觀察期前 3 天：全部已達 KO OR 剩一檔且差 3%
-                        if (diffDays > 0 && diffDays <= 3) {
-                            return (reachedCount === i.stocks.length || isOneLeftSoon);
+                            return cur && (cur / (last.init * i.koP / 100)) >= 0.97;
                         }
                         return false;
                     });
@@ -261,11 +230,11 @@
                         if(!i.expiry) return false;
                         const exp = new Date(String(i.expiry).replace(/-/g, '/'));
                         const diff = Math.ceil((exp - now) / 86400000);
-                        return diff >= 0 && diff <= 7;
+                        return diff >= 0 && diff <= 3;
                     });
                 },
                 currentAlertList() { 
-                    const m = {ki:this.kiList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList};
+                    const m = {ki:this.kiList, everKO:this.everKOList, soon:this.soonExitList, exit:this.exitList, exp:this.expiringList};
                     return m[this.alertTab] || [];
                 },
                 clientFilteredList() { 
@@ -276,25 +245,23 @@
             },
             methods: {
                 login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); this.loadCSVData(); } },
-                refreshAll() { this.fetchCurrentPrices(); this.fetchHistoryData(); },
-                formatNum(n){ return n ? Math.floor(n).toLocaleString() : '0'; },
-                
+                refreshAll() { this.fetchPrices(); this.fetchHistory(); },
                 async loadCSVData() {
                     this.isSyncing = true;
                     try {
                         const response = await fetch('data.csv?v=' + Date.now());
-                        const csvText = await response.text();
-                        Papa.parse(csvText, {
+                        const text = await response.text();
+                        Papa.parse(text, {
                             header: true, dynamicTyping: true, skipEmptyLines: true,
-                            complete: (results) => {
-                                this.inventory = results.data.map(row => {
+                            complete: (res) => {
+                                this.inventory = res.data.map(row => {
                                     const stocks = [];
                                     for(let i=1; i<=4; i++) {
                                         if(row[`s${i}_code`]) {
                                             const code = String(row[`s${i}_code`]).toUpperCase().trim();
                                             stocks.push({ code, init: row[`s${i}_init`] });
                                             if (!this.priceMap[code]) {
-                                                this.priceMap[code] = { current: row[`s${i}_init`], histMinByDate: {}, histMaxAllByDate: {} };
+                                                this.priceMap[code] = { current: 0, histMinByDate: {}, histMaxAfterKOStart: {} };
                                             }
                                         }
                                     }
@@ -305,68 +272,68 @@
                         });
                     } catch (e) { this.isSyncing = false; }
                 },
-
-                async fetchCurrentPrices() {
-                    const symbols = Object.keys(this.priceMap);
-                    if (symbols.length === 0) return;
-                    try {
-                        await Promise.all(symbols.map(async (sym) => {
+                async fetchPrices() {
+                    const syms = Object.keys(this.priceMap);
+                    await Promise.all(syms.map(async (sym) => {
+                        try {
                             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1m&range=1d`;
                             const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                            const data = await resp.json();
-                            const json = JSON.parse(data.contents);
-                            if (json.chart.result?.[0]) {
-                                const price = json.chart.result[0].meta.regularMarketPrice;
-                                if (price) this.priceMap[sym].current = price;
-                            }
-                        }));
-                    } catch (e) { }
+                            const json = await resp.json();
+                            const res = JSON.parse(json.contents).chart.result[0];
+                            this.priceMap[sym].current = res.meta.regularMarketPrice;
+                        } catch (e) {}
+                    }));
                 },
-
-                async fetchHistoryData() {
+                async fetchHistory() {
                     this.isSyncing = true;
-                    const nowSec = Math.floor(Date.now() / 1000);
+                    const now = Math.floor(Date.now() / 1000);
+                    // 為了 KI 抓取從最早下單日開始的資料
                     const taskMap = new Map();
-                    this.inventory.forEach(item => {
-                        if (!item.date) return;
-                        const startSec = Math.floor(new Date(String(item.date).replace(/-/g, '/')).getTime() / 1000);
-                        item.stocks?.forEach(s => {
-                            const key = `${s.code}_${startSec}`;
-                            if (!taskMap.has(key)) taskMap.set(key, { code: s.code, start: startSec, dateStr: item.date });
+                    this.inventory.forEach(inv => {
+                        const start = Math.floor(new Date(String(inv.date).replace(/-/g, '/')).getTime() / 1000);
+                        inv.stocks?.forEach(s => {
+                            const key = `${s.code}_${start}`;
+                            if (!taskMap.has(key)) taskMap.set(key, { sym: s.code, start, dateStr: inv.date });
                         });
                     });
 
-                    const tasks = Array.from(taskMap.values());
-                    for (let i = 0; i < tasks.length; i++) {
-                        const task = tasks[i];
+                    for (const task of taskMap.values()) {
                         try {
-                            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${task.code}?period1=${task.start}&period2=${nowSec}&interval=1d`;
+                            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${task.sym}?period1=${task.start}&period2=${now}&interval=1d`;
                             const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                            const data = await resp.json();
-                            const json = JSON.parse(data.contents);
-                            if (json.chart.result?.[0]) {
-                                const res = json.chart.result[0];
-                                const quote = res.indicators.quote[0];
-                                const lows = quote.low.filter(v => v != null);
-                                const highs = quote.high.filter(v => v != null);
-                                
-                                // KI 全期最低
-                                this.priceMap[task.code].histMinByDate[task.dateStr] = Math.min(...lows, res.meta.regularMarketPrice);
-                                
-                                // KO 全期最高 (依照合約 SN 存儲，因為不同合約可能有不同下單日)
-                                this.inventory.filter(inv => inv.date === task.dateStr).forEach(inv => {
-                                    this.priceMap[task.code].histMaxAllByDate[inv.sn] = Math.max(...highs, res.meta.regularMarketPrice);
+                            const json = await resp.json();
+                            const res = JSON.parse(json.contents).chart.result[0];
+                            const quote = res.indicators.quote[0];
+                            const timestamps = res.timestamp;
+                            
+                            // 存儲歷史最低 (下單日至今)
+                            const validLows = quote.low.filter(v => v != null);
+                            this.priceMap[task.sym].histMinByDate[task.dateStr] = Math.min(...validLows, res.meta.regularMarketPrice);
+
+                            // 針對特定合約計算 KO (觀察起始日至今)
+                            this.inventory.filter(inv => inv.date === task.dateStr).forEach(inv => {
+                                if (!inv.koStart) return;
+                                const koStartTs = Math.floor(new Date(String(inv.koStart).replace(/-/g, '/')).getTime() / 1000);
+                                const highsAfterKO = [];
+                                timestamps.forEach((ts, idx) => {
+                                    if (ts >= koStartTs && quote.high[idx] != null) highsAfterKO.push(quote.high[idx]);
                                 });
-                            }
-                        } catch (e) { }
-                        await new Promise(r => setTimeout(r, 100));
+                                if (highsAfterKO.length > 0) {
+                                    this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = Math.max(...highsAfterKO, res.meta.regularMarketPrice);
+                                } else {
+                                    // 若尚未到觀察日，以現價暫代判斷
+                                    this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = res.meta.regularMarketPrice;
+                                }
+                            });
+                        } catch (e) {}
+                        await new Promise(r => setTimeout(r, 50));
                     }
                     this.isSyncing = false;
                 }
             },
             mounted() {
                 if (sessionStorage.getItem('fcn_auth') === 'true') { this.isLoggedIn = true; this.loadCSVData(); }
-                setInterval(() => { if (this.isLoggedIn) this.fetchCurrentPrices(); }, 30000);
+                setInterval(() => { if(this.isLoggedIn) this.fetchPrices(); }, 60000);
             }
         }).mount('#app');
     </script>
