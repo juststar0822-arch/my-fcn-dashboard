@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v55.History</title>
+    <title>上新莊分行 - FCN 管理系統 v56.Corrected</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -152,7 +152,6 @@
                     if(p <= i.kiP) return 'text-danger';
                     return 'text-gray-400';
                 },
-                // 這裡的 hasBreachedKI 僅用於顯示紅字警告，也使用歷史數據
                 hasBreachedKI(i) {
                     if (!i.stocks || i.kiP <= 0) return false;
                     const dateLimit = this.parseDate(i.date);
@@ -168,24 +167,35 @@
                         return new Date() < start;
                     } catch(e) { return false; }
                 },
-                // Helper: 解析日期
                 parseDate(str) {
                     if(!str) return new Date();
                     return new Date(String(str).replace(/-/g, '/').trim());
                 },
-                // Helper: 取得某日期後的歷史最低價
                 getLowestSince(stock, startDate) {
-                    let minP = stock.current; // 預設為當前價格
+                    let minP = stock.current;
                     if (stock.history && stock.history.timestamp) {
                         const startTs = startDate.getTime() / 1000;
                         for (let j = 0; j < stock.history.timestamp.length; j++) {
                             if (stock.history.timestamp[j] >= startTs) {
                                 const low = stock.history.low[j];
-                                if (low && low < minP) minP = low;
+                                if (low !== null && low < minP) minP = low;
                             }
                         }
                     }
                     return minP;
+                },
+                getHighestSince(stock, startDate) {
+                    let maxP = stock.current;
+                    if (stock.history && stock.history.timestamp) {
+                        const startTs = startDate.getTime() / 1000;
+                        for (let j = 0; j < stock.history.timestamp.length; j++) {
+                            if (stock.history.timestamp[j] >= startTs) {
+                                const high = stock.history.high[j];
+                                if (high !== null && high > maxP) maxP = high;
+                            }
+                        }
+                    }
+                    return maxP;
                 }
             }
         };
@@ -212,22 +222,18 @@
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
                 
-                // === 歷史數據輔助函數 ===
-                
+                // === 修正後的邏輯 ===
                 kiList() { 
-                    // 觸及Ki: 下單日後到今天，標的歷史最低價曾經有低於ki價格
                     return this.inventory.filter(i => {
                         if (!i.stocks || i.kiP <= 0) return false;
                         const dateLimit = this.parseDate(i.date);
                         return i.stocks.some(s => {
                             const lowest = this.getLowestSince(s, dateLimit);
-                            // 歷史最低 <= KI價
                             return lowest > 0 && lowest <= (s.init * i.kiP / 100);
                         });
                     }); 
                 },
                 observationList() {
-                    // 即將觀察：保持原邏輯 (預測未來3天，這裡用當前價格或近期趨勢即可，不需特別查歷史高點)
                     const now = new Date();
                     return this.inventory.filter(i => {
                         try {
@@ -236,8 +242,6 @@
                             if (isNaN(start.getTime())) return false;
                             const diff = Math.ceil((start - now) / 86400000);
                             if (diff < 0 || diff > 3) return false;
-                            
-                            // 這裡檢查當前價格是否達標
                             const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                             const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
                             const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
@@ -246,11 +250,9 @@
                     });
                 },
                 partKOList() { 
-                    // 曾經達KO: 觀察日後到今天，標的歷史最高價有高於ko價格
                     return this.inventory.filter(i => {
                         if (this.checkIsLocked(i)) return false; 
                         const start = this.parseDate(i.koStart);
-                        // 任一標的曾經高於 KO
                         return i.stocks && i.stocks.some(s => {
                             const highest = this.getHighestSince(s, start);
                             return highest >= (s.init * i.koP / 100);
@@ -258,30 +260,17 @@
                     });
                 },
                 nearKOList() { 
-                    // 即將出場：觀察日後，所有標的只剩一個標的距離ko價還差3%就達ko
-                    // 註：這通常是指「當下」的狀態，所以這部分我看「當前價格」比較合理
                     return this.inventory.filter(i => {
                         if (this.checkIsLocked(i)) return false;
-                        
-                        // 我們先看已經 KO 的 (這裡用歷史高點算已經 KO 的比較嚴謹嗎？)
-                        // 不，"即將出場"通常指現在的狀態。如果歷史上已經全 KO 了，那就是已出場。
-                        // 所以這裡我們檢查：目前有幾檔 > KO ?
                         const koThresholdRatio = i.koP / 100;
-                        
-                        // 計算目前價格已過 KO 的數量
                         const passCount = (i.stocks || []).filter(s => s.current >= (s.init * koThresholdRatio)).length;
-                        
                         if (i.stocks.length - passCount !== 1) return false;
-                        
-                        // 檢查剩下的那一檔，是否差 3%
                         const failedStock = i.stocks.find(s => s.current < (s.init * koThresholdRatio));
                         if (!failedStock) return false;
-                        
                         return failedStock.current >= ((failedStock.init * koThresholdRatio) * 0.97);
                     });
                 },
                 expiringList() {
-                    // 即將到期：距離到期日還差3天
                     const now = new Date();
                     now.setHours(0,0,0,0);
                     return this.inventory.filter(i => {
@@ -291,15 +280,49 @@
                         return diff >= 0 && diff <= 3;
                     });
                 },
+                // *** 關鍵修正區：已出場邏輯 ***
                 exitList() { 
-                    // 已出場：觀察日後所有標的都曾經高過ko價。
                     return this.inventory.filter(i => {
+                        // 1. 基本鎖定期檢查
                         if (this.checkIsLocked(i)) return false;
+                        
+                        // 2. 必須要有標的跟歷史資料
+                        if (!i.stocks || i.stocks.length === 0) return false;
                         const start = this.parseDate(i.koStart);
-                        // 每一檔標的，在觀察日後，都曾經(Highest)高過 KO
-                        return i.stocks && i.stocks.length > 0 && i.stocks.every(s => {
-                             const highest = this.getHighestSince(s, start);
-                             return highest >= (s.init * i.koP / 100);
+                        const startTs = start.getTime() / 1000;
+                        
+                        // 3. 以第一檔股票的歷史日期為基準，遍歷每一天
+                        // 只有當「同一天」所有股票都高於 KO 價，才算出場
+                        const baseStock = i.stocks[0];
+                        if (!baseStock.history || !baseStock.history.timestamp) return false;
+
+                        // 檢查是否曾經有「同一天」全部達標
+                        return baseStock.history.timestamp.some((ts, idx) => {
+                            // 必須在觀察日之後
+                            if (ts < startTs) return false;
+
+                            // 檢查這一天，是否「所有」股票都 >= KO
+                            return i.stocks.every(s => {
+                                // 取得該股票在當天(ts)的價格
+                                let price = null;
+                                if (s === baseStock) {
+                                    price = s.history.high[idx]; // 使用 High 比較寬鬆，符合"曾經"定義
+                                } else {
+                                    // 嘗試找同一天的數據
+                                    if (!s.history || !s.history.timestamp) return false;
+                                    // 簡單優化：假設數據是對齊的，先看 idx
+                                    if (s.history.timestamp[idx] === ts) {
+                                        price = s.history.high[idx];
+                                    } else {
+                                        // 搜尋該日期的 index
+                                        const foundIdx = s.history.timestamp.indexOf(ts);
+                                        if (foundIdx !== -1) price = s.history.high[foundIdx];
+                                    }
+                                }
+                                
+                                // 判斷價格是否高於 KO
+                                return price !== null && price >= (s.init * i.koP / 100);
+                            });
                         });
                     });
                 },
@@ -316,7 +339,6 @@
             methods: {
                 parseDate(str) {
                     if(!str) return new Date();
-                    // 支援 2023-01-01 或 2023/01/01
                     return new Date(String(str).replace(/-/g, '/').trim());
                 },
                 checkIsLocked(i) {
@@ -326,14 +348,12 @@
                     } catch(e) { return false; }
                 },
                 
-                // === 歷史價格查詢 ===
                 getLowestSince(stock, startDate) {
                     let minP = stock.current;
                     if (stock.history && stock.history.timestamp) {
                         const startTs = startDate.getTime() / 1000;
                         for (let j = 0; j < stock.history.timestamp.length; j++) {
                             if (stock.history.timestamp[j] >= startTs) {
-                                // 檢查 Low
                                 const low = stock.history.low[j];
                                 if (low !== null && low < minP) minP = low;
                             }
@@ -347,7 +367,6 @@
                         const startTs = startDate.getTime() / 1000;
                         for (let j = 0; j < stock.history.timestamp.length; j++) {
                             if (stock.history.timestamp[j] >= startTs) {
-                                // 檢查 High
                                 const high = stock.history.high[j];
                                 if (high !== null && high > maxP) maxP = high;
                             }
@@ -389,12 +408,11 @@
                             complete: (results) => {
                                 this.inventory = results.data.map(row => {
                                     const stocks = [];
-                                    // 每個 stock 增加 history 屬性
                                     for(let i=1; i<=4; i++) if(row[`s${i}_code`]) stocks.push({
                                         code: String(row[`s${i}_code`]).trim(), 
                                         init: row[`s${i}_init`], 
                                         current: row[`s${i}_init`],
-                                        history: null // 預留欄位
+                                        history: null 
                                     });
                                     return { 
                                         ...row, 
@@ -415,30 +433,24 @@
                     try {
                         await Promise.all(symbols.map(async (symbol) => {
                             try {
-                                // 改成抓 2 年 (2y) 的日線 (1d)
                                 const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=2y`;
                                 const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
                                 const data = await resp.json();
                                 const json = JSON.parse(data.contents);
                                 const result = json.chart.result[0];
-                                
-                                // 1. 更新當前價格 (for Display)
                                 const currentPrice = result.meta.regularMarketPrice;
-                                
-                                // 2. 儲存歷史數據 (for Logic)
                                 const historyData = {
                                     timestamp: result.timestamp,
                                     high: result.indicators.quote[0].high,
                                     low: result.indicators.quote[0].low
                                 };
-
                                 if (currentPrice) {
                                     this.inventory.forEach(item => {
                                         if(item.stocks) {
                                             item.stocks.forEach(stock => {
                                                 if (stock.code === symbol) {
                                                     stock.current = currentPrice;
-                                                    stock.history = historyData; // 綁定歷史
+                                                    stock.history = historyData;
                                                 }
                                             });
                                         }
