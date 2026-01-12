@@ -3,45 +3,49 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>榮譽榜生成器</title>
-    <!-- 引入 html2canvas 用於截圖 -->
+    <title>超級業務榮譽榜生成器</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
-            --gold: #D4AF37;
-            --gold-light: #F9F1D8;
-            --red: #C0392B;
-            --dark: #2C3E50;
+            --gold-dark: #B78628;
+            --gold: #FCC201;
+            --red: #D93025;
+            --dark-red: #8B0000;
+            --blue: #1A237E;
+            --paper: #FFFDF5;
         }
 
         body {
             font-family: "Microsoft JhengHei", "Heiti TC", sans-serif;
-            background-color: #f0f2f5;
+            background-color: #333;
             display: flex;
             flex-direction: column;
             align-items: center;
             padding: 20px;
+            color: #333;
         }
 
-        /* 輸入區塊樣式 */
+        /* 輸入區塊 */
         .controls {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
             width: 100%;
             max-width: 800px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1fr 1fr; /* 三欄 */
             gap: 15px;
+            border: 5px solid var(--gold);
         }
 
         .controls h2 {
             grid-column: 1 / -1;
             margin-top: 0;
-            color: var(--dark);
-            border-bottom: 2px solid var(--gold);
+            color: var(--blue);
+            text-align: center;
+            border-bottom: 2px dashed #ccc;
             padding-bottom: 10px;
         }
 
@@ -50,228 +54,312 @@
             flex-direction: column;
         }
 
+        /* 讓某些欄位跨欄 */
+        .span-3 { grid-column: span 3; }
+        .span-2 { grid-column: span 2; }
+
         label {
             font-weight: bold;
+            font-size: 14px;
             margin-bottom: 5px;
             color: #555;
         }
 
         input, select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 10px;
+            border: 2px solid #eee;
+            border-radius: 8px;
             font-size: 16px;
+            background: #f9f9f9;
         }
-
-        .full-width {
-            grid-column: 1 / -1;
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            background: white;
         }
 
         button {
             grid-column: 1 / -1;
-            background-color: var(--gold);
-            color: white;
-            border: none;
-            padding: 12px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 5px;
+            background: linear-gradient(to bottom, #ffeb3b, #fbc02d);
+            color: #8B0000;
+            border: 2px solid #b78628;
+            padding: 15px;
+            font-size: 20px;
+            font-weight: 900;
+            border-radius: 50px;
             cursor: pointer;
-            transition: background 0.3s;
+            box-shadow: 0 4px 0 #b78628;
+            transition: all 0.1s;
             margin-top: 10px;
         }
 
-        button:hover {
-            background-color: #b39020;
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
         }
 
-        /* 獎狀預覽區塊 */
+        /* 預覽區 */
         #canvas-container {
             margin-top: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            padding: 10px;
+            background: #555;
+            border-radius: 10px;
         }
 
-        /* 獎狀設計 CSS */
+        /* === 獎狀設計 === */
         .certificate {
             width: 800px;
             height: 500px;
-            background: white;
             position: relative;
             overflow: hidden;
-            border: 15px solid var(--gold);
             box-sizing: border-box;
+            background-color: #FFF8E1;
+            /* 放射狀背景 */
+            background-image: repeating-conic-gradient(
+                from 0deg, 
+                #FFF8E1 0deg 10deg, 
+                #FFECB3 10deg 20deg
+            );
+            border: 10px solid var(--red);
+            box-shadow: inset 0 0 0 5px white, inset 0 0 0 10px var(--gold);
             display: flex;
-            background: radial-gradient(circle, #fff 60%, #fdfbf0 100%);
         }
 
-        /* 裝飾性角落花紋 */
-        .corner {
+        /* 裝飾：彩帶與碎花 */
+        .confetti {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            border: 2px solid var(--gold);
-        }
-        .top-left { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-        .top-right { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-        .bottom-left { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-        .bottom-right { bottom: 10px; right: 10px; border-left: none; border-top: none; }
-
-        /* 左側圖片區 */
-        .left-section {
-            width: 40%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle, var(--red) 10%, transparent 10%), 
+                radial-gradient(circle, var(--blue) 10%, transparent 10%),
+                radial-gradient(circle, var(--gold) 10%, transparent 10%);
+            background-size: 50px 50px;
+            background-position: 0 0, 25px 25px, 10px 30px;
+            opacity: 0.1;
+            z-index: 0;
         }
 
-        /* 獎盃 SVG */
-        .trophy-svg {
-            width: 220px;
-            height: 220px;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
-        }
-
-        /* 賀字印章 */
-        .stamp {
+        /* 左上角日期 */
+        .date-badge {
             position: absolute;
             top: 20px;
             left: 20px;
-            font-size: 80px;
-            font-family: "KaiTi", "BiauKai", serif;
-            color: rgba(192, 57, 43, 0.8);
-            border: 5px solid rgba(192, 57, 43, 0.8);
+            background: var(--blue);
+            color: white;
+            padding: 8px 20px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+            z-index: 10;
+            border: 2px solid white;
+        }
+
+        /* 賀字 */
+        .big-stamp {
+            position: absolute;
+            top: 0px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 100px;
+            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="80%" font-size="80" fill="%23D93025" font-family="serif" text-anchor="middle" font-weight="bold" stroke="white" stroke-width="2">賀</text></svg>') no-repeat center;
+            z-index: 5;
+            opacity: 0.2; /* 當作背景浮水印 */
+            display: none; /* 先隱藏，改用印章 */
+        }
+        
+        .medal-icon {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            width: 80px;
+            height: 80px;
+            background: #FFD700;
             border-radius: 50%;
-            width: 120px;
-            height: 120px;
+            border: 4px solid #B78628;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: #B78628;
+            font-weight: bold;
+            font-size: 14px;
+            z-index: 20;
+            text-align: center;
+            line-height: 1.2;
+        }
+        .medal-icon::after {
+            content: "TOP\A SALES";
+            white-space: pre;
+        }
+
+        /* 左側圖片區 */
+        .left-panel {
+            flex: 0 0 38%;
+            position: relative;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end;
+            z-index: 2;
+        }
+
+        .trophy-img {
+            width: 280px;
+            height: auto;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+            margin-bottom: 40px;
+            transform: rotate(-5deg);
+        }
+
+        /* 霸氣的賀字 */
+        .congrats-text {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            font-size: 100px;
+            font-family: "KaiTi", "BiauKai", serif;
+            color: var(--red);
+            font-weight: 900;
+            line-height: 1;
+            text-shadow: 3px 3px 0 white, 5px 5px 0 rgba(0,0,0,0.1);
             transform: rotate(-15deg);
             z-index: 10;
+            border: 5px solid var(--red);
+            border-radius: 50%;
+            width: 140px;
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: rgba(255, 255, 255, 0.8);
         }
 
-        /* 日期 */
-        .date-tag {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: var(--gold);
-            color: white;
-            padding: 5px 15px;
-            font-weight: bold;
-            font-size: 20px;
-            border-radius: 0 0 10px 0;
-            z-index: 20;
-        }
-
         /* 右側文字區 */
-        .right-section {
-            width: 60%;
-            padding: 30px 40px 30px 10px;
+        .right-panel {
+            flex: 1;
+            padding: 40px 40px 20px 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            z-index: 2;
         }
 
-        .name-title-row {
+        .name-row {
+            margin-bottom: 25px;
+            border-bottom: 3px solid var(--red);
+            padding-bottom: 10px;
             display: flex;
             align-items: baseline;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--gold-light);
-            padding-bottom: 10px;
         }
 
         .agent-name {
-            font-size: 64px;
+            font-size: 60px;
             font-weight: 900;
-            color: var(--dark);
+            color: #333;
             margin-right: 15px;
             letter-spacing: 2px;
+            text-shadow: 2px 2px 0 white;
         }
 
-        .agent-title {
-            font-size: 24px;
-            color: #666;
-            font-weight: normal;
-        }
-
-        .product-tag {
+        .product-badge {
             display: inline-block;
-            border: 2px solid var(--dark);
-            color: var(--dark);
-            font-size: 40px;
+            background: var(--blue);
+            color: white;
+            padding: 5px 15px;
+            font-size: 28px;
             font-weight: bold;
-            padding: 5px 20px;
+            border-radius: 5px;
             margin-bottom: 15px;
+            width: fit-content;
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+
+        /* 銷售金額大標 */
+        .sales-amount-box {
+            background: linear-gradient(90deg, #d93025, #c0392b);
+            color: white;
+            padding: 10px 20px;
+            transform: skewX(-10deg);
+            margin-left: 10px;
+            margin-bottom: 20px;
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.2);
+            border-left: 5px solid var(--gold);
+            display: inline-block;
             width: fit-content;
         }
 
-        .amount-row {
-            margin-bottom: 15px;
+        .sales-amount-box span {
+            display: block;
+            transform: skewX(10deg); /* 轉正文字 */
+        }
+        
+        .amount-title { font-size: 16px; opacity: 0.9; }
+        .amount-number { font-size: 48px; font-weight: 900; line-height: 1.1; font-family: Impact, sans-serif; }
+
+        /* 手收與獎金區 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
         }
 
-        .amount-value {
-            font-size: 60px;
-            color: var(--red);
-            font-weight: 900;
-            font-family: Arial, sans-serif;
+        .stat-item {
+            display: flex;
+            flex-direction: column;
         }
 
-        .currency {
-            font-size: 24px;
-            color: var(--red);
+        .stat-label {
+            font-size: 16px;
+            color: #666;
             font-weight: bold;
         }
 
-        .details-box {
-            background: var(--gold-light);
-            padding: 15px;
-            border-radius: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
+        .stat-value {
+            font-size: 24px;
+            color: #333;
+            font-weight: bold;
         }
 
-        .detail-item {
-            font-size: 20px;
-            color: #555;
-            display: flex;
-            justify-content: space-between;
-        }
-        
-        .detail-item strong {
-            color: var(--dark);
+        .bonus-value {
+            color: var(--red);
+            font-size: 32px;
+            font-weight: 900;
         }
 
     </style>
 </head>
 <body>
 
-    <!-- 控制面板 -->
     <div class="controls">
-        <h2>🏆 業績榮譽榜生成器</h2>
+        <h2>🔥 業績戰報生成器</h2>
         
         <div class="form-group">
-            <label>銷售日期 (自動轉換民國年)</label>
-            <input type="date" id="inputDate" value="">
+            <label>銷售日期</label>
+            <input type="date" id="inputDate">
         </div>
 
         <div class="form-group">
-            <label>理專/業代姓名</label>
+            <label>業代姓名</label>
             <select id="inputName">
-                <option value="黃思婷">黃思婷</option>
-                <option value="蕭玉春">蕭玉春</option>
-                <option value="林小明">林小明</option>
-                <option value="陳大文">陳大文</option>
+                <option value="吳坤達">吳坤達</option>
+                <option value="陳雅鈴">陳雅鈴</option>
+                <option value="自行輸入">自行輸入...</option>
             </select>
         </div>
-
-        <div class="form-group">
-            <label>職稱</label>
-            <input type="text" id="inputTitle" value="業務協理">
+        
+        <!-- 如果選自行輸入，可以用這個 -->
+        <div class="form-group" id="customNameGroup" style="display:none;">
+            <label>輸入姓名</label>
+            <input type="text" id="customNameInput" placeholder="輸入名字">
         </div>
 
         <div class="form-group">
@@ -281,85 +369,109 @@
                 <option value="海外債">海外債券</option>
                 <option value="基金">基金</option>
                 <option value="保險">保險</option>
+                <option value="ETF">ETF</option>
             </select>
         </div>
 
         <div class="form-group">
-            <label>銷售金額 (美元/原幣)</label>
-            <input type="number" id="inputAmount" placeholder="例如: 20000">
+            <label>幣別</label>
+            <select id="inputCurrency">
+                <option value="USD">美元 (USD)</option>
+                <option value="JPY">日圓 (JPY)</option>
+                <option value="TWD">台幣 (TWD)</option>
+            </select>
+        </div>
+
+        <div class="form-group span-2">
+            <label>銷售金額 (原幣)</label>
+            <input type="number" id="inputAmount" placeholder="20000" value="20000">
         </div>
 
         <div class="form-group">
-            <label>手續費收入 (手收)</label>
-            <input type="number" id="inputRevenue" placeholder="例如: 15169">
+            <label>手收 (NTD)</label>
+            <input type="number" id="inputRevenue" placeholder="15169" value="15000">
         </div>
 
         <div class="form-group">
-            <label>獎金計算比率 (%)</label>
-            <input type="number" id="inputRate" value="25" placeholder="25">
+            <label>獎金計算 (%)</label>
+            <input type="number" id="inputRate" value="25">
         </div>
 
         <div class="form-group">
-            <label>計算結果 (預覽)</label>
-            <div style="padding: 8px; background: #eee; border-radius: 4px;">
-                獎金: <span id="previewBonus" style="color:red; font-weight:bold;">0</span> 元
+            <label>獎金預覽</label>
+            <div style="padding:10px; background:#eee; font-weight:bold; color:red;">
+                $ <span id="previewBonus">0</span>
             </div>
         </div>
 
-        <button onclick="generateImage()">下載獎狀圖片 (PNG)</button>
+        <button onclick="generateImage()">✨ 生成並下載精美獎狀</button>
     </div>
 
-    <!-- 獎狀顯示區域 (隱藏的DOM，用於生成圖片) -->
     <div id="canvas-container">
         <div class="certificate" id="certificate">
-            <!-- 裝飾角 -->
-            <div class="corner top-left"></div>
-            <div class="corner top-right"></div>
-            <div class="corner bottom-left"></div>
-            <div class="corner bottom-right"></div>
+            <!-- 背景裝飾 -->
+            <div class="confetti"></div>
+            <div class="medal-icon"></div>
 
-            <!-- 日期標籤 -->
-            <div class="date-tag" id="dispDate">115/1/12</div>
+            <!-- 左上日期 -->
+            <div class="date-badge" id="dispDate">115/1/13</div>
 
-            <!-- 左側 -->
-            <div class="left-section">
-                <!-- 賀 印章 -->
-                <div class="stamp">賀</div>
-                
-                <!-- 獎盃 SVG (內嵌代碼以確保截圖正常) -->
-                <svg class="trophy-svg" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+            <!-- 左側獎盃 -->
+            <div class="left-panel">
+                <div class="congrats-text">賀</div>
+                <!-- 使用更立體的獎盃 SVG -->
+                <svg class="trophy-img" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#F2C94C;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#F2994A;stop-opacity:1" />
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#FFD700;stop-opacity:1" />
+                            <stop offset="50%" style="stop-color:#FDB931;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#B78628;stop-opacity:1" />
                         </linearGradient>
+                        <filter id="dropShadow">
+                            <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                            <feOffset dx="2" dy="2" result="offsetblur" />
+                            <feComponentTransfer>
+                                <feFuncA type="linear" slope="0.5"/>
+                            </feComponentTransfer>
+                            <feMerge> 
+                                <feMergeNode/>
+                                <feMergeNode in="SourceGraphic"/> 
+                            </feMerge>
+                        </filter>
                     </defs>
-                    <path fill="url(#goldGrad)" d="M416 96H352V64C352 28.7 323.3 0 288 0H224C188.7 0 160 28.7 160 64V96H96C43 96 0 139 0 192C0 239.5 34.5 279 80 286.6C85.5 353.9 142.1 406.4 210.7 414.7C203.4 429.3 199.3 445.8 199.3 463.1L200 480H128C110.3 480 96 494.3 96 512H416C416 494.3 401.7 480 384 480H312L312.7 463.1C312.7 445.8 308.6 429.3 301.3 414.7C369.9 406.4 426.5 353.9 432 286.6C477.5 279 512 239.5 512 192C512 139 469 96 416 96zM96 240C69.5 240 48 218.5 48 192C48 165.5 69.5 144 96 144H160V240H96zM368 464H144V448C144 421.5 165.5 400 192 400H320C346.5 400 368 421.5 368 448V464zM352 240H288V64H224V240H160V288C160 323.3 188.7 352 224 352H288C323.3 352 352 323.3 352 288V240zM416 240H352V144H416C442.5 144 464 165.5 464 192C464 218.5 442.5 240 416 240z"/>
+                    <path fill="url(#grad1)" stroke="#8B4513" stroke-width="5" d="M384 96H352V64C352 28.65 323.3 0 288 0H224C188.7 0 160 28.65 160 64V96H128C57.31 96 0 153.3 0 224C0 274.9 31.42 318.5 76.25 339.7C86.73 398.3 138.1 442.8 200.5 447.2C194.5 458.7 191.2 471.7 192.1 485.4L192.3 512H319.7L319.9 485.4C320.8 471.7 317.5 458.7 311.5 447.2C373.9 442.8 425.3 398.3 435.8 339.7C480.6 318.5 512 274.9 512 224C512 153.3 454.7 96 384 96zM128 288C92.65 288 64 259.3 64 224C64 188.7 92.65 160 128 160V288zM256 384C211.8 384 176 348.2 176 304V64H336V304C336 348.2 300.2 384 256 384zM384 288V160C419.3 160 448 188.7 448 224C448 259.3 419.3 288 384 288z"/>
+                    <path fill="#FFF" opacity="0.4" d="M224 80H256V350H224z" />
                 </svg>
             </div>
 
-            <!-- 右側 -->
-            <div class="right-section">
-                <div class="name-title-row">
-                    <div class="agent-name" id="dispName">黃思婷</div>
-                    <div class="agent-title" id="dispTitle">業務協理</div>
+            <!-- 右側資訊 -->
+            <div class="right-panel">
+                <div class="name-row">
+                    <div class="agent-name" id="dispName">吳坤達</div>
+                    <div style="font-size: 24px; color:#555; align-self:flex-end; padding-bottom:5px;">榮譽榜</div>
                 </div>
 
-                <div class="product-tag" id="dispProduct">FCN</div>
+                <div class="product-badge" id="dispProduct">FCN</div>
 
-                <div class="amount-row">
-                    <span class="amount-value" id="dispAmount">20,000</span>
-                    <span class="currency">美元</span>
+                <div class="sales-amount-box">
+                    <span>
+                        <div class="amount-title">成交金額 Amount</div>
+                        <div class="amount-number">
+                            <span id="dispCurrencySymbol" style="font-size:30px;">$</span>
+                            <span id="dispAmount">20,000</span>
+                            <span id="dispCurrencyText" style="font-size:20px;">美元</span>
+                        </div>
+                    </span>
                 </div>
 
-                <div class="details-box">
-                    <div class="detail-item">
-                        <span>手收 Contribution</span>
-                        <strong>$<span id="dispRevenue">0</span></strong>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="stat-label">手續費收入</span>
+                        <span class="stat-value">NT$ <span id="dispRevenue">15,000</span></span>
                     </div>
-                    <div class="detail-item" style="border-top: 1px dashed #ccc; padding-top:5px; margin-top:5px;">
-                        <span style="color: var(--red);">獎金 Bonus</span>
-                        <strong style="color: var(--red); font-size: 24px;">$<span id="dispBonus">0</span></strong>
+                    <div class="stat-item">
+                        <span class="stat-label">預估獎金</span>
+                        <span class="bonus-value">$<span id="dispBonus">3,750</span></span>
                     </div>
                 </div>
             </div>
@@ -367,71 +479,99 @@
     </div>
 
     <script>
-        // 初始化日期為今天
         document.getElementById('inputDate').valueAsDate = new Date();
 
-        // 監聽所有輸入框的變化
         const inputs = document.querySelectorAll('input, select');
         inputs.forEach(input => {
             input.addEventListener('input', updateCard);
+        });
+
+        // 監聽名字選擇，如果是自行輸入則顯示輸入框
+        document.getElementById('inputName').addEventListener('change', function() {
+            const customGroup = document.getElementById('customNameGroup');
+            if (this.value === '自行輸入') {
+                customGroup.style.display = 'flex';
+            } else {
+                customGroup.style.display = 'none';
+            }
+            updateCard();
         });
 
         function formatMoney(num) {
             return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
+        const currencyData = {
+            'USD': { symbol: '$', text: '美元' },
+            'JPY': { symbol: '¥', text: '日圓' },
+            'TWD': { symbol: 'NT$', text: '台幣' }
+        };
+
         function updateCard() {
-            // 取得輸入值
             const dateVal = new Date(document.getElementById('inputDate').value);
-            const name = document.getElementById('inputName').value;
-            const title = document.getElementById('inputTitle').value;
+            
+            // 名字處理
+            let name = document.getElementById('inputName').value;
+            if (name === '自行輸入') {
+                name = document.getElementById('customNameInput').value || '姓名';
+            }
+
             const product = document.getElementById('inputProduct').value;
+            const currency = document.getElementById('inputCurrency').value;
             const amount = parseFloat(document.getElementById('inputAmount').value) || 0;
             const revenue = parseFloat(document.getElementById('inputRevenue').value) || 0;
             const rate = parseFloat(document.getElementById('inputRate').value) || 0;
 
-            // 計算獎金 (手收 * 百分比)
             const bonus = Math.round(revenue * (rate / 100));
 
-            // 更新預覽文字
+            // 更新介面
             document.getElementById('previewBonus').textContent = formatMoney(bonus);
 
-            // 更新獎狀內容
-            
-            // 處理民國年
+            // 更新獎狀
             const rocYear = dateVal.getFullYear() - 1911;
             const rocDateStr = `${rocYear}/${dateVal.getMonth() + 1}/${dateVal.getDate()}`;
             document.getElementById('dispDate').textContent = rocDateStr;
 
             document.getElementById('dispName').textContent = name;
-            document.getElementById('dispTitle').textContent = title;
+            
+            // 字體大小自動調整 (如果名字太長)
+            if(name.length > 3) {
+                document.getElementById('dispName').style.fontSize = "45px";
+            } else {
+                document.getElementById('dispName').style.fontSize = "60px";
+            }
+
             document.getElementById('dispProduct').textContent = product;
+            
+            // 幣別處理
+            document.getElementById('dispCurrencySymbol').textContent = currencyData[currency].symbol;
+            document.getElementById('dispCurrencyText').textContent = currencyData[currency].text;
+
             document.getElementById('dispAmount').textContent = formatMoney(amount);
             document.getElementById('dispRevenue').textContent = formatMoney(revenue);
             document.getElementById('dispBonus').textContent = formatMoney(bonus);
         }
 
-        // 截圖下載功能
         function generateImage() {
             const element = document.getElementById("certificate");
             
-            // 使用 html2canvas
+            // 暫時移除陰影以防截圖偏移，並提高解析度
             html2canvas(element, {
-                scale: 2, // 提高解析度
-                backgroundColor: null
+                scale: 3, 
+                backgroundColor: null,
+                useCORS: true
             }).then(canvas => {
-                // 建立下載連結
                 const link = document.createElement("a");
-                const rocDate = document.getElementById('dispDate').textContent.replace(/\//g, "");
                 const name = document.getElementById('dispName').textContent;
+                const product = document.getElementById('dispProduct').textContent;
+                const date = document.getElementById('dispDate').textContent.replace(/\//g, "");
                 
-                link.download = `${rocDate}_${name}_榮譽榜.png`;
+                link.download = `${date}_${name}_${product}_戰報.png`;
                 link.href = canvas.toDataURL("image/png");
                 link.click();
             });
         }
 
-        // 初始化執行一次
         updateCard();
     </script>
 </body>
