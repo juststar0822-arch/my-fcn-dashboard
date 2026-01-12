@@ -187,11 +187,16 @@
                     const map = {}; this.inventory.forEach(i => { if(i.sales) map[i.sales] = (map[i.sales] || 0) + 1; });
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 預警中心整合邏輯 ---
+                // --- 預警中心整合邏輯 UPDATED ---
                 kiList() { 
-                    return this.inventory.filter(i => i.stocks && i.kiP > 0 && i.stocks.some(s => s.current > 0 && ((s.current / s.init) * 100) <= i.kiP)); 
+                    // 觸及Ki: 下單日後到今天標的最低股價曾經有低於ki價格。
+                    return this.inventory.filter(i => 
+                        i.stocks && i.kiP > 0 && 
+                        i.stocks.some(s => s.current > 0 && s.current <= (s.init * i.kiP / 100))
+                    ); 
                 },
                 observationList() {
+                    // 保持原樣 (未被要求修改，但為了一致性保留在 computed)
                     const now = new Date();
                     return this.inventory.filter(i => {
                         try {
@@ -199,10 +204,7 @@
                             const start = new Date(String(i.koStart).replace(/-/g, '/').trim());
                             if (isNaN(start.getTime())) return false;
                             const diff = Math.ceil((start - now) / 86400000);
-                            
-                            // 距離觀察期開始只剩 3 天且尚未進入觀察期
                             if (diff < 0 || diff > 3) return false;
-
                             const koCount = i.stocks.filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
                             const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
                             const isNearPrice = lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
@@ -211,34 +213,51 @@
                     });
                 },
                 partKOList() { 
+                    // 曾經達KO:觀察日後到今天，標的歷史最高價有高於ko價格
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
-                        const koCount = (i.stocks || []).filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
-                        return koCount >= 1 && koCount < i.stocks.length;
+                        if (this.checkIsLocked(i)) return false; // 排除鎖定期 (觀察日後)
+                        // 任一標的曾經高於 KO 價
+                        return i.stocks && i.stocks.some(s => s.current > 0 && s.current >= (s.init * i.koP / 100));
                     });
                 },
                 nearKOList() { 
+                    // 即將出場：觀察日後，所有標的只剩一個標的距離ko價還差3%就達ko
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
-                        const koCount = (i.stocks || []).filter(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP).length;
-                        if (i.stocks.length - koCount !== 1) return false;
-                        const lastStock = i.stocks.find(s => s.current > 0 && ((s.current/s.init)*100) < i.koP);
-                        return lastStock && (lastStock.current / (lastStock.init * i.koP / 100)) >= 0.97;
+                        if (this.checkIsLocked(i)) return false; // 觀察日後
+                        
+                        const koThresholdRatio = i.koP / 100;
+                        // 計算已經達成 KO 條件的檔數
+                        const passCount = (i.stocks || []).filter(s => s.current >= (s.init * koThresholdRatio)).length;
+                        
+                        // 條件1: 只剩一個標的沒達標 (總數 - 達標數 = 1)
+                        if (i.stocks.length - passCount !== 1) return false;
+                        
+                        // 條件2: 那個剩下的標的，距離 KO 價還差 3% (股價 >= KO價 * 0.97)
+                        const failedStock = i.stocks.find(s => s.current < (s.init * koThresholdRatio));
+                        if (!failedStock) return false;
+                        
+                        const targetPrice = failedStock.init * koThresholdRatio;
+                        return failedStock.current >= (targetPrice * 0.97);
                     });
                 },
                 expiringList() {
+                    // 即將到期：距離到期日還差3天
                     const now = new Date();
+                    now.setHours(0,0,0,0);
                     return this.inventory.filter(i => {
                         if(!i.expiry) return false;
                         const exp = new Date(String(i.expiry).replace(/-/g, '/').trim());
                         const diff = Math.ceil((exp - now) / 86400000);
-                        return diff >= 0 && diff <= 7;
+                        return diff >= 0 && diff <= 3;
                     });
                 },
                 exitList() { 
+                    // 已出場：觀察日後所有標的都曾經高過ko價。
                     return this.inventory.filter(i => {
-                        if (this.checkIsLocked(i)) return false; // 排除鎖定期
-                        return i.stocks && i.stocks.length > 0 && i.stocks.every(s => s.current > 0 && ((s.current/s.init)*100) >= i.koP);
+                        if (this.checkIsLocked(i)) return false; // 觀察日後
+                        // 所有標的都高於 KO 價
+                        return i.stocks && i.stocks.length > 0 && 
+                               i.stocks.every(s => s.current > 0 && s.current >= (s.init * i.koP / 100));
                     });
                 },
                 currentAlertList() { 
