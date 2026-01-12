@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>上新莊分行 - FCN 旗艦管理系統 v24</title>
+    <title>上新莊分行 - FCN 旗艦管理系統 v25</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -32,10 +32,10 @@
         <!-- 登入介面 -->
         <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[1000] flex items-center justify-center p-6 text-slate-800">
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl"></i></div>
+                <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-xl"><i class="fa-solid fa-lock text-2xl text-white"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
                 <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono text-slate-800">
-                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg text-white">登入</button>
+                <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg shadow-lg">登入</button>
             </div>
         </div>
 
@@ -50,10 +50,9 @@
                 <div class="ml-auto flex items-center pr-3"><i @click="loadCSVData" class="fa-solid fa-rotate text-gray-300 cursor-pointer" :class="{'animate-spin': isSyncing}"></i></div>
             </div>
 
-            <!-- 時間顯示 -->
             <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
                 <span>Data: data.csv</span>
-                <span v-if="lastUpdated">最後同步: {{ lastUpdated }}</span>
+                <span v-if="lastUpdated">最後更新: {{ lastUpdated }}</span>
             </div>
 
             <!-- 管理員介面 -->
@@ -65,14 +64,14 @@
                 </div>
             </div>
 
-            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-slate-800">
+            <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-slate-800 text-center">
                 <div class="fcn-card">
                     <div class="flex justify-between items-center mb-6">
                         <h2 class="text-xl font-black italic">系統資料同步 (CSV)</h2>
                         <button @click="view = 'branch'"><i class="fa-solid fa-xmark text-xl text-gray-300"></i></button>
                     </div>
-                    <div class="space-y-6 text-slate-800">
-                        <div class="bg-blue-50 p-4 rounded-2xl">
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 p-4 rounded-2xl text-left">
                             <label class="block text-[10px] font-black text-blue-400 mb-1 uppercase italic">GitHub Token</label>
                             <input v-model="githubToken" type="password" class="w-full bg-transparent border-b border-blue-200 p-2 text-sm outline-none font-mono text-blue-800">
                         </div>
@@ -89,7 +88,7 @@
                 </div>
             </div>
 
-            <!-- 預警中心 (修復重複分類邏輯) -->
+            <!-- 預警中心 (含保證期判斷) -->
             <div v-if="view === 'alerts'" class="space-y-4 fade-in">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-hidden text-slate-800">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
@@ -98,20 +97,20 @@
                     <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
                 </div>
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.id"></client-card>
-                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic">目前無此類案件</div>
+                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic">目前無此類案件 (或尚未過鎖定期)</div>
             </div>
 
-            <!-- 其他視圖 (資產管理, 客戶, 業務員) -->
+            <!-- 1. 資產管理 -->
             <div v-if="view === 'branch'" class="space-y-4 fade-in">
-                <h2 class="text-xl font-black px-2 italic uppercase">Branch Summary</h2>
-                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                    <div class="flex justify-between items-start mb-4"><p class="text-xs font-bold opacity-60 uppercase">{{ curr }} 庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black text-white">{{ curr==='JPY'?countJPY:countUSD }} 筆</span></div>
-                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50 text-white">萬</span></div>
+                <h2 class="text-xl font-black px-2 italic uppercase text-slate-800">Branch Summary</h2>
+                <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600 text-white'">
+                    <div class="flex justify-between items-start mb-4 text-white"><p class="text-xs font-bold opacity-60 uppercase">庫存規模</p><span class="bg-black/20 px-2 py-1 rounded text-[10px] font-black">{{ curr==='JPY'?countJPY:countUSD }} 筆</span></div>
+                    <div class="text-5xl font-black italic font-mono tracking-tighter text-white">{{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} <span class="text-lg font-normal opacity-50">萬</span></div>
                 </div>
             </div>
 
             <div v-if="view === 'client'" class="space-y-4 fade-in text-slate-800">
-                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none pl-6 text-slate-800">
+                <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或案號" class="w-full p-4 rounded-3xl bg-white border-none shadow-sm font-bold outline-none text-slate-800 pl-6">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.id"></client-card>
             </div>
 
@@ -132,7 +131,7 @@
             props: ['item'],
             template: `
                 <div class="fcn-card fade-in text-slate-800 shadow-sm border border-gray-100">
-                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1 text-[8px]"></i>保證領息鎖定期</span></div>
+                    <div v-if="isLocked(item)" class="absolute right-6 top-4"><span class="lock-badge"><i class="fa-solid fa-lock mr-1"></i>保證領息鎖定期</span></div>
                     <div class="flex justify-between items-start mb-6">
                         <div>
                             <h3 class="text-3xl font-black text-gray-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
@@ -156,7 +155,7 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500">
+                    <div class="grid grid-cols-2 gap-4 border-t border-gray-100 pt-5 mb-4 text-[11px] font-bold text-gray-500 text-left">
                         <div class="space-y-1.5">
                             <p>庫存金額: <span class="text-gray-900 font-black italic">{{ (item.amount === 0 || !item.amount) ? '交割中' : formatNum(item.amount) + ' 萬' }}</span></p>
                             <p>到期日: <span class="text-blue-500 italic font-black text-sm">{{ item.expiry }}</span></p>
@@ -171,7 +170,7 @@
                         <span>KO: <span class="text-gray-600">{{ item.koP }}%</span></span>
                         <span>PUT: <span class="text-blue-400">{{ item.strikeP }}%</span></span>
                         <span :class="{'text-danger underline': hasBreachedKI(item)}">
-                            KI: <span :class="hasBreachedKI(item) ? 'text-danger' : 'text-gray-600'">{{ item.kiP > 0 ? item.kiP + '%' : 'NONE' }}</span>
+                            KI: <span :class="hasBreachedKI(item) ? 'text-danger' : 'text-gray-600 text-slate-800'">{{ item.kiP > 0 ? item.kiP + '%' : 'NONE' }}</span>
                         </span>
                         <span>KO Start: <span class="text-gray-600">{{ item.koStart }}</span></span>
                     </div>
@@ -222,26 +221,30 @@
                     const map = {}; this.inventory.forEach(i => map[i.sales] = (map[i.sales] || 0) + 1);
                     return Object.keys(map).map(k => ({ name: k, count: map[k] })).sort((a,b) => b.count - a.count);
                 },
-                // --- 嚴格互斥分類邏輯 ---
+                // --- 修正後的分類邏輯 ---
                 kiList() { return this.inventory.filter(i => this.hasBreachedKI(i)); },
                 partKOList() { 
                     return this.inventory.filter(i => {
+                        const isAfterLock = new Date() >= new Date(i.koStart);
+                        if (!isAfterLock) return false; // 鎖定期內不顯示 KO 狀態
                         const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
                         const remaining = i.stocks.length - koCount;
-                        // 曾經 KO: 至少 1 檔達標，且未達標標的數量大於 1
                         return koCount >= 1 && remaining > 1;
                     });
                 },
                 nearKOList() { 
                     return this.inventory.filter(i => {
+                        const isAfterLock = new Date() >= new Date(i.koStart);
+                        if (!isAfterLock) return false; // 鎖定期內不顯示 KO 狀態
                         const koCount = i.stocks.filter(s => ((s.current/s.init)*100) >= i.koP).length;
                         const remaining = i.stocks.length - koCount;
-                        // 即將 KO: 剛好只剩 1 檔未達標
                         return remaining === 1 && i.stocks.length > 1;
                     });
                 },
                 exitList() { 
                     return this.inventory.filter(i => {
+                        const isAfterLock = new Date() >= new Date(i.koStart);
+                        if (!isAfterLock) return false; // 鎖定期內不算出場
                         const allKO = i.stocks.every(s => ((s.current/s.init)*100) >= i.koP);
                         return allKO;
                     });
