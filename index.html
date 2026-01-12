@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>上新莊分行 - FCN 管理系統 v65.Pro_Shield_Final</title>
-    <!-- 核心套件 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -33,7 +32,7 @@
             <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
                 <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6"><i class="fa-solid fa-unlock-keyhole text-2xl"></i></div>
                 <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="請輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono">
+                <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="請輸入密碼" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl mb-6 outline-none font-mono tracking-widest">
                 <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg">ENTER</button>
             </div>
         </div>
@@ -45,12 +44,17 @@
                 <button @click="view = 'client'" :class="['nav-btn', view === 'client' ? 'active' : '']">按客戶</button>
                 <button @click="view = 'sales'" :class="['nav-btn', view === 'sales' ? 'active' : '']">按業務員</button>
                 <button @click="view = 'alerts'" :class="['nav-btn', view === 'alerts' ? 'active' : '']">預警中心</button>
-                <div class="ml-auto flex items-center pr-3">
+                
+                <!-- 進度顯示器 -->
+                <div class="ml-auto flex items-center pr-4 gap-2">
+                    <span v-if="isSyncing" class="text-[10px] font-black text-blue-500 animate-pulse italic">
+                        更新中: {{ syncProgress.done }}/{{ syncProgress.total }}
+                    </span>
                     <i @click="refreshAll" class="fa-solid fa-rotate text-blue-500 cursor-pointer text-lg" :class="{'animate-spin': isSyncing}"></i>
                 </div>
             </div>
 
-            <!-- 預警中心分頁 -->
+            <!-- 預警中心 -->
             <div v-if="view === 'alerts'" class="space-y-4">
                 <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto scrollbar-hide border border-gray-100">
                     <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
@@ -63,11 +67,13 @@
                 <client-card v-for="item in currentAlertList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
+            <!-- 客戶列表 -->
             <div v-if="view === 'client'" class="space-y-4">
                 <input v-model="search" type="text" placeholder="🔍 搜尋客戶姓名或 SN..." class="w-full p-5 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 mb-4 border-none">
                 <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn" :price-data="priceMap"></client-card>
             </div>
 
+            <!-- 資產總覽 -->
             <div v-if="view === 'branch'" class="space-y-4">
                 <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card text-white border-none shadow-2xl" :class="curr==='USD' ? 'bg-blue-600' : 'bg-slate-800'">
                     <div class="flex justify-between items-center opacity-70 mb-2 font-black text-xs uppercase"><span>Total Assets</span><span>{{ curr }}</span></div>
@@ -75,6 +81,7 @@
                 </div>
             </div>
 
+            <!-- 業務員分類 -->
             <div v-if="view === 'sales'" class="space-y-4">
                 <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg mb-4 border-none">
                     <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
@@ -99,7 +106,7 @@
                                 <span :class="[item.currency === 'JPY' ? 'bg-slate-100 text-slate-500' : 'bg-blue-100 text-blue-600']" class="text-[10px] px-2 py-0.5 rounded-full font-black uppercase">{{ item.currency }}</span>
                             </div>
                             <h3 class="text-4xl font-black text-slate-800 tracking-tighter italic leading-none">{{ item.client }}</h3>
-                            <p class="text-[11px] text-gray-400 font-bold mt-2 uppercase">{{ item.sales }} | {{ item.date }} 下單</p>
+                            <p class="text-[11px] text-gray-400 font-bold mt-2">{{ item.sales }} | {{ item.date }} 下單</p>
                         </div>
                         <div class="text-right">
                             <p class="text-4xl font-black text-blue-600 tracking-tighter italic leading-none">
@@ -173,7 +180,9 @@
             data() {
                 return {
                     view: 'branch', isLoggedIn: false, inputPass: '', password: '98388',
-                    inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
+                    inventory: [], isSyncing: false, 
+                    syncProgress: { done: 0, total: 0 }, // 追蹤進度
+                    search: '', alertTab: 'ki', selectedSales: '吳坤達',
                     priceMap: reactive({})
                 }
             },
@@ -225,7 +234,7 @@
                     this.isSyncing = true;
                     try {
                         const response = await fetch('data.csv?v=' + Date.now());
-                        if (!response.ok) throw new Error('找不到 data.csv 檔案，請確認檔案與 index.html 放在同一個資料夾。');
+                        if (!response.ok) throw new Error('找不到 data.csv');
                         const text = await response.text();
                         Papa.parse(text, {
                             header: true, dynamicTyping: true, skipEmptyLines: true,
@@ -244,10 +253,11 @@
                                 this.refreshAll();
                             }
                         });
-                    } catch (e) { alert(e.message); this.isSyncing = false; }
+                    } catch (e) { this.isSyncing = false; }
                 },
                 async fetchPrices() {
                     const syms = Object.keys(this.priceMap);
+                    // 為了快速，現價使用 Promise.all 同時發送
                     await Promise.all(syms.map(async (sym) => {
                         try {
                             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1m&range=1d`;
@@ -269,7 +279,13 @@
                             if (!taskMap.has(key)) taskMap.set(key, { sym: s.code, start, dateStr: inv.date });
                         });
                     });
-                    for (const task of taskMap.values()) {
+
+                    const tasks = Array.from(taskMap.values());
+                    this.syncProgress.total = tasks.length;
+                    this.syncProgress.done = 0;
+
+                    // 歷史資料量大，採用序列抓取，避免被 API 封鎖
+                    for (const task of tasks) {
                         try {
                             const url = `https://query1.finance.yahoo.com/v8/finance/chart/${task.sym}?period1=${task.start}&period2=${now}&interval=1d`;
                             const resp = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
@@ -277,8 +293,15 @@
                             const res = JSON.parse(json.contents).chart.result[0];
                             const quote = res.indicators.quote[0];
                             const timestamps = res.timestamp;
+                            
+                            // 更新現價與歷史最低
                             const lows = quote.low.filter(v => v != null);
                             this.priceMap[task.sym].histMinByDate[task.dateStr] = Math.min(...lows, res.meta.regularMarketPrice);
+                            if (this.priceMap[task.sym].current === 0) {
+                                this.priceMap[task.sym].current = res.meta.regularMarketPrice;
+                            }
+
+                            // 針對特定合約 SN 計算 KO
                             this.inventory.filter(inv => inv.date === task.dateStr).forEach(inv => {
                                 if (!inv.koStart) return;
                                 const koTs = Math.floor(new Date(String(inv.koStart).replace(/-/g, '/')).getTime() / 1000);
@@ -286,8 +309,11 @@
                                 timestamps.forEach((ts, idx) => { if (ts >= koTs && quote.high[idx] != null) highs.push(quote.high[idx]); });
                                 this.priceMap[task.sym].histMaxAfterKOStart[inv.sn] = highs.length > 0 ? Math.max(...highs, res.meta.regularMarketPrice) : res.meta.regularMarketPrice;
                             });
-                        } catch (e) {}
-                        await new Promise(r => setTimeout(r, 50));
+                        } catch (e) {
+                            console.error(`股票 ${task.sym} 抓取失敗`, e);
+                        }
+                        this.syncProgress.done++;
+                        await new Promise(r => setTimeout(r, 100)); // 小緩衝
                     }
                     this.isSyncing = false;
                 }
