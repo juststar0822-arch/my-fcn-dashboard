@@ -3,194 +3,236 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>榮譽榜生成器 (完美修復版)</title>
+    <title>尊爵金融榮譽榜</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- 引入高質感字體 -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Noto+Sans+TC:wght@400;500;700&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #1a1a1a; padding-bottom: 50px; color: #333; }
         
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f3f4f6; padding-bottom: 50px; }
-        
-        /* 隱藏生成源 */
-        .canvas-container {
-            position: fixed;
-            left: -9999px;
-            top: 0;
-        }
+        /* 隱藏渲染源 */
+        .canvas-container { position: fixed; left: -9999px; top: 0; }
 
-        /* 獎狀本體 */
+        /* === 獎狀本體 (800x533) === */
         .certificate {
-            width: 800px; 
+            width: 800px;
             height: 533px;
-            background-color: #fff;
+            background: #fff;
             position: relative;
-            border: 5px solid #D93025; /* 紅色外框 */
-            box-sizing: border-box;
-            display: flex;
             overflow: hidden;
+            display: flex;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
-        /* 四角裝飾 */
-        .corner-deco {
+        /* 背景紋理 (大理石/高級紙質感) */
+        .bg-texture {
             position: absolute;
-            width: 60px;
-            height: 60px;
-            border: 5px solid #D93025;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle at 100% 0%, #fdfbf7 0%, #f5f5f5 100%);
+            z-index: 0;
+        }
+
+        /* 頂部金色橫條 */
+        .top-bar {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 12px;
+            background: linear-gradient(90deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
             z-index: 10;
         }
-        .top-left { top: 12px; left: 12px; border-right: none; border-bottom: none; }
-        .top-right { top: 12px; right: 12px; border-left: none; border-bottom: none; }
-        .bottom-left { bottom: 12px; left: 12px; border-right: none; border-top: none; }
-        .bottom-right { bottom: 12px; right: 12px; border-left: none; border-top: none; }
 
-        /* 左上日期 */
-        .date-label {
+        /* 左側深藍色側邊欄 */
+        .sidebar {
+            width: 38%;
+            height: 100%;
+            background: #0f172a; /* 深藍黑 */
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            padding-bottom: 40px;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%); /* 斜切設計 */
+        }
+
+        /* 側邊欄背景裝飾 */
+        .sidebar-pattern {
             position: absolute;
-            top: 25px;
-            left: 30px;
-            font-size: 36px;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0px, rgba(255,255,255,0.03) 1px, transparent 1px, transparent 10px);
+            z-index: 0;
+        }
+
+        /* 賀字 */
+        .he-stamp {
+            position: absolute;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-55%);
+            width: 140px;
+            height: 140px;
+            background: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Noto Serif TC', serif;
+            font-size: 100px;
+            color: #b91c1c;
             font-weight: 900;
-            color: #D4AF37; /* 金色 */
-            z-index: 30;
-            text-shadow: 2px 2px 0px #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 20;
+            border: 4px solid #b91c1c;
+        }
+
+        /* SVG 獎盃 (擬真風格) */
+        .trophy-svg {
+            width: 280px;
+            z-index: 10;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+            margin-right: 20px;
+        }
+
+        /* 右側內容區 */
+        .main-content {
+            flex: 1;
+            padding: 40px 40px 30px 0;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 日期標籤 */
+        .date-badge {
+            align-self: flex-end;
+            background: #f3f4f6;
+            color: #666;
+            padding: 5px 15px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 18px;
+            font-family: 'Cinzel', serif; /* 英數字型 */
+            border-left: 4px solid #BF953F;
+        }
+
+        /* 姓名區 */
+        .name-group {
+            margin-top: 10px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 15px;
+        }
+        
+        .agent-name {
+            font-family: 'Noto Serif TC', serif;
+            font-size: 68px;
+            font-weight: 900;
+            color: #1a1a1a;
+            line-height: 1;
+            letter-spacing: 2px;
+        }
+        
+        .agent-title {
+            font-size: 24px;
+            color: #64748b;
+            margin-top: 5px;
+            font-weight: 500;
             letter-spacing: 1px;
         }
 
-        /* 左側區域 (獎盃) */
-        .left-section {
-            width: 48%; /* 稍微加大左側佔比 */
-            position: relative;
-            z-index: 5;
-            overflow: hidden; /* 讓獎盃切齊邊緣 */
-        }
-
-        /* 滿版獎盃 SVG */
-        .full-trophy {
-            width: 130%; /* 放大一點讓它滿版 */
-            height: auto;
-            position: absolute;
-            bottom: -20px;
-            left: -30px;
-            filter: drop-shadow(5px 5px 10px rgba(0,0,0,0.2));
-        }
-
-        /* 賀字印章 */
-        .he-stamp {
-            position: absolute;
-            top: 10px;
-            right: -40px;
-            width: 160px;
-            height: 160px;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" stroke="%23D93025" stroke-width="3" fill="none" stroke-dasharray="5,5"/><text x="50%" y="82%" font-size="80" fill="%23D93025" font-weight="900" font-family="serif" text-anchor="middle">賀</text></svg>') no-repeat center;
-            transform: rotate(15deg);
-            z-index: 20;
-            opacity: 0.9;
-        }
-
-        /* 右側資訊區 */
-        .right-section {
-            width: 52%;
-            padding: 40px 30px 20px 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            z-index: 5;
-        }
-
-        /* 名字與職稱 */
-        .name-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: flex-end; /* 靠右對齊 */
-            margin-bottom: 20px;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-        }
-
-        .agent-name {
-            font-size: 80px;
-            font-weight: 900;
-            color: #000;
-            line-height: 1;
-            margin-right: 15px;
-            letter-spacing: 2px;
-        }
-
-        .agent-title {
-            font-size: 28px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        /* 商品框框 (Flexbox 修復跑版問題) */
-        .product-container {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .product-box {
-            border: 3px solid #3b82f6; /* 藍框 */
-            background: white;
-            padding: 5px 20px;
-            min-width: 220px; /* 設定最小寬度 */
-            display: flex;
-            justify-content: center; /* 文字水平置中 */
-            align-items: center;     /* 文字垂直置中 */
+        /* 商品區 (無框設計) */
+        .product-group {
+            margin-top: 20px;
         }
         
-        .product-text {
-            color: #1d4ed8; /* 藍字 */
-            font-size: 52px;
-            font-weight: 900;
-            line-height: 1.1;
-            white-space: nowrap; /* 不換行 */
-        }
-
-        .count-hint {
-            font-size: 18px;
-            color: #1d4ed8;
-            margin-left: 15px;
+        .product-label {
+            font-size: 14px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             font-weight: bold;
         }
 
-        /* 金額 */
-        .amount-container {
-            margin-bottom: 10px;
+        .product-name {
+            font-size: 48px;
+            font-weight: 900;
+            color: #0f172a; /* 深藍 */
+            background: linear-gradient(120deg, transparent 0%, transparent 100%);
+            display: inline-block;
+            position: relative;
+        }
+        
+        /* 金色底線裝飾 */
+        .product-name::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            left: 0;
+            width: 100%;
+            height: 6px;
+            background: rgba(191, 149, 63, 0.4);
+            z-index: -1;
         }
 
+        .count-tag {
+            font-size: 14px;
+            background: #0f172a;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 2px;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        /* 金額區 */
+        .amount-group {
+            margin-top: 10px;
+        }
+        
         .amount-val {
-            font-size: 85px;
+            font-family: 'Cinzel', serif; /* 數字專用字體 */
+            font-size: 72px;
             font-weight: 900;
-            color: #DC2626; /* 紅字 */
-            font-family: Arial, sans-serif;
+            color: #b91c1c; /* 勃根地紅 */
             line-height: 1;
         }
-
-        .currency-unit {
-            font-size: 32px;
+        
+        .currency {
+            font-size: 24px;
+            color: #b91c1c;
             font-weight: bold;
-            color: #DC2626;
             margin-left: 5px;
         }
 
-        /* 底部詳細數據 */
-        .footer-stats {
-            margin-top: 15px;
-            font-size: 24px;
-            color: #C2185B; 
-            font-weight: bold;
-            line-height: 1.4;
+        /* 底部數據條 */
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            padding: 12px 20px;
+            border-radius: 8px;
+            border-left: 5px solid #b91c1c;
         }
 
-        /* 結果圖片 */
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat-label { font-size: 12px; color: #666; font-weight: bold; text-transform: uppercase; }
+        .stat-val { font-size: 20px; font-weight: bold; color: #333; font-family: 'Arial', sans-serif; }
+        .stat-val.bonus { color: #d97706; font-size: 24px; } /* 金橘色獎金 */
+
+        /* 結果顯示 */
         #result-img {
             max-width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            border: 2px solid #333;
         }
     </style>
 </head>
@@ -198,190 +240,174 @@
 
 <div id="app" class="max-w-md mx-auto p-4">
 
-    <!-- 輸入介面 -->
-    <div class="bg-white rounded-xl shadow-lg p-6 mb-6 border-t-8 border-yellow-500">
-        <h2 class="text-2xl font-black text-center mb-6 text-gray-800">🏆 榮譽榜生成器</h2>
+    <!-- 控制面板 -->
+    <div class="bg-gray-800 rounded-xl shadow-2xl p-6 mb-8 border border-gray-700">
+        <h2 class="text-2xl font-black text-center mb-6 text-yellow-500 tracking-widest">👑 金融業績戰報</h2>
         
         <div class="space-y-4">
-            <!-- 日期 -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">銷售日期</label>
-                <input type="date" v-model="form.date" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg">
+            <!-- 日期與業代 -->
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">日期</label>
+                    <input type="date" v-model="form.date" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded focus:border-yellow-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">業代</label>
+                    <select v-model="form.repIndex" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded focus:border-yellow-500 outline-none">
+                        <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- 業代 -->
-            <div>
-                <label class="block text-xs font-bold text-gray-500 mb-1">業代姓名</label>
-                <select v-model="form.repIndex" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg bg-white">
-                    <option v-for="(rep, index) in repList" :value="index">
-                        {{ rep.name }} {{ rep.title }}
-                    </option>
-                </select>
-            </div>
-
-            <!-- 商品與手收率 -->
-            <div class="flex gap-2">
-                <div class="w-2/3">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">商品</label>
-                    <select v-model="form.productType" @change="handleProductChange" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg bg-white">
+            <!-- 商品與BP -->
+            <div class="grid grid-cols-3 gap-3">
+                <div class="col-span-2">
+                    <label class="block text-xs font-bold text-gray-400 mb-1">商品</label>
+                    <select v-model="form.productType" @change="handleProductChange" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded focus:border-yellow-500 outline-none">
                         <option value="FCN">FCN</option>
                         <option value="U6">元元致富 U6</option>
                         <option value="U5">元元致富 U5</option>
                         <option value="BOND">海外債</option>
                     </select>
                 </div>
-                <div class="w-1/3">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">手收率(BP)</label>
-                    <input type="number" v-model="form.bp" :disabled="isFixedBP" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg text-center font-bold">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">BP</label>
+                    <input type="number" v-model="form.bp" :disabled="isFixedBP" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded text-center font-mono">
                 </div>
             </div>
 
             <!-- 金額與匯率 -->
-            <div class="flex gap-2">
-                <div class="w-1/3">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">幣別</label>
-                    <select v-model="form.currency" @change="updateExRate" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg bg-white">
+            <div class="grid grid-cols-3 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">幣別</label>
+                    <select v-model="form.currency" @change="updateExRate" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded focus:border-yellow-500 outline-none">
                         <option value="USD">USD</option>
                         <option value="JPY">JPY</option>
                         <option value="TWD">TWD</option>
                     </select>
                 </div>
-                <div class="w-1/3">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">匯率</label>
-                    <input type="number" v-model="form.exRate" step="0.1" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg text-center">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">匯率</label>
+                    <input type="number" v-model="form.exRate" step="0.1" class="w-full bg-gray-700 text-white border border-gray-600 p-2 rounded text-center">
                 </div>
-                <div class="w-1/3">
-                    <label class="block text-xs font-bold text-gray-500 mb-1">金額</label>
-                    <input type="number" v-model="form.amount" class="w-full border-2 border-gray-200 p-2 rounded-lg text-lg text-center font-bold text-red-600">
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 mb-1">金額</label>
+                    <input type="number" v-model="form.amount" class="w-full bg-gray-700 text-yellow-400 border border-gray-600 p-2 rounded text-center font-bold">
                 </div>
             </div>
 
-            <div class="bg-gray-100 p-3 rounded-lg flex justify-between items-center text-sm font-bold text-gray-600">
-                <span>預估手收: <span class="text-black">{{ formatNumber(calculatedRevenue) }}</span></span>
-                <span>預估獎金: <span class="text-red-600 text-lg">{{ formatNumber(calculatedBonus) }}</span></span>
+            <!-- 預覽條 -->
+            <div class="bg-gray-900 p-3 rounded flex justify-between text-sm border-l-4 border-yellow-500">
+                <span class="text-gray-300">預估手收: {{ formatNumber(calculatedRevenue) }}</span>
+                <span class="text-yellow-400 font-bold">獎金: {{ formatNumber(calculatedBonus) }}</span>
             </div>
 
-            <button @click="generateImage" class="w-full bg-gradient-to-r from-yellow-500 to-yellow-600 text-white font-black py-4 rounded-xl shadow-lg hover:shadow-xl active:scale-95 transition text-xl">
-                ✨ 生成獎狀 (可長按儲存)
+            <button @click="generateImage" class="w-full bg-gradient-to-r from-yellow-600 to-yellow-500 text-black font-black py-3 rounded shadow hover:brightness-110 active:scale-95 transition">
+                ✨ 生成尊爵戰報
             </button>
         </div>
     </div>
 
-    <!-- 生成結果區 -->
-    <div v-show="generatedImage" class="text-center animate-pulse">
-        <p class="text-red-600 font-bold mb-2 text-lg">👇 長按下方圖片即可儲存 👇</p>
-        <img id="result-img" :src="generatedImage" alt="榮譽榜">
+    <!-- 結果顯示 -->
+    <div v-show="generatedImage" class="text-center animate-fade-in">
+        <p class="text-yellow-500 font-bold mb-3 tracking-widest text-sm uppercase">👇 長按圖片儲存 / Long Press to Save 👇</p>
+        <img id="result-img" :src="generatedImage" alt="Result">
     </div>
 
-    <!-- 隱藏的渲染區 -->
+    <!-- 畫布區 -->
     <div class="canvas-container">
         <div id="certificate-node" class="certificate">
-            
-            <!-- 裝飾角 -->
-            <div class="corner-deco top-left"></div>
-            <div class="corner-deco top-right"></div>
-            <div class="corner-deco bottom-left"></div>
-            <div class="corner-deco bottom-right"></div>
+            <!-- 背景與裝飾 -->
+            <div class="bg-texture"></div>
+            <div class="top-bar"></div>
 
-            <!-- 日期 -->
-            <div class="date-label">{{ rocDate }}</div>
+            <!-- 左側欄位 -->
+            <div class="sidebar">
+                <div class="sidebar-pattern"></div>
+                
+                <!-- 賀 印章 -->
+                <div class="he-stamp">賀</div>
 
-            <!-- 左側 (內建SVG獎盃，保證不跑版、不破圖) -->
-            <div class="left-section">
-                <!-- 賀字 -->
-                <div class="he-stamp"></div>
-
-                <!-- 向量黃金獎盃 -->
-                <svg class="full-trophy" viewBox="0 0 500 600" xmlns="http://www.w3.org/2000/svg">
-                    <!-- 背景彩帶 -->
-                    <path d="M50 100 Q 250 50 450 150" stroke="#FFD700" stroke-width="30" fill="none" opacity="0.3" stroke-linecap="round"/>
-                    <path d="M20 200 Q 150 300 480 50" stroke="#FF5722" stroke-width="20" fill="none" opacity="0.2" stroke-linecap="round"/>
-                    <circle cx="50" cy="50" r="10" fill="#4CAF50" opacity="0.5"/>
-                    <circle cx="400" cy="100" r="15" fill="#2196F3" opacity="0.5"/>
-                    <rect x="100" y="50" width="20" height="20" fill="#FFC107" transform="rotate(45 110 60)" opacity="0.5"/>
-
-                    <!-- 獎盃主體漸層 -->
+                <!-- 向量擬真金盃 -->
+                <svg class="trophy-svg" viewBox="0 0 300 350" xmlns="http://www.w3.org/2000/svg">
                     <defs>
-                        <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#FDB931;" />
-                            <stop offset="50%" style="stop-color:#FFD700;" />
-                            <stop offset="100%" style="stop-color:#B78628;" />
+                        <!-- 金屬漸層 -->
+                        <linearGradient id="goldLinear" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#FDB931" />
+                            <stop offset="40%" style="stop-color:#FFD700" />
+                            <stop offset="60%" style="stop-color:#FDB931" />
+                            <stop offset="100%" style="stop-color:#B78628" />
                         </linearGradient>
-                        <linearGradient id="baseGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                            <stop offset="0%" style="stop-color:#8B4513;" />
-                            <stop offset="100%" style="stop-color:#5D4037;" />
+                        <linearGradient id="goldDark" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#B78628" />
+                            <stop offset="100%" style="stop-color:#805a18" />
                         </linearGradient>
                     </defs>
 
-                    <!-- 杯身 -->
-                    <path d="M100 150 L400 150 L350 380 C350 450 150 450 150 380 Z" fill="url(#goldGradient)" stroke="#926F34" stroke-width="3"/>
-                    <ellipse cx="250" cy="150" rx="150" ry="20" fill="#FFE082" stroke="#926F34" stroke-width="2"/>
-                    
                     <!-- 把手 -->
-                    <path d="M100 180 C20 180 20 300 115 320" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
-                    <path d="M400 180 C480 180 480 300 385 320" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
+                    <path d="M50 100 C 0 100, 0 200, 60 220" fill="none" stroke="url(#goldDark)" stroke-width="12" stroke-linecap="round"/>
+                    <path d="M250 100 C 300 100, 300 200, 240 220" fill="none" stroke="url(#goldDark)" stroke-width="12" stroke-linecap="round"/>
 
-                    <!-- 底座支柱 -->
-                    <path d="M220 440 L280 440 L290 490 L210 490 Z" fill="url(#goldGradient)" stroke="#926F34" stroke-width="2"/>
+                    <!-- 杯身 -->
+                    <path d="M60 80 L240 80 L220 230 C 220 280, 80 280, 80 230 Z" fill="url(#goldLinear)" />
+                    <!-- 杯口 -->
+                    <ellipse cx="150" cy="80" rx="90" ry="12" fill="#FFF8E1" stroke="#B78628" stroke-width="2"/>
                     
-                    <!-- 大底座 -->
-                    <path d="M150 490 L350 490 L370 550 L130 550 Z" fill="url(#baseGradient)" stroke="#3E2723" stroke-width="2"/>
-                    
-                    <!-- BEST 牌子 -->
-                    <rect x="180" y="505" width="140" height="30" rx="5" fill="#FFD700" stroke="#B78628" stroke-width="2"/>
-                    <text x="250" y="528" font-size="24" font-weight="900" fill="#8B4513" text-anchor="middle" font-family="Arial">BEST</text>
-                    
-                    <!-- 緞帶 -->
-                    <path d="M160 380 L140 460 L160 450 L180 460 L170 380" fill="#D32F2F"/>
-                    <path d="M340 380 L360 460 L340 450 L320 460 L330 380" fill="#D32F2F"/>
-
                     <!-- 光澤 -->
-                    <path d="M180 180 Q 200 350 220 400" stroke="white" stroke-width="5" opacity="0.4" fill="none"/>
+                    <path d="M100 100 L120 220" stroke="white" stroke-width="10" stroke-opacity="0.3" stroke-linecap="round"/>
+
+                    <!-- 支架 -->
+                    <path d="M130 270 L170 270 L160 300 L140 300 Z" fill="url(#goldDark)"/>
+
+                    <!-- 底座 -->
+                    <path d="M100 300 L200 300 L210 330 L90 330 Z" fill="#3E2723"/>
+                    
+                    <!-- BEST 牌 -->
+                    <rect x="120" y="305" width="60" height="15" fill="#FFD700" rx="2"/>
+                    <text x="150" y="317" font-size="10" font-weight="bold" text-anchor="middle" fill="#3E2723" font-family="Arial">BEST</text>
                 </svg>
             </div>
 
-            <!-- 右側 -->
-            <div class="right-section">
+            <!-- 右側內容 -->
+            <div class="main-content">
+                <!-- 日期 -->
+                <div class="date-badge">{{ rocDate }}</div>
+
                 <!-- 名字 -->
-                <div class="name-row">
+                <div class="name-group">
                     <div class="agent-name">{{ currentRep.name }}</div>
                     <div class="agent-title">{{ currentRep.title }}</div>
                 </div>
 
-                <!-- 商品 (已修復：置中對齊、不跑版) -->
-                <div class="product-container">
-                    <div class="product-box">
-                        <span class="product-text">{{ productDisplay }}</span>
+                <!-- 商品 -->
+                <div class="product-group">
+                    <div class="product-label">PRODUCT</div>
+                    <div class="product-name">
+                        {{ productDisplay }}
                     </div>
-                    <span class="count-hint">共計1筆</span>
+                    <span class="count-tag">1筆</span>
                 </div>
 
                 <!-- 金額 -->
-                <div class="amount-container">
+                <div class="amount-group">
                     <span class="amount-val">{{ formatNumber(form.amount) }}</span>
-                    <span class="currency-unit">{{ currencyLabel }}</span>
+                    <span class="currency">{{ form.currency }}</span>
                 </div>
 
                 <!-- 數據 -->
-                <div class="footer-stats">
-                    <div class="stat-row">手收：{{ formatNumber(calculatedRevenue) }}元</div>
-                    <div class="stat-row">獎金：{{ formatNumber(calculatedBonus) }}元</div>
-                </div>
-
-                <!-- 右下角小頒獎台icon -->
-                <div style="position: absolute; bottom: 15px; right: 15px;">
-                    <svg width="80" height="50" viewBox="0 0 100 60">
-                         <rect x="30" y="20" width="40" height="40" fill="#ccc"/>
-                         <rect x="0" y="35" width="30" height="25" fill="#999"/>
-                         <rect x="70" y="45" width="30" height="15" fill="#eee"/>
-                         <text x="50" y="50" text-anchor="middle" fill="white" font-weight="bold" font-size="20" font-family="Arial">1</text>
-                         <path d="M40 20 L30 10 L70 10 L60 20" fill="#FFD700" opacity="0.8"/>
-                    </svg>
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-label">Revenue / 手收</span>
+                        <span class="stat-val">NT$ {{ formatNumber(calculatedRevenue) }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Bonus / 獎金</span>
+                        <span class="stat-val bonus">NT$ {{ formatNumber(calculatedBonus) }}</span>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
 </div>
 
 <script>
@@ -391,7 +417,6 @@
         setup() {
             const generatedImage = ref(null);
             
-            // 名單
             const repList = [
                 { name: '吳坤達', title: '業務協理' },
                 { name: '賴婉甄', title: '業務協理' },
@@ -411,7 +436,7 @@
 
             const form = reactive({
                 date: new Date().toISOString().split('T')[0],
-                repIndex: 4, // 黃思婷
+                repIndex: 4, 
                 productType: 'FCN',
                 currency: 'USD',
                 exRate: 32.5,
@@ -419,7 +444,6 @@
                 bp: 50
             });
 
-            // 計算屬性
             const currentRep = computed(() => repList[form.repIndex]);
             const rocDate = computed(() => {
                 const d = new Date(form.date);
@@ -439,13 +463,8 @@
             };
 
             const productDisplay = computed(() => {
-                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
+                const map = { 'FCN': 'FCN', 'U6': '元元致富 U6', 'U5': '元元致富 U5', 'BOND': '海外債' };
                 return map[form.productType];
-            });
-
-            const currencyLabel = computed(() => {
-                const map = { 'USD': '美元', 'JPY': '日圓', 'TWD': '元' };
-                return map[form.currency];
             });
 
             const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
@@ -468,7 +487,6 @@
                     useCORS: true
                 }).then(canvas => {
                     generatedImage.value = canvas.toDataURL("image/png");
-                    // 自動滾動到結果
                     setTimeout(() => {
                         const img = document.getElementById("result-img");
                         if(img) img.scrollIntoView({ behavior: "smooth" });
@@ -478,7 +496,7 @@
 
             return {
                 repList, form, currentRep, rocDate, isFixedBP, generatedImage,
-                updateExRate, handleProductChange, productDisplay, currencyLabel,
+                updateExRate, handleProductChange, productDisplay,
                 calculatedRevenue, calculatedBonus, formatNumber, generateImage
             };
         }
