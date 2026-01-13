@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (多筆+即時匯率)</title>
+    <title>榮譽榜生成器 (多幣別顯示版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -87,7 +87,6 @@
         .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
         .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-        /* SVG 畫布 */
         .svg-layer {
             position: absolute;
             top: 0; left: 0;
@@ -140,25 +139,30 @@
         .product-box {
             border: 4px solid #2563eb; 
             color: #2563eb;
-            font-size: 60px; font-weight: 900;
+            font-size: 55px; font-weight: 900; /* 稍微縮小商品字體 */
             padding: 0 25px; margin-right: 15px;
             white-space: nowrap; line-height: 1.2;
-            background: rgba(255,255,255,0.9);
+            background: rgba(255,255,255,0.95);
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; }
 
+        /* 金額顯示區調整：字體變小，位置調整 */
         .field-amount {
-            top: 315px;
+            top: 320px; /* 位置 */
             right: 40px;
             text-align: right;
-            min-width: 450px;
+            min-width: 500px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: baseline;
         }
         .amount-text { 
-            font-size: 95px; font-weight: 900; color: #dc2626; 
+            font-weight: 900; color: #dc2626; 
             font-family: Arial, sans-serif; line-height: 1; 
+            /* 字體大小改為動態控制，預設小一點 */
         }
-        .currency-text { font-size: 32px; font-weight: bold; color: #dc2626; margin-left: 5px; }
 
+        /* 數據區 */
         .field-stats {
             bottom: 25px; right: 40px;
             text-align: right;
@@ -189,7 +193,6 @@
     <div class="control-panel">
         <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
         
-        <!-- 全局設定 -->
         <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
             <div><label>日期</label><input type="date" v-model="globalDate"></div>
             <div>
@@ -202,7 +205,7 @@
 
         <!-- 單筆輸入區 -->
         <div class="bg-gray-800 p-3 rounded-lg mb-4">
-            <h3 class="text-sm font-bold text-gray-400 mb-2">新增一筆成交</h3>
+            <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
             
             <div class="grid grid-cols-2 gap-3 mb-2">
                 <div>
@@ -227,7 +230,7 @@
                     </select>
                 </div>
                 <div class="relative">
-                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">更新中...</span></label>
+                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
                     <input type="number" v-model="form.exRate" step="0.01">
                 </div>
                 <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
@@ -239,29 +242,24 @@
         </div>
     </div>
 
-    <!-- 2. 清單與總計 -->
+    <!-- 2. 清單 -->
     <div class="list-panel" v-if="cart.length > 0">
         <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
         
         <div v-for="(item, idx) in cart" :key="idx" class="item-card">
             <div>
-                <div class="font-bold text-yellow-500">{{ item.productType }}</div>
-                <div class="text-xs text-gray-400">
-                    {{ item.currency }} {{ formatNumber(item.amount) }} (BP:{{ item.bp }})
-                </div>
-                <div class="text-xs text-gray-300">
-                    手收: {{ formatNumber(item.revenue) }} / 獎金: {{ formatNumber(item.bonus) }}
-                </div>
+                <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
+                <span class="text-gray-300">{{ item.currency }} {{ formatNumber(item.amount) }}</span>
             </div>
             <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
         </div>
 
-        <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500">
-            <div class="flex justify-between text-lg font-bold mb-1">
+        <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
+            <div class="flex justify-between font-bold mb-1">
                 <span class="text-gray-300">總手收</span>
                 <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
             </div>
-            <div class="flex justify-between text-lg font-bold">
+            <div class="flex justify-between font-bold">
                 <span class="text-gray-300">總獎金</span>
                 <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
             </div>
@@ -273,10 +271,10 @@
     </div>
     
     <div class="list-panel text-center text-gray-500 py-4" v-else>
-        請先在上方輸入並加入至少一筆資料
+        請先輸入並加入清單
     </div>
 
-    <!-- 3. 結果圖片 -->
+    <!-- 3. 結果 -->
     <div id="result-area">
         <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
         <img id="final-img" alt="長按儲存">
@@ -312,6 +310,7 @@
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
+                    <!-- 直式文字 -->
                     <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
                     <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
                     <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
@@ -336,10 +335,9 @@
                 <div class="count-text text-outline">共計{{ cart.length }}筆</div>
             </div>
 
-            <!-- 金額顯示區 (顯示總台幣等值) -->
+            <!-- 金額顯示區 (優化版：根據字數調整大小) -->
             <div class="field field-amount text-outline">
-                <span class="amount-text">{{ formatNumber(totalEquivalentTWD) }}</span>
-                <span class="currency-text">台幣等值</span>
+                <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ finalAmountString }}</span>
             </div>
 
             <div class="field field-stats text-outline">
@@ -366,32 +364,20 @@
         setup() {
             const windowWidth = ref(window.innerWidth);
             const loadingRate = ref(false);
-            
-            // 全局日期與業代
             const globalDate = ref(new Date().toISOString().split('T')[0]);
-            const repIndex = ref(4); // 預設黃思婷
+            const repIndex = ref(4);
 
-            // 購物車與輸入表單
             const cart = ref([]);
             const form = reactive({
-                productType: 'FCN',
-                currency: 'USD',
-                exRate: 32.5,
-                amount: 20000,
-                bp: 50
+                productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
             });
 
-            // 匯率暫存
             const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
 
-            // 自動縮放
             const scaleStyle = computed(() => {
                 const targetWidth = 820; 
                 const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
-                return {
-                    transform: `scale(${scale})`,
-                    marginBottom: `-${535 * (1 - scale)}px`
-                };
+                return { transform: `scale(${scale})`, marginBottom: `-${535 * (1 - scale)}px` };
             });
 
             onMounted(async () => {
@@ -399,60 +385,43 @@
                 await fetchLiveRates();
             });
 
-            // 抓取即時匯率
             const fetchLiveRates = async () => {
                 loadingRate.value = true;
                 try {
-                    // 使用 ExchangeRate-API (免費公開)
                     const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
                     const data = await res.json();
                     if(data && data.rates) {
-                        // API 給的是 1 TWD = ? USD，所以要倒數
                         liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
                         liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
-                        updateExRate(); // 更新當前欄位
+                        updateExRate();
                     }
-                } catch(e) {
-                    console.error("匯率抓取失敗，使用預設值");
-                }
+                } catch(e) {}
                 loadingRate.value = false;
             };
 
             const repList = [
-                { name: '吳坤達', title: '業務協理' },
-                { name: '賴婉甄', title: '業務協理' },
-                { name: '陳雅鈴', title: '業務經理' },
-                { name: '蕭玉春', title: '業務協理' },
-                { name: '黃思婷', title: '業務協理' },
-                { name: '賴秋萍', title: '業務協理' },
-                { name: '王淑濱', title: '業務經理' },
-                { name: '賴美華', title: '業務經理' },
-                { name: '王淑卿', title: '業務協理' },
-                { name: '丁心梅', title: '業務高專' },
-                { name: '王鵬飛', title: '業務經理' },
-                { name: '羅金蘭', title: '業務經理' },
-                { name: '陳翰泰', title: '業務員' },
-                { name: '曾詩涵', title: '業務高專' }
+                { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
+                { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
+                { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
+                { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
+                { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
+                { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
+                { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
             ];
 
             const currentRep = computed(() => repList[repIndex.value]);
-            
             const rocDate = computed(() => {
                 const d = new Date(globalDate.value);
                 return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
             });
 
-            const updateExRate = () => {
-                form.exRate = liveRates[form.currency] || 1;
-            };
-
+            const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
             const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
             const handleProductChange = () => {
                 if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
                 else if(form.productType === 'FCN') form.bp = 50; 
             };
 
-            // 計算單筆預估
             const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
             const calculatedBonus = computed(() => {
                 let rate = 0;
@@ -462,43 +431,45 @@
                 return Math.round(calculatedRevenue.value * (rate / 100));
             });
 
-            // 加入清單
             const addToCart = () => {
                 cart.value.push({
-                    productType: form.productType,
-                    currency: form.currency,
-                    amount: form.amount,
-                    bp: form.bp,
-                    exRate: form.exRate,
-                    revenue: calculatedRevenue.value,
-                    bonus: calculatedBonus.value,
-                    // 計算該筆的台幣等值金額，用於總金額顯示
-                    twdEquivalent: Math.round(form.amount * form.exRate)
+                    productType: form.productType, currency: form.currency, amount: form.amount,
+                    bp: form.bp, exRate: form.exRate, revenue: calculatedRevenue.value, bonus: calculatedBonus.value
                 });
             };
+            const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
 
-            const removeFromCart = (index) => {
-                cart.value.splice(index, 1);
-            };
-
-            // 總計
             const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
             const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
-            const totalEquivalentTWD = computed(() => cart.value.reduce((sum, item) => sum + item.twdEquivalent, 0));
 
-            // 最終商品名稱邏輯
+            // 商品名稱邏輯：如果多種，用 + 連接
             const finalProductName = computed(() => {
-                if (cart.value.length === 0) return '尚未輸入';
+                if (cart.value.length === 0) return 'FCN';
+                const types = [...new Set(cart.value.map(i => i.productType))];
                 
-                const firstProduct = cart.value[0].productType;
-                const allSame = cart.value.every(item => item.productType === firstProduct);
+                const map = { 'FCN': 'FCN', 'U6': '元元U6', 'U5': '元元U5', 'BOND': '海外債' };
+                return types.map(t => map[t]).join(' + ');
+            });
+
+            // 金額顯示邏輯：分幣別加總
+            const finalAmountString = computed(() => {
+                if(cart.value.length === 0) return formatNumber(form.amount) + ' ' + form.currency;
                 
-                if (allSame) {
-                    const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
-                    return map[firstProduct];
-                } else {
-                    return '多元配置';
-                }
+                const sums = {};
+                cart.value.forEach(item => {
+                    if(!sums[item.currency]) sums[item.currency] = 0;
+                    sums[item.currency] += item.amount;
+                });
+
+                return Object.keys(sums).map(curr => `${formatNumber(sums[curr])} ${curr}`).join(' + ');
+            });
+
+            // 動態字體大小
+            const amountFontSize = computed(() => {
+                const len = finalAmountString.value.length;
+                if(len > 25) return '45px';
+                if(len > 15) return '55px';
+                return '70px'; // 預設變小
             });
 
             const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -510,13 +481,9 @@
                 element.style.transform = 'scale(1)'; 
 
                 html2canvas(element, { 
-                    scale: 2, 
-                    backgroundColor: "#ffffff",
-                    useCORS: true,
-                    scrollY: 0
+                    scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
                 }).then(canvas => {
-                    const imgData = canvas.toDataURL("image/png");
-                    document.getElementById("final-img").src = imgData;
+                    document.getElementById("final-img").src = canvas.toDataURL("image/png");
                     document.getElementById("result-area").style.display = "block";
                     element.style.transform = originalTransform; 
                     setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
@@ -524,12 +491,10 @@
             };
 
             return {
-                repList, repIndex, globalDate, form, cart,
-                currentRep, rocDate, isFixedBP, loadingRate,
-                updateExRate, handleProductChange, 
-                calculatedRevenue, calculatedBonus,
-                addToCart, removeFromCart,
-                totalRevenue, totalBonus, totalEquivalentTWD, finalProductName,
+                repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
+                updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
+                addToCart, removeFromCart, totalRevenue, totalBonus, 
+                finalProductName, finalAmountString, amountFontSize,
                 formatNumber, generateImage, scaleStyle
             };
         }
