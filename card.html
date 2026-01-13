@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信用卡神卡指南 - 我的專屬版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); }
+        .best-tag { background: linear-gradient(90deg, #f59e0b 0%, #ef4444 100%); }
+    </style>
+</head>
+<body class="pb-10">
+
+    <!-- Top Navigation -->
+    <nav class="bg-indigo-700 text-white p-4 sticky top-0 z-50 shadow-lg">
+        <div class="max-w-md mx-auto">
+            <h1 class="text-center text-xl font-black tracking-wider uppercase">Credit Card Navigator</h1>
+            <p class="text-center text-[10px] opacity-75">自動計算 6 大神卡最優回饋</p>
+            
+            <!-- Search Bar -->
+            <div class="mt-4 relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-indigo-300"></i>
+                <input type="text" id="searchInput" onkeyup="filterCards()" 
+                    placeholder="搜尋通路：蝦皮、外送、日本、加油..." 
+                    class="w-full bg-indigo-800 border-none rounded-lg py-2 pl-10 pr-4 text-white placeholder-indigo-300 focus:ring-2 focus:ring-yellow-400 outline-none">
+            </div>
+        </div>
+    </nav>
+
+    <!-- Category Filters -->
+    <div class="bg-white border-b sticky top-[116px] z-40 overflow-x-auto no-scrollbar flex p-3 gap-2">
+        <button onclick="setCategory('all')" class="cat-btn active px-4 py-2 rounded-full bg-indigo-100 text-indigo-700 text-sm font-bold whitespace-nowrap">全部卡片</button>
+        <button onclick="setCategory('支付')" class="cat-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-bold whitespace-nowrap">📱 行動支付</button>
+        <button onclick="setCategory('網購')" class="cat-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-bold whitespace-nowrap">🛒 網購/電商</button>
+        <button onclick="setCategory('外送')" class="cat-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-bold whitespace-nowrap">🛵 美食外送</button>
+        <button onclick="setCategory('旅遊')" class="cat-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-bold whitespace-nowrap">✈️ 國外旅遊</button>
+        <button onclick="setCategory('日常')" class="cat-btn px-4 py-2 rounded-full bg-gray-100 text-gray-600 text-sm font-bold whitespace-nowrap">⛽ 通勤/日常</button>
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-md mx-auto p-4">
+        
+        <!-- Quick Alerts -->
+        <div id="alert-box" class="mb-6 space-y-2">
+            <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded shadow-sm text-xs text-amber-800">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i> <strong>CUBE 卡：</strong>今天切換模式了嗎？(玩數位/樂饗購/趣旅行)
+            </div>
+            <div class="bg-emerald-50 border-l-4 border-emerald-400 p-3 rounded shadow-sm text-xs text-emerald-800">
+                <i class="fa-solid fa-check-double mr-1"></i> <strong>Richart：</strong>確認 GoGo/FlyGo 需設定自扣才有 3.8%
+            </div>
+        </div>
+
+        <!-- Card List -->
+        <div id="cardList" class="space-y-6">
+            <!-- Cards will be injected here by JS -->
+        </div>
+
+    </main>
+
+    <script>
+        // 資料庫：你的 6 張卡片
+        const cards = [
+            {
+                id: 1,
+                name: "星展傳說對決卡",
+                bank: "DBS 星展銀行",
+                theme: "bg-gray-900",
+                rules: [
+                    { cat: "外送", rate: 10, detail: "Foodpanda, UberEats (含加碼7%)", keyword: "外送,foodpanda,uber" },
+                    { cat: "日常", rate: 10, detail: "Netflix, Disney+, Spotify, 遊戲課金", keyword: "影音,串流,課金,遊戲,spotify" },
+                    { cat: "支付", rate: 3, detail: "LINE Pay, 街口, Apple Pay", keyword: "支付,lp,街口,ap" },
+                    { cat: "日常", rate: 1.5, detail: "一般消費無上限", keyword: "一般" }
+                ]
+            },
+            {
+                id: 2,
+                name: "台新 Richard GoGo卡",
+                bank: "Taishin 台新銀行",
+                theme: "bg-red-700",
+                rules: [
+                    { cat: "支付", rate: 3.8, detail: "LINE Pay, 全支付, 台新Pay (需自扣)", keyword: "支付,lp,全支付" },
+                    { cat: "網購", rate: 3.8, detail: "蝦皮, momo, PChome, Yahoo", keyword: "網購,蝦皮,momo,pchome" },
+                    { cat: "日常", rate: 0.5, detail: "一般消費", keyword: "一般" }
+                ]
+            },
+            {
+                id: 3,
+                name: "國泰 CUBE 卡",
+                bank: "Cathay 國泰世華",
+                theme: "bg-yellow-500",
+                rules: [
+                    { cat: "網購", rate: 3, detail: "【玩數位】蝦皮、酷澎、網購 (需切換)", keyword: "網購,蝦皮,酷澎,coupang" },
+                    { cat: "日常", rate: 3, detail: "【樂饗購】百貨、外送、餐飲", keyword: "百貨,餐廳,美食" },
+                    { cat: "旅遊", rate: 3, detail: "【趣旅行】機票、飯店、叫車、海外", keyword: "機票,飯店,海外,國外,刷保險" },
+                    { cat: "日常", rate: 0.3, detail: "基本回饋小樹點", keyword: "一般" }
+                ]
+            },
+            {
+                id: 4,
+                name: "玉山 Unicard",
+                bank: "E.SUN 玉山銀行",
+                theme: "bg-emerald-600",
+                rules: [
+                    { cat: "支付", rate: 5, detail: "【訂製選】LINE Pay 最高 5% (需e指付)", keyword: "支付,lp" },
+                    { cat: "日常", rate: 3.5, detail: "【任意選】百大特店 (需APP設定)", keyword: "加油,日常" },
+                    { cat: "日常", rate: 1, detail: "基本 0.7% + 0.3% 無上限", keyword: "一般" }
+                ]
+            },
+            {
+                id: 5,
+                name: "富邦 JCB (J卡)",
+                bank: "Fubon 富邦銀行",
+                theme: "bg-blue-500",
+                rules: [
+                    { cat: "旅遊", rate: 3, detail: "日韓旅遊加碼 (需登錄/實體卡)", keyword: "日本,韓國,出國" },
+                    { cat: "支付", rate: 1, detail: "LINE Pay 1% 起 (依活動加碼)", keyword: "支付,lp" },
+                    { cat: "日常", rate: 1, detail: "國內一般消費無上限", keyword: "一般" }
+                ]
+            },
+            {
+                id: 6,
+                name: "星展永續卡",
+                bank: "DBS 星展銀行",
+                theme: "bg-emerald-100",
+                isLight: true,
+                rules: [
+                    { cat: "日常", rate: 1.5, detail: "國內外一般消費保底", keyword: "一般,保底" },
+                    { cat: "日常", rate: 2, detail: "指定綠色交通/商店", keyword: "交通,gogoro,星巴克" }
+                ]
+            }
+        ];
+
+        let currentCategory = 'all';
+
+        function setCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-700', 'text-white', 'active');
+                btn.classList.add('bg-gray-100', 'text-gray-600');
+            });
+            event.target.classList.add('bg-indigo-700', 'text-white', 'active');
+            event.target.classList.remove('bg-gray-100', 'text-gray-600');
+            filterCards();
+        }
+
+        function filterCards() {
+            const searchTxt = document.getElementById('searchInput').value.toLowerCase();
+            const container = document.getElementById('cardList');
+            container.innerHTML = '';
+
+            // 處理排序邏輯：找出各卡片在該分類下的最高回饋
+            let displayData = cards.map(card => {
+                let bestRule = null;
+                
+                if (currentCategory === 'all') {
+                    bestRule = card.rules[0];
+                } else {
+                    bestRule = card.rules.find(r => r.cat === currentCategory);
+                }
+
+                // 如果有搜尋文字，進一步過濾
+                if (searchTxt) {
+                    const foundBySearch = card.rules.find(r => r.keyword.includes(searchTxt) || card.name.toLowerCase().includes(searchTxt));
+                    if (foundBySearch) bestRule = foundBySearch;
+                    else return null; 
+                }
+
+                return { ...card, activeRule: bestRule };
+            }).filter(c => c !== null);
+
+            // 依照利率排序 (由高到低)
+            displayData.sort((a, b) => (b.activeRule?.rate || 0) - (a.activeRule?.rate || 0));
+
+            displayData.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = `card-shadow rounded-2xl overflow-hidden bg-white border border-gray-100 transition-all`;
+                
+                const rateHtml = card.activeRule 
+                    ? `<div class="text-right">
+                         <span class="text-3xl font-black text-red-500">${card.activeRule.rate}%</span>
+                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Rewards</p>
+                       </div>`
+                    : '';
+
+                cardEl.innerHTML = `
+                    <div class="${card.theme} h-2 w-full"></div>
+                    <div class="p-5">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                ${index === 0 && currentCategory !== 'all' ? '<span class="best-tag text-[10px] text-white px-2 py-0.5 rounded-full font-bold mb-1 inline-block">BEST CHOICE</span>' : ''}
+                                <h3 class="text-xl font-black text-gray-800 tracking-tight">${card.name}</h3>
+                                <p class="text-xs font-bold text-gray-400 uppercase">${card.bank}</p>
+                            </div>
+                            ${rateHtml}
+                        </div>
+                        <div class="bg-gray-50 rounded-xl p-3 border border-dashed border-gray-200">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-2 h-2 rounded-full bg-indigo-500"></span>
+                                <span class="text-xs font-black text-gray-500 italic">當前最優通路</span>
+                            </div>
+                            <p class="text-sm text-gray-700 font-medium">${card.activeRule ? card.activeRule.detail : '一般消費回饋'}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(cardEl);
+            });
+        }
+
+        // 初始化
+        window.onload = filterCards;
+    </script>
+</body>
+</html>
