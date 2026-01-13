@@ -2,49 +2,64 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 台股全能選股儀表板</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2026 台股全市場導航</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
-        .dashboard-card { background: white; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); overflow: hidden; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
+        
+        /* 強制修正手機版選股器高度，並嘗試減少左右晃動 */
+        .screener-container {
+            height: 80vh; 
+            width: 100%;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+        }
+
+        /* 針對 TradingView 內部的表格進行手機適配 */
+        iframe {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .header-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
     </style>
 </head>
-<body class="pb-10">
+<body class="pb-5">
 
-    <!-- Top Navigation -->
-    <header class="bg-slate-900 text-white p-5 sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/50">
-                    <i class="fa-solid fa-radar text-xl"></i>
+    <!-- Header -->
+    <header class="header-gradient text-white p-5 sticky top-0 z-50 shadow-xl">
+        <div class="max-w-md mx-auto">
+            <div class="flex justify-between items-center mb-2">
+                <h1 class="text-xl font-black italic tracking-tighter text-indigo-400">TAIWAN <span class="text-white">FULL-MARKET</span></h1>
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
+                    <span class="text-[10px] font-bold text-emerald-400">LIVE 2026</span>
                 </div>
-                <h1 class="text-xl font-black tracking-tighter">台股全能導航 <span class="text-indigo-400 italic">ULTIMATE</span></h1>
             </div>
-            <div class="text-right hidden sm:block">
-                <p id="liveTime" class="text-[10px] font-mono text-slate-400"></p>
-                <p class="text-xs font-bold text-emerald-400">數據源：TWSE / OTC 盤後同步</p>
-            </div>
+            <p class="text-[10px] text-slate-400 font-medium">已載入：台股上市 + 上櫃 (共 2000+ 檔)</p>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto p-4 space-y-6">
+    <main class="max-w-md mx-auto p-4 space-y-6">
 
-        <!-- 1. 市場全景：產業熱力圖 (讓你知道現在錢流向哪個產業) -->
-        <section class="space-y-3">
-            <div class="flex items-center gap-2 px-2">
-                <i class="fa-solid fa-layer-group text-indigo-500"></i>
-                <h2 class="text-lg font-black text-slate-800">台股產業權重熱力圖</h2>
+        <!-- 1. 全市場熱力圖 (看大盤錢流向哪) -->
+        <section>
+            <div class="flex items-center gap-2 mb-3 px-1">
+                <i class="fa-solid fa-layer-group text-indigo-600"></i>
+                <h2 class="text-sm font-black text-slate-800 uppercase">全產業資金熱力圖</h2>
             </div>
-            <div class="dashboard-card h-[400px]">
+            <div class="screener-container !h-[300px]">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
                     {
-                    "exchanges": ["TWSE"],
+                    "exchanges": ["TWSE", "OTC"],
                     "dataSource": "all_taiwan",
                     "grouping": "sector",
                     "blockSize": "market_cap_basic",
@@ -62,18 +77,18 @@
             </div>
         </section>
 
-        <!-- 2. 精確選股清單 (包含代號、中文、股價、法人評級、本益比) -->
-        <section class="space-y-3">
-            <div class="flex justify-between items-center px-2">
+        <!-- 2. 全市場選股清單 (修正版) -->
+        <section>
+            <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-filter-circle-dollar text-rose-500"></i>
-                    <h2 class="text-lg font-black text-slate-800">多因子智慧選股清單</h2>
+                    <i class="fa-solid fa-list-check text-rose-600"></i>
+                    <h2 class="text-sm font-black text-slate-800 uppercase">全台股即時清單 (含代號與中文)</h2>
                 </div>
-                <div class="text-[10px] font-bold text-slate-400 bg-white px-3 py-1 rounded-full border">
-                    已自動過濾：台灣上市櫃個股
-                </div>
+                <div id="statusTag" class="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold">自動更新</div>
             </div>
-            <div class="dashboard-card h-[600px]">
+
+            <div class="screener-container">
+                <!-- 核心選股器：鎖定台灣、中文、且包含代號與中文描述 -->
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
@@ -91,62 +106,53 @@
                     </script>
                 </div>
             </div>
+
+            <!-- 手機操作教學 (這很重要) -->
+            <div class="mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
+                <h3 class="text-xs font-bold text-indigo-900 mb-2 underline tracking-tight">📱 手機版一目了然操作指南：</h3>
+                <ul class="text-[11px] text-indigo-800 space-y-2 leading-relaxed">
+                    <li>✅ <strong>顯示中文名</strong>：第一欄「代號」下方的小字就是<strong>中文公司名</strong>。</li>
+                    <li>✅ <strong>不左右拉</strong>：點擊工具列的「三條槓（設定）」，只勾選「代號、價格、漲跌幅」，把沒用的欄位關掉，就能在手機一頁看完。</li>
+                    <li>✅ <strong>盤後選股</strong>：點擊「漏斗（過濾器）」，搜尋<strong>「技術評級」</strong>並選擇<strong>「強力買入」</strong>，這通常就是法人鎖定的多頭起始股。</li>
+                </ul>
+            </div>
         </section>
 
-        <!-- 3. 豐富資訊欄：財經日曆與法人時事 -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 財經日曆：注意重要會議或除權息 -->
-            <div class="dashboard-card p-6">
-                <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center">
-                    <i class="fa-solid fa-calendar-day mr-2 text-indigo-500"></i>重要財經大事
-                </h3>
+        <!-- 3. 三大法人盤後氣氛 -->
+        <section>
+            <div class="flex items-center gap-2 mb-3 px-1">
+                <i class="fa-solid fa-gauge-high text-indigo-600"></i>
+                <h2 class="text-sm font-black text-slate-800 uppercase">大盤多空指標</h2>
+            </div>
+            <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-events.js" async>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
                     {
-                    "colorTheme": "light",
-                    "isTransparent": false,
+                    "interval": "1D",
                     "width": "100%",
-                    "height": "400",
+                    "isTransparent": false,
+                    "height": "380",
+                    "symbol": "TWSE:IR0001",
+                    "showIntervalTabs": true,
+                    "displayMode": "single",
                     "locale": "zh_TW",
-                    "importanceFilter": "-1,0,1",
-                    "currencyFilter": "TWD,USD"
+                    "colorTheme": "light"
                     }
                     </script>
                 </div>
             </div>
-
-            <!-- 法人新聞與時事 -->
-            <div class="lg:col-span-2 dashboard-card p-6">
-                <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center">
-                    <i class="fa-solid fa-rss mr-2 text-rose-500"></i>盤後法人與市場時事
-                </h3>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                    {
-                    "feedMode": "market",
-                    "market": "stock",
-                    "colorTheme": "light",
-                    "isTransparent": false,
-                    "displayMode": "regular",
-                    "width": "100%",
-                    "height": "400",
-                    "locale": "zh_TW"
-                    }
-                    </script>
-                </div>
-            </div>
-        </div>
+        </section>
 
     </main>
 
     <script>
-        // 即時時間更新
+        // 每分鐘自動更新狀態標籤
         setInterval(() => {
             const now = new Date();
-            document.getElementById('liveTime').innerText = now.toLocaleString();
-        }, 1000);
+            const timeStr = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('statusTag').innerText = '最後同步: ' + timeStr;
+        }, 60000);
     </script>
 </body>
 </html>
