@@ -3,267 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>期權損益分析中心 - Live</title>
+    <title>萬能期權損益分析器 Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        .pnl-red { color: #ff5252; }   /* 獲利紅 */
-        .pnl-green { color: #2ecc71; } /* 虧損綠 */
-        body { background-color: #0b0f1a; color: #cbd5e1; font-family: 'Inter', sans-serif; }
-        .panel { background-color: #161e2d; border: 1px solid #2d3748; }
-        .input-style { background-color: #0b0f1a; border: 1px solid #3f4e64; color: #fff; border-radius: 6px; }
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #4a5568; border-radius: 10px; }
+        body { background-color: #050505; color: #e5e7eb; font-family: 'Inter', sans-serif; }
+        .pnl-red { color: #ff3b3b; text-shadow: 0 0 5px rgba(255,59,59,0.2); }   /* 獲利紅 */
+        .pnl-green { color: #00f271; text-shadow: 0 0 5px rgba(0,242,113,0.2); } /* 虧損綠 */
+        .glass-panel { background: rgba(25, 25, 25, 0.8); border: 1px solid #333; backdrop-filter: blur(10px); }
+        .input-style { background: #111; border: 1px solid #444; color: #fff; padding: 0.5rem; border-radius: 4px; font-size: 0.875rem; }
+        .input-style:focus { border-color: #6366f1; outline: none; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
     </style>
 </head>
-<body class="p-2 md:p-6">
+<body class="p-4">
 
-    <div class="max-w-6xl mx-auto">
-        <!-- 頂部即時報價欄 -->
-        <header class="panel p-5 rounded-2xl mb-4 shadow-2xl flex justify-between items-center border-b-4 border-indigo-600">
+    <div class="max-w-7xl mx-auto">
+        <!-- 頂部報價 -->
+        <header class="glass-panel p-6 rounded-2xl mb-6 flex flex-col md:flex-row justify-between items-center border-b-2 border-indigo-600 shadow-2xl">
             <div>
-                <h1 class="text-xl font-black text-white tracking-tight">期權損益分析器 <span class="text-indigo-500 font-mono text-xs ml-2">LIVE DATA</span></h1>
-                <div id="status" class="text-[10px] text-gray-500 uppercase mt-1">正在連線至 Yahoo Finance...</div>
+                <h1 class="text-2xl font-black text-white italic tracking-tighter">損益分析器 <span class="text-indigo-500 font-normal text-xs not-italic ml-2">UNIVERSAL v3.0</span></h1>
+                <div id="api-status" class="text-[10px] text-gray-500 mt-1 uppercase tracking-widest">連線中...</div>
             </div>
-            <div class="flex items-center gap-8">
+            <div class="flex items-center gap-10 mt-4 md:mt-0">
                 <div class="text-right">
-                    <span class="text-[10px] text-gray-500 block uppercase">大盤參考價 (^TWII)</span>
-                    <span id="livePrice" class="text-3xl font-mono font-bold text-indigo-400">-----.--</span>
+                    <span class="text-[10px] text-gray-500 block">台股大盤即時 (^TWII)</span>
+                    <span id="market-price" class="text-4xl font-black mono text-indigo-400">-----.--</span>
                 </div>
-                <button onclick="fetchYahooData()" class="bg-indigo-600 hover:bg-indigo-500 p-2 rounded-full transition shadow-lg hover:rotate-180 duration-500">
+                <button onclick="fetchPrice()" class="bg-indigo-600 hover:bg-indigo-500 p-3 rounded-full transition-all shadow-lg active:scale-90">
                     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                 </button>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
-            <!-- 左側控制區 -->
-            <div class="space-y-4">
-                <!-- 範圍中心設定 -->
-                <div class="panel p-5 rounded-xl shadow-lg">
-                    <h2 class="text-xs font-bold text-gray-400 mb-4 tracking-widest uppercase">損益分析中心設定</h2>
-                    <div class="grid grid-cols-1 gap-4">
-                        <div>
-                            <label class="text-[10px] text-gray-500 mb-1 block">設定中心價 (分析基準)</label>
-                            <input id="refPrice" type="number" oninput="updateUI()" class="w-full input-style px-3 py-2 text-sm outline-none focus:border-indigo-500">
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="text-[10px] text-gray-500 mb-1 block">上下延伸範圍</label>
-                                <select id="rangeOffset" onchange="updateUI()" class="w-full input-style px-2 py-2 text-xs">
-                                    <option value="300">± 300 點</option>
-                                    <option value="500" selected>± 500 點</option>
-                                    <option value="1000">± 1000 點</option>
-                                    <option value="2000">± 2000 點</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] text-gray-500 mb-1 block">間隔級距 (Step)</label>
-                                <input id="stepSize" type="number" value="50" oninput="updateUI()" class="w-full input-style px-2 py-2 text-xs">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- 新增部位 -->
-                <div class="panel p-5 rounded-xl shadow-lg">
-                    <h2 class="text-xs font-bold text-gray-400 mb-4 tracking-widest uppercase">新增部位組合</h2>
+            <!-- 設定面板 -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- 商品輸入 -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h2 class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest border-l-2 border-indigo-500 pl-2">新增部位</h2>
                     <div class="space-y-3">
-                        <select id="posType" class="w-full input-style p-2 text-xs">
-                            <option value="TXO_50">選擇權 (TXO) - 每點50元</option>
-                            <option value="MTX_50">小台期貨 (MTX) - 每點50元</option>
-                            <option value="TX_200">大台期貨 (TX) - 每點200元</option>
+                        <label class="text-[10px] text-gray-500 block -mb-2">選擇商品</label>
+                        <select id="inst-type" class="w-full input-style">
+                            <option value="TXO" data-val="50">台指選擇權 (1點=50)</option>
+                            <option value="TX" data-val="200">大台期貨 (1點=200)</option>
+                            <option value="MTX" data-val="50">小台期貨 (1點=50)</option>
+                            <option value="TMF" data-val="10">微台期貨 (1點=10)</option>
+                            <option value="TE" data-val="4000">電子期貨 (1點=4000)</option>
+                            <option value="TF" data-val="1000">金融期貨 (1點=1000)</option>
+                            <option value="CUSTOM" data-val="0">自定義點值...</option>
                         </select>
-                        <div class="grid grid-cols-2 gap-2">
-                            <select id="posAction" class="input-style p-2 text-xs">
-                                <option value="Buy">買進 (L)</option>
-                                <option value="Sell">賣出 (S)</option>
-                            </select>
-                            <select id="cpType" class="input-style p-2 text-xs">
-                                <option value="Call">買權 (Call)</option>
-                                <option value="Put">賣權 (Put)</option>
-                                <option value="Future">期貨 (Future)</option>
-                            </select>
+                        <div id="custom-val-div" class="hidden">
+                            <input id="custom-point-val" type="number" placeholder="輸入每點價值(元)" class="w-full input-style border-indigo-900">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
-                            <input id="posStrike" type="number" placeholder="履約/成交價" class="input-style p-2 text-xs">
-                            <input id="posPrice" type="number" placeholder="成本點數" class="input-style p-2 text-xs">
+                            <select id="pos-action" class="input-style">
+                                <option value="Buy">買進 (Long)</option>
+                                <option value="Sell">賣出 (Short)</option>
+                            </select>
+                            <select id="cp-type" class="input-style">
+                                <option value="Call">買權 Call</option>
+                                <option value="Put">賣權 Put</option>
+                                <option value="Future">期貨 Future</option>
+                            </select>
                         </div>
-                        <button onclick="addPosition()" class="w-full bg-indigo-600 hover:bg-indigo-700 py-2 rounded-lg font-bold text-xs text-white transition">＋ 放入組合清單</button>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input id="pos-strike" type="number" placeholder="履約價" class="col-span-1 input-style">
+                            <input id="pos-price" type="number" placeholder="成交價" class="col-span-1 input-style">
+                            <input id="pos-qty" type="number" value="1" placeholder="口數" class="col-span-1 input-style">
+                        </div>
+                        <button onclick="addPosition()" class="w-full bg-white text-black font-black py-2 rounded uppercase text-xs hover:bg-indigo-500 hover:text-white transition-all">加入組合組合</button>
                     </div>
                 </div>
 
-                <!-- 持倉清單 -->
-                <div class="panel p-4 rounded-xl">
-                    <h3 class="text-[10px] text-gray-500 font-bold mb-3 uppercase tracking-wider">當前部位狀態</h3>
-                    <div id="positionList" class="space-y-2 max-h-40 overflow-y-auto pr-1"></div>
+                <!-- 目前組合 -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h2 class="text-xs font-bold text-gray-400 mb-3 uppercase tracking-widest">組合明細</h2>
+                    <div id="pos-list" class="space-y-2 max-h-48 overflow-y-auto">
+                        <!-- 動態內容 -->
+                    </div>
+                </div>
+
+                <!-- 範圍中心 -->
+                <div class="glass-panel p-5 rounded-xl">
+                    <h2 class="text-xs font-bold text-gray-400 mb-4 uppercase tracking-widest">分析中心</h2>
+                    <div class="space-y-3">
+                        <input id="ref-price" type="number" oninput="updateUI()" class="w-full input-style mono text-lg text-indigo-400" placeholder="設定基準價">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="range-offset" onchange="updateUI()" class="input-style text-xs">
+                                <option value="200">± 200 點</option>
+                                <option value="500" selected>± 500 點</option>
+                                <option value="1000">± 1000 點</option>
+                                <option value="2000">± 2000 點</option>
+                            </select>
+                            <input id="step-size" type="number" value="50" oninput="updateUI()" class="input-style text-xs" title="級距">
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 右側數據與圖表區 -->
-            <div class="lg:col-span-2 space-y-4">
-                <!-- 損益曲線 -->
-                <div class="panel p-5 rounded-xl h-72">
-                    <canvas id="pnlChart"></canvas>
+            <!-- 分析顯示區 -->
+            <div class="lg:col-span-3 space-y-6">
+                <!-- 損益圖 -->
+                <div class="glass-panel p-6 rounded-xl h-[350px]">
+                    <canvas id="pnl-chart"></canvas>
                 </div>
 
-                <!-- 損益表格 -->
-                <div class="panel rounded-xl overflow-hidden">
-                    <div class="bg-gray-800/50 px-4 py-2 text-[10px] font-bold text-gray-500 uppercase flex justify-between">
-                        <span>預估結算損益細節</span>
-                        <span>單位：新台幣 (TWD)</span>
-                    </div>
-                    <div class="overflow-y-auto max-h-[420px]">
-                        <table class="w-full text-center text-xs">
-                            <thead class="sticky top-0 bg-[#161e2d] shadow-md">
+                <!-- 數據表 -->
+                <div class="glass-panel rounded-xl overflow-hidden shadow-2xl">
+                    <div class="overflow-y-auto max-h-[500px]">
+                        <table class="w-full text-center text-xs mono">
+                            <thead class="sticky top-0 bg-[#111] text-gray-500 uppercase">
                                 <tr>
-                                    <th class="p-3 text-gray-400 font-medium border-b border-gray-700">假設結算價</th>
-                                    <th class="p-3 text-gray-400 font-medium border-b border-gray-700">真實部位損益</th>
-                                    <th class="p-3 text-gray-400 font-medium border-b border-gray-700">損益點數</th>
+                                    <th class="p-4 border-b border-gray-800">假設結算價</th>
+                                    <th class="p-4 border-b border-gray-800">總損益 (TWD)</th>
+                                    <th class="p-4 border-b border-gray-800 text-gray-700">損益點數(參考)</th>
                                 </tr>
                             </thead>
-                            <tbody id="pnlTableBody" class="font-mono divide-y divide-gray-800">
-                                <!-- JS 動態生成 -->
+                            <tbody id="table-body" class="divide-y divide-gray-900">
+                                <!-- 動態數據 -->
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
     <script>
         let positions = [];
-        let chartInstance = null;
+        let chart = null;
 
-        // --- 核心：抓取 Yahoo Finance 即時報價 (透過 CORS Proxy) ---
-        async function fetchYahooData() {
-            const statusEl = document.getElementById('status');
-            statusEl.innerText = "正在同步大盤即時報價...";
-            
+        // 處理自定義點值輸入框顯示
+        document.getElementById('inst-type').addEventListener('change', (e) => {
+            const div = document.getElementById('custom-val-div');
+            div.className = e.target.value === 'CUSTOM' ? 'block animate-pulse' : 'hidden';
+        });
+
+        // Yahoo 即時行情
+        async function fetchPrice() {
+            const status = document.getElementById('api-status');
+            status.innerText = "正在連線 YAHOO FINANCE...";
             try {
-                // 使用 Yahoo Finance 的公開 API
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
+                const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/^TWII?interval=1m`);
+                const data = await res.json();
                 const price = data.chart.result[0].meta.regularMarketPrice;
-                
-                document.getElementById('livePrice').innerText = price.toLocaleString();
-                document.getElementById('refPrice').value = Math.round(price);
-                statusEl.innerText = "報價同步成功 (資料來源: Yahoo Finance)";
-                statusEl.style.color = "#818cf8";
+                document.getElementById('market-price').innerText = price.toLocaleString();
+                document.getElementById('ref-price').value = Math.round(price);
+                status.innerText = "報價已同步";
                 updateUI();
-            } catch (error) {
-                console.error("API Error:", error);
-                statusEl.innerText = "報價抓取失敗，請手動輸入中心價";
-                statusEl.style.color = "#ef4444";
+            } catch (e) {
+                status.innerText = "報價同步失敗，請手動輸入中心價";
             }
-        }
-
-        // --- 損益計算邏輯 ---
-        function calculateSinglePnL(spot, p) {
-            let pnlPoints = 0;
-            const multiplier = p.type === 'TX_200' ? 200 : 50;
-
-            if (p.cpType === 'Call') {
-                const value = Math.max(0, spot - p.strike);
-                pnlPoints = (p.action === 'Buy') ? (value - p.price) : (p.price - value);
-            } else if (p.cpType === 'Put') {
-                const value = Math.max(0, p.strike - spot);
-                pnlPoints = (p.action === 'Buy') ? (value - p.price) : (p.price - value);
-            } else {
-                // 期貨
-                pnlPoints = (p.action === 'Buy') ? (spot - p.price) : (p.price - spot);
-            }
-            return pnlPoints * multiplier;
         }
 
         function addPosition() {
-            const type = document.getElementById('posType').value;
-            const action = document.getElementById('posAction').value;
-            const cpType = document.getElementById('cpType').value;
-            const strike = parseFloat(document.getElementById('posStrike').value);
-            const price = parseFloat(document.getElementById('posPrice').value);
+            const instSelect = document.getElementById('inst-type');
+            const type = instSelect.value;
+            let multiplier = parseFloat(instSelect.options[instSelect.selectedIndex].dataset.val);
+            if (type === 'CUSTOM') multiplier = parseFloat(document.getElementById('custom-point-val').value);
 
-            if (isNaN(price)) return alert("請輸入成本價格");
-            if (cpType !== 'Future' && isNaN(strike)) return alert("選擇權請輸入履約價");
+            const action = document.getElementById('pos-action').value;
+            const cp = document.getElementById('cp-type').value;
+            const strike = parseFloat(document.getElementById('pos-strike').value);
+            const price = parseFloat(document.getElementById('pos-price').value);
+            const qty = parseInt(document.getElementById('pos-qty').value) || 1;
 
-            positions.push({ id: Date.now(), type, action, cpType, strike, price });
+            if (isNaN(price)) return alert("請輸入成交價格/權利金");
+            
+            positions.push({ id: Date.now(), type, multiplier, action, cp, strike, price, qty });
             updateUI();
         }
 
-        function deletePosition(id) {
+        function deletePos(id) {
             positions = positions.filter(p => p.id !== id);
             updateUI();
         }
 
-        function updateUI() {
-            const ref = parseFloat(document.getElementById('refPrice').value) || 0;
-            const offset = parseInt(document.getElementById('rangeOffset').value);
-            const step = parseInt(document.getElementById('stepSize').value);
+        function calculatePnL(spot) {
+            let total = 0;
+            positions.forEach(p => {
+                let pnlPts = 0;
+                if (p.cp === 'Call') {
+                    const intrinsic = Math.max(0, spot - p.strike);
+                    pnlPts = (p.action === 'Buy') ? (intrinsic - p.price) : (p.price - intrinsic);
+                } else if (p.cp === 'Put') {
+                    const intrinsic = Math.max(0, p.strike - spot);
+                    pnlPts = (p.action === 'Buy') ? (intrinsic - p.price) : (p.price - intrinsic);
+                } else {
+                    // 期貨
+                    pnlPts = (p.action === 'Buy') ? (spot - p.price) : (p.price - spot);
+                }
+                total += pnlPts * p.multiplier * p.qty;
+            });
+            return total;
+        }
 
-            // 更新列表
-            const list = document.getElementById('positionList');
+        function updateUI() {
+            const ref = parseFloat(document.getElementById('ref-price').value) || 0;
+            const offset = parseInt(document.getElementById('range-offset').value);
+            const step = parseInt(document.getElementById('step-size').value) || 50;
+
+            // 列表更新
+            const list = document.getElementById('pos-list');
             list.innerHTML = positions.map(p => `
-                <div class="flex justify-between items-center bg-gray-800/40 p-2 rounded text-[10px] border border-gray-700">
-                    <span>
-                        <b class="${p.action === 'Buy' ? 'text-indigo-400' : 'text-orange-400'}">${p.action === 'Buy' ? 'L' : 'S'}</b> 
-                        ${p.cpType} ${p.strike || ''} @${p.price} <span class="text-gray-600">(${p.type.split('_')[1]}點)</span>
-                    </span>
-                    <button onclick="deletePosition(${p.id})" class="text-gray-500 hover:text-red-500">✕</button>
+                <div class="flex justify-between items-center bg-gray-900 p-2 rounded border border-gray-800 text-[10px]">
+                    <div class="leading-tight">
+                        <span class="font-bold ${p.action === 'Buy' ? 'text-indigo-400' : 'text-orange-500'}">${p.action === 'Buy' ? 'L' : 'S'}</span> 
+                        <span class="text-white">${p.type} ${p.cp}</span>
+                        <div class="text-gray-500">${p.strike ? p.strike + ' @ ' : ''}${p.price} (${p.qty}口)</div>
+                    </div>
+                    <button onclick="deletePos(${p.id})" class="text-gray-600 hover:text-red-500">✕</button>
                 </div>
             `).join('');
 
             if (ref === 0) return;
 
-            // 計算分析範圍
             const start = ref - offset;
             const end = ref + offset;
             const labels = [];
-            const dataPnL = [];
-            const tableBody = document.getElementById('pnlTableBody');
+            const pnlData = [];
+            const tableBody = document.getElementById('table-body');
             tableBody.innerHTML = '';
 
-            for (let spot = start; spot <= end; spot += step) {
-                let totalCashPnL = 0;
-                positions.forEach(p => {
-                    totalCashPnL += calculateSinglePnL(spot, p);
-                });
+            for (let s = start; s <= end; s += step) {
+                const pnl = calculatePnL(s);
+                labels.push(s);
+                pnlData.push(pnl);
 
-                labels.push(spot);
-                dataPnL.push(totalCashPnL);
-
-                const colorClass = totalCashPnL >= 0 ? 'pnl-red' : 'pnl-green';
+                const color = pnl >= 0 ? 'pnl-red' : 'pnl-green';
                 tableBody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-gray-800/50 transition">
-                        <td class="p-3 text-gray-400">${spot}</td>
-                        <td class="p-3 font-bold ${colorClass}">${totalCashPnL.toLocaleString()}</td>
-                        <td class="p-3 ${colorClass}">${(totalCashPnL / 50).toFixed(1)}</td>
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="p-3 text-gray-400 border-r border-gray-900">${s}</td>
+                        <td class="p-3 font-black ${color}">${pnl.toLocaleString()}</td>
+                        <td class="p-3 text-gray-700">${(pnl / 50).toFixed(1)}</td>
                     </tr>
                 `);
             }
-            renderChart(labels, dataPnL);
+            renderChart(labels, pnlData);
         }
 
-        function renderChart(labels, dataPnL) {
-            const ctx = document.getElementById('pnlChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, {
+        function renderChart(labels, data) {
+            const ctx = document.getElementById('pnl-chart').getContext('2d');
+            if (chart) chart.destroy();
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
-                        data: dataPnL,
+                        data: data,
                         borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 2,
+                        borderWidth: 3,
                         pointRadius: 0,
                         fill: true,
-                        tension: 0.3
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
+                            gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            return gradient;
+                        },
+                        tension: 0.4
                     }]
                 },
                 options: {
@@ -271,21 +275,14 @@
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
                     scales: {
-                        y: { 
-                            grid: { color: '#1e293b' },
-                            ticks: { color: '#475569', font: { size: 9 } } 
-                        },
-                        x: { 
-                            grid: { display: false },
-                            ticks: { color: '#475569', font: { size: 9 } } 
-                        }
+                        y: { grid: { color: '#222' }, ticks: { color: '#666', font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { color: '#666', font: { size: 9 } } }
                     }
                 }
             });
         }
 
-        // 初始化
-        window.onload = fetchYahooData;
+        window.onload = fetchPrice;
     </script>
 </body>
 </html>
