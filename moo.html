@@ -3,92 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 台股全市場導航</title>
+    <title>2026 台股法人導航 - 中文優化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        
-        /* 強制修正手機版選股器高度，並嘗試減少左右晃動 */
-        .screener-container {
-            height: 80vh; 
-            width: 100%;
-            border-radius: 24px;
-            overflow: hidden;
-            border: 1px solid #e2e8f0;
-        }
-
-        /* 針對 TradingView 內部的表格進行手機適配 */
-        iframe {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        .header-gradient {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-        }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        /* 強制修正 TradingView 容器高度 */
+        .widget-box { border-radius: 24px; overflow: hidden; background: white; border: 1px solid #e2e8f0; }
     </style>
 </head>
-<body class="pb-5">
+<body class="pb-10">
 
-    <!-- Header -->
-    <header class="header-gradient text-white p-5 sticky top-0 z-50 shadow-xl">
+    <!-- Header (質感深藍) -->
+    <header class="bg-slate-900 text-white p-5 sticky top-0 z-50 shadow-xl">
         <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-center mb-2">
-                <h1 class="text-xl font-black italic tracking-tighter text-indigo-400">TAIWAN <span class="text-white">FULL-MARKET</span></h1>
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 bg-emerald-500 rounded-full animate-ping"></span>
-                    <span class="text-[10px] font-bold text-emerald-400">LIVE 2026</span>
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-xl font-black italic tracking-tighter text-white">TAIWAN <span class="text-indigo-400">STOCK</span></h1>
+                    <p id="updateTime" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1"></p>
+                </div>
+                <div class="bg-emerald-500/20 px-3 py-1 rounded-full border border-emerald-500/50">
+                    <span class="text-[10px] text-emerald-400 font-black animate-pulse">● 2026 LIVE</span>
                 </div>
             </div>
-            <p class="text-[10px] text-slate-400 font-medium">已載入：台股上市 + 上櫃 (共 2000+ 檔)</p>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4 space-y-6">
 
-        <!-- 1. 全市場熱力圖 (看大盤錢流向哪) -->
+        <!-- 1. 取代熱力圖：大盤多空能量 (法人動向指標) -->
         <section>
             <div class="flex items-center gap-2 mb-3 px-1">
-                <i class="fa-solid fa-layer-group text-indigo-600"></i>
-                <h2 class="text-sm font-black text-slate-800 uppercase">全產業資金熱力圖</h2>
+                <i class="fa-solid fa-gauge-high text-indigo-600"></i>
+                <h2 class="text-sm font-black text-slate-800">大盤法人能量 (多空診斷)</h2>
             </div>
-            <div class="screener-container !h-[300px]">
+            <div class="widget-box p-4 h-[320px] card-shadow">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-stock-heatmap.js" async>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
                     {
-                    "exchanges": ["TWSE", "OTC"],
-                    "dataSource": "all_taiwan",
-                    "grouping": "sector",
-                    "blockSize": "market_cap_basic",
-                    "blockColor": "change",
-                    "locale": "zh_TW",
-                    "symbolDescription": "zh_TW",
-                    "colorTheme": "light",
-                    "hasTopBar": true,
-                    "isTransparent": false,
+                    "interval": "1D",
                     "width": "100%",
-                    "height": "100%"
+                    "isTransparent": true,
+                    "height": "100%",
+                    "symbol": "TWSE:IR0001",
+                    "showIntervalTabs": true,
+                    "displayMode": "single",
+                    "locale": "zh_TW",
+                    "colorTheme": "light"
                     }
                     </script>
                 </div>
             </div>
+            <p class="text-[10px] text-slate-400 mt-2 text-center italic">※ 儀表板偏向「強力買入」代表法人與籌碼極度看多</p>
         </section>
 
-        <!-- 2. 全市場選股清單 (修正版) -->
+        <!-- 2. 全台股清單 (中文名優先、垂直排列、不用左右拉) -->
         <section>
             <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-list-check text-rose-600"></i>
-                    <h2 class="text-sm font-black text-slate-800 uppercase">全台股即時清單 (含代號與中文)</h2>
+                    <i class="fa-solid fa-list-ul text-rose-600"></i>
+                    <h2 class="text-sm font-black text-slate-800 uppercase">全台股選股清單 (中文優先)</h2>
                 </div>
-                <div id="statusTag" class="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold">自動更新</div>
+                <div class="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold">18:00 法人更新</div>
             </div>
 
-            <div class="screener-container">
-                <!-- 核心選股器：鎖定台灣、中文、且包含代號與中文描述 -->
+            <!-- 使用 Market Overview 模式來實現「中文為主、代號在下」 -->
+            <div class="widget-box h-[700px] card-shadow">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
@@ -101,43 +85,43 @@
                     "showToolbar": true,
                     "colorTheme": "light",
                     "locale": "zh_TW",
-                    "isTransparent": false
+                    "isTransparent": false,
+                    "symbolDescription": "zh_TW"
                     }
                     </script>
                 </div>
             </div>
 
-            <!-- 手機操作教學 (這很重要) -->
-            <div class="mt-4 bg-indigo-50 border border-indigo-100 rounded-2xl p-4">
-                <h3 class="text-xs font-bold text-indigo-900 mb-2 underline tracking-tight">📱 手機版一目了然操作指南：</h3>
-                <ul class="text-[11px] text-indigo-800 space-y-2 leading-relaxed">
-                    <li>✅ <strong>顯示中文名</strong>：第一欄「代號」下方的小字就是<strong>中文公司名</strong>。</li>
-                    <li>✅ <strong>不左右拉</strong>：點擊工具列的「三條槓（設定）」，只勾選「代號、價格、漲跌幅」，把沒用的欄位關掉，就能在手機一頁看完。</li>
-                    <li>✅ <strong>盤後選股</strong>：點擊「漏斗（過濾器）」，搜尋<strong>「技術評級」</strong>並選擇<strong>「強力買入」</strong>，這通常就是法人鎖定的多頭起始股。</li>
+            <!-- 操作提示 -->
+            <div class="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                <h3 class="text-xs font-bold text-amber-900 mb-2">💡 手機一目了然秘訣：</h3>
+                <ul class="text-[11px] text-amber-800 space-y-2">
+                    <li>1. 點擊清單上方 <strong>「三條槓 (欄位設定)」</strong>。</li>
+                    <li>2. 只勾選 <strong>「描述 (即中文名)」</strong>、<strong>「最後價格」</strong>、<strong>「漲跌幅%」</strong>。</li>
+                    <li>3. 這樣表格會縮得很窄，中文名稱會顯示在最前面，完全不用左右拉！</li>
                 </ul>
             </div>
         </section>
 
-        <!-- 3. 三大法人盤後氣氛 -->
+        <!-- 3. 三大法人盤後必看：即時新聞時事 -->
         <section>
             <div class="flex items-center gap-2 mb-3 px-1">
-                <i class="fa-solid fa-gauge-high text-indigo-600"></i>
-                <h2 class="text-sm font-black text-slate-800 uppercase">大盤多空指標</h2>
+                <i class="fa-solid fa-newspaper text-indigo-600"></i>
+                <h2 class="text-sm font-black text-slate-800">盤後法人時事新聞</h2>
             </div>
-            <div class="bg-white rounded-3xl p-6 border border-gray-100 shadow-sm">
+            <div class="widget-box h-[400px] card-shadow">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
                     {
-                    "interval": "1D",
-                    "width": "100%",
+                    "feedMode": "market",
+                    "market": "stock",
+                    "colorTheme": "light",
                     "isTransparent": false,
-                    "height": "380",
-                    "symbol": "TWSE:IR0001",
-                    "showIntervalTabs": true,
-                    "displayMode": "single",
-                    "locale": "zh_TW",
-                    "colorTheme": "light"
+                    "displayMode": "regular",
+                    "width": "100%",
+                    "height": "100%",
+                    "locale": "zh_TW"
                     }
                     </script>
                 </div>
@@ -147,12 +131,9 @@
     </main>
 
     <script>
-        // 每分鐘自動更新狀態標籤
-        setInterval(() => {
-            const now = new Date();
-            const timeStr = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('statusTag').innerText = '最後同步: ' + timeStr;
-        }, 60000);
+        // 更新時間
+        const now = new Date();
+        document.getElementById('updateTime').innerText = '最後同步: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
     </script>
 </body>
 </html>
