@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v56.Corrected</title>
+    <title>上新莊分行 - FCN 管理系統 v57.KI_Highlight</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -12,7 +12,10 @@
         [v-cloak] { display: none; }
         body { background-color: #f3f4f6; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; }
         .fcn-card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; position: relative; }
-        .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; }
+        .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; position: relative; }
+        /* 新增：觸及 KI 的標記樣式 */
+        .stock-tag.ki-hit { border: 2px solid #ef4444; background-color: #fef2f2; }
+        
         .nav-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
         .nav-btn { padding: 10px 16px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; }
         .nav-btn.active { background: #1f2937; color: white; }
@@ -106,7 +109,8 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
-                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag">
+                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag" :class="{'ki-hit': isStockKI(item, s)}">
+                            <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ 觸及</div>
                             <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                             <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
@@ -159,6 +163,13 @@
                         const lowest = this.getLowestSince(s, dateLimit);
                         return lowest > 0 && lowest <= (s.init * i.kiP / 100);
                     });
+                },
+                // 新增：判斷單一標的是否曾經跌破 KI (用於顯示紅框)
+                isStockKI(i, s) {
+                    if (i.kiP <= 0) return false;
+                    const dateLimit = this.parseDate(i.date);
+                    const lowest = this.getLowestSince(s, dateLimit);
+                    return lowest > 0 && lowest <= (s.init * i.kiP / 100);
                 },
                 isLocked(i){ 
                     if(!i.koStart) return false;
@@ -280,47 +291,33 @@
                         return diff >= 0 && diff <= 3;
                     });
                 },
-                // *** 關鍵修正區：已出場邏輯 ***
                 exitList() { 
                     return this.inventory.filter(i => {
-                        // 1. 基本鎖定期檢查
                         if (this.checkIsLocked(i)) return false;
                         
-                        // 2. 必須要有標的跟歷史資料
                         if (!i.stocks || i.stocks.length === 0) return false;
                         const start = this.parseDate(i.koStart);
                         const startTs = start.getTime() / 1000;
                         
-                        // 3. 以第一檔股票的歷史日期為基準，遍歷每一天
-                        // 只有當「同一天」所有股票都高於 KO 價，才算出場
                         const baseStock = i.stocks[0];
                         if (!baseStock.history || !baseStock.history.timestamp) return false;
 
-                        // 檢查是否曾經有「同一天」全部達標
                         return baseStock.history.timestamp.some((ts, idx) => {
-                            // 必須在觀察日之後
                             if (ts < startTs) return false;
 
-                            // 檢查這一天，是否「所有」股票都 >= KO
                             return i.stocks.every(s => {
-                                // 取得該股票在當天(ts)的價格
                                 let price = null;
                                 if (s === baseStock) {
-                                    price = s.history.high[idx]; // 使用 High 比較寬鬆，符合"曾經"定義
+                                    price = s.history.high[idx];
                                 } else {
-                                    // 嘗試找同一天的數據
                                     if (!s.history || !s.history.timestamp) return false;
-                                    // 簡單優化：假設數據是對齊的，先看 idx
                                     if (s.history.timestamp[idx] === ts) {
                                         price = s.history.high[idx];
                                     } else {
-                                        // 搜尋該日期的 index
                                         const foundIdx = s.history.timestamp.indexOf(ts);
                                         if (foundIdx !== -1) price = s.history.high[foundIdx];
                                     }
                                 }
-                                
-                                // 判斷價格是否高於 KO
                                 return price !== null && price >= (s.init * i.koP / 100);
                             });
                         });
