@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (間距完美版)</title>
+    <title>榮譽榜生成器 (商品字體優化版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -117,10 +117,8 @@
             line-height: 1;
         }
 
-        /* 1. 姓名區：往上移到 50px (原本 70px) */
         .field-name {
-            top: 50px; 
-            right: 40px;
+            top: 70px; right: 40px;
             text-align: right;
             display: flex; flex-direction: column; align-items: flex-end;
             min-width: 350px;
@@ -134,9 +132,9 @@
             margin-top: -5px; 
         }
 
-        /* 2. 商品區：設定在 215px (保持在中間) */
+        /* 商品區塊 */
         .field-product {
-            top: 215px; 
+            top: 200px; 
             right: 40px;
             display: flex; 
             align-items: center; 
@@ -154,18 +152,18 @@
         .product-box {
             border: 4px solid #2563eb; 
             color: #2563eb;
-            font-size: 50px;
             font-weight: 900;
             padding: 0 20px; 
             white-space: nowrap; 
             line-height: 1.2;
             background: rgba(255,255,255,0.95);
+            /* font-size 移除，改由 Vue 動態控制 */
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
 
-        /* 3. 金額區：往下移到 335px (原本 300px) */
+        /* 金額區塊 */
         .field-amount {
-            top: 335px; 
+            top: 300px; 
             right: 40px;
             text-align: right;
             min-width: 500px;
@@ -234,7 +232,7 @@
                         <option value="FCN">FCN</option>
                         <option value="U6">元元致富 U6</option>
                         <option value="U5">元元致富 U5</option>
-                        <option value="BOND">債券</option>
+                        <option value="BOND">海外債</option>
                     </select>
                 </div>
                 <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
@@ -344,7 +342,7 @@
             <!-- 商品 -->
             <div class="field field-product">
                 <div class="product-list">
-                    <div v-for="prod in finalProductList" :key="prod" class="product-box">
+                    <div v-for="prod in finalProductList" :key="prod" class="product-box" :style="{ fontSize: productFontSize }">
                         {{ prod }}
                     </div>
                 </div>
@@ -467,8 +465,14 @@
             const finalProductList = computed(() => {
                 if (cart.value.length === 0) return ['FCN'];
                 const types = [...new Set(cart.value.map(i => i.productType))];
-                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '債券' };
+                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
                 return types.map(t => map[t]);
+            });
+
+            // 商品字體自動控制
+            const productFontSize = computed(() => {
+                if (finalProductList.value.length > 1) return '40px'; 
+                return '50px'; 
             });
 
             const formatAmountWithUnit = (num) => {
@@ -517,7 +521,7 @@
                 repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
                 updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
                 addToCart, removeFromCart, totalRevenue, totalBonus, 
-                finalProductList, finalAmountList, amountFontSize,
+                finalProductList, finalAmountList, amountFontSize, productFontSize,
                 formatNumber, generateImage, scaleStyle
             };
         }
