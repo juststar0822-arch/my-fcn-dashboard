@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 AI 股市導航儀</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f1f5f9; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04); }
+        .market-up { color: #ef4444; } /* 台股習慣紅漲 */
+        .market-down { color: #22c55e; }
+    </style>
+</head>
+<body class="pb-20">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white sticky top-0 z-50 p-5 shadow-xl">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black italic tracking-tighter text-sky-400">AI STOCK <span class="text-white">NAVIGATOR</span></h1>
+                <p id="todayDate" class="text-[10px] text-slate-400 font-bold uppercase"></p>
+            </div>
+            <div class="flex gap-4">
+                <span class="text-xs bg-slate-800 px-3 py-1 rounded-full border border-slate-700">台股/美股自動同步</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 space-y-6">
+        
+        <!-- 1. 市場即時走勢圖 (Ticker) -->
+        <div class="bg-white rounded-3xl p-2 card-shadow overflow-hidden">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-tickers.js" async>
+                {
+                "symbols": [
+                    {"proName": "FOREXCOM:SPX500", "title": "S&P 500"},
+                    {"proName": "FOREXCOM:NSXUSD", "title": "Nasdaq 100"},
+                    {"proName": "TVC:NI225", "title": "日經 225"},
+                    {"proName": "TWSE:IR0001", "title": "台股加權"}
+                ],
+                "colorTheme": "light",
+                "isTransparent": false,
+                "showSymbolLogo": true,
+                "locale": "zh_TW"
+                }
+                </script>
+            </div>
+        </div>
+
+        <!-- 2. 多頭個股推薦清單 (自動更新技術面) -->
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 px-2">
+                <i class="fa-solid fa-fire-flame-curved text-orange-500"></i>
+                <h2 class="text-lg font-black text-slate-800">多頭趨勢推薦觀察</h2>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- 台股多頭推薦 (以權值股為例) -->
+                <div class="bg-white rounded-[32px] p-6 card-shadow border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-red-50 text-red-500 text-[10px] px-3 py-1 rounded-full font-black">台股精選</span>
+                        <span class="text-xs text-slate-400">趨勢判斷：MA20/MA60</span>
+                    </div>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                        {
+                        "interval": "1D",
+                        "width": "100%",
+                        "isTransparent": false,
+                        "height": "380",
+                        "symbol": "TWSE:2330",
+                        "showIntervalTabs": true,
+                        "displayMode": "single",
+                        "locale": "zh_TW",
+                        "colorTheme": "light"
+                        }
+                        </script>
+                    </div>
+                </div>
+
+                <!-- 美股多頭推薦 (以 AI 龍頭為例) -->
+                <div class="bg-white rounded-[32px] p-6 card-shadow border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="bg-blue-50 text-blue-500 text-[10px] px-3 py-1 rounded-full font-black">美股精選</span>
+                        <span class="text-xs text-slate-400">趨勢判斷：均線排列</span>
+                    </div>
+                    <div class="tradingview-widget-container">
+                        <div class="tradingview-widget-container__widget"></div>
+                        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
+                        {
+                        "interval": "1D",
+                        "width": "100%",
+                        "isTransparent": false,
+                        "height": "380",
+                        "symbol": "NASDAQ:NVDA",
+                        "showIntervalTabs": true,
+                        "displayMode": "single",
+                        "locale": "zh_TW",
+                        "colorTheme": "light"
+                        }
+                        </script>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. 全球股市時事新聞 (自動同步) -->
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 px-2">
+                <i class="fa-solid fa-newspaper text-sky-500"></i>
+                <h2 class="text-lg font-black text-slate-800">全球財經即時時事</h2>
+            </div>
+            <div class="bg-white rounded-[32px] p-2 card-shadow overflow-hidden min-h-[500px]">
+                <div class="tradingview-widget-container">
+                    <div class="tradingview-widget-container__widget"></div>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+                    {
+                    "feedMode": "all_symbols",
+                    "colorTheme": "light",
+                    "isTransparent": false,
+                    "displayMode": "regular",
+                    "width": "100%",
+                    "height": "600",
+                    "locale": "zh_TW"
+                    }
+                    </script>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- 底部導航切換 (如果你想放回信用卡頁面，可以加這條) -->
+    <footer class="fixed bottom-0 w-full bg-white/80 backdrop-blur-md border-t p-4 flex justify-around items-center z-50">
+        <button class="flex flex-col items-center text-slate-400">
+            <i class="fa-solid fa-credit-card text-xl"></i>
+            <span class="text-[10px] font-bold">信用卡</span>
+        </button>
+        <button class="flex flex-col items-center text-sky-600">
+            <i class="fa-solid fa-chart-line text-xl"></i>
+            <span class="text-[10px] font-bold">股市導航</span>
+        </button>
+    </footer>
+
+    <script>
+        // 設定今天日期
+        document.getElementById('todayDate').innerText = new Date().toLocaleDateString('zh-TW', { 
+            year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' 
+        });
+    </script>
+</body>
+</html>
