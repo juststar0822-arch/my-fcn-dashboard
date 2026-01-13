@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (換行顯示版)</title>
+    <title>榮譽榜生成器 (排版修正版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
         
         body { 
-            font-family: 'Noto Sans TC', sans-serif; 
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
             background-color: #1a1a1a; 
             padding-bottom: 80px; 
             color: #333;
@@ -131,28 +131,27 @@
             margin-top: -5px; 
         }
 
-        /* 商品區塊：位置稍微上移以容納多行 */
+        /* 商品區塊 (位置下移至 240px，避免擋住頭銜) */
         .field-product {
-            top: 200px; /* 原本 230，上移給多行空間 */
+            top: 240px; 
             right: 40px;
             display: flex; 
-            align-items: center; /* 垂直置中 */
+            align-items: center; 
             justify-content: flex-end;
             min-width: 450px;
         }
         
-        /* 商品列表容器 */
         .product-list {
             display: flex;
             flex-direction: column;
-            align-items: flex-end; /* 靠右對齊 */
-            gap: 8px; /* 行距 */
+            align-items: flex-end;
+            gap: 8px;
         }
 
         .product-box {
             border: 4px solid #2563eb; 
             color: #2563eb;
-            font-size: 50px; /* 稍微縮小以適應多行 */
+            font-size: 50px;
             font-weight: 900;
             padding: 0 20px; 
             white-space: nowrap; 
@@ -161,14 +160,14 @@
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
 
-        /* 金額區塊：支援多行 */
+        /* 金額區塊 (位置下移至 360px，避免擋住商品) */
         .field-amount {
-            top: 320px; /* 位置 */
+            top: 360px; 
             right: 40px;
             text-align: right;
             min-width: 500px;
             display: flex;
-            flex-direction: column; /* 垂直排列 */
+            flex-direction: column; 
             align-items: flex-end;
             gap: 0px;
         }
@@ -223,10 +222,8 @@
             </div>
         </div>
 
-        <!-- 單筆輸入區 -->
         <div class="bg-gray-800 p-3 rounded-lg mb-4">
             <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
-            
             <div class="grid grid-cols-2 gap-3 mb-2">
                 <div>
                     <label>商品</label>
@@ -239,7 +236,6 @@
                 </div>
                 <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
             </div>
-
             <div class="grid grid-cols-3 gap-2 mb-2">
                 <div>
                     <label>幣別</label>
@@ -250,12 +246,11 @@
                     </select>
                 </div>
                 <div class="relative">
-                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
+                    <label>匯率</label>
                     <input type="number" v-model="form.exRate" step="0.01">
                 </div>
                 <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
             </div>
-
             <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
                 ➕ 加入清單
             </button>
@@ -265,7 +260,6 @@
     <!-- 2. 清單 -->
     <div class="list-panel" v-if="cart.length > 0">
         <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
-        
         <div v-for="(item, idx) in cart" :key="idx" class="item-card">
             <div>
                 <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
@@ -273,7 +267,6 @@
             </div>
             <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
         </div>
-
         <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
             <div class="flex justify-between font-bold mb-1">
                 <span class="text-gray-300">總手收</span>
@@ -284,15 +277,12 @@
                 <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
             </div>
         </div>
-
         <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
             生成圖片 (長按儲存)
         </button>
     </div>
     
-    <div class="list-panel text-center text-gray-500 py-4" v-else>
-        請先輸入並加入清單
-    </div>
+    <div class="list-panel text-center text-gray-500 py-4" v-else>請先輸入並加入清單</div>
 
     <!-- 3. 結果 -->
     <div id="result-area">
@@ -330,9 +320,11 @@
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
-                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
-                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
-                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
+                    
+                    <!-- 獎盃文字：微軟正黑體 -->
+                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
+                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
+                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
                 </g>
 
                 <g transform="translate(320, 10) rotate(-10)">
@@ -341,7 +333,6 @@
                 </g>
             </svg>
 
-            <!-- 文字填充區 -->
             <div class="field field-date text-outline">{{ rocDate }}</div>
 
             <div class="field field-name text-outline">
@@ -349,7 +340,7 @@
                 <div class="title-text">{{ currentRep.title }}</div>
             </div>
 
-            <!-- 商品區塊 (換行邏輯) -->
+            <!-- 商品：多行列表 -->
             <div class="field field-product">
                 <div class="product-list">
                     <div v-for="prod in finalProductList" :key="prod" class="product-box">
@@ -359,7 +350,7 @@
                 <div class="count-text text-outline">共計{{ cart.length }}筆</div>
             </div>
 
-            <!-- 金額顯示區 (支援多行) -->
+            <!-- 金額 -->
             <div class="field field-amount text-outline">
                 <div v-for="item in finalAmountList" :key="item.curr" class="amount-row">
                     <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ item.val }}</span>
@@ -396,11 +387,7 @@
 
             const cart = ref([]);
             const form = reactive({
-                productType: 'FCN',
-                currency: 'USD',
-                exRate: 32.5,
-                amount: 20000,
-                bp: 50
+                productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
             });
 
             const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
@@ -476,7 +463,6 @@
             const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
             const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
 
-            // 商品名稱清單：去重後列出
             const finalProductList = computed(() => {
                 if (cart.value.length === 0) return ['FCN'];
                 const types = [...new Set(cart.value.map(i => i.productType))];
@@ -484,27 +470,21 @@
                 return types.map(t => map[t]);
             });
 
-            // 金額清單：依幣別加總，分行顯示
             const finalAmountList = computed(() => {
                 if(cart.value.length === 0) return [{ val: formatNumber(form.amount), curr: form.currency }];
-                
                 const sums = {};
                 cart.value.forEach(item => {
                     if(!sums[item.currency]) sums[item.currency] = 0;
                     sums[item.currency] += item.amount;
                 });
-
                 return Object.keys(sums).map(curr => ({ val: formatNumber(sums[curr]), curr: curr }));
             });
 
-            // 動態調整金額字體大小
             const amountFontSize = computed(() => {
-                // 如果有多行，字體變小
                 if (finalAmountList.value.length > 1) return '65px';
-                // 如果單行但字數多，也變小
                 const firstVal = finalAmountList.value[0].val;
                 if (firstVal.length > 8) return '70px';
-                return '95px'; // 預設大字
+                return '95px'; 
             });
 
             const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
