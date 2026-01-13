@@ -2,8 +2,8 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>榮譽榜生成器 (終極可視版)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>榮譽榜生成器 (透明底+自動縮放)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -13,17 +13,18 @@
         body { 
             font-family: 'Noto Sans TC', sans-serif; 
             background-color: #1a1a1a; 
+            padding-bottom: 80px; 
             color: #333;
-            padding-bottom: 50px;
+            overflow-x: hidden;
         }
 
         /* 輸入介面 */
         .control-panel {
             background: #2d2d2d;
+            border-bottom: 1px solid #444;
             color: white;
             padding: 20px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid #444;
+            margin-bottom: 10px;
         }
 
         label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
@@ -33,119 +34,122 @@
             font-size: 1rem; outline: none;
         }
         
-        /* === 預覽/生成區 === */
-        .preview-area {
+        /* === 預覽容器 (關鍵：自動縮放) === */
+        #preview-container {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 10px;
-        }
-
-        /* 獎狀本體 (固定寬度，手機上用 transform 縮放顯示) */
-        .certificate-container {
-            width: 800px;
-            height: 535px;
-            position: relative;
-            background-color: #fff;
-            border: 6px solid #D93025; /* 紅框 */
-            box-sizing: border-box;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            /* 預設不隱藏，確保渲染 */
-        }
-
-        /* 手機適配：強制縮小預覽，但保持解析度 */
-        .scale-wrapper {
-            width: 100%;
-            overflow-x: scroll;
             display: flex;
             justify-content: center;
-            padding-bottom: 20px;
+            align-items: flex-start;
+            overflow: hidden; /* 隱藏超出的部分 */
+            background: #1a1a1a;
+            padding-top: 10px;
+            min-height: 550px; /* 預留高度給縮放後的獎狀 */
         }
 
-        /* === 內容排版 === */
-        
-        /* 背景裝飾 */
+        /* 獎狀本體 (原始尺寸 800x535) */
+        .certificate {
+            width: 800px; 
+            height: 535px;
+            background-color: #fff;
+            position: relative; 
+            border: 5px solid #D93025;
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            flex-shrink: 0; 
+            transform-origin: top center; /* 從上方中間開始縮放 */
+        }
+
+        /* === 背景層 === */
+        .bg-lines {
+            position: absolute; width: 100%; height: 100%;
+            background-image: repeating-linear-gradient(45deg, #fffcf5 0px, #fffcf5 10px, #fff 10px, #fff 20px);
+            z-index: 0;
+        }
+
         .corner {
-            position: absolute; width: 60px; height: 60px;
-            border: 6px solid #D93025; z-index: 10;
+            position: absolute; width: 50px; height: 50px;
+            border: 5px solid #D93025; z-index: 10;
         }
-        .tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-        .tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-        .bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-        .br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+        .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+        .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+        .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+        .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-        /* 直接內嵌 SVG 獎盃 (不是圖片標籤，是程式碼) */
+        /* SVG 獎盃 */
         .trophy-svg {
             position: absolute;
-            top: 50px;
-            left: 20px;
-            width: 380px;
-            height: 450px;
+            top: 50px; left: 20px;
+            width: 380px; height: 450px;
             z-index: 5;
         }
 
         /* 賀字 */
         .he-svg {
             position: absolute;
-            top: 10px;
-            left: 320px;
-            width: 140px;
-            height: 140px;
+            top: 10px; left: 320px;
+            width: 140px; height: 140px;
             z-index: 6;
             transform: rotate(-10deg);
         }
 
-        /* 文字層 (絕對定位) */
+        /* === 文字層 (透明背景 + 白色描邊) === */
         
-        /* 日期 */
-        .field-date {
-            position: absolute; top: 25px; left: 40px;
-            background: white; padding: 5px 15px;
-            font-size: 32px; font-weight: 900;
-            color: #d97706; z-index: 20;
-            line-height: 1; border-radius: 4px;
+        /* 每個欄位都用絕對定位 */
+        .field {
+            position: absolute;
+            z-index: 20;
+            background: transparent; /* 透明 */
         }
 
-        /* 姓名 */
+        /* 強力白色描邊 (模擬貼紙效果) */
+        .text-outline {
+            text-shadow: 
+                3px 3px 0 #fff, -2px -2px 0 #fff,  
+                2px -2px 0 #fff, -2px 2px 0 #fff,
+                2px 2px 0 #fff;
+        }
+
+        .field-date {
+            top: 25px; left: 40px;
+            font-size: 36px; font-weight: 900;
+            color: #d97706; 
+            line-height: 1;
+        }
+
         .field-name {
-            position: absolute; top: 70px; right: 40px;
-            background: white; padding: 5px 0 5px 20px;
-            text-align: right; z-index: 20;
+            top: 70px; right: 40px;
+            text-align: right;
             display: flex; flex-direction: column; align-items: flex-end;
             min-width: 350px;
         }
         .name-text { 
             font-size: 90px; font-weight: 900; color: #000; 
             line-height: 1.1; letter-spacing: 2px;
-            white-space: nowrap;
         }
         .title-text { 
             font-size: 32px; font-weight: bold; color: #333; 
             margin-top: -5px; 
         }
 
-        /* 商品 (藍框) */
         .field-product {
-            position: absolute; top: 230px; right: 40px;
-            background: white; padding: 10px 0 10px 20px;
-            z-index: 20; display: flex; align-items: center; justify-content: flex-end;
+            top: 230px; right: 40px;
+            display: flex; align-items: center; justify-content: flex-end;
             min-width: 450px;
         }
         .product-box {
-            border: 4px solid #2563eb; color: #2563eb;
+            border: 4px solid #2563eb; 
+            color: #2563eb;
             font-size: 60px; font-weight: 900;
             padding: 0 25px; margin-right: 15px;
             white-space: nowrap; line-height: 1.2;
+            background: rgba(255,255,255,0.8); /* 稍微一點點半透明白，強化藍框 */
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; }
 
-        /* 金額 */
         .field-amount {
-            position: absolute; top: 340px; right: 40px;
-            background: white; padding: 5px 0 5px 20px;
-            z-index: 20; text-align: right;
+            top: 340px; right: 40px;
+            text-align: right;
             min-width: 450px;
         }
         .amount-text { 
@@ -154,11 +158,9 @@
         }
         .currency-text { font-size: 32px; font-weight: bold; color: #dc2626; margin-left: 5px; }
 
-        /* 數據 */
         .field-stats {
-            position: absolute; bottom: 30px; right: 40px;
-            background: white; padding: 5px 0 5px 20px;
-            z-index: 20; text-align: right;
+            bottom: 30px; right: 40px;
+            text-align: right;
             min-width: 400px;
         }
         .stat-line { 
@@ -166,16 +168,14 @@
             line-height: 1.5; 
         }
 
-        /* 生成後的圖片顯示 */
-        .result-wrapper {
-            margin-top: 20px;
-            text-align: center;
-            display: none; /* 預設隱藏 */
+        /* 結果顯示 */
+        #result-area {
+            text-align: center; margin-top: 20px;
+            display: none; /* 生成前隱藏 */
         }
-        .result-img {
-            max-width: 100%;
-            border: 2px solid #D4AF37;
-            border-radius: 10px;
+        #result-img {
+            max-width: 90%; margin: 0 auto;
+            border: 2px solid #D4AF37; border-radius: 10px;
         }
     </style>
 </head>
@@ -229,39 +229,35 @@
         </div>
 
         <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow active:scale-95 transition">
-            轉換為圖片 (長按儲存)
+            生成圖片 (長按儲存)
         </button>
     </div>
 
-    <!-- 2. 結果顯示區 (生成後顯示) -->
-    <div class="result-wrapper" id="result-area">
-        <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按下方圖片儲存 👇</p>
-        <img id="final-img" class="result-img" alt="長按儲存">
+    <!-- 2. 結果顯示區 -->
+    <div id="result-area">
+        <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
+        <img id="final-img" alt="長按儲存">
     </div>
 
-    <!-- 3. 原始 HTML 畫布 (使用者看得到，保證渲染) -->
-    <!-- 外層用 overflow-scroll 讓手機可以在這裡左右滑動查看原稿 -->
-    <div class="scale-wrapper" id="source-wrapper">
-        <div id="certificate-node" class="certificate-container">
+    <!-- 3. 預覽區 (自動縮放，保證手機看得到完整) -->
+    <div id="preview-container">
+        <!-- 綁定 scaleStyle 來自動縮放 -->
+        <div id="certificate-node" class="certificate" :style="scaleStyle">
             
-            <!-- 角落裝飾 -->
+            <!-- 背景裝飾 -->
+            <div class="bg-lines"></div>
             <div class="corner tl"></div>
             <div class="corner tr"></div>
             <div class="corner bl"></div>
             <div class="corner br"></div>
 
-            <!-- SVG 獎盃 (直接寫在 HTML 裡，不是圖片，保證顯示) -->
+            <!-- SVG 獎盃 -->
             <svg class="trophy-svg" viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
-                <!-- 彩帶 -->
                 <path d="M20 120 Q 200 20 400 150" stroke="#FFD700" stroke-width="40" fill="none" opacity="0.2" stroke-linecap="round"/>
                 <path d="M10 220 Q 150 320 380 80" stroke="#FF5722" stroke-width="30" fill="none" opacity="0.15" stroke-linecap="round"/>
-                
-                <!-- 碎花 -->
                 <circle cx="50" cy="80" r="8" fill="#4CAF50" opacity="0.6"/>
                 <rect x="350" y="120" width="15" height="15" fill="#2196F3" opacity="0.6" transform="rotate(20)"/>
                 <circle cx="300" cy="50" r="6" fill="#FFC107" opacity="0.6"/>
-
-                <!-- 金盃漸層 -->
                 <defs>
                     <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
                         <stop offset="0%" stop-color="#FDB931"/>
@@ -269,20 +265,12 @@
                         <stop offset="100%" stop-color="#B78628"/>
                     </linearGradient>
                 </defs>
-
-                <!-- 杯身 -->
                 <path d="M80 100 L320 100 L280 300 C 280 360, 120 360, 120 300 Z" fill="url(#gold)" stroke="#B8860B" stroke-width="3"/>
                 <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
-                
-                <!-- 把手 -->
                 <path d="M80 130 C -10 130, -10 260, 90 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
                 <path d="M320 130 C 410 130, 410 260, 310 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
-
-                <!-- 底座 -->
                 <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                 <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
-                
-                <!-- BEST 牌 -->
                 <rect x="160" y="405" width="80" height="25" fill="#FFD700" rx="4"/>
                 <text x="200" y="423" text-anchor="middle" font-weight="900" fill="#5D4037" font-size="18" font-family="Arial">BEST</text>
             </svg>
@@ -293,25 +281,27 @@
                 <text x="50" y="85" text-anchor="middle" font-size="80" font-weight="900" fill="#D93025" font-family="serif">賀</text>
             </svg>
 
-            <!-- 文字填充區 -->
-            <div class="field-date">{{ rocDate }}</div>
+            <!-- 文字填充區 (透明底 + 白色描邊) -->
+            
+            <div class="field field-date text-outline">{{ rocDate }}</div>
 
-            <div class="field-name">
+            <div class="field field-name text-outline">
                 <div class="name-text">{{ currentRep.name }}</div>
                 <div class="title-text">{{ currentRep.title }}</div>
             </div>
 
-            <div class="field-product">
+            <div class="field field-product">
+                <!-- 商品框框本身有半透明白底，不需要文字描邊 -->
                 <div class="product-box">{{ productDisplay }}</div>
-                <div class="count-text">共計1筆</div>
+                <div class="count-text text-outline">共計1筆</div>
             </div>
 
-            <div class="field-amount">
+            <div class="field field-amount text-outline">
                 <span class="amount-text">{{ formatNumber(form.amount) }}</span>
                 <span class="currency-text">{{ currencyLabel }}</span>
             </div>
 
-            <div class="field-stats">
+            <div class="field field-stats text-outline">
                 <div class="stat-line">手收：{{ formatNumber(calculatedRevenue) }}元</div>
                 <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(calculatedBonus) }}元</div>
             </div>
@@ -330,10 +320,29 @@
 </div>
 
 <script>
-    const { createApp, reactive, computed } = Vue;
+    const { createApp, reactive, computed, ref, onMounted } = Vue;
 
     createApp({
         setup() {
+            const windowWidth = ref(window.innerWidth);
+            
+            // 自動計算縮放比例
+            const scaleStyle = computed(() => {
+                const targetWidth = 820; // 獎狀寬度 + 邊距
+                const scale = Math.min((windowWidth.value - 40) / targetWidth, 1);
+                return {
+                    transform: `scale(${scale})`,
+                    marginBottom: `-${535 * (1 - scale)}px` // 修正縮放後下方的空白
+                };
+            });
+
+            // 監聽視窗變動
+            onMounted(() => {
+                window.addEventListener('resize', () => {
+                    windowWidth.value = window.innerWidth;
+                });
+            });
+
             const repList = [
                 { name: '吳坤達', title: '業務協理' },
                 { name: '賴婉甄', title: '業務協理' },
@@ -400,33 +409,40 @@
             const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
             const generateImage = () => {
-                // 1. 捲動到頂部，確保繪圖區在視窗內 (解決位移bug)
+                // 1. 捲動到頂部 (解決 html2canvas 位移 bug)
                 window.scrollTo(0, 0);
 
                 const element = document.getElementById("certificate-node");
                 
-                // 2. 使用 html2canvas
+                // 暫時移除縮放以便全尺寸截圖
+                const originalTransform = element.style.transform;
+                element.style.transform = 'scale(1)';
+
                 html2canvas(element, { 
                     scale: 2, 
                     backgroundColor: "#ffffff",
                     useCORS: true,
-                    scrollY: 0, // 強制從頂部開始算
-                    scrollX: 0
+                    scrollY: 0
                 }).then(canvas => {
-                    // 3. 顯示結果圖片
                     const imgData = canvas.toDataURL("image/png");
                     document.getElementById("final-img").src = imgData;
-                    
-                    // 4. 切換顯示區域 (隱藏原稿，顯示結果)
-                    document.getElementById("source-wrapper").style.display = "none";
                     document.getElementById("result-area").style.display = "block";
+                    
+                    // 恢復縮放
+                    element.style.transform = originalTransform;
+                    
+                    // 滾動到結果
+                    setTimeout(() => {
+                        document.getElementById("result-area").scrollIntoView({ behavior: "smooth" });
+                    }, 100);
                 });
             };
 
             return {
                 repList, form, currentRep, rocDate, isFixedBP,
                 updateExRate, handleProductChange, productDisplay, currencyLabel,
-                calculatedRevenue, calculatedBonus, formatNumber, generateImage
+                calculatedRevenue, calculatedBonus, formatNumber, generateImage,
+                scaleStyle
             };
         }
     }).mount('#app');
