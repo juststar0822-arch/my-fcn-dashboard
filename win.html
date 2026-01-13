@@ -3,13 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (微軟正黑體版)</title>
+    <title>榮譽榜生成器 (間距完美版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        /* 強制引入微軟正黑體作為首選 */
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
         
         body { 
             font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
@@ -76,7 +75,6 @@
             box-shadow: 0 0 20px rgba(0,0,0,0.5);
             flex-shrink: 0; 
             transform-origin: top center;
-            /* 確保獎狀內所有文字都優先使用微軟正黑體 */
             font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
         }
 
@@ -119,8 +117,10 @@
             line-height: 1;
         }
 
+        /* 1. 姓名區：往上移到 50px (原本 70px) */
         .field-name {
-            top: 70px; right: 40px;
+            top: 50px; 
+            right: 40px;
             text-align: right;
             display: flex; flex-direction: column; align-items: flex-end;
             min-width: 350px;
@@ -134,9 +134,9 @@
             margin-top: -5px; 
         }
 
-        /* 商品區塊：上移至 200px */
+        /* 2. 商品區：設定在 215px (保持在中間) */
         .field-product {
-            top: 200px; 
+            top: 215px; 
             right: 40px;
             display: flex; 
             align-items: center; 
@@ -163,9 +163,9 @@
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
 
-        /* 金額區塊：大幅上移至 300px，確保不擋住下方 */
+        /* 3. 金額區：往下移到 335px (原本 300px) */
         .field-amount {
-            top: 300px; 
+            top: 335px; 
             right: 40px;
             text-align: right;
             min-width: 500px;
@@ -323,16 +323,14 @@
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
-                    
-                    <!-- 獎盃文字：指定微軟正黑體 -->
-                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
-                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
-                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
+                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
+                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
+                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
                 </g>
 
                 <g transform="translate(320, 10) rotate(-10)">
                     <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
-                    <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Microsoft JhengHei', sans-serif">賀</text>
+                    <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
                 </g>
             </svg>
 
