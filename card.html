@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>我的精準信用卡指南</title>
+    <title>我的精準信用卡指南 - 上限修正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -16,20 +16,20 @@
 </head>
 <body class="pb-20">
 
-    <header class="bg-white border-b sticky top-0 z-50 p-4">
+    <header class="bg-white border-b sticky top-0 z-50 p-4 shadow-sm">
         <div class="max-w-md mx-auto">
             <h1 class="text-xl font-black text-gray-800 tracking-tighter italic">CREDIT MASTER</h1>
-            <p class="text-[10px] text-gray-400">專屬 6 大神卡試算工具</p>
+            <p class="text-[10px] text-gray-400 font-bold uppercase">個人化回饋上限追蹤</p>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4 space-y-6">
         
-        <!-- 1. 權益模式快速切換 -->
+        <!-- 模式切換區 -->
         <div class="bg-white rounded-2xl shadow-sm border p-4 space-y-4">
             <div>
-                <p class="text-xs font-bold text-gray-400 mb-2">國泰 CUBE 模式切換</p>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1" id="cubeGroup">
+                <p class="text-xs font-bold text-gray-400 mb-2 underline decoration-indigo-300">國泰 CUBE 模式</p>
+                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                     <button onclick="setMode('cube', '玩數位')" id="btn-cube-玩數位" class="cube-btn mode-btn-active border px-3 py-1 rounded-lg text-xs whitespace-nowrap">玩數位</button>
                     <button onclick="setMode('cube', '樂饗購')" id="btn-cube-樂饗購" class="cube-btn border px-3 py-1 rounded-lg text-xs whitespace-nowrap">樂饗購</button>
                     <button onclick="setMode('cube', '趣旅行')" id="btn-cube-趣旅行" class="cube-btn border px-3 py-1 rounded-lg text-xs whitespace-nowrap">趣旅行</button>
@@ -37,8 +37,8 @@
                 </div>
             </div>
             <div>
-                <p class="text-xs font-bold text-gray-400 mb-2">玉山 Unicard 模式切換</p>
-                <div class="flex gap-2" id="uniGroup">
+                <p class="text-xs font-bold text-gray-400 mb-2 underline decoration-emerald-300">玉山 Unicard 模式</p>
+                <div class="flex gap-2">
                     <button onclick="setMode('unicard', '簡單選')" id="btn-unicard-簡單選" class="uni-btn mode-btn-active border px-3 py-1 rounded-lg text-xs">簡單選</button>
                     <button onclick="setMode('unicard', '任意選')" id="btn-unicard-任意選" class="uni-btn border px-3 py-1 rounded-lg text-xs">任意選</button>
                     <button onclick="setMode('unicard', '訂製選')" id="btn-unicard-訂製選" class="uni-btn border px-3 py-1 rounded-lg text-xs">訂製選(5%)</button>
@@ -46,125 +46,106 @@
             </div>
         </div>
 
-        <!-- 2. 卡片清單區 -->
-        <div id="cardList" class="space-y-4">
-            <!-- 由 JS 動態生成 -->
-        </div>
-
+        <div id="cardList" class="space-y-4"></div>
     </main>
 
-    <!-- 3. 記帳與試算 Modal -->
+    <!-- 記帳與試算 Modal -->
     <div id="expenseModal" class="fixed inset-0 z-[60] hidden">
         <div class="modal-overlay absolute inset-0" onclick="closeModal()"></div>
-        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-3xl p-6 shadow-2xl transition-transform">
+        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-3xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
-                <h3 id="modalCardName" class="text-xl font-black text-gray-800">卡片名稱</h3>
+                <h3 id="modalCardName" class="text-xl font-black text-gray-800"></h3>
                 <button onclick="closeModal()" class="text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            
             <div class="space-y-4">
-                <div>
-                    <p class="text-xs font-bold text-gray-400 mb-1">當前適用利率: <span id="modalRate" class="text-red-500 text-lg">0%</span></p>
-                    <p id="modalModeName" class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block">模式名稱</p>
+                <div class="flex justify-between items-center bg-gray-50 p-3 rounded-xl border">
+                    <span id="modalModeName" class="text-xs font-bold text-gray-500">當前利率</span>
+                    <span id="modalRate" class="text-lg font-black text-red-500">0%</span>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">輸入消費金額</label>
-                    <div class="relative">
-                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">$</span>
-                        <input type="number" id="inputAmount" oninput="calculateReward()" placeholder="0" 
-                            class="w-full bg-gray-50 border-none rounded-2xl py-4 pl-8 pr-4 text-2xl font-black focus:ring-2 focus:ring-indigo-500 outline-none">
-                    </div>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-xl font-bold">$</span>
+                    <input type="number" id="inputAmount" oninput="calculateReward()" placeholder="輸入消費金額" 
+                        class="w-full bg-gray-100 border-none rounded-2xl py-4 pl-10 pr-4 text-3xl font-black focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
-
-                <div class="bg-indigo-50 rounded-2xl p-4 flex justify-between items-center">
+                <div class="bg-indigo-600 rounded-2xl p-5 text-white flex justify-between items-center shadow-lg">
                     <div>
-                        <p class="text-xs text-indigo-500 font-bold uppercase">預估可得回饋</p>
-                        <p id="calcResult" class="text-2xl font-black text-indigo-700">$ 0</p>
+                        <p class="text-[10px] opacity-70 font-bold uppercase">預估回饋</p>
+                        <p id="calcResult" class="text-3xl font-black">$ 0</p>
                     </div>
                     <div class="text-right">
-                        <p class="text-[10px] text-gray-400">本月剩餘額度</p>
-                        <p id="modalRemaining" class="text-sm font-bold text-gray-600">$ 0</p>
+                        <p class="text-[10px] opacity-70 font-bold uppercase">本月剩餘額度</p>
+                        <p id="modalRemaining" class="text-sm font-black">$ 0</p>
                     </div>
                 </div>
-
-                <button onclick="saveExpense()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black text-lg shadow-lg shadow-indigo-200 active:scale-95 transition-transform">
-                    確認記錄這筆消費
+                <button onclick="saveExpense()" class="w-full bg-slate-800 text-white py-4 rounded-2xl font-black text-lg active:scale-95 transition-transform">
+                    確認記錄
                 </button>
             </div>
         </div>
     </div>
 
     <script>
-        // 資料庫與紀錄
         let logs = JSON.parse(localStorage.getItem('my_card_logs')) || [];
         let currentTargetCard = null;
 
+        // 【資料庫核心：你可以在這裡隨時調整上限】
         const cardData = {
+            legend: {
+                name: "星展傳說對決卡",
+                bank: "星展銀行",
+                activeMode: "精選加碼",
+                note: "LINE Pay 回饋 10%！(需綁定自扣)",
+                cap: 11363, // 如果上限是 1000 點回饋，以 8.8% 加碼計算，額度約 $11,363
+                modes: { "精選加碼": { rate: 10, details: "LINE Pay、蝦皮、外送、影音、遊戲儲值" } }
+            },
+            gogo: {
+                name: "台新 Richart GoGo",
+                bank: "台新銀行",
+                activeMode: "精選",
+                note: "加碼 3.3% 每月上限 1000 元",
+                cap: 30303, // 加碼上限 1000 元，額度約 $30,303
+                modes: { "精選": { rate: 3.8, details: "LINE Pay、全支付、蝦皮、momo" } }
+            },
             cube: {
                 name: "國泰 CUBE 卡",
                 bank: "國泰世華",
                 activeMode: "玩數位",
-                note: "需 App 切換；回饋小樹點",
+                note: "切換後 3% 回饋無上限",
                 cap: Infinity,
                 modes: {
-                    "玩數位": { rate: 3, details: "蝦皮、momo、酷澎、博客來、App Store、Netflix" },
-                    "樂饗購": { rate: 3, details: "全台百貨、全台餐廳、UberEats" },
-                    "趣旅行": { rate: 3, details: "海外消費、機票、飯店、Uber、Grab" },
-                    "集精選": { rate: 3, details: "全家、全聯、中油直營、UberEats" }
+                    "玩數位": { rate: 3, details: "蝦皮、momo、酷澎、App Store" },
+                    "樂饗購": { rate: 3, details: "百貨、餐飲、UberEats" },
+                    "趣旅行": { rate: 3, details: "海外、機票、飯店、Uber" },
+                    "集精選": { rate: 3, details: "全家、全聯、中油、UberEats" }
                 }
             },
             unicard: {
                 name: "玉山 Unicard",
                 bank: "玉山銀行",
                 activeMode: "簡單選",
-                note: "回饋玉山 e point；加碼需 e 指付",
-                cap: 10000, 
+                note: "回饋玉山 e point",
+                cap: 20000, 
                 modes: {
-                    "簡單選": { rate: 1, details: "全台一般消費 (0.7% + 0.3%)" },
-                    "任意選": { rate: 3.5, details: "指定 8 家特店：中油、momo、特力屋" },
-                    "訂製選": { rate: 5, details: "LINE Pay、全家、momo、酷澎、家樂福" }
-                }
-            },
-            gogo: {
-                name: "台新 Richard (GoGo卡)",
-                bank: "台新銀行",
-                activeMode: "all",
-                note: "需綁定自扣；含 0.5% 基本 + 3.3% 加碼",
-                cap: 30303,
-                modes: {
-                    "all": { rate: 3.8, details: "LINE Pay、全支付、台新Pay、蝦皮、momo、酷澎" }
-                }
-            },
-            legend: {
-                name: "星展傳說對決卡",
-                bank: "星展銀行",
-                activeMode: "all",
-                note: "加碼 7% 上限 300 元",
-                cap: 4285,
-                modes: {
-                    "all": { rate: 10, details: "Foodpanda、UberEats、Netflix、Disney+、App Store" }
+                    "簡單選": { rate: 1, details: "全台一般消費" },
+                    "任意選": { rate: 3.5, details: "特店選 8 家：中油、momo" },
+                    "訂製選": { rate: 5, details: "LINE Pay、全家、momo、酷澎" }
                 }
             },
             eco: {
                 name: "星展永續卡",
                 bank: "星展銀行",
-                activeMode: "all",
-                note: "一般消費保底回饋",
+                activeMode: "一般",
+                note: "1.5% 保底無上限",
                 cap: Infinity,
-                modes: {
-                    "all": { rate: 1.5, details: "國內外一般消費、保險費" }
-                }
+                modes: { "一般": { rate: 1.5, details: "一般消費、保險費" } }
             },
             jcb: {
                 name: "富邦 JCB (J卡)",
                 bank: "富邦銀行",
-                activeMode: "all",
-                note: "日韓需登錄；LINE Pay 特店加碼",
-                cap: 20000,
-                modes: {
-                    "all": { rate: 3, details: "日韓實體消費 (含加碼2%)、LINE Pay 指定" }
-                }
+                activeMode: "一般/日韓",
+                note: "日韓加碼 2% 需登錄，上限 600~1000 點",
+                cap: 20000, 
+                modes: { "一般/日韓": { rate: 3, details: "日韓實體、LINE Pay 特店" } }
             }
         };
 
@@ -186,39 +167,41 @@
         function renderCards() {
             const list = document.getElementById('cardList');
             list.innerHTML = '';
-            Object.keys(cardData).forEach(key => {
+            const sortedKeys = Object.keys(cardData).sort((a,b) => cardData[b].modes[cardData[b].activeMode].rate - cardData[a].modes[cardData[a].activeMode].rate);
+            
+            sortedKeys.forEach(key => {
                 const card = cardData[key];
                 const activeData = card.modes[card.activeMode];
                 const used = getUsedAmount(key);
-                const remaining = card.cap === Infinity ? '無上限' : Math.max(0, card.cap - used).toLocaleString();
+                const remaining = card.cap === Infinity ? '無上限' : Math.max(0, card.cap - used);
 
                 const cardDiv = document.createElement('div');
-                cardDiv.className = "bg-white rounded-2xl shadow-sm border p-5 space-y-3 relative overflow-hidden";
+                cardDiv.className = "bg-white rounded-2xl shadow-sm border p-5 space-y-3";
                 cardDiv.innerHTML = `
                     <div class="flex justify-between items-start">
                         <div>
                             <h2 class="text-lg font-black text-gray-800">${card.name}</h2>
-                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider">${card.bank}</p>
+                            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">${card.bank}</p>
                         </div>
                         <div class="text-right">
                             <span class="text-3xl font-black text-red-500">${activeData.rate}%</span>
                         </div>
                     </div>
-                    <div class="bg-gray-50 rounded-xl p-3 border border-gray-100">
-                        <p class="text-[11px] text-gray-500 leading-relaxed"><i class="fa-solid fa-tags mr-1"></i>${activeData.details}</p>
+                    <div class="bg-gray-50 rounded-xl p-3">
+                        <p class="text-[11px] text-gray-600 font-medium leading-relaxed">${activeData.details}</p>
                     </div>
-                    <div class="flex justify-between items-end pt-2">
-                        <div class="text-[11px] text-gray-400 font-medium">
-                            剩餘額度: <span class="text-gray-700 font-bold">$${remaining}</span>
+                    <div class="flex justify-between items-center pt-2">
+                        <div class="text-[10px] text-gray-400 font-bold">
+                            本月剩餘額度: <span class="${remaining < 1000 ? 'text-red-500' : 'text-indigo-600'} font-black">$ ${remaining === '無上限' ? remaining : remaining.toLocaleString()}</span>
                         </div>
-                        <button onclick="openModal('${key}')" class="bg-indigo-600 text-white px-5 py-2 rounded-xl font-black text-sm shadow-md">記帳試算</button>
+                        <button onclick="openModal('${key}')" class="bg-slate-800 text-white px-5 py-2 rounded-xl font-bold text-xs">記帳試算</button>
                     </div>
+                    <p class="text-[10px] text-gray-400 border-t pt-2 mt-2 leading-tight italic">💡 ${card.note}</p>
                 `;
                 list.appendChild(cardDiv);
             });
         }
 
-        // Modal 相關 Logic
         function openModal(cardKey) {
             currentTargetCard = cardKey;
             const card = cardData[cardKey];
@@ -227,41 +210,29 @@
             
             document.getElementById('modalCardName').innerText = card.name;
             document.getElementById('modalRate').innerText = activeData.rate + '%';
-            document.getElementById('modalModeName').innerText = card.activeMode === 'all' ? '一般模式' : '當前模式: ' + card.activeMode;
-            document.getElementById('modalRemaining').innerText = card.cap === Infinity ? '$ 無上限' : '$ ' + (card.cap - used).toLocaleString();
+            document.getElementById('modalRemaining').innerText = card.cap === Infinity ? '無上限' : '$ ' + (card.cap - used).toLocaleString();
             document.getElementById('inputAmount').value = '';
             document.getElementById('calcResult').innerText = '$ 0';
-            
             document.getElementById('expenseModal').classList.remove('hidden');
         }
 
         function calculateReward() {
             const amount = document.getElementById('inputAmount').value || 0;
-            const card = cardData[currentTargetCard];
-            const rate = card.modes[card.activeMode].rate;
+            const rate = cardData[currentTargetCard].modes[cardData[currentTargetCard].activeMode].rate;
             const reward = Math.floor(amount * (rate / 100));
             document.getElementById('calcResult').innerText = '$ ' + reward.toLocaleString();
         }
 
         function saveExpense() {
             const amount = document.getElementById('inputAmount').value;
-            if (!amount || amount <= 0) return alert('請輸入有效金額');
-
-            logs.push({
-                cardKey: currentTargetCard,
-                amount: amount,
-                date: new Date().toISOString()
-            });
+            if (!amount || amount <= 0) return alert('請輸入金額');
+            logs.push({ cardKey: currentTargetCard, amount: amount, date: new Date().toISOString() });
             localStorage.setItem('my_card_logs', JSON.stringify(logs));
-            
             closeModal();
             renderCards();
-            alert('消費已成功記錄！');
         }
 
-        function closeModal() {
-            document.getElementById('expenseModal').classList.add('hidden');
-        }
+        function closeModal() { document.getElementById('expenseModal').classList.add('hidden'); }
 
         window.onload = renderCards;
     </script>
