@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業詢價引擎 v3.6 (穩定版)</title>
+    <title>FCN 專業詢價模擬引擎 v3.5</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -15,9 +15,10 @@
         .input-light:focus { border-color: #3b82f6; background: white; outline: none; }
         .btn-navy { background: #1e293b; color: white; font-weight: 800; transition: 0.3s; }
         
-        .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
-        .rec-gradient-safe { background: linear-gradient(135deg, #059669 0%, #10b981 100%); }
-        .rec-gradient-agg { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); }
+        /* 卡片配色 */
+        .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); } /* 藍：自訂 */
+        .rec-gradient-safe { background: linear-gradient(135deg, #059669 0%, #10b981 100%); } /* 綠：目標收息 */
+        .rec-gradient-agg { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); } /* 紫：標準籃子 */
         
         [v-cloak] { display: none; }
         .fade-in { animation: fadeIn 0.5s ease-in; }
@@ -30,9 +31,9 @@
         <div class="flex justify-between items-end mb-8">
             <div>
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN Quote</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Pricing Engine v3.6 (Stable)</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Pricing Engine v3.5</p>
             </div>
-            <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">LIVE / SIM</span>
+            <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">LIVE DATA</span>
         </div>
 
         <!-- 1. 設定面板 -->
@@ -42,11 +43,11 @@
                     <div class="flex justify-between items-center mb-2">
                         <label class="text-xs font-black text-slate-500 uppercase">連結標的 (Tickers)</label>
                         <div class="flex gap-2">
-                            <button @click="setMarket('US')" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='US'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">US 美股</button>
-                            <button @click="setMarket('JP')" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='JP'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">JP 日股</button>
+                            <button @click="form.market = 'US'" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='US'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">US 美股</button>
+                            <button @click="form.market = 'JP'" :class="['text-[10px] px-2 py-1 rounded font-bold transition', form.market==='JP'?'bg-slate-800 text-white':'bg-slate-100 text-slate-400']">JP 日股</button>
                         </div>
                     </div>
-                    <input v-model="form.tickers" placeholder="例如: 7203, 8035" class="input-light text-center text-lg uppercase tracking-wider">
+                    <input v-model="form.tickers" placeholder="例如: NVDA,TSLA,ORCL" class="input-light text-center text-lg uppercase tracking-wider">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -60,19 +61,16 @@
 
                 <button @click="simulate" :disabled="isSyncing" class="w-full btn-navy py-4 rounded-2xl shadow-xl flex items-center justify-center gap-3 mt-2">
                     <i v-if="isSyncing" class="fa-solid fa-spinner animate-spin"></i>
-                    {{ isSyncing ? '數據串接中...' : '進行即時模擬詢價' }}
+                    {{ isSyncing ? '正在串接市場數據...' : '進行即時模擬詢價' }}
                 </button>
             </div>
         </div>
 
-        <!-- 2. 結果面板 -->
+        <!-- 2. 結果面板 (用戶自訂) -->
         <div v-if="result" class="result-gradient rounded-[2.5rem] p-8 text-white shadow-2xl mb-6 fade-in">
             <div class="flex justify-between items-center opacity-60">
                 <p class="text-[10px] font-bold uppercase tracking-widest">Your Quote</p>
-                <div class="text-right">
-                    <p class="text-[10px] font-bold italic">{{ result.date }}</p>
-                    <p v-if="result.isSimulated" class="text-[9px] text-yellow-300 font-bold bg-white/10 px-1 rounded">※ SIMULATED DATA</p>
-                </div>
+                <p class="text-[10px] font-bold italic">{{ result.date }}</p>
             </div>
             <div class="flex items-baseline gap-2 mt-2">
                 <span class="text-6xl font-black italic tracking-tighter text-yellow-400">{{ result.coupon }}</span>
@@ -89,7 +87,7 @@
             <p class="text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-200 inline-block px-4 py-1.5 rounded-full">AI Strategy Suggestions</p>
         </div>
 
-        <!-- 3. 建議組合 A (12% Target) -->
+        <!-- 3. 建議組合 A (穩健收息 12%) -->
         <div v-if="recSafe" class="rec-gradient-safe rounded-[2rem] p-6 text-white shadow-xl mb-4 fade-in relative overflow-hidden">
             <div class="flex justify-between items-start mb-2 relative z-10">
                 <div>
@@ -113,7 +111,7 @@
             </div>
         </div>
 
-        <!-- 4. 建議組合 B (Basket 85% Strike) -->
+        <!-- 4. 建議組合 B (標準籃子 Strike 85%) -->
         <div v-if="recAggressive" class="rec-gradient-agg rounded-[2rem] p-6 text-white shadow-xl mb-8 fade-in relative overflow-hidden">
             <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
             <div class="flex justify-between items-start mb-2 relative z-10">
@@ -160,17 +158,16 @@
 
         <p class="text-center text-[11px] font-bold text-slate-400 italic px-4 pb-20 leading-relaxed">
             ※ 建議組合皆固定採用 KO 95% / KI 60% 參數。<br>
-            ※ 若 API 連線受限，系統將自動採用歷史模擬數據計算。
+            「標準籃子優化」適合觀察主力股(如 NVDA)帶動整體收益之效果。
         </p>
 
     </div>
 
     <script>
         const { createApp } = Vue;
-        // 擴充了日股代碼與中文名稱
         const stockNames = {
             'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','MSTR':'MicroStrategy','COIN':'Coinbase',
-            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','7203.T':'豐田','9984.T':'軟銀','8058.T':'三菱商事','8031.T':'三井物產','8306.T':'三菱UFJ','8411.T':'瑞穗','6758.T':'索尼','6920.T':'雷射科技'
+            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','7203.T':'豐田','9984.T':'軟銀'
         };
 
         createApp({
@@ -178,30 +175,19 @@
                 return {
                     isSyncing: false,
                     result: null,
-                    recSafe: null,
-                    recAggressive: null,
+                    recSafe: null, // 綠色建議 (12% Target)
+                    recAggressive: null, // 紫色建議 (Basket 85% Strike)
                     stockDetails: [],
                     form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 80, ki: 60, ko: 100, guarantee: 1, margin: 1.5 }
                 }
             },
             methods: {
-                setMarket(m) {
-                    this.form.market = m;
-                    if(m === 'JP') this.form.tickers = '7203,8306,6758'; // 切換時自動帶入範例日股
-                    else this.form.tickers = 'NVDA,TSLA,AMD';
-                },
-                // 隨機生成波動率 (Fallback 模式用)
-                getRandomVolatility(market) {
-                    // 日股波動通常較低 (20-45)，美股較高 (30-70)
-                    const min = market === 'JP' ? 20 : 30;
-                    const max = market === 'JP' ? 45 : 70;
-                    return Math.random() * (max - min) + min;
-                },
                 async simulate() {
                     let tickerList = this.form.tickers.split(',').map(t => t.trim().toUpperCase()).filter(t => t !== '');
                     if (tickerList.length === 0) return;
 
                     this.isSyncing = true;
+                    // 重置結果
                     this.result = null;
                     this.recSafe = null;
                     this.recAggressive = null;
@@ -213,47 +199,30 @@
                         let maxHV = 0;
                         let worstTicker = '';
                         let rf = this.form.market === 'US' ? 4.8 : 0.8;
-                        let isSimulatedData = false;
 
-                        // 1. 抓取資料 (含容錯機制)
+                        // 1. 抓取資料 & 計算 HV
                         for (let t of tickerList) {
-                            let hv = 0;
-                            try {
-                                // 改用 corsproxy.io，比 allorigins 更穩定
-                                const url = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=1mo&interval=1d')}`;
-                                const res = await fetch(url, { signal: AbortSignal.timeout(3000) }); // 設定 3秒超時
-                                
-                                if (!res.ok) throw new Error('Network err');
-                                
-                                const json = await res.json();
-                                const quote = json.chart.result[0];
-                                const prices = quote.indicators.quote[0].close.filter(p => p != null);
-                                
-                                if(prices.length < 5) throw new Error('Not enough data');
-
-                                let logReturns = [];
-                                for(let i=1; i<prices.length; i++) logReturns.push(Math.log(prices[i]/prices[i-1]));
-                                const stdDev = Math.sqrt(logReturns.map(x => Math.pow(x, 2)).reduce((a,b)=>a+b, 0) / logReturns.length);
-                                hv = stdDev * Math.sqrt(252) * 100;
+                            const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=1mo&interval=1d')}`);
+                            const json = JSON.parse((await res.json()).contents);
+                            const quote = json.chart.result[0];
+                            const prices = quote.indicators.quote[0].close.filter(p => p != null);
                             
-                            } catch (err) {
-                                // 如果 API 失敗，啟用模擬數據
-                                console.warn(`Fetch failed for ${t}, using simulated data.`);
-                                hv = this.getRandomVolatility(this.form.market);
-                                isSimulatedData = true;
-                            }
+                            let logReturns = [];
+                            for(let i=1; i<prices.length; i++) logReturns.push(Math.log(prices[i]/prices[i-1]));
+                            const stdDev = Math.sqrt(logReturns.map(x => Math.pow(x, 2)).reduce((a,b)=>a+b, 0) / logReturns.length);
+                            const hv = stdDev * Math.sqrt(252) * 100;
 
                             this.stockDetails.push({ symbol: t, name: stockNames[t] || t.replace('.T',''), hv: hv });
                             if(hv > maxHV) { maxHV = hv; worstTicker = t; }
                         }
 
-                        // 共用參數計算
+                        // 共用參數
                         let volPremium = maxHV * 0.92;
-                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.18;
+                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.18; // 籃子係數
                         let guaranteeCost = (this.form.guarantee - 1) * 1.8;
                         if(guaranteeCost < 0) guaranteeCost = 0;
                         
-                        // A. 用戶自訂結果
+                        // --- A. 計算用戶自訂結果 (藍卡) ---
                         let uStrikeF = Math.pow(this.form.strike / 100, 3.2); 
                         let uKiF = this.form.ki == 0 ? 0.5 : Math.pow(this.form.ki / 100, 0.4); 
                         let uKoF = Math.pow(this.form.ko / 100, 1.5);
@@ -266,17 +235,17 @@
                             maxVol: maxHV.toFixed(1),
                             worstTicker: worstTicker.replace('.T', ''),
                             rf: rf,
-                            date: new Date().toLocaleTimeString(),
-                            isSimulated: isSimulatedData
+                            date: new Date().toLocaleTimeString()
                         };
 
-                        // 建議組合共用參數 (KO 95, KI 60)
+                        // 建議組合共用固定參數
                         const FIX_KO = 95;
                         const FIX_KI = 60;
                         const fixKoFactor = Math.pow(FIX_KO / 100, 1.5);
                         const fixKiFactor = Math.pow(FIX_KI / 100, 0.4);
 
-                        // B. 穩健收息建議 (Target 12%)
+                        // --- B. 計算穩健收息建議 (綠卡) ---
+                        // 目標 12%, 固定 KO 95, KI 60, 求 Strike
                         const targetYield = 12.0;
                         let requiredPremium = targetYield - rf + guaranteeCost + this.form.margin;
                         let denominator = volPremium * fixKiFactor * fixKoFactor * assetMultiplier;
@@ -286,12 +255,14 @@
                             let reqStrikeFactor = requiredPremium / denominator;
                             suggestedStrike = 100 * Math.pow(reqStrikeFactor, 1/3.2);
                         }
+                        // 邊界限制
                         if (suggestedStrike > 100) suggestedStrike = 100; 
                         if (suggestedStrike < 60) suggestedStrike = 60;
 
                         this.recSafe = { strike: Math.round(suggestedStrike) };
 
-                        // C. 標準籃子建議 (Strike 85%)
+                        // --- C. 計算標準籃子建議 (紫卡) ---
+                        // 固定 Strike 85, KO 95, KI 60, 求 Coupon
                         const stdStrike = 85;
                         let stdStrikeFactor = Math.pow(stdStrike / 100, 3.2);
                         
@@ -302,7 +273,7 @@
 
                     } catch (e) {
                         console.error(e);
-                        alert('系統發生未預期錯誤');
+                        alert('詢價失敗，請檢查代碼是否正確或網路狀態。');
                     } finally {
                         this.isSyncing = false;
                     }
