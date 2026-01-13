@@ -3,433 +3,270 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>期權策略損益分析儀 Pro</title>
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- Tailwind CSS -->
+    <title>專業期權損益分析器</title>
+    <!-- 引入 Tailwind CSS 與 Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js (繪圖引擎) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { background: #f1f5f9; color: #1e293b; font-family: 'Inter', "Microsoft JhengHei", sans-serif; }
-        .card { background: white; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .btn { transition: 0.2s; font-weight: bold; border-radius: 0.5rem; padding: 0.5rem 1rem; }
-        .btn-blue { background: #2563eb; color: white; }
-        .btn-blue:hover { background: #1d4ed8; }
-        .btn-red { background: #ef4444; color: white; }
-        .btn-green { background: #10b981; color: white; }
-        .input-box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; padding: 0.4rem; width: 100%; font-weight: bold; }
-        
-        /* 切換開關樣式 */
-        .toggle-checkbox:checked { right: 0; border-color: #2563eb; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #2563eb; }
-        
-        [v-cloak] { display: none; }
+        .pnl-red { color: #ef4444; } /* 獲利顯示紅 (符合台灣盤勢習慣) */
+        .pnl-green { color: #22c55e; } /* 虧損顯示綠 */
+        input:focus { outline: none; border-color: #6366f1; ring: 2px; ring-color: #6366f1; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="bg-slate-50 min-h-screen p-4 md:p-8 font-sans">
 
-<div id="app" v-cloak class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- 左側：策略組單面板 -->
-    <div class="lg:col-span-1 space-y-6">
-        
-        <div class="flex items-center justify-between">
-            <h1 class="text-2xl font-black text-slate-800 italic uppercase">Option Analyzer</h1>
-            <button @click="resetStrategy" class="text-xs text-slate-400 hover:text-slate-600 underline">重置</button>
-        </div>
-
-        <!-- 1. 快速模板 -->
-        <div class="card p-4">
-            <h3 class="text-xs font-bold text-slate-400 uppercase mb-3">快速策略模板</h3>
-            <div class="grid grid-cols-2 gap-2">
-                <button @click="loadStrategy('longCall')" class="text-xs bg-slate-100 hover:bg-slate-200 py-2 rounded font-bold text-slate-600">Long Call</button>
-                <button @click="loadStrategy('shortPut')" class="text-xs bg-slate-100 hover:bg-slate-200 py-2 rounded font-bold text-slate-600">Short Put (FCN)</button>
-                <button @click="loadStrategy('bullSpread')" class="text-xs bg-slate-100 hover:bg-slate-200 py-2 rounded font-bold text-slate-600">牛市價差 (Bull Spread)</button>
-                <button @click="loadStrategy('ironCondor')" class="text-xs bg-slate-100 hover:bg-slate-200 py-2 rounded font-bold text-slate-600">鐵兀鷹 (Iron Condor)</button>
+    <div class="max-w-6xl mx-auto">
+        <!-- 標題 -->
+        <header class="mb-8 flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-slate-800">期權損益分析器 <span class="text-indigo-600 text-lg">PRO</span></h1>
+            <div class="text-sm text-slate-500 text-right">
+                每點價值：<input id="pointValue" type="number" value="50" class="w-16 border rounded px-1 py-0.5 text-center"> 元
             </div>
-        </div>
+        </header>
 
-        <!-- 2. 部位清單 (Legs) -->
-        <div class="card p-4 space-y-4">
-            <div class="flex justify-between items-center">
-                <h3 class="text-xs font-bold text-slate-400 uppercase">策略部位 (Legs)</h3>
-                <button @click="addLeg" class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded font-bold hover:bg-blue-100">+ 新增部位</button>
-            </div>
-
-            <div v-for="(leg, index) in legs" :key="index" class="bg-slate-50 p-3 rounded-lg border border-slate-200 relative group">
-                <button @click="removeLeg(index)" class="absolute top-1 right-2 text-slate-300 hover:text-red-500 font-bold text-lg">&times;</button>
-                
-                <div class="grid grid-cols-2 gap-3 mb-2">
-                    <!-- Buy/Sell -->
-                    <select v-model="leg.action" :class="leg.action=='buy'?'text-green-600':'text-red-600'" class="input-box">
-                        <option value="buy">Buy (買方)</option>
-                        <option value="sell">Sell (賣方)</option>
-                    </select>
-                    <!-- Call/Put -->
-                    <select v-model="leg.type" class="input-box">
-                        <option value="call">Call (看漲)</option>
-                        <option value="put">Put (看跌)</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <div>
-                        <label class="text-[9px] text-slate-400 uppercase font-bold">履約價 (Strike)</label>
-                        <input type="number" v-model.number="leg.strike" class="input-box text-center">
-                    </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400 uppercase font-bold">權利金 (Price)</label>
-                        <input type="number" v-model.number="leg.price" class="input-box text-center">
-                    </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400 uppercase font-bold">口數 (Qty)</label>
-                        <input type="number" v-model.number="leg.qty" class="input-box text-center">
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 右側：分析圖表與結算模擬 -->
-    <div class="lg:col-span-2 space-y-6">
-        
-        <!-- 3. 損益圖表 -->
-        <div class="card p-6 h-[400px] relative">
-            <h3 class="text-xs font-bold text-slate-400 uppercase absolute top-4 left-6">Payoff Diagram (損益圖)</h3>
-            <div class="h-full w-full pt-6">
-                <canvas id="payoffChart"></canvas>
-            </div>
-        </div>
-
-        <!-- 4. 結算模擬器 -->
-        <div class="card p-6 border-t-4" :class="simulation.pnl >= 0 ? 'border-green-500' : 'border-red-500'">
-            <div class="flex justify-between items-end mb-6">
-                <div>
-                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">結算損益模擬</h3>
-                    <p class="text-xs text-slate-400 mt-1">Simulated P&L at Expiration</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-[10px] font-bold text-slate-400 uppercase">預估損益</p>
-                    <div class="text-3xl font-black italic" :class="simulation.pnl >= 0 ? 'text-green-600' : 'text-red-600'">
-                        {{ simulation.pnl >= 0 ? '+' : '' }}{{ formatCurrency(simulation.pnl) }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="space-y-6">
-                <!-- 滑桿 -->
-                <div>
-                    <div class="flex justify-between text-xs font-bold text-slate-500 mb-2">
-                        <span>結算價位: {{ simulation.price }}</span>
-                        <span>(拖曳模擬)</span>
-                    </div>
-                    <input type="range" 
-                           :min="chartRange.min" 
-                           :max="chartRange.max" 
-                           v-model.number="simulation.price" 
-                           class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
-                </div>
-
-                <!-- 數字輸入與詳細資訊 -->
-                <div class="grid grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">手動輸入結算價</label>
-                        <input type="number" v-model.number="simulation.price" class="input-box text-lg">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">最大獲利 (Max Profit)</label>
-                        <p class="text-lg font-bold text-green-600">{{ analysis.maxProfit }}</p>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">最大損失 (Max Loss)</label>
-                        <p class="text-lg font-bold text-red-600">{{ analysis.maxLoss }}</p>
-                    </div>
-                </div>
-                
-                <div class="text-center">
-                     <p class="text-[10px] text-slate-400 font-bold">
-                        損益兩平點 (Breakeven): <span class="text-slate-800 text-sm">{{ analysis.breakeven }}</span>
-                     </p>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-</div>
-
-<script>
-    const { createApp } = Vue;
-
-    createApp({
-        data() {
-            return {
-                chartInstance: null,
-                // 預設策略 (Straddle example)
-                legs: [
-                    { action: 'buy', type: 'call', strike: 100, price: 5, qty: 1 },
-                    { action: 'buy', type: 'put', strike: 100, price: 5, qty: 1 }
-                ],
-                simulation: {
-                    price: 100, // 當前模擬的結算價
-                    pnl: 0
-                },
-                analysis: {
-                    maxProfit: '無限',
-                    maxLoss: 0,
-                    breakeven: '90, 110'
-                }
-            }
-        },
-        computed: {
-            // 計算圖表的 X 軸範圍
-            chartRange() {
-                if (this.legs.length === 0) return { min: 0, max: 200 };
-                const strikes = this.legs.map(l => l.strike);
-                const minStrike = Math.min(...strikes);
-                const maxStrike = Math.max(...strikes);
-                const padding = (maxStrike - minStrike) || maxStrike * 0.2;
-                // 若只有一個履約價，padding 預設 20%
-                const rangePadding = padding === 0 ? minStrike * 0.2 : padding * 0.5;
-                
-                return {
-                    min: Math.floor(Math.max(0, minStrike - rangePadding * 3)),
-                    max: Math.ceil(maxStrike + rangePadding * 3)
-                };
-            }
-        },
-        watch: {
-            // 當部位或模擬價格變動時，更新數據
-            legs: {
-                handler() { this.updateChart(); this.calculateSimulation(); },
-                deep: true
-            },
-            'simulation.price'() {
-                this.calculateSimulation();
-                this.updateChartCursor(); // 更新圖表上的點
-            }
-        },
-        mounted() {
-            this.initChart();
-            this.calculateSimulation();
-        },
-        methods: {
-            addLeg() {
-                // 根據上一個部位自動帶入數值方便操作
-                const last = this.legs[this.legs.length-1];
-                this.legs.push({ 
-                    action: last ? last.action : 'buy', 
-                    type: last ? last.type : 'call', 
-                    strike: last ? last.strike : 100, 
-                    price: 0, 
-                    qty: 1 
-                });
-            },
-            removeLeg(index) {
-                this.legs.splice(index, 1);
-            },
-            resetStrategy() {
-                this.legs = [];
-                this.simulation.pnl = 0;
-                this.updateChart();
-            },
-            loadStrategy(type) {
-                const s = 100; // 基準價
-                if(type === 'longCall') {
-                    this.legs = [{ action: 'buy', type: 'call', strike: s, price: 5, qty: 1 }];
-                } else if (type === 'shortPut') {
-                    // 這就是 FCN 的基本結構
-                    this.legs = [{ action: 'sell', type: 'put', strike: s*0.9, price: 3, qty: 1 }];
-                    this.simulation.price = s;
-                } else if (type === 'bullSpread') {
-                    this.legs = [
-                        { action: 'buy', type: 'call', strike: s, price: 5, qty: 1 },
-                        { action: 'sell', type: 'call', strike: s+10, price: 2, qty: 1 }
-                    ];
-                } else if (type === 'ironCondor') {
-                    this.legs = [
-                        { action: 'sell', type: 'put', strike: 90, price: 2, qty: 1 },
-                        { action: 'buy', type: 'put', strike: 80, price: 0.5, qty: 1 },
-                        { action: 'sell', type: 'call', strike: 110, price: 2, qty: 1 },
-                        { action: 'buy', type: 'call', strike: 120, price: 0.5, qty: 1 }
-                    ];
-                }
-                this.simulation.price = s;
-            },
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            // 核心演算法：計算單點價格的總損益
-            calculateTotalPnL(spotPrice) {
-                let totalPnL = 0;
-                this.legs.forEach(leg => {
-                    let valueAtExpiry = 0;
-                    // 計算內含價值
-                    if (leg.type === 'call') {
-                        valueAtExpiry = Math.max(0, spotPrice - leg.strike);
-                    } else {
-                        valueAtExpiry = Math.max(0, leg.strike - spotPrice);
-                    }
+            <!-- 左側：部位設定區 -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-60H6"></path></svg>
+                        新增部位
+                    </h2>
+                    <div class="space-y-4 text-sm">
+                        <div class="grid grid-cols-2 gap-2">
+                            <select id="posType" class="border rounded-lg p-2 bg-slate-50 cursor-pointer">
+                                <option value="Call">買權 (Call)</option>
+                                <option value="Put">賣權 (Put)</option>
+                                <option value="Future">期貨 (Future)</option>
+                            </select>
+                            <select id="posAction" class="border rounded-lg p-2 bg-slate-50 cursor-pointer">
+                                <option value="Buy">買進 (Long)</option>
+                                <option value="Sell">賣出 (Short)</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input id="posStrike" type="number" placeholder="履約價/成交價" class="border rounded-lg p-2 bg-slate-50">
+                            <input id="posPrice" type="number" placeholder="權利金/點數" class="border rounded-lg p-2 bg-slate-50">
+                        </div>
+                        <input id="posQty" type="number" placeholder="口數" value="1" class="border rounded-lg p-2 bg-slate-50 w-full">
+                        <button onclick="addPosition()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 rounded-lg transition duration-200 shadow-md">
+                            加入清單
+                        </button>
+                    </div>
+                </div>
 
-                    // 計算該部位損益 (不含成本 vs 含成本)
-                    // Buy: (內含價值 - 權利金) * 口數
-                    // Sell: (權利金 - 內含價值) * 口數
-                    if (leg.action === 'buy') {
-                        totalPnL += (valueAtExpiry - leg.price) * leg.qty;
-                    } else {
-                        totalPnL += (leg.price - valueAtExpiry) * leg.qty;
-                    }
-                });
-                return totalPnL;
-            },
+                <!-- 已持有部位列表 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4">目前部位</h2>
+                    <div id="positionList" class="space-y-2 max-h-60 overflow-y-auto">
+                        <!-- 部位會顯示在這裡 -->
+                        <p class="text-slate-400 text-sm italic">尚無部位</p>
+                    </div>
+                </div>
+            </div>
 
-            calculateSimulation() {
-                this.simulation.pnl = this.calculateTotalPnL(this.simulation.price);
-            },
+            <!-- 右側：圖表與分析 -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- 圖表區 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold">損益分析圖 (Payoff Diagram)</h2>
+                        <div class="flex gap-2 text-xs">
+                            分析範圍：<input id="rangeStart" type="number" value="17500" class="w-16 border rounded text-center"> ~ 
+                            <input id="rangeEnd" type="number" value="18500" class="w-16 border rounded text-center">
+                        </div>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="pnlChart"></canvas>
+                    </div>
+                </div>
 
-            formatCurrency(val) {
-                return val.toFixed(2);
-            },
+                <!-- 損益表格區 -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h2 class="text-lg font-bold mb-4 text-slate-800">試算明細表</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-100 text-slate-600 text-sm">
+                                <tr>
+                                    <th class="p-3 font-semibold border-b">結算價</th>
+                                    <th class="p-3 font-semibold border-b">總部位損益 (TWD)</th>
+                                    <th class="p-3 font-semibold border-b">總點數損益</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pnlTableBody" class="text-sm font-medium">
+                                <!-- 數據動態生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
-            // 初始化圖表
-            initChart() {
-                const ctx = document.getElementById('payoffChart').getContext('2d');
-                Chart.defaults.font.family = 'Inter';
-                
-                this.chartInstance = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: [],
-                        datasets: [
-                            {
-                                label: '策略損益 (P&L)',
-                                data: [],
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                borderWidth: 3,
-                                pointRadius: 0,
-                                fill: true,
-                                tension: 0.1, // 直線，不要曲線
-                                segment: {
-                                    borderColor: ctx => ctx.p0.parsed.y < 0 ? '#ef4444' : '#10b981', // 紅綠變色
-                                    backgroundColor: ctx => ctx.p0.parsed.y < 0 ? 'rgba(239, 68, 68, 0.1)' : 'rgba(16, 185, 129, 0.1)'
-                                }
-                            },
-                            {
-                                label: '目前模擬點',
-                                data: [],
-                                pointRadius: 8,
-                                pointBackgroundColor: '#f59e0b',
-                                borderColor: '#fff',
-                                borderWidth: 2,
-                                showLine: false // 只顯示點
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        interaction: { intersect: false, mode: 'index' },
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                callbacks: {
-                                    title: (context) => `股價: ${context[0].label}`,
-                                    label: (context) => `損益: ${context.formattedValue}`
-                                }
-                            },
-                            annotation: {
-                                annotations: {
-                                    line1: {
-                                        type: 'line',
-                                        yMin: 0,
-                                        yMax: 0,
-                                        borderColor: '#94a3b8',
-                                        borderWidth: 1,
-                                        borderDash: [5, 5]
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: { grid: { display: false }, title: { display: true, text: '結算股價' } },
-                            y: { grid: { color: '#f1f5f9' }, title: { display: true, text: '獲利/虧損' } }
-                        }
-                    }
-                });
-                this.updateChart();
-            },
+        </div>
+    </div>
 
-            updateChart() {
-                if (!this.chartInstance) return;
+    <script>
+        let positions = [];
+        let chartInstance = null;
 
-                // 1. 產生 X 軸數據點 (解析度 100 點)
-                const steps = 100;
-                const min = this.chartRange.min;
-                const max = this.chartRange.max;
-                const stepSize = (max - min) / steps;
-                
-                let labels = [];
-                let dataPoints = [];
-                let minPnL = 0;
-                let maxPnL = 0;
-                let breakevens = [];
+        // 新增部位
+        function addPosition() {
+            const type = document.getElementById('posType').value;
+            const action = document.getElementById('posAction').value;
+            const strike = parseFloat(document.getElementById('posStrike').value);
+            const price = parseFloat(document.getElementById('posPrice').value);
+            const qty = parseInt(document.getElementById('posQty').value);
 
-                // 為了找損益兩平點，需要追蹤正負號變化
-                let prevPnL = null;
-
-                for (let i = 0; i <= steps; i++) {
-                    const price = Math.round((min + i * stepSize) * 10) / 10;
-                    const pnl = this.calculateTotalPnL(price);
-                    
-                    labels.push(price);
-                    dataPoints.push(pnl);
-
-                    if (pnl > maxPnL) maxPnL = pnl;
-                    if (pnl < minPnL) minPnL = pnl;
-
-                    // 簡單偵測損益兩平 (Cross Zero)
-                    if (prevPnL !== null && ((prevPnL < 0 && pnl >= 0) || (prevPnL > 0 && pnl <= 0))) {
-                        breakevens.push(price);
-                    }
-                    prevPnL = pnl;
-                }
-
-                // 2. 更新分析數據
-                this.analysis.maxProfit = maxPnL > 1000000 ? '無限' : maxPnL.toFixed(2); // 簡單判斷
-                // 如果是 Call 買方，利潤無限，這裡簡單用數字表示
-                // 更嚴謹的判斷是看斜率，不過這裡用範圍內最大值暫代
-                if (dataPoints[dataPoints.length-1] > dataPoints[dataPoints.length-2] && dataPoints[dataPoints.length-1] > 0) this.analysis.maxProfit = "無限 (Upside)";
-                if (dataPoints[0] > dataPoints[1] && dataPoints[0] > 0) this.analysis.maxProfit = "無限 (Downside)";
-
-                this.analysis.maxLoss = minPnL.toFixed(2);
-                this.analysis.breakeven = breakevens.length > 0 ? breakevens.join(', ') : '無';
-
-                // 3. 更新圖表
-                this.chartInstance.data.labels = labels;
-                this.chartInstance.data.datasets[0].data = dataPoints;
-                this.updateChartCursor();
-            },
-
-            updateChartCursor() {
-                if (!this.chartInstance) return;
-                // 更新那個橘色的點，顯示當前模擬位置
-                const currentSimPnL = this.calculateTotalPnL(this.simulation.price);
-                // 為了讓點顯示在圖上，我們建立一個跟主數據一樣長的 array，但只有該位置有值 (Chart.js trick)
-                // 比較簡單的做法是 Scatter，但這裡混合圖表較方便
-                // 這裡我們簡單做：只傳入一個點物件
-                // 更好的方式：dataset[1] 是一條垂直線或是單點 Scatter
-                
-                // 這裡我們直接暴力法更新 dataset[1] 的 data 為單點，配合 x, y
-                // Chart.js 支援 x/y 座標格式
-                this.chartInstance.data.datasets[1].data = [{x: this.simulation.price, y: currentSimPnL}];
-                this.chartInstance.update();
+            if (isNaN(strike) || isNaN(price) || isNaN(qty)) {
+                alert("請填寫正確數值");
+                return;
             }
+
+            positions.push({ id: Date.now(), type, action, strike, price, qty });
+            updateUI();
         }
-    }).mount('#app');
-</script>
+
+        // 刪除部位
+        function deletePosition(id) {
+            positions = positions.filter(p => p.id !== id);
+            updateUI();
+        }
+
+        // 更新 UI (列表、圖表、表格)
+        function updateUI() {
+            renderPositionList();
+            renderPnlData();
+        }
+
+        function renderPositionList() {
+            const list = document.getElementById('positionList');
+            if (positions.length === 0) {
+                list.innerHTML = `<p class="text-slate-400 text-sm italic">尚無部位</p>`;
+                return;
+            }
+
+            list.innerHTML = positions.map(p => `
+                <div class="flex justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100 mb-2 group">
+                    <div>
+                        <span class="font-bold ${p.action === 'Buy' ? 'text-blue-600' : 'text-orange-600'}">${p.action === 'Buy' ? '買' : '賣'} ${p.type}</span>
+                        <div class="text-xs text-slate-500">${p.strike} @ ${p.price} (${p.qty}口)</div>
+                    </div>
+                    <button onclick="deletePosition(${p.id})" class="text-slate-300 hover:text-red-500 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function calculatePnL(spotPrice) {
+            let totalPnLPoints = 0;
+            positions.forEach(p => {
+                let pnl = 0;
+                if (p.type === 'Call') {
+                    const intrinsic = Math.max(0, spotPrice - p.strike);
+                    pnl = (p.action === 'Buy') ? (intrinsic - p.price) : (p.price - intrinsic);
+                } else if (p.type === 'Put') {
+                    const intrinsic = Math.max(0, p.strike - spotPrice);
+                    pnl = (p.action === 'Buy') ? (intrinsic - p.price) : (p.price - intrinsic);
+                } else if (p.type === 'Future') {
+                    pnl = (p.action === 'Buy') ? (spotPrice - p.strike) : (p.strike - spotPrice);
+                }
+                totalPnLPoints += pnl * p.qty;
+            });
+            return totalPnLPoints;
+        }
+
+        function renderPnlData() {
+            const start = parseInt(document.getElementById('rangeStart').value);
+            const end = parseInt(document.getElementById('rangeEnd').value);
+            const pointValue = parseFloat(document.getElementById('pointValue').value);
+            const step = Math.max(10, (end - start) / 20); // 動態級距
+
+            const labels = [];
+            const dataPnL = [];
+            const tableBody = document.getElementById('pnlTableBody');
+            tableBody.innerHTML = '';
+
+            for (let spot = start; spot <= end; spot += step) {
+                const pnlPoints = calculatePnL(spot);
+                const pnlCash = pnlPoints * pointValue;
+                
+                labels.push(spot);
+                dataPnL.push(pnlCash);
+
+                // 產生表格列 (每 50 點顯示一行於表格，避免過長)
+                if (spot % 50 === 0 || spot === start || spot === end) {
+                    const colorClass = pnlCash >= 0 ? 'pnl-red' : 'pnl-green';
+                    const row = `
+                        <tr class="hover:bg-slate-50 transition border-b border-slate-50">
+                            <td class="p-3 text-slate-600 font-mono">${spot}</td>
+                            <td class="p-3 ${colorClass}">${pnlCash.toLocaleString()}</td>
+                            <td class="p-3 ${colorClass}">${pnlPoints.toFixed(1)}</td>
+                        </tr>
+                    `;
+                    tableBody.insertAdjacentHTML('beforeend', row);
+                }
+            }
+
+            updateChart(labels, dataPnL);
+        }
+
+        function updateChart(labels, dataPnL) {
+            const ctx = document.getElementById('pnlChart').getContext('2d');
+            
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '總損益 (TWD)',
+                        data: dataPnL,
+                        borderColor: '#6366f1',
+                        borderWidth: 3,
+                        pointRadius: 0,
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                            gradient.addColorStop(0, 'rgba(99, 102, 241, 0.2)');
+                            gradient.addColorStop(1, 'rgba(99, 102, 241, 0)');
+                            return gradient;
+                        },
+                        fill: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: {
+                            grid: { color: '#e2e8f0' },
+                            ticks: { callback: (val) => val.toLocaleString() }
+                        },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // 監聽範圍輸入變更
+        document.querySelectorAll('#rangeStart, #rangeEnd, #pointValue').forEach(el => {
+            el.addEventListener('change', updateUI);
+        });
+
+        // 初始化一組示範部位 (Bull Call Spread)
+        window.onload = () => {
+            positions = [
+                { id: 1, type: 'Call', action: 'Buy', strike: 18000, price: 120, qty: 1 },
+                { id: 2, type: 'Call', action: 'Sell', strike: 18200, price: 50, qty: 1 }
+            ];
+            updateUI();
+        };
+    </script>
 </body>
 </html>
