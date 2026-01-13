@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v57.LogicFix</title>
+    <title>上新莊分行 - FCN 管理系統 v58.FinalLogic</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -12,7 +12,12 @@
         [v-cloak] { display: none; }
         body { background-color: #f3f4f6; color: #1e293b; font-family: -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif; -webkit-font-smoothing: antialiased; }
         .fcn-card { background: white; border-radius: 28px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); border: 1px solid #eee; position: relative; }
-        .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; }
+        .stock-tag { background: #f8fafc; border: 1.5px solid #edf2f7; border-radius: 14px; padding: 10px 4px; text-align: center; flex: 1; min-width: 105px; position: relative; }
+        
+        /* 視覺標記樣式 */
+        .stock-tag.ki-hit { border: 2px solid #ef4444; background-color: #fef2f2; } /* 紅色 KI */
+        .stock-tag.ko-hit { border: 2px solid #3b82f6; background-color: #eff6ff; } /* 藍色 KO */
+
         .nav-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); padding: 8px; border-radius: 40px; display: flex; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; overflow-x: auto; scrollbar-width: none; }
         .nav-btn { padding: 10px 16px; border-radius: 30px; font-weight: 800; color: #64748b; transition: 0.2s; white-space: nowrap; font-size: 13px; cursor: pointer; }
         .nav-btn.active { background: #1f2937; color: white; }
@@ -106,7 +111,12 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
-                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag">
+                        <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag" :class="getStockClass(item, s)">
+                            <!-- 觸及KI 標籤 -->
+                            <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ 觸及KI</div>
+                            <!-- 曾經KO 標籤 -->
+                            <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ 曾達KO</div>
+                            
                             <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                             <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
                             <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
@@ -160,11 +170,37 @@
                         return lowest > 0 && lowest <= (s.init * i.kiP / 100);
                     });
                 },
+                // 判斷股票標記樣式
+                getStockClass(i, s) {
+                    if (this.isStockKI(i, s)) return 'ki-hit';
+                    if (this.isStockKO(i, s)) return 'ko-hit';
+                    return '';
+                },
+                // 邏輯: 曾經跌破 KI (歷史最低 <= KI價)
+                isStockKI(i, s) {
+                    if (i.kiP <= 0) return false;
+                    const dateLimit = this.parseDate(i.date);
+                    const lowest = this.getLowestSince(s, dateLimit);
+                    return lowest > 0 && lowest <= (s.init * i.kiP / 100);
+                },
+                // 邏輯: 曾經漲破 KO (歷史最高 >= KO價，觀察日後)
+                isStockKO(i, s) {
+                    if (this.checkIsLocked(i)) return false; // 還在鎖定期不算
+                    const start = this.parseDate(i.koStart);
+                    const highest = this.getHighestSince(s, start);
+                    return highest >= (s.init * i.koP / 100);
+                },
                 isLocked(i){ 
                     if(!i.koStart) return false;
                     try {
                         const start = this.parseDate(i.koStart);
                         return new Date() < start;
+                    } catch(e) { return false; }
+                },
+                checkIsLocked(i) {
+                    if(!i.koStart) return false;
+                    try {
+                        return new Date() < this.parseDate(i.koStart);
                     } catch(e) { return false; }
                 },
                 parseDate(str) {
@@ -224,6 +260,7 @@
                 
                 // === 修正後的邏輯 ===
                 kiList() { 
+                    // 觸及Ki: 下單日後到今天標的最低股價曾經有低於ki價格。
                     return this.inventory.filter(i => {
                         if (!i.stocks || i.kiP <= 0) return false;
                         const dateLimit = this.parseDate(i.date);
@@ -234,6 +271,7 @@
                     }); 
                 },
                 observationList() {
+                    // 保持原樣: 預測未來3天，用當前價格
                     const now = new Date();
                     return this.inventory.filter(i => {
                         try {
@@ -249,13 +287,12 @@
                         } catch(e) { return false; }
                     });
                 },
-                
-                // 曾經達KO: 觀察日後，任一標的曾經觸及 KO 價，但排除「已出場」
                 partKOList() { 
+                    // 曾經達KO: 觀察日後到今天，標的歷史最高價有高於ko價格 (排除已出場)
                     return this.inventory.filter(i => {
                         if (this.checkIsLocked(i)) return false; 
                         
-                        // 排除已出場的，避免重複
+                        // 檢查是否已出場，若已出場就不算在這裡
                         if (this.exitList.includes(i)) return false;
 
                         const start = this.parseDate(i.koStart);
@@ -265,23 +302,35 @@
                         });
                     });
                 },
-
-                // 即將KO: 觀察日後，尚未出場，但目前「每一檔」股票都已經 >= KO價的 97%
                 nearKOList() { 
+                    // 即將出場：觀察日後，所有標的只剩一個標的距離ko價還差3%就達ko
+                    // 修正定義：目前有幾檔 > KO ? 只剩一檔未達且 > 97%
                     return this.inventory.filter(i => {
                         if (this.checkIsLocked(i)) return false;
                         if (this.exitList.includes(i)) return false; // 排除已出場
 
-                        const koThresholdRatio = i.koP / 100;
-                        
-                        // 檢查是否每一檔都 >= 97% KO價
-                        return i.stocks && i.stocks.every(s => {
-                            return s.current >= (s.init * koThresholdRatio * 0.97);
+                        // 計算目前有幾檔 *歷史上* 已經 KO 過了
+                        const start = this.parseDate(i.koStart);
+                        const passedStocks = (i.stocks || []).filter(s => {
+                            const highest = this.getHighestSince(s, start);
+                            return highest >= (s.init * i.koP / 100);
                         });
+
+                        // 條件1: 只剩一檔 *歷史上沒 KO 過*
+                        if (i.stocks.length - passedStocks.length !== 1) return false;
+
+                        // 條件2: 那檔沒過的，*目前* 價格已經 >= 97%
+                        const failedStock = i.stocks.find(s => {
+                            const highest = this.getHighestSince(s, start);
+                            return highest < (s.init * i.koP / 100);
+                        });
+                        
+                        if (!failedStock) return false;
+                        return failedStock.current >= ((failedStock.init * i.koP / 100) * 0.97);
                     });
                 },
-
                 expiringList() {
+                    // 即將到期：距離到期日還差3天
                     const now = new Date();
                     now.setHours(0,0,0,0);
                     return this.inventory.filter(i => {
@@ -292,34 +341,14 @@
                     });
                 },
                 exitList() { 
+                    // 已出場：觀察日後所有標的都曾經高過ko價。
                     return this.inventory.filter(i => {
                         if (this.checkIsLocked(i)) return false;
-                        
-                        if (!i.stocks || i.stocks.length === 0) return false;
                         const start = this.parseDate(i.koStart);
-                        const startTs = start.getTime() / 1000;
-                        
-                        const baseStock = i.stocks[0];
-                        if (!baseStock.history || !baseStock.history.timestamp) return false;
-
-                        return baseStock.history.timestamp.some((ts, idx) => {
-                            if (ts < startTs) return false;
-
-                            return i.stocks.every(s => {
-                                let price = null;
-                                if (s === baseStock) {
-                                    price = s.history.high[idx];
-                                } else {
-                                    if (!s.history || !s.history.timestamp) return false;
-                                    if (s.history.timestamp[idx] === ts) {
-                                        price = s.history.high[idx];
-                                    } else {
-                                        const foundIdx = s.history.timestamp.indexOf(ts);
-                                        if (foundIdx !== -1) price = s.history.high[foundIdx];
-                                    }
-                                }
-                                return price !== null && price >= (s.init * i.koP / 100);
-                            });
+                        // 每一檔標的，在觀察日後，都曾經(Highest)高過 KO
+                        return i.stocks && i.stocks.length > 0 && i.stocks.every(s => {
+                             const highest = this.getHighestSince(s, start);
+                             return highest >= (s.init * i.koP / 100);
                         });
                     });
                 },
@@ -344,7 +373,6 @@
                         return new Date() < this.parseDate(i.koStart);
                     } catch(e) { return false; }
                 },
-                
                 getLowestSince(stock, startDate) {
                     let minP = stock.current;
                     if (stock.history && stock.history.timestamp) {
@@ -371,7 +399,6 @@
                     }
                     return maxP;
                 },
-
                 formatNum(n) { return n ? Math.floor(n).toLocaleString() : '0'; },
                 login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); } },
                 checkAdminPass() { if (this.adminPassInput === this.adminPass) { this.view = 'admin_panel'; } else { alert('ERR'); } },
