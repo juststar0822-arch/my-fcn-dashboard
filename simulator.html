@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 專業詢價模擬引擎 v3.2</title>
+    <title>FCN 專業詢價模擬引擎 v3.5</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -14,8 +14,15 @@
         .input-light { background: #f1f5f9; border: 1.5px solid #e2e8f0; padding: 10px; border-radius: 10px; font-weight: bold; width: 100%; transition: 0.2s; }
         .input-light:focus { border-color: #3b82f6; background: white; outline: none; }
         .btn-navy { background: #1e293b; color: white; font-weight: 800; transition: 0.3s; }
-        .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); }
+        
+        /* 卡片配色 */
+        .result-gradient { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); } /* 藍：自訂 */
+        .rec-gradient-safe { background: linear-gradient(135deg, #059669 0%, #10b981 100%); } /* 綠：目標收息 */
+        .rec-gradient-agg { background: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%); } /* 紫：標準籃子 */
+        
         [v-cloak] { display: none; }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -24,7 +31,7 @@
         <div class="flex justify-between items-end mb-8">
             <div>
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN Quote</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Professional Pricing Engine v3.2</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Pricing Engine v3.5</p>
             </div>
             <span class="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-bold">LIVE DATA</span>
         </div>
@@ -59,39 +66,86 @@
             </div>
         </div>
 
-        <!-- 2. 結果面板 -->
-        <div v-if="result" class="result-gradient rounded-[2.5rem] p-8 text-white shadow-2xl mb-8 fade-in">
+        <!-- 2. 結果面板 (用戶自訂) -->
+        <div v-if="result" class="result-gradient rounded-[2.5rem] p-8 text-white shadow-2xl mb-6 fade-in">
             <div class="flex justify-between items-center opacity-60">
-                <p class="text-[10px] font-bold uppercase tracking-widest">Estimated Coupon</p>
+                <p class="text-[10px] font-bold uppercase tracking-widest">Your Quote</p>
                 <p class="text-[10px] font-bold italic">{{ result.date }}</p>
             </div>
             <div class="flex items-baseline gap-2 mt-2">
-                <span class="text-7xl font-black italic tracking-tighter text-yellow-400">{{ result.coupon }}</span>
-                <span class="text-2xl font-bold opacity-80">%</span>
+                <span class="text-6xl font-black italic tracking-tighter text-yellow-400">{{ result.coupon }}</span>
+                <span class="text-xl font-bold opacity-80">%</span>
             </div>
-            
-            <div class="mt-8 pt-6 border-t border-white/10">
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <p class="text-[10px] font-bold text-white/40 uppercase">Worst-of Vol (IV)</p>
-                        <p class="text-xl font-black italic">{{ result.maxVol }}%</p>
-                        <p class="text-[9px] font-bold text-red-300 mt-1 uppercase">{{ result.worstTicker }}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-[10px] font-bold text-white/40 uppercase">Market Base (Rf)</p>
-                        <p class="text-xl font-black italic">{{ result.rf }}%</p>
-                    </div>
+            <div class="mt-4 flex gap-4 text-[10px] opacity-70 border-t border-white/20 pt-4">
+                 <span>Strike: {{ form.strike }}%</span>
+                 <span>KO: {{ form.ko }}%</span>
+                 <span>KI: {{ form.ki }}%</span>
+            </div>
+        </div>
+
+        <div v-if="recSafe" class="mb-4 text-center">
+            <p class="text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-200 inline-block px-4 py-1.5 rounded-full">AI Strategy Suggestions</p>
+        </div>
+
+        <!-- 3. 建議組合 A (穩健收息 12%) -->
+        <div v-if="recSafe" class="rec-gradient-safe rounded-[2rem] p-6 text-white shadow-xl mb-4 fade-in relative overflow-hidden">
+            <div class="flex justify-between items-start mb-2 relative z-10">
+                <div>
+                    <h3 class="text-sm font-black italic uppercase tracking-tighter">穩健收息組合</h3>
+                    <p class="text-[10px] font-bold opacity-90">Target Yield 12% p.a.</p>
+                </div>
+                <div class="text-right opacity-80">
+                    <span class="text-[10px] font-bold block">Fixed KO 95 / KI 60</span>
+                </div>
+            </div>
+            <div class="bg-black/20 rounded-xl p-4 backdrop-blur-sm border border-white/10 mt-2 flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-bold text-emerald-200 uppercase">建議 Strike</p>
+                    <span class="text-4xl font-black tracking-tighter text-white">{{ recSafe.strike }}<span class="text-lg">%</span></span>
+                </div>
+                <div class="text-right max-w-[50%]">
+                    <p class="text-[10px] leading-tight opacity-90">
+                        若鎖定 12% 息，依市場波動反推，建議將履約價設於 <b class="text-white">{{ recSafe.strike }}%</b>。
+                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- 3. 標的明細 (含中文名稱) -->
+        <!-- 4. 建議組合 B (標準籃子 Strike 85%) -->
+        <div v-if="recAggressive" class="rec-gradient-agg rounded-[2rem] p-6 text-white shadow-xl mb-8 fade-in relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 bg-white/10 w-32 h-32 rounded-full blur-2xl"></div>
+            <div class="flex justify-between items-start mb-2 relative z-10">
+                <div>
+                    <h3 class="text-sm font-black italic uppercase tracking-tighter">標準籃子優化</h3>
+                    <p class="text-[10px] font-bold opacity-90">Standard Strike 85%</p>
+                </div>
+                <div class="text-right opacity-80">
+                    <span class="text-[10px] font-bold block">Fixed KO 95 / KI 60</span>
+                </div>
+            </div>
+            <div class="bg-black/20 rounded-xl p-4 backdrop-blur-sm border border-white/10 mt-2 flex items-center justify-between">
+                <div>
+                    <p class="text-[9px] font-bold text-purple-200 uppercase">預估最高配息</p>
+                    <span class="text-4xl font-black tracking-tighter text-white">{{ recAggressive.coupon }}<span class="text-lg">%</span></span>
+                </div>
+                <div class="text-right max-w-[55%]">
+                    <p class="text-[10px] leading-tight opacity-90">
+                        採「1主力+陪跑」標準結構 (S85/K60)，可榨出之最佳收益。
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. 標的明細 -->
         <div v-if="stockDetails.length > 0" class="bank-card p-6 mb-8">
-            <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-widest">市場標的狀態</h3>
+            <h3 class="text-xs font-black text-slate-800 mb-4 uppercase tracking-widest">Basket Components</h3>
             <div class="space-y-4">
                 <div v-for="s in stockDetails" class="flex justify-between items-center border-b border-slate-50 pb-3">
                     <div class="flex-1">
-                        <p class="text-sm font-black text-slate-800">{{ s.symbol.replace('.T','') }}</p>
+                        <div class="flex items-center gap-2">
+                            <p class="text-sm font-black text-slate-800">{{ s.symbol.replace('.T','') }}</p>
+                            <span v-if="s.symbol == result.worstTicker + (form.market=='JP'?'.T':'')" class="text-[9px] bg-red-100 text-red-600 px-1.5 rounded font-bold">Worst-Of</span>
+                        </div>
                         <p class="text-[10px] text-slate-400 font-bold">{{ s.name }}</p>
                     </div>
                     <div class="text-right">
@@ -103,8 +157,8 @@
         </div>
 
         <p class="text-center text-[11px] font-bold text-slate-400 italic px-4 pb-20 leading-relaxed">
-            ※ v3.2 定價引擎：已整合 KO Level 及 Lock-in 期間成本。<br>
-            保證領息期間越長，年化配息將相應減少。
+            ※ 建議組合皆固定採用 KO 95% / KI 60% 參數。<br>
+            「標準籃子優化」適合觀察主力股(如 NVDA)帶動整體收益之效果。
         </p>
 
     </div>
@@ -112,8 +166,8 @@
     <script>
         const { createApp } = Vue;
         const stockNames = {
-            'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏',
-            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅'
+            'TSM':'台積電','NVDA':'輝達','TSLA':'特斯拉','AAPL':'蘋果','MSFT':'微軟','AMZN':'亞馬遜','GOOG':'谷歌','META':'臉書','AMD':'超微','MU':'美光','AVGO':'博通','NFLX':'網飛','PLTR':'帕蘭提爾','ORCL':'甲骨文','SMCI':'美超微','DELL':'戴爾','ARM':'安謀','OKLO':'Oklo','BRK.B':'波克夏','MSTR':'MicroStrategy','COIN':'Coinbase',
+            '6146.T':'Disco','6501.T':'日立','7011.T':'三菱重工','6857.T':'愛德萬','7012.T':'川崎重工','7013.T':'IHI重工','7974.T':'任天堂','8035.T':'東京威力','5803.T':'藤倉電子','8697.T':'日本交易所','8002.T':'丸紅','7203.T':'豐田','9984.T':'軟銀'
         };
 
         createApp({
@@ -121,8 +175,10 @@
                 return {
                     isSyncing: false,
                     result: null,
+                    recSafe: null, // 綠色建議 (12% Target)
+                    recAggressive: null, // 紫色建議 (Basket 85% Strike)
                     stockDetails: [],
-                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 75, ki: 55, ko: 100, guarantee: 1, margin: 1.5 }
+                    form: { market: 'US', tickers: 'NVDA,TSLA,AMD', tenor: 6, strike: 80, ki: 60, ko: 100, guarantee: 1, margin: 1.5 }
                 }
             },
             methods: {
@@ -131,8 +187,12 @@
                     if (tickerList.length === 0) return;
 
                     this.isSyncing = true;
+                    // 重置結果
                     this.result = null;
+                    this.recSafe = null;
+                    this.recAggressive = null;
                     this.stockDetails = [];
+                    
                     if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
 
                     try {
@@ -140,6 +200,7 @@
                         let worstTicker = '';
                         let rf = this.form.market === 'US' ? 4.8 : 0.8;
 
+                        // 1. 抓取資料 & 計算 HV
                         for (let t of tickerList) {
                             const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+t+'?range=1mo&interval=1d')}`);
                             const json = JSON.parse((await res.json()).contents);
@@ -155,40 +216,64 @@
                             if(hv > maxHV) { maxHV = hv; worstTicker = t; }
                         }
 
-                        // --- v3.2 旗艦定價引擎 ---
+                        // 共用參數
                         let volPremium = maxHV * 0.92;
-                        
-                        // 1. 保護係數 (Strike & KI)
-                        let strikeFactor = Math.pow(this.form.strike / 100, 3.2); 
-                        let kiFactor = Math.pow(this.form.ki / 100, 0.4); 
-                        if(this.form.ki == 0) kiFactor = 0.5;
-
-                        // 2. KO 價係數 (KO 越低，產品越快結束，銀行風險小，利率低)
-                        // KO 為 100% 時基準為 1.0, 105% 時約增加 5-8% 的 Coupon
-                        let koFactor = Math.pow(this.form.ko / 100, 1.5);
-
-                        // 3. 保證領息扣除 (銀行成本)
-                        // 每多一個月保證領息，年化利率約減少 1.2% - 2.0%
+                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.18; // 籃子係數
                         let guaranteeCost = (this.form.guarantee - 1) * 1.8;
                         if(guaranteeCost < 0) guaranteeCost = 0;
-
-                        // 4. 資產數量溢價
-                        let assetMultiplier = 1 + (tickerList.length - 1) * 0.18;
-
-                        // 5. 最終計算
-                        let estimatedCoupon = rf + (volPremium * strikeFactor * kiFactor * koFactor * assetMultiplier) - guaranteeCost - this.form.margin;
                         
-                        if(estimatedCoupon < rf) estimatedCoupon = rf;
+                        // --- A. 計算用戶自訂結果 (藍卡) ---
+                        let uStrikeF = Math.pow(this.form.strike / 100, 3.2); 
+                        let uKiF = this.form.ki == 0 ? 0.5 : Math.pow(this.form.ki / 100, 0.4); 
+                        let uKoF = Math.pow(this.form.ko / 100, 1.5);
+
+                        let userCoupon = rf + (volPremium * uStrikeF * uKiF * uKoF * assetMultiplier) - guaranteeCost - this.form.margin;
+                        if(userCoupon < rf) userCoupon = rf;
 
                         this.result = {
-                            coupon: estimatedCoupon.toFixed(2),
+                            coupon: userCoupon.toFixed(2),
                             maxVol: maxHV.toFixed(1),
                             worstTicker: worstTicker.replace('.T', ''),
                             rf: rf,
                             date: new Date().toLocaleTimeString()
                         };
+
+                        // 建議組合共用固定參數
+                        const FIX_KO = 95;
+                        const FIX_KI = 60;
+                        const fixKoFactor = Math.pow(FIX_KO / 100, 1.5);
+                        const fixKiFactor = Math.pow(FIX_KI / 100, 0.4);
+
+                        // --- B. 計算穩健收息建議 (綠卡) ---
+                        // 目標 12%, 固定 KO 95, KI 60, 求 Strike
+                        const targetYield = 12.0;
+                        let requiredPremium = targetYield - rf + guaranteeCost + this.form.margin;
+                        let denominator = volPremium * fixKiFactor * fixKoFactor * assetMultiplier;
+                        
+                        let suggestedStrike = 100;
+                        if (denominator > 0) {
+                            let reqStrikeFactor = requiredPremium / denominator;
+                            suggestedStrike = 100 * Math.pow(reqStrikeFactor, 1/3.2);
+                        }
+                        // 邊界限制
+                        if (suggestedStrike > 100) suggestedStrike = 100; 
+                        if (suggestedStrike < 60) suggestedStrike = 60;
+
+                        this.recSafe = { strike: Math.round(suggestedStrike) };
+
+                        // --- C. 計算標準籃子建議 (紫卡) ---
+                        // 固定 Strike 85, KO 95, KI 60, 求 Coupon
+                        const stdStrike = 85;
+                        let stdStrikeFactor = Math.pow(stdStrike / 100, 3.2);
+                        
+                        let stdCoupon = rf + (volPremium * stdStrikeFactor * fixKiFactor * fixKoFactor * assetMultiplier) - guaranteeCost - this.form.margin;
+                        if (stdCoupon < rf) stdCoupon = rf;
+
+                        this.recAggressive = { coupon: stdCoupon.toFixed(2) };
+
                     } catch (e) {
-                        alert('詢價失敗，請檢查代碼。');
+                        console.error(e);
+                        alert('詢價失敗，請檢查代碼是否正確或網路狀態。');
                     } finally {
                         this.isSyncing = false;
                     }
