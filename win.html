@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (上新莊最終版)</title>
+    <title>榮譽榜生成器 (多筆+即時匯率)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -25,6 +25,23 @@
             color: white;
             padding: 20px;
             margin-bottom: 10px;
+        }
+
+        .list-panel {
+            background: #222;
+            padding: 10px 20px;
+            color: white;
+        }
+
+        .item-card {
+            background: #3a3a3a;
+            border-left: 4px solid #D4AF37;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
@@ -70,7 +87,7 @@
         .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
         .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-        /* SVG 畫布 (包含獎盃、彩帶、賀字) */
+        /* SVG 畫布 */
         .svg-layer {
             position: absolute;
             top: 0; left: 0;
@@ -79,14 +96,13 @@
             pointer-events: none;
         }
 
-        /* === 文字層 (透明背景 + 白色描邊) === */
+        /* === 文字層 === */
         .field {
             position: absolute;
             z-index: 20;
             background: transparent;
         }
 
-        /* 文字描邊效果 */
         .text-outline {
             text-shadow: 
                 3px 3px 0 #fff, -2px -2px 0 #fff,  
@@ -127,13 +143,12 @@
             font-size: 60px; font-weight: 900;
             padding: 0 25px; margin-right: 15px;
             white-space: nowrap; line-height: 1.2;
-            background: rgba(255,255,255,0.9); /* 輕微白底確保不被彩帶干擾 */
+            background: rgba(255,255,255,0.9);
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; }
 
-        /* 金額位置修正：往上移，避免擋到手收 */
         .field-amount {
-            top: 315px; /* 原本 340px，往上移 25px */
+            top: 315px;
             right: 40px;
             text-align: right;
             min-width: 450px;
@@ -157,10 +172,8 @@
             line-height: 1.4;
         }
 
-        /* 結果顯示 */
         #result-area {
-            text-align: center; margin-top: 20px;
-            display: none;
+            text-align: center; margin-top: 20px; display: none;
         }
         #result-img {
             max-width: 90%; margin: 0 auto;
@@ -172,80 +185,117 @@
 
 <div id="app">
     
-    <!-- 1. 控制面板 -->
+    <!-- 1. 輸入面板 -->
     <div class="control-panel">
         <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
         
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div><label>日期</label><input type="date" v-model="form.date"></div>
+        <!-- 全局設定 -->
+        <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
+            <div><label>日期</label><input type="date" v-model="globalDate"></div>
             <div>
                 <label>業代</label>
-                <select v-model="form.repIndex">
+                <select v-model="repIndex">
                     <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
                 </select>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 mb-3">
-            <div>
-                <label>商品</label>
-                <select v-model="form.productType" @change="handleProductChange">
-                    <option value="FCN">FCN</option>
-                    <option value="U6">元元致富 U6</option>
-                    <option value="U5">元元致富 U5</option>
-                    <option value="BOND">海外債</option>
-                </select>
+        <!-- 單筆輸入區 -->
+        <div class="bg-gray-800 p-3 rounded-lg mb-4">
+            <h3 class="text-sm font-bold text-gray-400 mb-2">新增一筆成交</h3>
+            
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                    <label>商品</label>
+                    <select v-model="form.productType" @change="handleProductChange">
+                        <option value="FCN">FCN</option>
+                        <option value="U6">元元致富 U6</option>
+                        <option value="U5">元元致富 U5</option>
+                        <option value="BOND">海外債</option>
+                    </select>
+                </div>
+                <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
             </div>
-            <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
-        </div>
 
-        <div class="grid grid-cols-3 gap-2 mb-3">
-            <div>
-                <label>幣別</label>
-                <select v-model="form.currency" @change="updateExRate">
-                    <option value="USD">USD</option>
-                    <option value="JPY">JPY</option>
-                    <option value="TWD">TWD</option>
-                </select>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div>
+                    <label>幣別</label>
+                    <select v-model="form.currency" @change="updateExRate">
+                        <option value="USD">USD</option>
+                        <option value="JPY">JPY</option>
+                        <option value="TWD">TWD</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">更新中...</span></label>
+                    <input type="number" v-model="form.exRate" step="0.01">
+                </div>
+                <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
             </div>
-            <div><label>匯率</label><input type="number" v-model="form.exRate" step="0.1"></div>
-            <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
+
+            <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
+                ➕ 加入清單
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. 清單與總計 -->
+    <div class="list-panel" v-if="cart.length > 0">
+        <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
+        
+        <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+            <div>
+                <div class="font-bold text-yellow-500">{{ item.productType }}</div>
+                <div class="text-xs text-gray-400">
+                    {{ item.currency }} {{ formatNumber(item.amount) }} (BP:{{ item.bp }})
+                </div>
+                <div class="text-xs text-gray-300">
+                    手收: {{ formatNumber(item.revenue) }} / 獎金: {{ formatNumber(item.bonus) }}
+                </div>
+            </div>
+            <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
         </div>
 
-        <div class="flex justify-between text-sm mb-4 bg-gray-700 p-2 rounded">
-            <span>手收: {{ formatNumber(calculatedRevenue) }}</span>
-            <span class="text-yellow-400">獎金: {{ formatNumber(calculatedBonus) }}</span>
+        <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500">
+            <div class="flex justify-between text-lg font-bold mb-1">
+                <span class="text-gray-300">總手收</span>
+                <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
+            </div>
+            <div class="flex justify-between text-lg font-bold">
+                <span class="text-gray-300">總獎金</span>
+                <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
+            </div>
         </div>
 
-        <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow active:scale-95 transition">
+        <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
             生成圖片 (長按儲存)
         </button>
     </div>
+    
+    <div class="list-panel text-center text-gray-500 py-4" v-else>
+        請先在上方輸入並加入至少一筆資料
+    </div>
 
-    <!-- 2. 結果顯示區 -->
+    <!-- 3. 結果圖片 -->
     <div id="result-area">
         <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
         <img id="final-img" alt="長按儲存">
     </div>
 
-    <!-- 3. 預覽區 (自動縮放) -->
+    <!-- 4. 預覽畫布 -->
     <div id="preview-container">
         <div id="certificate-node" class="certificate" :style="scaleStyle">
             
-            <!-- 角落裝飾 -->
-            <div class="corner tl"></div>
-            <div class="corner tr"></div>
-            <div class="corner bl"></div>
-            <div class="corner br"></div>
+            <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
 
-            <!-- SVG 繪圖層：獎盃、彩帶、賀字 -->
             <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
-                
-                <!-- === 背景彩帶 === -->
                 <defs>
                     <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
                         <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
+                    </linearGradient>
+                    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stop-color="#FDB931"/><stop offset="50%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B78628"/>
                     </linearGradient>
                 </defs>
                 <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
@@ -255,33 +305,18 @@
                 <rect x="600" y="80" width="20" height="20" fill="#FFC107" opacity="0.2" transform="rotate(30 610 90)"/>
                 <rect x="150" y="450" width="15" height="15" fill="#E91E63" opacity="0.2" transform="rotate(45 157 457)"/>
 
-                <!-- === 獎盃 === -->
                 <g transform="translate(20, 60) scale(1.1)">
-                    <defs>
-                        <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
-                            <stop offset="0%" stop-color="#FDB931"/>
-                            <stop offset="50%" stop-color="#FFD700"/>
-                            <stop offset="100%" stop-color="#B78628"/>
-                        </linearGradient>
-                    </defs>
-                    <!-- 把手 -->
                     <path d="M80 130 C -20 130, -20 260, 90 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
                     <path d="M320 130 C 420 130, 420 260, 310 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
-                    <!-- 杯身 -->
                     <path d="M80 100 L320 100 L280 300 C 280 360, 120 360, 120 300 Z" fill="url(#gold)" stroke="#B8860B" stroke-width="3"/>
-                    <!-- 杯口 -->
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
-                    <!-- 底座 -->
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
-                    
-                    <!-- 獎盃上的字：直式「上新莊」 -->
                     <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
                     <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
                     <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
                 </g>
 
-                <!-- === 賀字印章 === -->
                 <g transform="translate(320, 10) rotate(-10)">
                     <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
                     <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
@@ -289,7 +324,6 @@
             </svg>
 
             <!-- 文字填充區 -->
-            
             <div class="field field-date text-outline">{{ rocDate }}</div>
 
             <div class="field field-name text-outline">
@@ -298,21 +332,21 @@
             </div>
 
             <div class="field field-product">
-                <div class="product-box">{{ productDisplay }}</div>
-                <div class="count-text text-outline">共計1筆</div>
+                <div class="product-box">{{ finalProductName }}</div>
+                <div class="count-text text-outline">共計{{ cart.length }}筆</div>
             </div>
 
+            <!-- 金額顯示區 (顯示總台幣等值) -->
             <div class="field field-amount text-outline">
-                <span class="amount-text">{{ formatNumber(form.amount) }}</span>
-                <span class="currency-text">{{ currencyLabel }}</span>
+                <span class="amount-text">{{ formatNumber(totalEquivalentTWD) }}</span>
+                <span class="currency-text">台幣等值</span>
             </div>
 
             <div class="field field-stats text-outline">
-                <div class="stat-line">手收：{{ formatNumber(calculatedRevenue) }}元</div>
-                <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(calculatedBonus) }}元</div>
+                <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
+                <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
             </div>
 
-            <!-- 右下角 Icon -->
             <div style="position: absolute; bottom: 15px; right: 15px;">
                  <svg width="60" height="40" viewBox="0 0 100 60">
                      <rect x="30" y="20" width="40" height="40" fill="#ccc"/>
@@ -331,7 +365,26 @@
     createApp({
         setup() {
             const windowWidth = ref(window.innerWidth);
+            const loadingRate = ref(false);
             
+            // 全局日期與業代
+            const globalDate = ref(new Date().toISOString().split('T')[0]);
+            const repIndex = ref(4); // 預設黃思婷
+
+            // 購物車與輸入表單
+            const cart = ref([]);
+            const form = reactive({
+                productType: 'FCN',
+                currency: 'USD',
+                exRate: 32.5,
+                amount: 20000,
+                bp: 50
+            });
+
+            // 匯率暫存
+            const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
+
+            // 自動縮放
             const scaleStyle = computed(() => {
                 const targetWidth = 820; 
                 const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
@@ -341,9 +394,29 @@
                 };
             });
 
-            onMounted(() => {
+            onMounted(async () => {
                 window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; });
+                await fetchLiveRates();
             });
+
+            // 抓取即時匯率
+            const fetchLiveRates = async () => {
+                loadingRate.value = true;
+                try {
+                    // 使用 ExchangeRate-API (免費公開)
+                    const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+                    const data = await res.json();
+                    if(data && data.rates) {
+                        // API 給的是 1 TWD = ? USD，所以要倒數
+                        liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
+                        liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
+                        updateExRate(); // 更新當前欄位
+                    }
+                } catch(e) {
+                    console.error("匯率抓取失敗，使用預設值");
+                }
+                loadingRate.value = false;
+            };
 
             const repList = [
                 { name: '吳坤達', title: '業務協理' },
@@ -362,25 +435,15 @@
                 { name: '曾詩涵', title: '業務高專' }
             ];
 
-            const form = reactive({
-                date: new Date().toISOString().split('T')[0],
-                repIndex: 4, 
-                productType: 'FCN',
-                currency: 'USD',
-                exRate: 32.5,
-                amount: 20000,
-                bp: 50
-            });
-
-            const currentRep = computed(() => repList[form.repIndex]);
+            const currentRep = computed(() => repList[repIndex.value]);
+            
             const rocDate = computed(() => {
-                const d = new Date(form.date);
+                const d = new Date(globalDate.value);
                 return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
             });
 
             const updateExRate = () => {
-                const rates = { 'USD': 32.5, 'JPY': 0.22, 'TWD': 1 };
-                form.exRate = rates[form.currency] || 1;
+                form.exRate = liveRates[form.currency] || 1;
             };
 
             const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
@@ -389,16 +452,7 @@
                 else if(form.productType === 'FCN') form.bp = 50; 
             };
 
-            const productDisplay = computed(() => {
-                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
-                return map[form.productType];
-            });
-
-            const currencyLabel = computed(() => {
-                const map = { 'USD': '美元', 'JPY': '日圓', 'TWD': '元' };
-                return map[form.currency];
-            });
-
+            // 計算單筆預估
             const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
             const calculatedBonus = computed(() => {
                 let rate = 0;
@@ -406,6 +460,45 @@
                 else if(['U6', 'U5'].includes(form.productType)) rate = 38;
                 else if(form.productType === 'BOND') rate = 25;
                 return Math.round(calculatedRevenue.value * (rate / 100));
+            });
+
+            // 加入清單
+            const addToCart = () => {
+                cart.value.push({
+                    productType: form.productType,
+                    currency: form.currency,
+                    amount: form.amount,
+                    bp: form.bp,
+                    exRate: form.exRate,
+                    revenue: calculatedRevenue.value,
+                    bonus: calculatedBonus.value,
+                    // 計算該筆的台幣等值金額，用於總金額顯示
+                    twdEquivalent: Math.round(form.amount * form.exRate)
+                });
+            };
+
+            const removeFromCart = (index) => {
+                cart.value.splice(index, 1);
+            };
+
+            // 總計
+            const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
+            const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
+            const totalEquivalentTWD = computed(() => cart.value.reduce((sum, item) => sum + item.twdEquivalent, 0));
+
+            // 最終商品名稱邏輯
+            const finalProductName = computed(() => {
+                if (cart.value.length === 0) return '尚未輸入';
+                
+                const firstProduct = cart.value[0].productType;
+                const allSame = cart.value.every(item => item.productType === firstProduct);
+                
+                if (allSame) {
+                    const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
+                    return map[firstProduct];
+                } else {
+                    return '多元配置';
+                }
             });
 
             const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -425,20 +518,19 @@
                     const imgData = canvas.toDataURL("image/png");
                     document.getElementById("final-img").src = imgData;
                     document.getElementById("result-area").style.display = "block";
-                    
                     element.style.transform = originalTransform; 
-                    
-                    setTimeout(() => {
-                        document.getElementById("result-area").scrollIntoView({ behavior: "smooth" });
-                    }, 100);
+                    setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
                 });
             };
 
             return {
-                repList, form, currentRep, rocDate, isFixedBP,
-                updateExRate, handleProductChange, productDisplay, currencyLabel,
-                calculatedRevenue, calculatedBonus, formatNumber, generateImage,
-                scaleStyle
+                repList, repIndex, globalDate, form, cart,
+                currentRep, rocDate, isFixedBP, loadingRate,
+                updateExRate, handleProductChange, 
+                calculatedRevenue, calculatedBonus,
+                addToCart, removeFromCart,
+                totalRevenue, totalBonus, totalEquivalentTWD, finalProductName,
+                formatNumber, generateImage, scaleStyle
             };
         }
     }).mount('#app');
