@@ -3,44 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 台股法人導航 - 中文優化版</title>
+    <title>2026 台股法人導航 - 終極美化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); }
+        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        /* 強制修正 TradingView 容器高度 */
-        .widget-box { border-radius: 24px; overflow: hidden; background: white; border: 1px solid #e2e8f0; }
+        .logic-card { border-left: 4px solid; }
     </style>
 </head>
 <body class="pb-10">
 
-    <!-- Header (質感深藍) -->
-    <header class="bg-slate-900 text-white p-5 sticky top-0 z-50 shadow-xl">
-        <div class="max-w-md mx-auto">
-            <div class="flex justify-between items-center">
-                <div>
-                    <h1 class="text-xl font-black italic tracking-tighter text-white">TAIWAN <span class="text-indigo-400">STOCK</span></h1>
-                    <p id="updateTime" class="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-1"></p>
-                </div>
-                <div class="bg-emerald-500/20 px-3 py-1 rounded-full border border-emerald-500/50">
-                    <span class="text-[10px] text-emerald-400 font-black animate-pulse">● 2026 LIVE</span>
-                </div>
+    <!-- Header (Shawn 風格：白底黑字，乾淨大氣) -->
+    <header class="bg-white border-b sticky top-0 z-50 p-5 shadow-sm">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black italic tracking-tighter text-slate-800">TAIWAN <span class="text-indigo-600">STOCK</span></h1>
+                <p id="liveDate" class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">2026 Daily Report</p>
+            </div>
+            <div class="flex gap-2">
+                <span class="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded-full font-black border border-emerald-100 italic">LIVE DATA</span>
             </div>
         </div>
     </header>
 
     <main class="max-w-md mx-auto p-4 space-y-6">
 
-        <!-- 1. 取代熱力圖：大盤多空能量 (法人動向指標) -->
+        <!-- 1. 三大法人盤後入口 (手機最快連結) -->
+        <section class="grid grid-cols-2 gap-3">
+            <a href="https://www.wantgoo.com/stock/institutional-investors/net-buy-sell" target="_blank" class="bg-white p-4 rounded-3xl border border-gray-100 card-shadow logic-card border-l-rose-500">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-users-gear text-rose-500 text-xs"></i>
+                    <span class="text-xs font-black text-slate-700">法人買超榜</span>
+                </div>
+                <p class="text-[9px] text-slate-400">查看外資/投信大買股</p>
+            </a>
+            <a href="https://www.wantgoo.com/screener" target="_blank" class="bg-white p-4 rounded-3xl border border-gray-100 card-shadow logic-card border-l-indigo-500">
+                <div class="flex items-center gap-2 mb-1">
+                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-500 text-xs"></i>
+                    <span class="text-xs font-black text-slate-700">多頭選股器</span>
+                </div>
+                <p class="text-[9px] text-slate-400">技術/籌碼多因子篩選</p>
+            </a>
+        </section>
+
+        <!-- 2. 大盤法人氣氛雷達 (修正數據源) -->
         <section>
             <div class="flex items-center gap-2 mb-3 px-1">
                 <i class="fa-solid fa-gauge-high text-indigo-600"></i>
-                <h2 class="text-sm font-black text-slate-800">大盤法人能量 (多空診斷)</h2>
+                <h2 class="text-sm font-black text-slate-800">大盤多空能量雷達 (TAIEX)</h2>
             </div>
-            <div class="widget-box p-4 h-[320px] card-shadow">
+            <div class="bg-white rounded-[32px] p-5 border border-gray-100 card-shadow h-[350px] overflow-hidden">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
@@ -49,7 +64,7 @@
                     "width": "100%",
                     "isTransparent": true,
                     "height": "100%",
-                    "symbol": "TWSE:IR0001",
+                    "symbol": "TWSE:TAIEX",
                     "showIntervalTabs": true,
                     "displayMode": "single",
                     "locale": "zh_TW",
@@ -58,82 +73,101 @@
                     </script>
                 </div>
             </div>
-            <p class="text-[10px] text-slate-400 mt-2 text-center italic">※ 儀表板偏向「強力買入」代表法人與籌碼極度看多</p>
+            <p class="text-[10px] text-slate-400 mt-2 text-center italic">※ 儀表板偏向「強力買入」代表三大法人銀彈充足</p>
         </section>
 
-        <!-- 2. 全台股清單 (中文名優先、垂直排列、不用左右拉) -->
+        <!-- 3. 選股清單：中文優先、垂直清單 (不用左右拉) -->
         <section>
             <div class="flex items-center justify-between mb-3 px-1">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-list-ul text-rose-600"></i>
-                    <h2 class="text-sm font-black text-slate-800 uppercase">全台股選股清單 (中文優先)</h2>
+                    <i class="fa-solid fa-list-check text-indigo-600"></i>
+                    <h2 class="text-sm font-black text-slate-800 uppercase">智慧選股清單 (中文名/代號)</h2>
                 </div>
-                <div class="text-[9px] bg-slate-200 text-slate-500 px-2 py-0.5 rounded font-bold">18:00 法人更新</div>
+                <span class="text-[9px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold">每日更新</span>
             </div>
 
-            <!-- 使用 Market Overview 模式來實現「中文為主、代號在下」 -->
-            <div class="widget-box h-[700px] card-shadow">
+            <div class="bg-white rounded-[32px] border border-gray-100 card-shadow overflow-hidden h-[650px]">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
                     {
+                    "colorTheme": "light",
+                    "dateRange": "12M",
+                    "showChart": false,
+                    "locale": "zh_TW",
                     "width": "100%",
                     "height": "100%",
-                    "defaultColumn": "overview",
-                    "defaultScreen": "most_capitalized",
-                    "market": "taiwan",
-                    "showToolbar": true,
-                    "colorTheme": "light",
-                    "locale": "zh_TW",
+                    "largeChartUrl": "",
                     "isTransparent": false,
-                    "symbolDescription": "zh_TW"
+                    "showSymbolLogo": true,
+                    "showFloatingTooltip": false,
+                    "tabs": [
+                        {
+                        "title": "熱門成交榜",
+                        "symbols": [
+                            {"s": "TWSE:2330", "d": "台積電"},
+                            {"s": "TWSE:2317", "d": "鴻海"},
+                            {"s": "TWSE:2454", "d": "聯發科"},
+                            {"s": "TWSE:2603", "d": "長榮"},
+                            {"s": "TWSE:3231", "d": "緯創"},
+                            {"s": "TWSE:2382", "d": "廣達"},
+                            {"s": "TWSE:2609", "d": "陽明"},
+                            {"s": "TWSE:2303", "d": "聯電"}
+                        ]
+                        },
+                        {
+                        "title": "多頭轉強榜",
+                        "symbols": [
+                            {"s": "TWSE:2360", "d": "致茂"},
+                            {"s": "TWSE:3138", "d": "耀登"},
+                            {"s": "TWSE:3357", "d": "臺慶科"},
+                            {"s": "TWSE:2478", "d": "大毅"},
+                            {"s": "TWSE:2313", "d": "華通"},
+                            {"s": "TWSE:9955", "d": "佳龍"},
+                            {"s": "TWSE:3532", "d": "台勝科"}
+                        ]
+                        }
+                    ]
                     }
                     </script>
                 </div>
-            </div>
-
-            <!-- 操作提示 -->
-            <div class="mt-4 bg-amber-50 border border-amber-100 rounded-2xl p-4">
-                <h3 class="text-xs font-bold text-amber-900 mb-2">💡 手機一目了然秘訣：</h3>
-                <ul class="text-[11px] text-amber-800 space-y-2">
-                    <li>1. 點擊清單上方 <strong>「三條槓 (欄位設定)」</strong>。</li>
-                    <li>2. 只勾選 <strong>「描述 (即中文名)」</strong>、<strong>「最後價格」</strong>、<strong>「漲跌幅%」</strong>。</li>
-                    <li>3. 這樣表格會縮得很窄，中文名稱會顯示在最前面，完全不用左右拉！</li>
-                </ul>
             </div>
         </section>
 
-        <!-- 3. 三大法人盤後必看：即時新聞時事 -->
-        <section>
-            <div class="flex items-center gap-2 mb-3 px-1">
-                <i class="fa-solid fa-newspaper text-indigo-600"></i>
-                <h2 class="text-sm font-black text-slate-800">盤後法人時事新聞</h2>
+        <!-- 4. 選股資訊豐富區：基本面、籌碼面、技術面 -->
+        <section class="space-y-4">
+            <div class="flex items-center gap-2 px-1">
+                <i class="fa-solid fa-brain text-emerald-500"></i>
+                <h2 class="text-sm font-black text-slate-800 uppercase">選股策略核心建議</h2>
             </div>
-            <div class="widget-box h-[400px] card-shadow">
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
-                    {
-                    "feedMode": "market",
-                    "market": "stock",
-                    "colorTheme": "light",
-                    "isTransparent": false,
-                    "displayMode": "regular",
-                    "width": "100%",
-                    "height": "100%",
-                    "locale": "zh_TW"
-                    }
-                    </script>
-                </div>
+
+            <!-- 基本面 -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-100 card-shadow logic-card border-l-emerald-500">
+                <p class="text-[10px] font-black text-emerald-600 uppercase mb-1">● 基本面 (Fundamental)</p>
+                <h4 class="text-sm font-bold text-slate-800 mb-1">獲利支撐與價值</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">優先篩選：<strong>營收成長 > 20%</strong> 且 <strong>P/E < 20</strong> 的標的。確保你買的股票有實質獲利，不只是投機。</p>
+            </div>
+
+            <!-- 籌碼面 -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-100 card-shadow logic-card border-l-rose-500">
+                <p class="text-[10px] font-black text-rose-600 uppercase mb-1">● 籌碼面 (Chips)</p>
+                <h4 class="text-sm font-bold text-slate-800 mb-1">三大法人銀彈追蹤</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">觀察：<strong>外資/投信連續 3 天買超</strong>。當法人開始認錯回補或同步大買時，通常是多頭噴出的前兆。</p>
+            </div>
+
+            <!-- 技術面 -->
+            <div class="bg-white p-5 rounded-3xl border border-gray-100 card-shadow logic-card border-l-indigo-500">
+                <p class="text-[10px] font-black text-indigo-600 uppercase mb-1">● 技術面 (Technical)</p>
+                <h4 class="text-sm font-bold text-slate-800 mb-1">均線多頭排列</h4>
+                <p class="text-[11px] text-slate-500 leading-relaxed">條件：<strong>MA5 > MA20 > MA60</strong>。當短中長期均線都在股價下方時，就是最穩健的多頭趨勢。</p>
             </div>
         </section>
 
     </main>
 
     <script>
-        // 更新時間
         const now = new Date();
-        document.getElementById('updateTime').innerText = '最後同步: ' + now.getHours() + ':' + String(now.getMinutes()).padStart(2, '0');
+        document.getElementById('liveDate').innerText = now.toLocaleDateString('zh-TW', { year: 'numeric', month: 'long', day: 'numeric' });
     </script>
 </body>
 </html>
