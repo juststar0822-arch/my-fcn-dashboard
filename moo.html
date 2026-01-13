@@ -3,135 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>2026 台股智慧導航 - 自定義選股版</title>
+    <title>2026 台股極簡導航</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; overflow-x: hidden; }
-        .shawn-card { background: white; border-radius: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04); border: 1px solid #f1f5f9; overflow: hidden; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .filter-hint { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+        
+        /* Shawn 風格質感卡片 */
+        .shawn-card { background: white; border-radius: 24px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); border: 1px solid #f1f5f9; overflow: hidden; }
+        
+        /* 隱藏商標黑科技 */
+        .widget-wrapper {
+            position: relative;
+            height: 600px; /* 顯示高度 */
+            overflow: hidden;
+            border-radius: 20px;
+        }
+        .widget-wrapper iframe {
+            position: absolute;
+            top: -1px;
+            height: 645px !important; /* 增加高度把商標擠出去 */
+            width: 100% !important;
+        }
+
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
     </style>
 </head>
 <body class="pb-10">
 
-    <!-- Header (質感 Shawn 風) -->
-    <header class="bg-white border-b sticky top-0 z-50 p-5 shadow-sm">
-        <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
-                    <i class="fa-solid fa-tower-observation text-white text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-black tracking-tighter text-slate-800 uppercase">Stock <span class="text-indigo-600">Master</span></h1>
-                    <p class="text-[9px] text-slate-400 font-bold italic tracking-widest">2026 Multi-Factor Screener</p>
-                </div>
+    <!-- Header: 保持高質感白底 -->
+    <header class="bg-white border-b sticky top-0 z-50 p-5">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-black tracking-tight text-slate-800">台股導航 <span class="text-indigo-600 tracking-tighter italic">2026</span></h1>
+                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Unified Stock List</p>
             </div>
-            <div id="marketStatus" class="flex items-center gap-2 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
-                <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
-                <span class="text-[10px] text-emerald-600 font-black">TAIEX LIVE</span>
+            <div class="text-right">
+                <span id="currentTime" class="text-[10px] font-mono text-slate-400">Loading...</span>
             </div>
         </div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-4 space-y-6">
+    <main class="max-w-md mx-auto p-4 space-y-6">
 
-        <!-- 1. 三位一體選股邏輯 (導航卡片) -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="shawn-card p-5 border-l-4 border-l-rose-500">
-                <p class="text-[10px] font-black text-rose-500 uppercase mb-1 tracking-widest">籌碼面 (Institutions)</p>
-                <h3 class="text-sm font-bold text-slate-800">三大法人動向</h3>
-                <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">觀察篩選器中的「技術評級」，強烈買入代表法人銀彈已進場。</p>
+        <!-- 1. 超簡單選股三法 (白話文版) -->
+        <section class="grid grid-cols-3 gap-2">
+            <div class="shawn-card p-3 text-center border-b-4 border-b-rose-500">
+                <p class="text-[10px] font-black text-slate-400 mb-1">看籌碼</p>
+                <p class="text-xs font-bold text-slate-700">法人買超</p>
             </div>
-            <div class="shawn-card p-5 border-l-4 border-l-indigo-500">
-                <p class="text-[10px] font-black text-indigo-500 uppercase mb-1 tracking-widest">技術面 (Technical)</p>
-                <h3 class="text-sm font-bold text-slate-800">均線多頭排列</h3>
-                <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">在篩選器設定 MA20 > MA60，找出剛啟動的多頭個股。</p>
+            <div class="shawn-card p-3 text-center border-b-4 border-b-indigo-500">
+                <p class="text-[10px] font-black text-slate-400 mb-1">看趨勢</p>
+                <p class="text-xs font-bold text-slate-700">多頭排列</p>
             </div>
-            <div class="shawn-card p-5 border-l-4 border-l-emerald-500">
-                <p class="text-[10px] font-black text-emerald-500 uppercase mb-1 tracking-widest">基本面 (Fundamental)</p>
-                <h3 class="text-sm font-bold text-slate-800">獲利能力過濾</h3>
-                <p class="text-[11px] text-slate-400 mt-1 leading-relaxed">設定本益比 (P/E) < 15，避開漲太多的投機泡沫股。</p>
+            <div class="shawn-card p-3 text-center border-b-4 border-b-emerald-500">
+                <p class="text-[10px] font-black text-slate-400 mb-1">看獲利</p>
+                <p class="text-xs font-bold text-slate-700">公司賺錢</p>
             </div>
         </section>
 
-        <!-- 2. 全功能選股引擎 (自定義核心) -->
-        <section class="space-y-4">
-            <div class="flex items-center justify-between px-2">
+        <!-- 2. 即時清單：代號+名稱 (手機一目了然版) -->
+        <section class="space-y-3">
+            <div class="flex justify-between items-end px-1">
                 <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
-                    <h2 class="text-lg font-black text-slate-800">台股高級選股引擎 (含中文名)</h2>
+                    <i class="fa-solid fa-list-ol text-indigo-600"></i>
+                    <h2 class="text-sm font-black text-slate-800">熱門/強勢股清單</h2>
                 </div>
-                <div class="text-[9px] font-bold text-slate-400 bg-white px-2 py-1 rounded border tracking-tight italic">
-                    每日 18:00 法人數據更新後最準
-                </div>
+                <p class="text-[9px] text-slate-400 font-bold">18:00 法人更新</p>
             </div>
 
-            <!-- 操作引導 (Shawn 風格) -->
-            <div class="filter-hint rounded-[24px] p-5 text-white shadow-lg shadow-indigo-100 mb-2">
-                <div class="flex items-center gap-3">
-                    <i class="fa-solid fa-circle-info text-2xl opacity-50"></i>
-                    <div>
-                        <p class="text-sm font-black italic underline decoration-yellow-400">如何自定義選股條件？</p>
-                        <p class="text-[11px] opacity-80 leading-relaxed mt-1">點擊下方組件右上角的 <strong class="text-yellow-300">「藍色過濾器」</strong> 圖標，即可自行輸入本益比、法人買入信號或均線參數。名稱欄位會顯示「代號 (中文名)」。</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="shawn-card h-[750px]">
-                <!-- 全功能 Screener 插件：鎖定台灣市場 -->
+            <!-- 這裡使用行情概覽插件，呈現：中文名稱 (代號) 價格 漲跌 -->
+            <div class="widget-wrapper shawn-card">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-screener.js" async>
+                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
                     {
+                    "colorTheme": "light",
+                    "dateRange": "12M",
+                    "showChart": false,
+                    "locale": "zh_TW",
                     "width": "100%",
                     "height": "100%",
-                    "defaultColumn": "overview",
-                    "defaultScreen": "most_capitalized",
-                    "market": "taiwan",
-                    "showToolbar": true,
-                    "colorTheme": "light",
-                    "locale": "zh_TW",
+                    "largeChartUrl": "",
                     "isTransparent": false,
-                    "symbolDescription": "zh_TW"
+                    "showSymbolLogo": true,
+                    "showFloatingTooltip": false,
+                    "tabs": [
+                        {
+                        "title": "台股上市",
+                        "symbols": [
+                            {"s": "TWSE:2330", "d": "2330 台積電"},
+                            {"s": "TWSE:2317", "d": "2317 鴻海"},
+                            {"s": "TWSE:2454", "d": "2454 聯發科"},
+                            {"s": "TWSE:2603", "d": "2603 長榮"},
+                            {"s": "TWSE:2303", "d": "2303 聯電"},
+                            {"s": "TWSE:3231", "d": "3231 緯創"},
+                            {"s": "TWSE:2382", "d": "2382 廣達"},
+                            {"s": "TWSE:2881", "d": "2881 富邦金"}
+                        ]
+                        },
+                        {
+                        "title": "台股上櫃",
+                        "symbols": [
+                            {"s": "OTC:8299", "d": "8299 群聯"},
+                            {"s": "OTC:5274", "d": "5274 信驊"},
+                            {"s": "OTC:6488", "d": "6488 環球晶"},
+                            {"s": "OTC:5347", "d": "5347 世界"},
+                            {"s": "OTC:6223", "d": "6223 旺矽"}
+                        ]
+                        }
+                    ]
                     }
                     </script>
                 </div>
             </div>
+            <p class="text-[10px] text-slate-400 text-center italic">※ 名稱左方帶有代號，寬度自動適應手機。</p>
         </section>
 
-        <!-- 3. 大盤能量儀表板 (TAIEX 修正) -->
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="shawn-card p-6 min-h-[400px]">
-                <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-gauge-high text-indigo-500"></i>
-                    台股加權指數多空診斷
-                </h3>
-                <div class="tradingview-widget-container">
-                    <div class="tradingview-widget-container__widget"></div>
-                    <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-technical-analysis.js" async>
-                    {
-                    "interval": "1D",
-                    "width": "100%",
-                    "isTransparent": true,
-                    "height": "100%",
-                    "symbol": "TWSE:TAIEX",
-                    "showIntervalTabs": true,
-                    "displayMode": "single",
-                    "locale": "zh_TW",
-                    "colorTheme": "light"
-                    }
-                    </script>
-                </div>
+        <!-- 3. 三大法人盤後快訊 -->
+        <section class="space-y-3">
+            <div class="flex items-center gap-2 px-1">
+                <i class="fa-solid fa-newspaper text-rose-500"></i>
+                <h2 class="text-sm font-black text-slate-800">三大法人時事動態</h2>
             </div>
-
-            <!-- 法人相關新聞流 -->
-            <div class="shawn-card p-6 min-h-[400px]">
-                <h3 class="text-sm font-black text-slate-800 mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-rss text-rose-500"></i>
-                    盤後法人時事焦點
-                </h3>
+            <div class="shawn-card h-[400px]">
                 <div class="tradingview-widget-container">
                     <div class="tradingview-widget-container__widget"></div>
                     <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
@@ -153,15 +149,11 @@
     </main>
 
     <script>
-        // 定時更新狀態
+        // 更新時間
         setInterval(() => {
             const now = new Date();
-            const hour = now.getHours();
-            const tag = document.getElementById('marketStatus');
-            if(hour >= 18 || hour < 9) {
-                tag.innerHTML = '<span class="w-2 h-2 bg-blue-500 rounded-full"></span><span class="text-[10px] text-blue-600 font-black">盤後數據已同步</span>';
-            }
-        }, 60000);
+            document.getElementById('currentTime').innerText = now.getHours() + ":" + String(now.getMinutes()).padStart(2, '0');
+        }, 1000);
     </script>
 </body>
 </html>
