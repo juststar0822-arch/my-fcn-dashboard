@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (上新莊專屬版)</title>
+    <title>榮譽榜生成器 (上新莊最終版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -131,8 +131,10 @@
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; }
 
+        /* 金額位置修正：往上移，避免擋到手收 */
         .field-amount {
-            top: 340px; right: 40px;
+            top: 315px; /* 原本 340px，往上移 25px */
+            right: 40px;
             text-align: right;
             min-width: 450px;
         }
@@ -148,11 +150,11 @@
             min-width: 400px;
             display: flex;
             flex-direction: column;
-            gap: 5px; /* 增加行與行之間的距離 */
+            gap: 5px;
         }
         .stat-line { 
             font-size: 28px; font-weight: bold; color: #be123c; 
-            line-height: 1.4; /* 調整行高，避免字體切到 */
+            line-height: 1.4;
         }
 
         /* 結果顯示 */
@@ -239,24 +241,21 @@
             <!-- SVG 繪圖層：獎盃、彩帶、賀字 -->
             <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
                 
-                <!-- === 背景彩帶 (滿版點綴，不搶眼) === -->
+                <!-- === 背景彩帶 === -->
                 <defs>
                     <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
                         <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
                         <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
                     </linearGradient>
                 </defs>
-                <!-- 飄帶 1 -->
                 <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
-                <!-- 飄帶 2 -->
                 <path d="M850 400 Q 600 200 400 450 T -50 300" stroke="url(#ribbonGrad)" stroke-width="40" fill="none" opacity="0.5"/>
-                <!-- 碎花點綴 -->
                 <circle cx="100" cy="100" r="10" fill="#4CAF50" opacity="0.2"/>
                 <circle cx="700" cy="400" r="15" fill="#2196F3" opacity="0.2"/>
                 <rect x="600" y="80" width="20" height="20" fill="#FFC107" opacity="0.2" transform="rotate(30 610 90)"/>
                 <rect x="150" y="450" width="15" height="15" fill="#E91E63" opacity="0.2" transform="rotate(45 157 457)"/>
 
-                <!-- === 獎盃 (位置：左側) === -->
+                <!-- === 獎盃 === -->
                 <g transform="translate(20, 60) scale(1.1)">
                     <defs>
                         <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
@@ -265,26 +264,24 @@
                             <stop offset="100%" stop-color="#B78628"/>
                         </linearGradient>
                     </defs>
-                    <!-- 把手 (往外擴) -->
+                    <!-- 把手 -->
                     <path d="M80 130 C -20 130, -20 260, 90 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
                     <path d="M320 130 C 420 130, 420 260, 310 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
                     <!-- 杯身 -->
                     <path d="M80 100 L320 100 L280 300 C 280 360, 120 360, 120 300 Z" fill="url(#gold)" stroke="#B8860B" stroke-width="3"/>
                     <!-- 杯口 -->
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
-                    <!-- 底座支柱 -->
+                    <!-- 底座 -->
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
-                    <!-- 木頭底座 -->
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
                     
-                    <!-- === 獎盃上的字：直式「上新莊」 === -->
-                    <!-- 刻在杯身上，紅色字 -->
+                    <!-- 獎盃上的字：直式「上新莊」 -->
                     <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
                     <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
                     <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
                 </g>
 
-                <!-- === 賀字印章 (右上偏中) === -->
+                <!-- === 賀字印章 === -->
                 <g transform="translate(320, 10) rotate(-10)">
                     <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
                     <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
@@ -335,7 +332,6 @@
         setup() {
             const windowWidth = ref(window.innerWidth);
             
-            // 自動計算縮放比例
             const scaleStyle = computed(() => {
                 const targetWidth = 820; 
                 const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
@@ -418,7 +414,7 @@
                 window.scrollTo(0, 0);
                 const element = document.getElementById("certificate-node");
                 const originalTransform = element.style.transform;
-                element.style.transform = 'scale(1)'; // 還原比例以確保高畫質截圖
+                element.style.transform = 'scale(1)'; 
 
                 html2canvas(element, { 
                     scale: 2, 
@@ -430,7 +426,7 @@
                     document.getElementById("final-img").src = imgData;
                     document.getElementById("result-area").style.display = "block";
                     
-                    element.style.transform = originalTransform; // 恢復縮放預覽
+                    element.style.transform = originalTransform; 
                     
                     setTimeout(() => {
                         document.getElementById("result-area").scrollIntoView({ behavior: "smooth" });
