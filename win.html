@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (排版修正版)</title>
+    <title>榮譽榜生成器 (排版優化版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -11,7 +11,7 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
         
         body { 
-            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+            font-family: 'Noto Sans TC', sans-serif; 
             background-color: #1a1a1a; 
             padding-bottom: 80px; 
             color: #333;
@@ -131,9 +131,9 @@
             margin-top: -5px; 
         }
 
-        /* 商品區塊 (位置下移至 240px，避免擋住頭銜) */
+        /* 商品區塊 (上移至 215px) */
         .field-product {
-            top: 240px; 
+            top: 215px; 
             right: 40px;
             display: flex; 
             align-items: center; 
@@ -160,9 +160,9 @@
         }
         .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
 
-        /* 金額區塊 (位置下移至 360px，避免擋住商品) */
+        /* 金額區塊 (上移至 305px，並縮小字體) */
         .field-amount {
-            top: 360px; 
+            top: 305px; 
             right: 40px;
             text-align: right;
             min-width: 500px;
@@ -246,7 +246,7 @@
                     </select>
                 </div>
                 <div class="relative">
-                    <label>匯率</label>
+                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
                     <input type="number" v-model="form.exRate" step="0.01">
                 </div>
                 <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
@@ -320,11 +320,9 @@
                     <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
                     <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
                     <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
-                    
-                    <!-- 獎盃文字：微軟正黑體 -->
-                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
-                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
-                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
+                    <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
+                    <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
+                    <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Noto Serif TC', serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
                 </g>
 
                 <g transform="translate(320, 10) rotate(-10)">
@@ -340,7 +338,7 @@
                 <div class="title-text">{{ currentRep.title }}</div>
             </div>
 
-            <!-- 商品：多行列表 -->
+            <!-- 商品 -->
             <div class="field field-product">
                 <div class="product-list">
                     <div v-for="prod in finalProductList" :key="prod" class="product-box">
@@ -480,11 +478,12 @@
                 return Object.keys(sums).map(curr => ({ val: formatNumber(sums[curr]), curr: curr }));
             });
 
+            // 字體大小控制：單筆 75px，多筆 55px
             const amountFontSize = computed(() => {
-                if (finalAmountList.value.length > 1) return '65px';
+                if (finalAmountList.value.length > 1) return '55px';
                 const firstVal = finalAmountList.value[0].val;
-                if (firstVal.length > 8) return '70px';
-                return '95px'; 
+                if (firstVal.length > 10) return '60px'; 
+                return '75px'; 
             });
 
             const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
