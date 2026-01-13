@@ -467,7 +467,7 @@
             const finalProductList = computed(() => {
                 if (cart.value.length === 0) return ['FCN'];
                 const types = [...new Set(cart.value.map(i => i.productType))];
-                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
+                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '債券' };
                 return types.map(t => map[t]);
             });
 
