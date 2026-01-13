@@ -3,68 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 信用卡指南 - 搜尋校正版</title>
+    <title>2026 信用卡指南 - Shawn 強化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; padding-bottom: 80px; }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; padding-bottom: 100px; }
         .mode-btn-active { border-color: #4f46e5; background-color: #eef2ff; color: #4f46e5; font-weight: bold; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .recommend-tag { background: linear-gradient(90deg, #4f46e5, #9333ea); }
         .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04); }
+        .tag-pill { transition: all 0.2s; border: 1px solid #e2e8f0; }
+        .tag-pill.active { background-color: #4f46e5; border-color: #4f46e5; color: white; }
     </style>
 </head>
 <body>
 
+    <!-- Header & Search (參考 Shawn 佈局，維持你的風格) -->
     <header class="bg-slate-900 text-white sticky top-0 z-50 p-5 shadow-lg">
         <div class="max-w-md mx-auto">
             <div class="flex justify-between items-center mb-4">
-                <h1 class="text-xl font-black italic tracking-tighter text-white">CARD NAVI <span class="text-indigo-400">2026</span></h1>
-                <span class="text-[9px] bg-slate-800 border border-slate-700 px-2 py-1 rounded-full text-slate-400 font-bold uppercase tracking-widest">Logic Fixed</span>
+                <h1 class="text-xl font-black italic tracking-tighter">CARD NAVI <span class="text-indigo-400">2026</span></h1>
+                <span class="text-[9px] bg-slate-800 border border-slate-700 px-2 py-1 rounded-full text-slate-400 font-bold">SHAWN DATA SYNCED</span>
             </div>
             <div class="relative">
                 <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                <input type="text" id="searchInput" oninput="renderCards()" placeholder="輸入關鍵字：淘寶、日本、外送、7-11..." 
+                <input type="text" id="searchInput" oninput="renderCards()" placeholder="搜尋：全聯、全家、百貨、日本、機票..." 
                     class="w-full bg-slate-800 border-none rounded-2xl py-3 pl-11 pr-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm">
             </div>
         </div>
     </header>
 
-    <main class="max-w-md mx-auto p-4 space-y-6">
+    <main class="max-w-md mx-auto p-4 space-y-4">
         
-        <!-- 手動權益切換區 -->
-        <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 p-5 space-y-4 card-shadow">
-            <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
-                <span class="text-[10px] font-black text-slate-400 whitespace-nowrap uppercase">Cube Mode</span>
+        <!-- 快速分類標籤 (參考 Shawn 的分類功能) -->
+        <div class="flex gap-2 overflow-x-auto no-scrollbar py-2">
+            <button onclick="setFilter('all')" class="tag-pill active px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">全部</button>
+            <button onclick="setFilter('支付')" class="tag-pill px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">📱 支付/全家</button>
+            <button onclick="setFilter('美食')" class="tag-pill px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">🛵 外送/美食</button>
+            <button onclick="setFilter('網購')" class="tag-pill px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">🛒 網購/電商</button>
+            <button onclick="setFilter('旅遊')" class="tag-pill px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">✈️ 旅遊/國外</button>
+            <button onclick="setFilter('生活')" class="tag-pill px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">⛽ 生活/通勤</button>
+        </div>
+
+        <!-- 手動模式切換 (CUBE & Unicard) -->
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-4 card-shadow space-y-3">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+                <span class="text-[10px] font-black text-slate-400 uppercase">Cube</span>
                 <button onclick="setMode('cube', '玩數位')" id="btn-cube-玩數位" class="cube-btn mode-btn-active border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">玩數位</button>
                 <button onclick="setMode('cube', '樂饗購')" id="btn-cube-樂饗購" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">樂饗購</button>
                 <button onclick="setMode('cube', '趣旅行')" id="btn-cube-趣旅行" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">趣旅行</button>
-            </div>
-            <div class="flex items-center gap-3 overflow-x-auto no-scrollbar">
-                <span class="text-[10px] font-black text-slate-400 whitespace-nowrap uppercase">Uni Mode</span>
-                <button onclick="setMode('unicard', '簡單選')" id="btn-unicard-簡單選" class="uni-btn mode-btn-active border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">簡單選</button>
-                <button onclick="setMode('unicard', '訂製選')" id="btn-unicard-訂製選" class="uni-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">訂製選(5%)</button>
+                <button onclick="setMode('cube', '集精選')" id="btn-cube-集精選" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">集精選</button>
             </div>
         </div>
 
-        <div id="cardList" class="space-y-5"></div>
+        <!-- 推薦清單 -->
+        <div id="cardList" class="space-y-4"></div>
 
     </main>
 
     <!-- 試算 Modal -->
     <div id="expenseModal" class="fixed inset-0 z-[60] hidden">
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-[40px] p-8 shadow-2xl transition-transform">
-            <div class="flex justify-between items-center mb-6 text-slate-800">
-                <h3 id="modalCardName" class="text-xl font-black"></h3>
-                <button onclick="closeModal()"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="closeModal()"></div>
+        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-[40px] p-8 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 id="modalCardName" class="text-xl font-black text-slate-800"></h3>
+                <button onclick="closeModal()"><i class="fa-solid fa-circle-xmark text-slate-300 text-2xl"></i></button>
             </div>
             <div class="space-y-6">
-                <input type="number" id="inputAmount" oninput="calculateReward()" placeholder="輸入金額" class="w-full bg-gray-50 border-none rounded-3xl py-6 px-6 text-4xl font-black focus:ring-4 focus:ring-indigo-500/10 outline-none">
+                <input type="number" id="inputAmount" oninput="calculateReward()" placeholder="輸入金額" class="w-full bg-gray-50 border-none rounded-3xl py-6 px-6 text-4xl font-black outline-none focus:ring-4 focus:ring-indigo-100">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-indigo-600 rounded-3xl p-5 text-white">
-                        <p class="text-[10px] opacity-60 font-bold uppercase">預估點數</p>
+                        <p class="text-[10px] opacity-60 font-bold uppercase">預估回饋</p>
                         <p id="calcResult" class="text-2xl font-black">0</p>
                     </div>
                     <div class="bg-slate-900 rounded-3xl p-5 text-white">
@@ -72,7 +81,7 @@
                         <p id="modalRemaining" class="text-xl font-bold">0</p>
                     </div>
                 </div>
-                <button onclick="saveExpense()" class="w-full bg-slate-800 text-white py-5 rounded-[24px] font-black text-lg">確認記帳</button>
+                <button onclick="saveExpense()" class="w-full bg-slate-800 text-white py-5 rounded-[24px] font-black text-lg">記錄並儲存</button>
             </div>
         </div>
     </div>
@@ -81,57 +90,56 @@
         let logs = JSON.parse(localStorage.getItem('my_card_logs_2026')) || [];
         let currentTargetCard = null;
         let recommendedMode = null;
+        let currentFilter = 'all';
 
-        // 【權益資料庫修正：精準對應通路】
+        // 【同步自 Shawn 2026 的資料細節】
         const cardData = {
+            legend: {
+                name: "星展傳說對決卡", bank: "星展", color: "slate-700", cap: 11363, note: "2026 加碼需自扣Richart/星展",
+                modes: { "10%加碼": { rate: 10, cat: "支付,美食,網購", details: "LINE Pay、街口、UberEats、Foodpanda、Netflix、Spotify、Disney+、AppStore、GooglePlay、遊戲儲值" } }
+            },
             richart: {
-                name: "台新 Richart 整合卡", bank: "台新銀行", activeMode: "數位加碼",
-                expiry: "2026-03-31", cap: 30303, color: "rose-500",
-                note: "淘寶、蝦皮、網購首選 3.8% (需 Richart 自扣)",
+                name: "台新 Richart 整合卡", bank: "台新", color: "rose-500", cap: 30303, note: "數位 3.8% | 海外/航旅 3%",
                 modes: {
-                    "數位加碼": { rate: 3.8, details: "淘寶、蝦皮、momo、酷澎、網購線上、LINE Pay" },
-                    "海外/交通": { rate: 3, details: "海外實體商店、航空機票、高鐵、中油" }
+                    "數位/支付": { rate: 3.8, cat: "支付,網購", details: "LINE Pay、全支付、全家(FamiPay)、蝦皮、momo、PChome、Yahoo、酷澎、海外網購" },
+                    "海外/交通": { rate: 3, cat: "旅遊,生活", details: "海外實體刷卡、航空公司、高鐵、中油、台鐵" }
                 }
             },
             cube: {
-                name: "國泰 CUBE 卡", bank: "國泰世華", activeMode: "玩數位",
-                expiry: "2026-06-30", cap: Infinity, color: "orange-500",
-                note: "3% 無上限 | 淘寶亦適用【玩數位】",
+                name: "國泰 CUBE 卡", bank: "國泰", color: "orange-500", cap: Infinity, note: "每日需 App 切換模式",
                 modes: {
-                    "玩數位": { rate: 3, details: "淘寶、蝦皮、酷澎、博客來、海外網購、App Store" },
-                    "樂饗購": { rate: 3, details: "百貨、全台餐廳、UberEats" },
-                    "趣旅行": { rate: 3, details: "海外實體、機票、住宿、Uber" },
-                    "集精選": { rate: 3, details: "7-11、全聯、中油" }
+                    "玩數位": { rate: 3, cat: "網購", details: "蝦皮、momo、酷澎、AppStore、GooglePlay、博客來、Netflix、Spotify、海外網購" },
+                    "樂饗購": { rate: 3, cat: "美食", details: "全台餐飲、全台百貨、遠東SOGO、新光三越、UberEats" },
+                    "趣旅行": { rate: 3, cat: "旅遊", details: "海外實體、全球飯店、機票、Uber、 Grab、高鐵" },
+                    "集精選": { rate: 3, cat: "生活,美食", details: "7-11、全聯、中油、停車大聲公、UberEats" }
                 }
             },
-            legend: {
-                name: "星展傳說對決卡", bank: "星展銀行", activeMode: "10%加碼",
-                expiry: "2026-06-30", cap: 11363, color: "slate-700",
-                note: "10% 僅限外送、影音、遊戲、LINE Pay",
-                modes: { "10%加碼": { rate: 10, details: "UberEats、Foodpanda、Netflix、Disney+、Spotify、遊戲儲值、LINE Pay" } }
+            unicard: {
+                name: "玉山 Unicard", bank: "玉山", color: "emerald-600", cap: 20000, note: "回饋玉山 e point",
+                modes: {
+                    "簡單選": { rate: 1, cat: "支付", details: "一般消費" },
+                    "訂製選": { rate: 5, cat: "支付,網購", details: "LINE Pay、全家、momo、酷澎、家樂福、大潤發" }
+                }
             },
             jcb: {
-                name: "富邦 JCB (J卡)", bank: "富邦銀行", activeMode: "日韓旅遊",
-                expiry: "2026-06-30", cap: 20000, color: "sky-500",
-                modes: { "日韓旅遊": { rate: 3, details: "日本實體、韓國實體商店" } }
-            },
-            unicard: {
-                name: "玉山 Unicard", bank: "玉山銀行", activeMode: "簡單選",
-                expiry: "2026-06-30", cap: 20000, color: "emerald-600",
-                modes: { "簡單選": { rate: 1, details: "一般消費" }, "訂製選": { rate: 5, details: "LINE Pay、全家、momo" } }
+                name: "富邦 JCB (J卡)", bank: "富邦", color: "sky-500", cap: 20000, note: "日韓加碼需登錄",
+                modes: { "旅遊加碼": { rate: 3, cat: "旅遊,支付", details: "日本實體、韓國實體、LINE Pay 指定特店" } }
             },
             eco: {
-                name: "星展永續卡", bank: "星展銀行", activeMode: "一般",
-                expiry: "2026-12-31", cap: Infinity, color: "green-500",
-                modes: { "一般": { rate: 1.5, details: "國內外保底回饋" } }
+                name: "星展永續卡", bank: "星展", color: "green-600", cap: Infinity, note: "1.5% 保底回饋",
+                modes: { "一般": { rate: 1.5, cat: "生活", details: "國內外一般消費、保險" } }
             }
         };
 
+        function setFilter(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.tag-pill').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCards();
+        }
+
         function setMode(cardKey, modeName) {
             cardData[cardKey].activeMode = modeName;
-            const groupClass = cardKey === 'cube' ? 'cube-btn' : 'uni-btn';
-            document.querySelectorAll('.' + groupClass).forEach(btn => btn.classList.remove('mode-btn-active'));
-            document.getElementById(`btn-${cardKey}-${modeName}`).classList.add('mode-btn-active');
             renderCards();
         }
 
@@ -140,81 +148,71 @@
             const searchTxt = document.getElementById('searchInput').value.toLowerCase();
             list.innerHTML = '';
 
-            // 【智慧排序邏輯：優先比對該卡是否有包含搜尋詞的模式】
-            let sortedKeys = Object.keys(cardData).sort((a,b) => {
-                let rateA = getMatchRate(a, searchTxt);
-                let rateB = getMatchRate(b, searchTxt);
-                return rateB - rateA;
-            });
+            let sortedKeys = Object.keys(cardData).sort((a,b) => getBestRate(b, searchTxt, currentFilter) - getBestRate(a, searchTxt, currentFilter));
 
             sortedKeys.forEach((key, index) => {
                 const card = cardData[key];
-                let bestMode = findBestMatchMode(key, searchTxt);
+                let bestMode = findBestMode(key, searchTxt, currentFilter);
+                if (!bestMode) return; // 沒匹配到且不是 all 則不顯示
+
                 const activeData = card.modes[bestMode];
-                
                 const used = logs.filter(l => l.cardKey === key && new Date(l.date).getMonth() === new Date().getMonth()).reduce((s, l) => s + parseFloat(l.amount), 0);
                 const remaining = card.cap === Infinity ? '無上限' : Math.max(0, card.cap - used);
 
                 const cardDiv = document.createElement('div');
-                cardDiv.className = `bg-white rounded-[32px] p-6 relative transition-all card-shadow border border-gray-50 ${index === 0 && searchTxt ? 'ring-4 ring-indigo-500/10 scale-[1.02]' : ''}`;
+                cardDiv.className = `bg-white rounded-[32px] p-6 relative transition-all card-shadow border border-gray-50 ${index === 0 && (searchTxt || currentFilter !== 'all') ? 'ring-4 ring-indigo-500/10 scale-[1.02]' : ''}`;
                 cardDiv.innerHTML = `
-                    ${index === 0 && searchTxt ? '<span class="recommend-tag absolute top-0 right-0 text-white text-[10px] px-4 py-1.5 rounded-tr-[32px] rounded-bl-2xl font-black uppercase tracking-widest">Best Choice</span>' : ''}
+                    ${index === 0 && (searchTxt || currentFilter !== 'all') ? '<span class="absolute top-0 right-0 bg-indigo-600 text-white text-[9px] px-4 py-1.5 rounded-tr-[32px] rounded-bl-2xl font-black uppercase tracking-widest">Best Pick</span>' : ''}
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <h2 class="text-lg font-black text-slate-800">${card.name}</h2>
                             <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${card.bank}</p>
                         </div>
                         <div class="text-right">
-                            <span class="text-3xl font-black text-red-500">${activeData.rate}%</span>
+                            <span class="text-3xl font-black text-${card.color}">${activeData.rate}%</span>
                         </div>
                     </div>
                     <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100/50">
                         <p class="text-[11px] text-slate-600 font-bold leading-relaxed"><i class="fa-solid fa-check text-indigo-500 mr-2"></i>${activeData.details}</p>
-                        ${searchTxt && !card.modes[card.activeMode].details.toLowerCase().includes(searchTxt) && activeData.details.toLowerCase().includes(searchTxt) ? `<p class="text-[9px] text-indigo-600 mt-2 font-black italic">建議切換：${bestMode}</p>` : ''}
                     </div>
                     <div class="flex justify-between items-center mt-4">
-                        <span class="text-[10px] text-slate-400 font-black tracking-tight uppercase">Limit: <span class="text-slate-800 font-black">$ ${remaining.toLocaleString()}</span></span>
-                        <button onclick="openModal('${key}', '${bestMode}')" class="bg-slate-900 text-white px-5 py-2 rounded-xl font-bold text-xs shadow-lg shadow-slate-200">記帳試算</button>
+                        <span class="text-[10px] text-slate-400 font-bold">REMAIN: <span class="text-slate-800">$ ${remaining.toLocaleString()}</span></span>
+                        <button onclick="openModal('${key}', '${bestMode}')" class="bg-slate-900 text-white px-5 py-2 rounded-xl font-bold text-xs">試算</button>
                     </div>
                 `;
                 list.appendChild(cardDiv);
             });
         }
 
-        // 輔助：尋找該卡片最匹配搜尋詞的模式利率
-        function getMatchRate(key, txt) {
+        function findBestMode(key, txt, filter) {
             const card = cardData[key];
-            let maxRate = 0;
-            let matchAny = false;
+            let best = Object.keys(card.modes)[0];
+            let max = -1;
+
             for (let m in card.modes) {
-                if (txt && card.modes[m].details.toLowerCase().includes(txt)) {
-                    maxRate = Math.max(maxRate, card.modes[m].rate);
-                    matchAny = true;
+                const mode = card.modes[m];
+                const matchTxt = !txt || mode.details.toLowerCase().includes(txt) || card.name.toLowerCase().includes(txt);
+                const matchFilter = filter === 'all' || mode.cat.includes(filter);
+
+                if (matchTxt && matchFilter) {
+                    if (mode.rate > max) { max = mode.rate; best = m; }
                 }
             }
-            // 如果完全沒對應到關鍵字，回傳基礎利率或極小值以便排序到後面
-            return matchAny ? maxRate : (card.modes[card.activeMode].rate / 100);
+            return max === -1 && filter !== 'all' ? null : best;
         }
 
-        function findBestMatchMode(key, txt) {
-            const card = cardData[key];
-            let best = card.activeMode;
-            let max = -1;
-            for (let m in card.modes) {
-                if (txt && card.modes[m].details.toLowerCase().includes(txt)) {
-                    if(card.modes[m].rate > max) { best = m; max = card.modes[m].rate; }
-                }
-            }
-            return best;
+        function getBestRate(key, txt, filter) {
+            const modeName = findBestMode(key, txt, filter);
+            return modeName ? cardData[key].modes[modeName].rate : -1;
         }
 
         function openModal(key, mode) {
-            currentTargetCard = key;
-            recommendedMode = mode;
-            document.getElementById('modalCardName').innerText = cardData[key].name;
-            document.getElementById('modalRemaining').innerText = cardData[key].cap === Infinity ? '無上限' : '$ ' + (cardData[key].cap - getUsedAmount(key)).toLocaleString();
+            currentTargetCard = key; recommendedMode = mode;
+            const card = cardData[key];
+            document.getElementById('modalCardName').innerText = card.name;
             document.getElementById('inputAmount').value = '';
             document.getElementById('calcResult').innerText = '0';
+            document.getElementById('modalRemaining').innerText = card.cap === Infinity ? '無上限' : '$ ' + (card.cap - logs.filter(l => l.cardKey === key).reduce((s,l)=>s+parseFloat(l.amount),0)).toLocaleString();
             document.getElementById('expenseModal').classList.remove('hidden');
         }
 
@@ -224,15 +222,14 @@
             document.getElementById('calcResult').innerText = Math.floor(amt * rate / 100).toLocaleString();
         }
 
-        function getUsedAmount(key) { return logs.filter(l => l.cardKey === key && new Date(l.date).getMonth() === new Date().getMonth()).reduce((s, l) => s + parseFloat(l.amount), 0); }
         function saveExpense() {
             const amt = document.getElementById('inputAmount').value;
             if(!amt) return;
             logs.push({ cardKey: currentTargetCard, amount: amt, date: new Date().toISOString() });
             localStorage.setItem('my_card_logs_2026', JSON.stringify(logs));
-            closeModal();
-            renderCards();
+            closeModal(); renderCards();
         }
+
         function closeModal() { document.getElementById('expenseModal').classList.add('hidden'); }
         window.onload = renderCards;
     </script>
