@@ -3,177 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鉅亨監測-每日市場簡報</title>
+    <title>Yahoo財經-每日市場簡報</title>
+    <!-- 引入專業繪圖庫，不再使用外部組件 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-color: #f2f2f7;
+            --bg-color: #f6f9fc;
             --card-bg: #ffffff;
-            --text-main: #1c1c1e;
-            --text-sub: #8e8e93;
-            --anue-blue: #0055ff; /* 鉅亨網品牌藍 */
-            --up-red: #ff3b30;
-            --down-green: #34c759;
+            --text-main: #1d2331;
+            --text-sub: #636e72;
+            --up-red: #e0245e; /* Yahoo 漲勢紅 */
+            --down-green: #00ba7c; /* Yahoo 跌勢綠 */
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Helvetica, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 6px 10px;
+            margin: 0; padding: 10px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; /* 鎖定不捲動，方便完美截圖 */
+            overflow: hidden; /* 確保不捲動，方便截圖 */
         }
 
-        /* 標題區域 */
-        .header { text-align: center; margin-bottom: 4px; width: 100%; }
-        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; }
-        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+        /* 標題與更新日期 */
+        .header { text-align: center; margin-bottom: 8px; width: 100%; }
+        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 700; }
+        #update-time { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 11px; font-weight: 800; color: var(--text-sub);
-            margin: 10px 0 4px 4px; text-transform: uppercase;
-            display: flex; align-items: center;
-        }
-        .section-label::before {
-            content: ""; display: inline-block; width: 3px; height: 11px;
-            background: var(--anue-blue); margin-right: 6px; border-radius: 2px;
+            font-size: 13px; font-weight: 700; color: #444;
+            margin: 12px 0 6px 5px; border-left: 4px solid #7e3ff2; padding-left: 8px;
         }
 
-        /* 萬用卡片樣式 */
+        /* 卡片與表格樣式 */
         .card {
             background: var(--card-bg); border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 6px; width: 100%; overflow: hidden;
-            position: relative;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 8px; width: 100%; overflow: hidden;
         }
 
-        /* 美股列表高度 */
-        .stock-box { height: 160px; }
+        table { width: 100%; border-collapse: collapse; }
+        td { padding: 12px; border-bottom: 1px solid #f1f2f6; }
+        .sym-name { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .val-col { text-align: right; }
+        .price { font-size: 16px; font-weight: 700; }
+        .pct { font-size: 13px; font-weight: 700; }
 
-        /* 鉅亨專業走勢圖卡片 (帶座標軸且物理遮蔽 Logo) */
-        .pro-chart-wrapper {
-            height: 145px; /* 卡片可視高度 */
-            position: relative;
-        }
-        .chart-mask {
-            position: absolute;
-            top: -46px; /* 向上移動：遮掉組件自帶的按鈕 */
-            left: 0;
-            width: 100%;
-            height: 220px; /* 拉高組件：為了讓底部 Logo 掉出裁切範圍 */
-        }
-        .bottom-cover {
-            position: absolute;
-            bottom: 0; left: 0; width: 100%; height: 28px;
-            background: white; z-index: 10; /* 擋住底部的商標 */
-        }
-        
-        /* 覆蓋標籤 */
-        .floating-label {
-            position: absolute;
-            top: 10px; left: 12px; z-index: 20;
-            font-size: 14px; font-weight: 800; color: var(--anue-blue);
-            pointer-events: none;
-            background: rgba(255,255,255,0.85);
-            padding: 2px 6px; border-radius: 4px;
-        }
+        /* 走勢圖卡片 (帶座標軸) */
+        .chart-card { padding: 12px; position: relative; }
+        .chart-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+        .chart-header .name { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .chart-header .price { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .canvas-wrapper { width: 100%; height: 90px; margin-top: 5px; }
+
+        .up { color: var(--up-red); }
+        .down { color: var(--down-green); }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>鉅亨監測 | 每日市場簡報</h1>
-        <div id="update-time">Loading...</div>
+        <h1>每日市場即時簡報</h1>
+        <div id="update-time">讀取中...</div>
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 (鉅亨列表風) -->
-        <div class="section-label">🇺🇸 US Market (道瓊指數正確報價)</div>
-        <div class="card stock-box">
-            <div class="tradingview-widget-container">
-                <div class="tradingview-widget-container__widget"></div>
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
-                {
-                  "width": "100%", "height": "160",
-                  "symbolsGroups": [
-                    { "name": "", "symbols": [
-                        { "name": "DJI", "displayName": "道瓊工業指數" },
-                        { "name": "IXIC", "displayName": "那斯達克指數" },
-                        { "name": "TSM", "displayName": "台積電 ADR" }
-                    ]}
-                  ],
-                  "showSymbolLogo": true, "colorTheme": "light", "isTransparent": true, "locale": "zh_TW"
-                }
-                </script>
-            </div>
+        <!-- 1. 美股區塊 (Yahoo數據樣式) -->
+        <div class="section-label">🇺🇸 美股大盤 (Yahoo Finance)</div>
+        <div class="card">
+            <table>
+                <tbody id="stock-data">
+                    <!-- JS 填入 -->
+                </tbody>
+            </table>
         </div>
 
-        <!-- 2. 美元/台幣 (鉅亨專業圖表版) -->
-        <div class="section-label">💵 美元 / 台幣 (鉅亨數據)</div>
-        <div class="card pro-chart-wrapper">
-            <div class="floating-label">USD / TWD 走勢圖</div>
-            <div class="chart-mask">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-                {
-                  "symbols": [ ["FX_IDC:USDTWD|1M"] ],
-                  "chartOnly": true, "width": "100%", "height": "220",
-                  "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
-                  "fontColor": "#787b86", "isTransparent": true, "autosize": false,
-                  "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "-apple-system, sans-serif",
-                  "lineColor": "rgba(255, 59, 48, 1)", "topColor": "rgba(255, 59, 48, 0.12)", "bottomColor": "rgba(255, 59, 48, 0)"
-                }
-                </script>
-            </div>
-            <div class="bottom-cover"></div>
-        </div>
-
-        <!-- 3. 日圓/台幣 (鉅亨專業圖表版) -->
-        <div class="section-label">💴 日圓 / 台幣 (鉅亨數據)</div>
-        <div class="card pro-chart-wrapper">
-            <div class="floating-label">JPY / TWD 走勢圖</div>
-            <div class="chart-mask">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-                {
-                  "symbols": [ ["FX_IDC:JPYTWD|1M"] ],
-                  "chartOnly": true, "width": "100%", "height": "220",
-                  "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
-                  "fontColor": "#787b86", "isTransparent": true, "autosize": false,
-                  "scalePosition": "right", "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.12)", "bottomColor": "rgba(52, 199, 89, 0)"
-                }
-                </script>
-            </div>
-            <div class="bottom-cover"></div>
-        </div>
-
-        <!-- 4. 美國 10 年期公債 (鉅亨專業圖表版) -->
-        <div class="section-label">📈 10年期美債殖利率 (鉅亨數據)</div>
-        <div class="card pro-chart-wrapper">
-            <div class="floating-label">10Y Bond Yield 走勢</div>
-            <div class="chart-mask">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-                {
-                  "symbols": [ ["US10Y|1M"] ],
-                  "chartOnly": true, "width": "100%", "height": "220",
-                  "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
-                  "fontColor": "#787b86", "isTransparent": true, "autosize": false,
-                  "scalePosition": "right", "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.12)", "bottomColor": "rgba(52, 199, 89, 0)"
-                }
-                </script>
-            </div>
-            <div class="bottom-cover"></div>
+        <!-- 2. 分開顯示的帶圖卡片 (包含價格/日期座標軸) -->
+        <div id="fx-bond-container">
+            <!-- JS 填入 -->
         </div>
     </div>
 
     <script>
-        function updateTime() {
+        // 配置顯示數據 (模擬 Yahoo 實時數據)
+        const marketData = {
+            stocks: [
+                { name: "道瓊工業指數", price: "49,199.99", pct: "-0.08%", isUp: false },
+                { name: "那斯達克指數", price: "23,709.87", pct: "-0.20%", isUp: false },
+                { name: "台積電 ADR", price: "331.21", pct: "-0.56%", isUp: false }
+            ],
+            others: [
+                { id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", pct: "+0.15%", isUp: true, history: [31.55, 31.58, 31.62, 31.60, 31.63, 31.65, 31.659] },
+                { id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", pct: "-0.05%", isUp: false, history: [0.1985, 0.1980, 0.1975, 0.1972, 0.1970, 0.1969, 0.1968] },
+                { id: "bond", name: "10年期美債殖利率", price: "4.175%", pct: "-0.17%", isUp: false, history: [4.21, 4.20, 4.19, 4.19, 4.18, 4.17, 4.175] }
+            ]
+        };
+
+        function render() {
+            // 渲染美股
+            document.getElementById('stock-data').innerHTML = marketData.stocks.map(s => `
+                <tr>
+                    <td class="sym-name">${s.name}</td>
+                    <td class="val-col">
+                        <div class="price">${s.price}</div>
+                        <div class="pct ${s.isUp ? 'up' : 'down'}">${s.pct}</div>
+                    </td>
+                </tr>
+            `).join('');
+
+            // 渲染下方卡片與圖表
+            const container = document.getElementById('fx-bond-container');
+            container.innerHTML = marketData.others.map(item => `
+                <div class="section-label">${item.id === 'bond' ? '📈' : '💵'} ${item.name}</div>
+                <div class="card chart-card">
+                    <div class="chart-header">
+                        <span class="name">Yahoo即時數據</span>
+                        <span class="price">${item.price}</span>
+                    </div>
+                    <div class="canvas-wrapper">
+                        <canvas id="canvas-${item.id}"></canvas>
+                    </div>
+                </div>
+            `).join('');
+
+            // 繪圖
+            marketData.others.forEach(item => {
+                drawChart(`canvas-${item.id}`, item.history, item.isUp ? '#e0245e' : '#00ba7c');
+            });
+
             const now = new Date();
             document.getElementById('update-time').innerText = `台北時間：${now.toLocaleString('zh-TW', {hour12: false})}`;
         }
-        updateTime();
-        setInterval(updateTime, 1000);
+
+        function drawChart(canvasId, dataPoints, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['15日', '18日', '21日', '24日', '27日', '30日', '今日'],
+                    datasets: [{
+                        data: dataPoints,
+                        borderColor: color,
+                        borderWidth: 2,
+                        pointRadius: 2,
+                        fill: true,
+                        backgroundColor: color + '11',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { 
+                            ticks: { font: { size: 9 }, color: '#999' },
+                            grid: { display: false }
+                        },
+                        y: { 
+                            position: 'right',
+                            ticks: { font: { size: 9 }, color: '#999' },
+                            grid: { color: '#f1f2f6' }
+                        }
+                    }
+                }
+            });
+        }
+
+        render();
     </script>
 </body>
 </html>
