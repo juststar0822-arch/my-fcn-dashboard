@@ -3,63 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場快訊截圖版</title>
+    <title>市場即時快訊</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f2f2f7;
             margin: 0;
-            padding: 8px;
+            padding: 5px 8px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .header {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         .header h1 {
             margin: 0;
-            font-size: 18px;
+            font-size: 16px;
             color: #1c1c1e;
         }
         #current-date {
-            font-size: 11px;
+            font-size: 10px;
             color: #8e8e93;
         }
 
-        /* 區塊標籤 */
         .section-label {
             width: 100%;
             max-width: 420px;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: bold;
             color: #3a3a3c;
-            margin: 4px 0 2px 5px;
+            margin: 4px 0 2px 4px;
         }
 
         .widget-card {
             width: 100%;
             max-width: 420px;
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 6px;
+            border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 4px;
             overflow: hidden;
         }
 
-        /* 固定高度：美股清單 */
+        /* 美股區塊高度：設定為 210px 以確保 4 行項目加 Logo 完整顯示且無捲軸 */
         .indices-card {
-            height: 125px; 
+            height: 210px;
         }
 
-        /* 固定高度：走勢圖 (調窄以塞進一屏) */
+        /* 走勢圖高度：設定為 135px 顯示圖表與 Logo */
         .chart-card {
-            height: 120px; 
+            height: 135px;
         }
 
-        .footer {
-            margin-top: 4px;
+        .footer-note {
+            margin-top: 2px;
             font-size: 9px;
             color: #aeaeb2;
             text-align: center;
@@ -73,27 +72,27 @@
         <div id="current-date">載入中...</div>
     </div>
 
-    <!-- 1. 美股大盤昨日收盤 (靜態列表，不滾動) -->
-    <div class="section-label">🇺🇸 美股大盤昨日收盤</div>
+    <!-- 1. 美股大盤與台積電ADR -->
+    <div class="section-label">🇺🇸 美股昨日收盤與 ADR</div>
     <div class="widget-card indices-card">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
             {
               "width": "100%",
-              "height": "125",
+              "height": "210",
               "symbolsGroups": [
                 {
-                  "name": "Indices",
-                  "originalName": "Indices",
+                  "name": "",
                   "symbols": [
                     { "name": "FOREXCOM:DJI", "displayName": "道瓊工業指數" },
                     { "name": "FOREXCOM:SPX", "displayName": "標普 500 指數" },
-                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克指數" }
+                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克指數" },
+                    { "name": "NYSE:TSM", "displayName": "台積電 ADR" }
                   ]
                 }
               ],
-              "showSymbolLogo": false,
+              "showSymbolLogo": true,
               "colorTheme": "light",
               "isTransparent": false,
               "locale": "zh_TW"
@@ -110,7 +109,7 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
               "symbol": "FX_IDC:USDTWD",
-              "width": "100%", "height": "120", "locale": "zh_TW", "dateRange": "1M",
+              "width": "100%", "height": "135", "locale": "zh_TW", "dateRange": "1M",
               "colorTheme": "light", "trendLineColor": "rgba(255, 82, 82, 1)",
               "underLineColor": "rgba(255, 82, 82, 0.1)", "isTransparent": false, "autosize": false
             }
@@ -126,7 +125,7 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
               "symbol": "FX_IDC:JPYTWD",
-              "width": "100%", "height": "120", "locale": "zh_TW", "dateRange": "1M",
+              "width": "100%", "height": "135", "locale": "zh_TW", "dateRange": "1M",
               "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
               "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
             }
@@ -142,7 +141,7 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
               "symbol": "US10Y",
-              "width": "100%", "height": "120", "locale": "zh_TW", "dateRange": "1M",
+              "width": "100%", "height": "135", "locale": "zh_TW", "dateRange": "1M",
               "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
               "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
             }
@@ -150,7 +149,7 @@
         </div>
     </div>
 
-    <div class="footer">數據自動即時更新 • 來源 TradingView</div>
+    <div class="footer-note">數據自動即時更新 • 資料來源 TradingView</div>
 
     <script>
         function updateTime() {
