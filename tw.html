@@ -14,36 +14,36 @@
             flex-direction: column;
             align-items: center;
         }
-        .header { text-align: center; margin-bottom: 2px; }
-        .header h1 { margin: 0; font-size: 17px; color: #1c1c1e; }
+        .header { text-align: center; margin-bottom: 3px; }
+        .header h1 { margin: 0; font-size: 18px; color: #1c1c1e; }
         #current-date { font-size: 11px; color: #8e8e93; }
 
         .section-label {
             width: 100%;
             max-width: 420px;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: bold;
             color: #007aff;
-            margin: 5px 0 2px 5px;
-            border-left: 3px solid #007aff;
-            padding-left: 5px;
+            margin: 6px 0 3px 5px;
+            border-left: 4px solid #007aff;
+            padding-left: 6px;
         }
 
         .widget-container {
             width: 100%;
             max-width: 420px;
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 4px;
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            margin-bottom: 6px;
             overflow: hidden;
         }
 
-        /* 美股大盤區塊高度 (只有3行，縮短高度) */
+        /* 美股大盤區塊高度 */
         .stock-box { height: 160px; }
         
-        /* 匯率與公債高度 (穩定加載數字與走勢圖) */
-        .chart-box { height: 110px; }
+        /* 匯率與公債高度：增加至 140px 確保數據加載且走勢圖更清晰 */
+        .chart-box { height: 140px; }
 
     </style>
 </head>
@@ -54,7 +54,7 @@
         <div id="current-date">載入中...</div>
     </div>
 
-    <!-- 1. 美股精選 (刪除標普500，使用最準確數據源) -->
+    <!-- 1. 美股大盤 (DJI, IXIC, TSM) - 使用 TVC 官方數據確保報價精確 -->
     <div class="section-label">🇺🇸 美股大盤 & 台積電 ADR (昨日收盤)</div>
     <div class="widget-container stock-box">
         <div class="tradingview-widget-container">
@@ -67,9 +67,9 @@
                 {
                   "name": "",
                   "symbols": [
-                    { "name": "FOREXCOM:DJI", "displayName": "道瓊工業指數" },
-                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克指數" },
-                    { "name": "NYSE:TSM", "displayName": "台積電 ADR" }
+                    { "name": "DJI", "displayName": "道瓊工業指數" },
+                    { "name": "IXIC", "displayName": "那斯達克指數" },
+                    { "name": "TSM", "displayName": "台積電 ADR" }
                   ]
                 }
               ],
@@ -82,7 +82,7 @@
         </div>
     </div>
 
-    <!-- 2. 美元/台幣 (保持原樣：大數字 + 走勢圖) -->
+    <!-- 2. 美元/台幣 (高度增加，走勢更清晰) -->
     <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
@@ -90,7 +90,7 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
               "symbol": "FX_IDC:USDTWD",
-              "width": "100%", "height": "110", "locale": "zh_TW",
+              "width": "100%", "height": "140", "locale": "zh_TW",
               "dateRange": "1M", "colorTheme": "light", "trendLineColor": "rgba(255, 82, 82, 1)",
               "underLineColor": "rgba(255, 82, 82, 0.1)", "isTransparent": false, "autosize": false
             }
@@ -98,7 +98,7 @@
         </div>
     </div>
 
-    <!-- 3. 日圓/台幣 (保持原樣：大數字 + 走勢圖) -->
+    <!-- 3. 日圓/台幣 (高度增加，走勢更清晰) -->
     <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
@@ -106,7 +106,7 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
               "symbol": "FX_IDC:JPYTWD",
-              "width": "100%", "height": "110", "locale": "zh_TW",
+              "width": "100%", "height": "140", "locale": "zh_TW",
               "dateRange": "1M", "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
               "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
             }
@@ -114,15 +114,15 @@
         </div>
     </div>
 
-    <!-- 4. 美國 10 年期公債 (修復數據顯示) -->
+    <!-- 4. 美國 10 年期公債 (修復空白問題，代碼改為 US10Y) -->
     <div class="section-label">📉 美國 10 年期公債 (US10Y)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
             {
-              "symbol": "TVC:US10Y",
-              "width": "100%", "height": "110", "locale": "zh_TW",
+              "symbol": "US10Y",
+              "width": "100%", "height": "140", "locale": "zh_TW",
               "dateRange": "1M", "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
               "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
             }
