@@ -3,95 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>鉅亨/Yahoo風格市場簡報</title>
+    <title>市場即時快訊-專業截圖版</title>
     <style>
         :root {
-            --bg-color: #f4f6f9;
+            --bg-color: #f2f2f7;
             --card-bg: #ffffff;
-            --text-main: #1a1e28;
-            --text-sub: #7b8497;
-            --up-color: #f5222d; /* 台灣紅 */
-            --down-color: #00ba7c; /* 台灣綠 */
-            --anue-blue: #007aff;
+            --text-main: #1c1c1e;
+            --text-sub: #8e8e93;
+            --accent: #007aff;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
-            font-family: -apple-system, "SF Pro Text", Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0;
-            padding: 8px 10px;
+            padding: 8px 12px;
             display: flex;
             flex-direction: column;
             align-items: center;
+            overflow: hidden; /* 確保不產生捲軸，方便一頁截圖 */
         }
 
         /* 頂部標題與日期 */
-        .header { text-align: center; margin-bottom: 5px; width: 100%; }
-        .header h1 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 700; }
+        .header { text-align: center; margin-bottom: 6px; width: 100%; }
+        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; }
         #update-time { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             color: var(--text-sub);
-            margin: 10px 0 5px 2px;
+            margin: 10px 0 4px 4px;
+            text-transform: uppercase;
             display: flex;
             align-items: center;
         }
         .section-label::before {
             content: ""; display: inline-block; width: 3px; height: 12px; 
-            background: var(--anue-blue); margin-right: 6px; border-radius: 2px;
+            background: var(--accent); margin-right: 6px; border-radius: 2px;
         }
 
-        /* 模組卡片樣式 */
+        /* 萬用卡片容器 */
         .card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 14px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             width: 100%;
             overflow: hidden;
             position: relative;
         }
 
-        /* 美股表格 (Yahoo Style) */
-        .stock-box { height: 160px; }
+        /* 美股表格區塊高度 */
+        .stock-box { height: 165px; }
 
-        /* 匯率與公債 (鉅亨 Style: 左資訊、右圖表) */
-        .chart-card-wrapper {
-            height: 100px; /* 緊湊高度以利截圖 */
-            display: flex;
-            align-items: center;
+        /* K線卡片容器：關鍵裁切技術，遮擋底部 Logo */
+        .kline-wrapper {
+            height: 145px; /* 卡片可見高度 */
+            position: relative;
         }
-        .info-side {
-            width: 50%;
-            padding-left: 15px;
-            z-index: 20;
-        }
-        .info-side .name { font-size: 14px; font-weight: 700; color: var(--text-main); }
-        .info-side .price { font-size: 18px; font-weight: 800; color: var(--text-main); margin-top: 2px; font-family: 'SF Mono', monospace; }
-
-        /* 右側圖表裁切 (隱藏 Logo) */
-        .chart-side {
-            position: absolute;
-            right: -10px;
-            top: -20px; /* 向上遮擋 */
-            width: 60%;
-            height: 150px; /* 實際高度 */
+        .kline-inner {
+            margin-top: -5px; /* 向上微調遮擋頂部多餘空間 */
+            height: 185px; /* 組件載入實際高度 */
         }
         .mask-bottom {
             position: absolute;
             bottom: 0;
-            right: 0;
+            left: 0;
             width: 100%;
-            height: 45px; /* 擋住底部的 Logo */
+            height: 35px; /* 物理遮擋底部的商標 */
             background: white;
             z-index: 10;
         }
+
+        .footer { margin-top: 10px; font-size: 9px; color: var(--text-sub); text-align: center; opacity: 0.5; }
     </style>
 </head>
 <body>
@@ -102,14 +91,14 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股大盤：Yahoo 風格清單 (道瓊 49xxx 點正確版) -->
-        <div class="section-label">美股大盤 & 台積電 ADR (昨日收盤)</div>
+        <!-- 1. 美股大盤區塊 (標準表格，道瓊 49xxx 點正確版) -->
+        <div class="section-label">🇺🇸 US Market Overview</div>
         <div class="card stock-box">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
                 {
-                  "width": "100%", "height": "160",
+                  "width": "100%", "height": "165",
                   "symbolsGroups": [
                     { "name": "", "symbols": [
                         { "name": "DJI", "displayName": "道瓊工業指數" },
@@ -123,66 +112,59 @@
             </div>
         </div>
 
-        <!-- 2. 美元/台幣：鉅亨網風格 (帶日走勢曲線) -->
-        <div class="section-label">美元 / 台幣 (USD/TWD)</div>
-        <div class="card chart-card-wrapper">
-            <div class="info-side">
-                <span class="name">美元 / 台幣</span>
-                <span class="price">31.659</span>
-            </div>
-            <div class="chart-side">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
+        <!-- 2. 美元/台幣 K線走勢卡 -->
+        <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                 {
                   "symbol": "FX_IDC:USDTWD",
-                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
-                  "colorTheme": "light", "trendLineColor": "rgba(245, 34, 45, 1)",
-                  "underLineColor": "rgba(245, 34, 45, 0.1)", "isTransparent": true, "autosize": false
+                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(255, 59, 48, 1)",
+                  "underLineColor": "rgba(255, 59, 48, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
                 }
                 </script>
-                <div class="mask-bottom"></div>
             </div>
+            <div class="mask-bottom"></div>
         </div>
 
-        <!-- 3. 日圓/台幣：鉅亨網風格 -->
-        <div class="section-label">日圓 / 台幣 (JPY/TWD)</div>
-        <div class="card chart-card-wrapper">
-            <div class="info-side">
-                <span class="name">日圓 / 台幣</span>
-                <span class="price">0.1968</span>
-            </div>
-            <div class="chart-side">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
+        <!-- 3. 日圓/台幣 K線走勢卡 -->
+        <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                 {
                   "symbol": "FX_IDC:JPYTWD",
-                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
-                  "colorTheme": "light", "trendLineColor": "rgba(0, 186, 124, 1)",
-                  "underLineColor": "rgba(0, 186, 124, 0.1)", "isTransparent": true, "autosize": false
+                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
                 }
                 </script>
-                <div class="mask-bottom"></div>
             </div>
+            <div class="mask-bottom"></div>
         </div>
 
-        <!-- 4. 美國 10 年期公債：鉅亨網風格 -->
-        <div class="section-label">美國 10 年期公債 (US10Y)</div>
-        <div class="card chart-card-wrapper">
-            <div class="info-side">
-                <span class="name">10 年期美債</span>
-                <span class="price">4.175%</span>
-            </div>
-            <div class="chart-side">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
+        <!-- 4. 美國 10 年期公債 K線走勢卡 -->
+        <div class="section-label">📈 美國 10 年期公債 (US10Y)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                 {
                   "symbol": "US10Y",
-                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
-                  "colorTheme": "light", "trendLineColor": "rgba(0, 186, 124, 1)",
-                  "underLineColor": "rgba(0, 186, 124, 0.1)", "isTransparent": true, "autosize": false
+                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
                 }
                 </script>
-                <div class="mask-bottom"></div>
             </div>
+            <div class="mask-bottom"></div>
         </div>
     </div>
+
+    <div class="footer">Real-time data synced via Market Terminal</div>
 
     <script>
         function updateTime() {
