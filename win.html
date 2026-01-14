@@ -1,287 +1,163 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>卓越榮譽榜 - 金盃版</title>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@900&family=Montserrat:wght@800;900&family=Noto+Sans+TC:wght@700;900&display=swap');
-        
-        body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background-color: #1a1a1a; padding-bottom: 80px; }
+<!-- 1. 輸入面板 -->
+<div class="control-panel">
+    <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
+    
+    <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
+        <div><label>日期</label><input type="date" v-model="globalDate"></div>
+        <div>
+            <label>業代</label>
+            <select v-model="repIndex">
+                <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+            </select>
+        </div>
+    </div>
 
-        /* === 輸入面板樣式 === */
-        .control-panel { background: #2d2d2d; border-bottom: 3px solid #D4AF37; color: white; padding: 20px; }
-        .list-panel { background: #222; padding: 15px 20px; color: white; }
-        .item-card { background: #3a3a3a; border-left: 4px solid #D4AF37; padding: 10px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; }
-        label { color: #aaa; font-size: 0.8rem; font-weight: bold; margin-bottom: 2px; display: block; }
-        input, select { background: #444; color: white; border: 1px solid #555; padding: 10px; border-radius: 6px; width: 100%; outline: none; }
-        
-        /* === 預覽獎狀本體 === */
-        #preview-container { width: 100%; display: flex; justify-content: center; padding: 20px 0; overflow: hidden; }
-        .certificate {
-            width: 800px; height: 535px; background: #fff; position: relative; 
-            box-sizing: border-box; box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-            flex-shrink: 0; transform-origin: top center; overflow: hidden; border: 8px solid #D4AF37;
-        }
-
-        /* 華麗背景：放射金光與亮點 */
-        .sunburst {
-            position: absolute; top: 50%; left: 50%; width: 200%; height: 200%;
-            background: repeating-conic-gradient(from 0deg, #fff 0deg 10deg, #fef9e7 10deg 20deg);
-            transform: translate(-50%, -50%); z-index: 1; opacity: 0.7;
-        }
-        .decoration-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
-
-        /* 金色角飾 */
-        .corner {
-            position: absolute; width: 80px; height: 80px; z-index: 10;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M0,0 L100,0 L100,8 L8,8 L8,100 L0,100 Z' fill='%23D4AF37'/%3E%3C/svg%3E");
-            background-size: contain; background-repeat: no-repeat;
-        }
-        .tl { top: 15px; left: 15px; }
-        .tr { top: 15px; right: 15px; transform: rotate(90deg); }
-        .bl { bottom: 15px; left: 15px; transform: rotate(-90deg); }
-        .br { bottom: 15px; right: 15px; transform: rotate(180deg); }
-
-        /* 文字圖層與發光確保清晰度 */
-        .field { position: absolute; z-index: 20; background: transparent; }
-        .text-glow { text-shadow: 0 0 15px rgba(255,255,255,1), 2px 2px 2px rgba(0,0,0,0.1); }
-
-        /* 內容定位 */
-        .field-date { top: 30px; left: 50px; font-size: 38px; font-weight: 900; color: #b45309; font-family: 'Montserrat'; }
-
-        .field-name { top: 55px; right: 50px; text-align: right; }
-        .name-text { font-family: 'Noto Serif TC', serif; font-size: 85px; font-weight: 900; color: #000; line-height: 1; letter-spacing: 3px; }
-        .title-text { font-size: 32px; font-weight: bold; color: #444; border-top: 2px solid #D4AF37; display: inline-block; margin-top: 5px; }
-
-        .field-product { top: 220px; right: 50px; display: flex; align-items: center; gap: 15px; }
-        .product-box { 
-            border: 4px solid #1d4ed8; color: #1d4ed8; font-size: 48px; font-weight: 900; 
-            padding: 0 20px; background: rgba(255,255,255,0.9); box-shadow: 5px 5px 0 #1d4ed8;
-        }
-        .count-tag { font-size: 20px; font-weight: bold; color: #1d4ed8; }
-
-        .field-amount { top: 310px; right: 50px; text-align: right; }
-        .amount-val { 
-            font-family: 'Montserrat'; font-size: 110px; font-weight: 900; color: #dc2626; line-height: 0.9;
-            text-shadow: 4px 4px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff;
-        }
-        .amount-unit { font-size: 30px; font-weight: 900; color: #dc2626; margin-left: 8px; vertical-align: bottom; }
-
-        .field-stats { bottom: 40px; right: 50px; text-align: right; }
-        .stat-line { font-size: 32px; font-weight: 900; color: #be123c; line-height: 1.4; }
-
-        /* 左下角金盃 SVG 容器 */
-        .field-trophy { position: absolute; bottom: 30px; left: 40px; width: 280px; height: 280px; z-index: 5; opacity: 0.95; }
-
-        #result-area { text-align: center; margin-top: 20px; display: none; }
-        #final-img { max-width: 95%; margin: 0 auto; border: 5px solid #fff; box-shadow: 0 10px 30px rgba(0,0,0,0.5); border-radius: 10px; }
-    </style>
-</head>
-<body>
-
-<div id="app">
-    <!-- 1. 功能強大的輸入面板 -->
-    <div class="control-panel">
-        <h2 class="text-xl font-black text-center mb-4 text-yellow-500 tracking-widest">🏆 榮譽榜數據生成器</h2>
-        <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
-            <div><label>結算日期</label><input type="date" v-model="globalDate"></div>
+    <div class="bg-gray-800 p-3 rounded-lg mb-4">
+        <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
+        <div class="grid grid-cols-2 gap-3 mb-2">
             <div>
-                <label>選擇人員</label>
-                <select v-model="repIndex">
-                    <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+                <label>商品</label>
+                <select v-model="form.productType" @change="handleProductChange">
+                    <option value="FCN">FCN</option>
+                    <option value="U6">元元致富 U6</option>
+                    <option value="U5">元元致富 U5</option>
+                    <option value="BOND">海外債</option>
                 </select>
             </div>
+            <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
         </div>
-
-        <div class="bg-gray-800 p-3 rounded-lg mb-4">
-            <div class="grid grid-cols-2 gap-3 mb-2">
-                <div>
-                    <label>成交商品</label>
-                    <select v-model="form.productType" @change="handleProductChange">
-                        <option value="FCN">FCN</option>
-                        <option value="U6">元元致富 U6</option>
-                        <option value="U5">元元致富 U5</option>
-                        <option value="BOND">海外債</option>
-                    </select>
-                </div>
-                <div><label>BP (基點)</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
-            </div>
-            <div class="grid grid-cols-3 gap-2">
-                <div><label>幣別</label><select v-model="form.currency"><option value="USD">USD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></div>
-                <div><label>匯率</label><input type="number" v-model="form.exRate" step="0.01"></div>
-                <div><label>成交金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
-            </div>
-            <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-3 active:scale-95 transition">➕ 加入今日績優清單</button>
-        </div>
-    </div>
-
-    <!-- 2. 清單預覽 -->
-    <div class="list-panel" v-if="cart.length > 0">
-        <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+        <div class="grid grid-cols-3 gap-2 mb-2">
             <div>
-                <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
-                <span>{{ item.amount.toLocaleString() }} {{ item.currency }}</span>
+                <label>幣別</label>
+                <select v-model="form.currency" @change="updateExRate">
+                    <option value="USD">USD</option>
+                    <option value="JPY">JPY</option>
+                    <option value="TWD">TWD</option>
+                </select>
             </div>
-            <button @click="removeFromCart(idx)" class="text-red-500 font-bold">✕</button>
+            <div class="relative">
+                <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
+                <input type="number" v-model="form.exRate" step="0.01">
+            </div>
+            <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
         </div>
-        <button @click="generateImage" class="w-full bg-red-600 text-white font-black py-3 rounded-lg shadow-xl mt-4 text-lg">生成極致華麗圖片</button>
-    </div>
-
-    <!-- 3. 正式圖片顯示區 -->
-    <div id="result-area">
-        <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 生成成功！長按圖片即可儲存 👇</p>
-        <img id="final-img" alt="長按儲存">
-    </div>
-
-    <!-- 4. 預覽畫布 (隱藏或縮小顯示) -->
-    <div id="preview-container">
-        <div id="certificate-node" class="certificate" :style="scaleStyle">
-            <div class="sunburst"></div>
-            <div class="corner tl"></div><div class="corner tr"></div>
-            <div class="corner bl"></div><div class="corner br"></div>
-
-            <!-- 背景飄落緞帶與碎片 -->
-            <svg class="decoration-layer" viewBox="0 0 800 535">
-                <path d="M-50,100 Q150,20 300,180 T600,80 T850,150" stroke="#facc15" stroke-width="45" fill="none" opacity="0.2" />
-                <path d="M-50,450 Q200,380 450,500 T850,420" stroke="#fbbf24" stroke-width="30" fill="none" opacity="0.15" />
-                <rect x="150" y="80" width="10" height="10" fill="#fbbf24" transform="rotate(45)" opacity="0.4" />
-                <rect x="650" y="200" width="12" height="12" fill="#d97706" transform="rotate(-20)" opacity="0.3" />
-            </svg>
-
-            <!-- 左下角：精緻金盃 SVG -->
-            <div class="field-trophy">
-                <svg viewBox="0 0 200 200">
-                    <defs>
-                        <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" style="stop-color:#FDB931" /><stop offset="50%" style="stop-color:#FFD700" /><stop offset="100%" style="stop-color:#B78628" />
-                        </linearGradient>
-                    </defs>
-                    <!-- 獎盃耳朵 -->
-                    <path d="M60,60 C30,60 30,120 70,130" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
-                    <path d="M140,60 C170,60 170,120 130,130" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linecap="round"/>
-                    <!-- 獎盃杯身 -->
-                    <path d="M60,40 L140,40 L130,140 Q100,170 70,140 Z" fill="url(#gold)" stroke="#8b6e37" stroke-width="1"/>
-                    <!-- 杯頂橢圓 -->
-                    <ellipse cx="100" cy="40" rx="40" ry="8" fill="#FFF8E1" stroke="#8b6e37" stroke-width="1"/>
-                    <!-- 底座 -->
-                    <path d="M90,165 L110,165 L120,185 L80,185 Z" fill="#5D4037"/>
-                    <rect x="70" y="185" width="60" height="10" fill="#3E2723" rx="2"/>
-                    <!-- 裝飾紅絲帶 -->
-                    <path d="M80,90 L120,90 L115,110 L85,110 Z" fill="#B91C1C"/>
-                    <text x="100" y="105" text-anchor="middle" fill="white" font-size="12" font-weight="900">TOP</text>
-                </svg>
-            </div>
-
-            <!-- 資料展示 -->
-            <div class="field field-date text-glow">{{ rocDate }}</div>
-
-            <div class="field field-name">
-                <div class="name-text">{{ currentRep.name }}</div>
-                <div class="title-text">{{ currentRep.title }}</div>
-            </div>
-
-            <div class="field field-product">
-                <div class="product-box">{{ displayProduct }}</div>
-                <div class="count-tag text-glow">共計 {{ cart.length }} 筆</div>
-            </div>
-
-            <div class="field field-amount">
-                <span class="amount-val">{{ totalAmountDisplay }}</span>
-                <span class="amount-unit">美元</span>
-            </div>
-
-            <div class="field-stats text-glow">
-                <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
-                <div class="stat-line" style="color:#991b1b;">獎金：{{ formatNumber(totalBonus) }}元</div>
-            </div>
-        </div>
+        <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
+            ➕ 加入清單
+        </button>
     </div>
 </div>
 
-<script>
-    const { createApp, reactive, computed, ref, onMounted } = Vue;
+<!-- 2. 清單 -->
+<div class="list-panel" v-if="cart.length > 0">
+    <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
+    <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+        <div>
+            <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
+            <span class="text-gray-300">{{ item.currency }} {{ formatNumber(item.amount) }}</span>
+        </div>
+        <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
+    </div>
+    <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
+        <div class="flex justify-between font-bold mb-1">
+            <span class="text-gray-300">總手收</span>
+            <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
+        </div>
+        <div class="flex justify-between font-bold">
+            <span class="text-gray-300">總獎金</span>
+            <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
+        </div>
+    </div>
+    <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
+        生成圖片 (長按儲存)
+    </button>
+</div>
 
-    createApp({
-        setup() {
-            const windowWidth = ref(window.innerWidth);
-            const globalDate = ref(new Date().toISOString().split('T')[0]);
-            const repIndex = ref(3); // 預設蕭玉春
-            const cart = ref([]);
-            const form = reactive({ productType: 'BOND', currency: 'USD', exRate: 32.5, amount: 27000, bp: 50 });
+<div class="list-panel text-center text-gray-500 py-4" v-else>請先輸入並加入清單</div>
 
-            const repList = [
-                { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
-                { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
-                { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
-                { name: '陳翰泰', title: '業務員' }
-            ];
+<!-- 3. 結果 -->
+<div id="result-area">
+    <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
+    <img id="final-img" alt="長按儲存">
+</div>
 
-            const scaleStyle = computed(() => {
-                const scale = Math.min((windowWidth.value - 40) / 800, 1);
-                return { transform: `scale(${scale})`, marginBottom: `-${535 * (1 - scale)}px` };
-            });
+<!-- 4. 預覽畫布 -->
+<div id="preview-container">
+    <div id="certificate-node" class="certificate" :style="scaleStyle">
+        
+        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
 
-            onMounted(() => { window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; }); });
+        <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
+                    <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
+                </linearGradient>
+                <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stop-color="#FDB931"/><stop offset="50%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B78628"/>
+                </linearGradient>
+            </defs>
+            <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
+            <path d="M850 400 Q 600 200 400 450 T -50 300" stroke="url(#ribbonGrad)" stroke-width="40" fill="none" opacity="0.5"/>
+            <circle cx="100" cy="100" r="10" fill="#4CAF50" opacity="0.2"/>
+            <circle cx="700" cy="400" r="15" fill="#2196F3" opacity="0.2"/>
+            <rect x="600" y="80" width="20" height="20" fill="#FFC107" opacity="0.2" transform="rotate(30 610 90)"/>
+            <rect x="150" y="450" width="15" height="15" fill="#E91E63" opacity="0.2" transform="rotate(45 157 457)"/>
 
-            const rocDate = computed(() => {
-                const d = new Date(globalDate.value);
-                return `${d.getFullYear() - 1911} / ${d.getMonth() + 1} / ${d.getDate()}`;
-            });
+            <g transform="translate(20, 60) scale(1.1)">
+                <path d="M80 130 C -20 130, -20 260, 90 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
+                <path d="M320 130 C 420 130, 420 260, 310 280" fill="none" stroke="#FDB931" stroke-width="25" stroke-linecap="round"/>
+                <path d="M80 100 L320 100 L280 300 C 280 360, 120 360, 120 300 Z" fill="url(#gold)" stroke="#B8860B" stroke-width="3"/>
+                <ellipse cx="200" cy="100" rx="120" ry="20" fill="#FFF8E1" stroke="#B8860B" stroke-width="3"/>
+                <path d="M180 360 L220 360 L230 400 L170 400 Z" fill="#8B4513"/>
+                <path d="M130 400 L270 400 L280 440 L120 440 Z" fill="#5D4037"/>
+                <text x="200" y="180" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">上</text>
+                <text x="200" y="240" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">新</text>
+                <text x="200" y="300" text-anchor="middle" font-weight="900" fill="#B71C1C" font-size="50" font-family="'Microsoft JhengHei', 'Noto Sans TC', sans-serif" stroke="rgba(255,255,255,0.3)" stroke-width="1">莊</text>
+            </g>
 
-            const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
-            const handleProductChange = () => {
-                if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
-                else if(form.productType === 'FCN') form.bp = 50;
-            };
+            <g transform="translate(320, 10) rotate(-10)">
+                <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
+                <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
+            </g>
+        </svg>
 
-            const addToCart = () => {
-                const revenue = Math.round(form.amount * form.exRate * (form.bp / 10000));
-                let bonusRate = 0.25;
-                if(form.productType === 'FCN') bonusRate = 0.3;
-                if(['U6', 'U5'].includes(form.productType)) bonusRate = 0.38;
-                const bonus = Math.round(revenue * bonusRate);
-                
-                cart.value.push({ ...form, revenue, bonus });
-            };
+        <div class="field field-date text-outline">{{ rocDate }}</div>
 
-            const removeFromCart = (idx) => cart.value.splice(idx, 1);
+        <div class="field field-name text-outline">
+            <div class="name-text">{{ currentRep.name }}</div>
+            <div class="title-text">{{ currentRep.title }}</div>
+        </div>
 
-            const totalRevenue = computed(() => cart.value.reduce((s, i) => s + i.revenue, 0));
-            const totalBonus = computed(() => cart.value.reduce((s, i) => s + i.bonus, 0));
-            const totalAmountDisplay = computed(() => cart.value.reduce((s, i) => s + i.amount, 0).toLocaleString());
-            const displayProduct = computed(() => {
-                if(cart.value.length === 0) return '商品名稱';
-                const types = [...new Set(cart.value.map(i => i.productType))];
-                const map = { 'BOND': '海外債', 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5' };
-                return map[types[0]] || types[0];
-            });
+        <!-- 商品 -->
+        <div class="field field-product">
+            <div class="product-list">
+                <div v-for="prod in finalProductList" :key="prod" class="product-box">
+                    {{ prod }}
+                </div>
+            </div>
+            <div class="count-text text-outline">共計{{ cart.length }}筆</div>
+        </div>
 
-            const formatNumber = (num) => num.toLocaleString();
+        <!-- 金額 (自動換算萬單位) -->
+        <div class="field field-amount text-outline">
+            <div v-for="item in finalAmountList" :key="item.curr" class="amount-row">
+                <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ item.val }}</span>
+                <span class="currency-text">{{ item.curr }}</span>
+            </div>
+        </div>
 
-            const generateImage = () => {
-                const node = document.getElementById("certificate-node");
-                const oldTransform = node.style.transform;
-                node.style.transform = "scale(1)";
-                html2canvas(node, { scale: 3, useCORS: true }).then(canvas => {
-                    document.getElementById("final-img").src = canvas.toDataURL("image/png");
-                    document.getElementById("result-area").style.display = 'block';
-                    node.style.transform = oldTransform;
-                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-                });
-            };
+        <div class="field field-stats text-outline">
+            <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
+            <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
+        </div>
 
-            return { 
-                repList, repIndex, globalDate, form, cart, rocDate, scaleStyle, isFixedBP,
-                currentRep: computed(()=>repList[repIndex.value]), 
-                addToCart, removeFromCart, totalRevenue, totalBonus, displayProduct, 
-                totalAmountDisplay, formatNumber, generateImage, handleProductChange 
-            };
-        }
-    }).mount('#app');
-</script>
-</body>
-</html>
+        <div style="position: absolute; bottom: 15px; right: 15px;">
+             <svg width="60" height="40" viewBox="0 0 100 60">
+                 <rect x="30" y="20" width="40" height="40" fill="#ccc"/>
+                 <rect x="0" y="35" width="30" height="25" fill="#aaa"/>
+                 <rect x="70" y="45" width="30" height="15" fill="#eee"/>
+                 <text x="50" y="50" text-anchor="middle" fill="white" font-weight="bold" font-size="20">1</text>
+            </svg>
+        </div>
+    </div>
+</div>
