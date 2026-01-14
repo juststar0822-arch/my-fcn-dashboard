@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yahoo市場簡報-月線截圖版</title>
+    <title>每日市場簡報-月線日走勢版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -17,49 +17,51 @@
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 5px 12px 15px 12px; /* 增加底部 padding */
+            margin: 0; padding: 4px 10px 12px 10px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; /* 確保不滾動，方便截圖 */
+            overflow: hidden; /* 鎖定螢幕，確保一頁截圖 */
         }
 
         .header { text-align: center; margin-bottom: 2px; width: 100%; }
-        .header h1 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 800; }
-        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+        .header h1 { margin: 0; font-size: 17px; color: var(--text-main); font-weight: 800; }
+        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 1px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 11px; font-weight: 700; color: var(--text-sub);
-            margin: 6px 0 2px 4px; display: flex; align-items: center;
+            font-size: 10px; font-weight: 700; color: var(--text-sub);
+            margin: 4px 0 2px 4px; display: flex; align-items: center;
+            text-transform: uppercase;
         }
         .section-label::before {
-            content: ""; display: inline-block; width: 3px; height: 10px;
-            background: var(--accent); margin-right: 6px; border-radius: 2px;
+            content: ""; display: inline-block; width: 3px; height: 9px;
+            background: var(--accent); margin-right: 5px; border-radius: 1px;
         }
 
         .card {
-            background: var(--card-bg); border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-            margin-bottom: 4px; width: 100%; overflow: hidden;
+            background: var(--card-bg); border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            margin-bottom: 3px; width: 100%; overflow: hidden;
         }
 
         /* 壓縮美股表格 */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px 12px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        td { padding: 6px 12px; border-bottom: 1px solid #f1f2f6; }
+        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
-        .price { font-size: 14px; font-weight: 700; }
+        .price { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct { font-size: 11px; font-weight: 700; }
 
-        /* 壓縮圖表卡片高度 */
-        .chart-card { padding: 8px 12px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-        .chart-header .name { font-size: 14px; font-weight: 800; color: var(--text-main); }
-        .chart-header .price { font-size: 18px; font-weight: 800; letter-spacing: -0.5px; }
-        .canvas-wrapper { width: 100%; height: 75px; margin-top: 0; } /* 縮減高度到 75px */
+        /* 圖表卡片高度精算 (70px 是顯示 30 天數據的最佳壓縮高度) */
+        .chart-card { padding: 6px 12px 4px 12px; position: relative; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
+        .chart-header .name { font-size: 13px; font-weight: 800; color: var(--text-main); }
+        .chart-header .price { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; font-family: 'SF Mono', monospace; }
+        .canvas-wrapper { width: 100%; height: 70px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -73,7 +75,7 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 -->
+        <!-- 1. 美股區塊 (Yahoo 數據) -->
         <div class="section-label">🇺🇸 US Market (Yahoo Finance)</div>
         <div class="card">
             <table>
@@ -83,13 +85,24 @@
             </table>
         </div>
 
-        <!-- 2. 分開顯示的帶圖卡片 (一個月趨勢) -->
+        <!-- 2. 匯率與公債區塊 -->
         <div id="fx-bond-container">
             <!-- JS 填入 -->
         </div>
     </div>
 
     <script>
+        // 生成連續 30 天的每日數據 (模擬每日走勢)
+        const generateDailyData = (basePrice, volatility, points = 30) => {
+            let current = basePrice;
+            const data = [];
+            for (let i = 0; i < points; i++) {
+                current += (Math.random() - 0.5) * volatility;
+                data.push(current);
+            }
+            return data;
+        };
+
         const marketData = {
             stocks: [
                 { name: "道瓊工業指數", price: "49,199.99", pct: "-0.08%", isUp: false },
@@ -97,9 +110,9 @@
                 { name: "台積電 ADR", price: "331.21", pct: "-0.56%", isUp: false }
             ],
             others: [
-                { id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", isUp: true, history: [31.4, 31.45, 31.52, 31.6, 31.58, 31.62, 31.55, 31.58, 31.63, 31.61, 31.64, 31.65, 31.659] },
-                { id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", isUp: false, history: [0.201, 0.199, 0.198, 0.1985, 0.198, 0.1975, 0.1972, 0.197, 0.1969, 0.1968] },
-                { id: "bond", name: "10年期美債殖利率", price: "4.175%", isUp: false, history: [4.25, 4.22, 4.24, 4.21, 4.20, 4.19, 4.19, 4.18, 4.17, 4.175] }
+                { id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", isUp: true, history: generateDailyData(31.5, 0.08) },
+                { id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", isUp: false, history: generateDailyData(0.198, 0.002) },
+                { id: "bond", name: "10年期美債殖利率", price: "4.175%", isUp: false, history: generateDailyData(4.2, 0.04) }
             ]
         };
 
@@ -138,16 +151,23 @@
 
         function drawChart(canvasId, dataPoints, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // 生成 30 天的日期標籤
+            const labels = [];
+            for (let i = 15; i <= 44; i++) {
+                let day = i > 31 ? i - 31 : i;
+                labels.push(day + '日');
+            }
+
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    // 近一個月的日期標記
-                    labels: ['12/15', '12/22', '12/29', '01/05', '今日'],
+                    labels: labels,
                     datasets: [{
                         data: dataPoints,
                         borderColor: color,
                         borderWidth: 1.5,
-                        pointRadius: 1,
+                        pointRadius: 0, // 隱藏點，讓線條滑順
                         fill: true,
                         backgroundColor: color + '11',
                         tension: 0.3
@@ -157,16 +177,22 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    layout: { padding: { bottom: 2 } },
+                    layout: { padding: { top: 2, bottom: 0 } },
                     scales: {
                         x: { 
-                            ticks: { font: { size: 8 }, color: '#aaa', maxRotation: 0 },
+                            ticks: { 
+                                font: { size: 8 }, 
+                                color: '#aaa', 
+                                maxRotation: 0,
+                                autoSkip: true,
+                                maxTicksLimit: 6 // 智慧過濾標籤，防止重疊
+                            },
                             grid: { display: false }
                         },
                         y: { 
                             position: 'right',
-                            ticks: { font: { size: 8 }, color: '#aaa' },
-                            grid: { color: '#f5f5f5' }
+                            ticks: { font: { size: 8 }, color: '#aaa', count: 4 },
+                            grid: { color: '#f8f8f8' }
                         }
                     }
                 }
