@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每日市場簡報-清晰版</title>
+    <title>每日市場簡報-最終優化版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -40,10 +40,10 @@
             overflow: hidden;
         }
 
-        /* 美股區塊：仿 Yahoo 簡潔列表高度 */
+        /* 頂部美股清單高度 (4行數據) */
         .stock-card { height: 165px; }
 
-        /* 匯率與公債區塊：恢復大數字顯示高度 */
+        /* 底部匯率與公債高度 (大數字 + 走勢圖) */
         .fx-card { height: 125px; }
     </style>
 </head>
@@ -54,7 +54,7 @@
         <div id="current-date">載入中...</div>
     </div>
 
-    <!-- 1. 美股區塊 (仿 Yahoo 簡潔風格) -->
+    <!-- 1. 美股區塊 (仿 Yahoo 風格，確保 SPX 顯示) -->
     <div class="section-label">🇺🇸 美股大盤 & 台積電 ADR (昨日收盤)</div>
     <div class="widget-card stock-card">
         <div class="tradingview-widget-container">
@@ -67,9 +67,9 @@
                 {
                   "name": "",
                   "symbols": [
-                    { "name": "FOREXCOM:DJI", "displayName": "道瓊工業" },
-                    { "name": "S&P:SPX", "displayName": "標普 500" },
-                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克" },
+                    { "name": "FOREXCOM:DJI", "displayName": "道瓊工業指數" },
+                    { "name": "FOREXCOM:SPX", "displayName": "標普 500 指數" },
+                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克指數" },
                     { "name": "NYSE:TSM", "displayName": "台積電 ADR" }
                   ]
                 }
@@ -83,7 +83,7 @@
         </div>
     </div>
 
-    <!-- 2. 美元/台幣 (大數字版) -->
+    <!-- 2. 美元/台幣 (大數字 + 日走勢圖) -->
     <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
     <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
@@ -92,14 +92,15 @@
             {
               "symbol": "FX_IDC:USDTWD",
               "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
-              "colorTheme": "light", "trendLineColor": "rgba(255, 82, 82, 1)",
-              "underLineColor": "rgba(255, 82, 82, 0.1)", "isTransparent": false, "autosize": false
+              "trendLineColor": "rgba(255, 82, 82, 1)",
+              "underLineColor": "rgba(255, 82, 82, 0.1)",
+              "colorTheme": "light", "isTransparent": false, "autosize": false
             }
             </script>
         </div>
     </div>
 
-    <!-- 3. 日圓/台幣 (大數字版) -->
+    <!-- 3. 日圓/台幣 (大數字 + 日走勢圖) -->
     <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
     <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
@@ -108,14 +109,15 @@
             {
               "symbol": "FX_IDC:JPYTWD",
               "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
-              "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
-              "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
+              "trendLineColor": "rgba(34, 171, 148, 1)",
+              "underLineColor": "rgba(34, 171, 148, 0.1)",
+              "colorTheme": "light", "isTransparent": false, "autosize": false
             }
             </script>
         </div>
     </div>
 
-    <!-- 4. 美國10年期公債 (大數字版) -->
+    <!-- 4. 美國10年期公債 (大數字 + 日走勢圖) -->
     <div class="section-label">📉 美國 10 年期公債 (US10Y)</div>
     <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
@@ -124,8 +126,9 @@
             {
               "symbol": "US10Y",
               "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
-              "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
-              "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
+              "trendLineColor": "rgba(34, 171, 148, 1)",
+              "underLineColor": "rgba(34, 171, 148, 0.1)",
+              "colorTheme": "light", "isTransparent": false, "autosize": false
             }
             </script>
         </div>
