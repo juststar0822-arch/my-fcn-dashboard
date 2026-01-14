@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (簡潔版)</title>
+    <title>榮譽榜生成器 (完美修正版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -97,9 +97,9 @@ input, select {
 /* 獎盃圖片樣式 */
 .custom-trophy-img {
     position: absolute;
-    top: 80px;    
-    left: 60px;   
-    width: 250px; 
+    top: 60px;    /* 調整位置 */
+    left: 20px;   /* 調整位置 */
+    width: 320px; /* 調整大小 */
     height: auto;
     z-index: 15;  
     filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); 
@@ -126,7 +126,7 @@ input, select {
     line-height: 1;
 }
 
-/* 姓名區 */
+/* 1. 姓名區 */
 .field-name {
     top: 50px; 
     right: 40px;
@@ -143,7 +143,7 @@ input, select {
     margin-top: -5px; 
 }
 
-/* 商品區 */
+/* 2. 商品區 */
 .field-product {
     top: 215px; 
     right: 40px;
@@ -172,7 +172,7 @@ input, select {
 }
 .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
 
-/* 金額區 */
+/* 3. 金額區 */
 .field-amount {
     top: 335px; 
     right: 40px;
@@ -319,11 +319,11 @@ input, select {
         </g>
     </svg>
 
+    <!-- 獎盃圖片：已直接嵌入 Base64 -->
     <img 
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Gold_cup_icon.svg/600px-Gold_cup_icon.svg.png" 
+        src="data:image/png;base64,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" 
         alt="獎盃" 
         class="custom-trophy-img"
-        crossorigin="anonymous"
     >
 
     <div class="field field-date text-outline">{{ rocDate }}</div>
@@ -353,8 +353,6 @@ input, select {
         <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
         <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
     </div>
-
-    <!-- 已移除右下角階梯獎台小圖 -->
 </div>
 </div>
 </div>
