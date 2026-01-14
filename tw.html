@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場快訊-K線專業版</title>
+    <title>每日市場簡報-清晰版</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f2f2f7;
             margin: 0;
-            padding: 4px;
+            padding: 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -18,15 +18,8 @@
             text-align: center;
             margin-bottom: 2px;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 16px;
-            color: #1c1c1e;
-        }
-        #current-date {
-            font-size: 10px;
-            color: #8e8e93;
-        }
+        .header h1 { margin: 0; font-size: 16px; color: #1c1c1e; }
+        #current-date { font-size: 10px; color: #8e8e93; }
 
         .section-label {
             width: 100%;
@@ -34,29 +27,24 @@
             font-size: 11px;
             font-weight: bold;
             color: #3a3a3c;
-            margin: 3px 0 1px 4px;
+            margin: 4px 0 1px 5px;
         }
 
         .widget-card {
             width: 100%;
             max-width: 420px;
             background: white;
-            border-radius: 8px;
+            border-radius: 10px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 3px;
+            margin-bottom: 4px;
             overflow: hidden;
         }
 
-        /* 美股區塊高度：200px (4行數據) */
-        .indices-card { height: 200px; }
+        /* 美股區塊：仿 Yahoo 簡潔列表高度 */
+        .stock-card { height: 165px; }
 
-        /* K線圖區塊高度：160px (確保蠟燭夠大能看清楚) */
-        .chart-card { height: 160px; }
-
-        /* 如果手機螢幕較短，可以適度縮放 body */
-        @media screen and (max-height: 700px) {
-            body { zoom: 0.9; }
-        }
+        /* 匯率與公債區塊：恢復大數字顯示高度 */
+        .fx-card { height: 125px; }
     </style>
 </head>
 <body>
@@ -66,22 +54,22 @@
         <div id="current-date">載入中...</div>
     </div>
 
-    <!-- 1. 美股大盤 & 台積電 ADR (修正標普500顯示問題) -->
-    <div class="section-label">🇺🇸 美股大盤 & TSMC ADR</div>
-    <div class="widget-card indices-card">
+    <!-- 1. 美股區塊 (仿 Yahoo 簡潔風格) -->
+    <div class="section-label">🇺🇸 美股大盤 & 台積電 ADR (昨日收盤)</div>
+    <div class="widget-card stock-card">
         <div class="tradingview-widget-container">
             <div class="tradingview-widget-container__widget"></div>
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
             {
               "width": "100%",
-              "height": "200",
+              "height": "165",
               "symbolsGroups": [
                 {
                   "name": "",
                   "symbols": [
-                    { "name": "FOREXCOM:DJI", "displayName": "道瓊工業指數" },
-                    { "name": "INDEX:SPX", "displayName": "標普 500 指數" },
-                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克指數" },
+                    { "name": "FOREXCOM:DJI", "displayName": "道瓊工業" },
+                    { "name": "S&P:SPX", "displayName": "標普 500" },
+                    { "name": "NASDAQ:IXIC", "displayName": "那斯達克" },
                     { "name": "NYSE:TSM", "displayName": "台積電 ADR" }
                   ]
                 }
@@ -95,51 +83,50 @@
         </div>
     </div>
 
-    <!-- 2. 美元/台幣 K線圖 -->
-    <div class="section-label">💵 美元 / 台幣 (USD/TWD) - 日K</div>
-    <div class="widget-card chart-card">
+    <!-- 2. 美元/台幣 (大數字版) -->
+    <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
+    <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
-            <div id="tv-usdtwd"></div>
-            <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
-            <script type="text/javascript">
-            new TradingView.widget({
-              "width": "100%", "height": 160, "symbol": "FX_IDC:USDTWD",
-              "interval": "D", "timezone": "Asia/Taipei", "theme": "light", "style": "1",
-              "locale": "zh_TW", "enable_publishing": false, "hide_top_toolbar": true,
-              "hide_legend": true, "save_image": false, "container_id": "tv-usdtwd"
-            });
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+            {
+              "symbol": "FX_IDC:USDTWD",
+              "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
+              "colorTheme": "light", "trendLineColor": "rgba(255, 82, 82, 1)",
+              "underLineColor": "rgba(255, 82, 82, 0.1)", "isTransparent": false, "autosize": false
+            }
             </script>
         </div>
     </div>
 
-    <!-- 3. 日圓/台幣 K線圖 -->
-    <div class="section-label">💴 日圓 / 台幣 (JPY/TWD) - 日K</div>
-    <div class="widget-card chart-card">
+    <!-- 3. 日圓/台幣 (大數字版) -->
+    <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
+    <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
-            <div id="tv-jpytwd"></div>
-            <script type="text/javascript">
-            new TradingView.widget({
-              "width": "100%", "height": 160, "symbol": "FX_IDC:JPYTWD",
-              "interval": "D", "timezone": "Asia/Taipei", "theme": "light", "style": "1",
-              "locale": "zh_TW", "enable_publishing": false, "hide_top_toolbar": true,
-              "hide_legend": true, "save_image": false, "container_id": "tv-jpytwd"
-            });
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+            {
+              "symbol": "FX_IDC:JPYTWD",
+              "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
+              "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
+              "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
+            }
             </script>
         </div>
     </div>
 
-    <!-- 4. 美國10年期公債 K線圖 -->
-    <div class="section-label">📉 美國 10 年期公債 (US10Y) - 日K</div>
-    <div class="widget-card chart-card">
+    <!-- 4. 美國10年期公債 (大數字版) -->
+    <div class="section-label">📉 美國 10 年期公債 (US10Y)</div>
+    <div class="widget-card fx-card">
         <div class="tradingview-widget-container">
-            <div id="tv-us10y"></div>
-            <script type="text/javascript">
-            new TradingView.widget({
-              "width": "100%", "height": 160, "symbol": "US10Y",
-              "interval": "D", "timezone": "Asia/Taipei", "theme": "light", "style": "1",
-              "locale": "zh_TW", "enable_publishing": false, "hide_top_toolbar": true,
-              "hide_legend": true, "save_image": false, "container_id": "tv-us10y"
-            });
+            <div class="tradingview-widget-container__widget"></div>
+            <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+            {
+              "symbol": "US10Y",
+              "width": "100%", "height": "125", "locale": "zh_TW", "dateRange": "1M",
+              "colorTheme": "light", "trendLineColor": "rgba(34, 171, 148, 1)",
+              "underLineColor": "rgba(34, 171, 148, 0.1)", "isTransparent": false, "autosize": false
+            }
             </script>
         </div>
     </div>
