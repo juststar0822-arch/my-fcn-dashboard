@@ -3,47 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器</title>
+    <title>榮譽榜生成器 - 最終修復版</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
-body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background-color: #1a1a1a; padding-bottom: 80px; color: #333; overflow-x: hidden; }
-.control-panel { background: #2d2d2d; border-bottom: 1px solid #444; color: white; padding: 20px; }
-.list-panel { background: #222; padding: 10px 20px; color: white; }
-.item-card { background: #3a3a3a; border-left: 4px solid #D4AF37; padding: 10px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
-#preview-container { width: 100%; display: flex; justify-content: center; background: #1a1a1a; padding-top: 10px; min-height: 550px; }
-.certificate { width: 800px; height: 535px; background-color: #fff; position: relative; border: 5px solid #D93025; box-sizing: border-box; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); transform-origin: top center; }
-.corner { position: absolute; width: 50px; height: 50px; border: 5px solid #D93025; z-index: 10; }
-.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
-.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
-.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
-.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
-.svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-/* 獎盃樣式 */
-.custom-trophy-img { position: absolute; top: 60px; left: 20px; width: 300px; height: auto; z-index: 15; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
-.field { position: absolute; z-index: 20; background: transparent; }
-.text-outline { text-shadow: 3px 3px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff; }
-.field-date { top: 25px; left: 40px; font-size: 36px; font-weight: 900; color: #d97706; }
-.field-name { top: 50px; right: 40px; text-align: right; }
-.name-text { font-size: 90px; font-weight: 900; color: #000; line-height: 1.1; }
-.title-text { font-size: 32px; font-weight: bold; color: #333; margin-top: -5px; }
-.field-product { top: 215px; right: 40px; display: flex; align-items: center; justify-content: flex-end; }
-.product-box { border: 4px solid #2563eb; color: #2563eb; font-size: 50px; font-weight: 900; padding: 0 20px; background: rgba(255,255,255,0.95); }
-.count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
-.field-amount { top: 335px; right: 40px; text-align: right; }
-.amount-text { font-weight: 900; color: #dc2626; font-size: 75px; }
-.currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
-.field-stats { bottom: 25px; right: 40px; text-align: right; }
-.stat-line { font-size: 28px; font-weight: bold; color: #be123c; }
-#result-area { text-align: center; margin-top: 20px; display: none; }
-#final-img { max-width: 90%; margin: 0 auto; border: 2px solid #D4AF37; border-radius: 10px; }
+        body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background-color: #1a1a1a; padding-bottom: 80px; color: #333; }
+        .control-panel { background: #2d2d2d; padding: 20px; color: white; }
+        .list-panel { background: #222; padding: 10px 20px; color: white; }
+        #preview-container { width: 100%; display: flex; justify-content: center; padding-top: 10px; background: #1a1a1a; }
+        .certificate { width: 800px; height: 535px; background-color: #fff; position: relative; border: 5px solid #D93025; overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.5); transform-origin: top center; }
+        .corner { position: absolute; width: 50px; height: 50px; border: 5px solid #D93025; z-index: 10; }
+        .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+        .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+        .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+        .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+        .svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
+        /* 獎盃：使用內嵌 Base64 確保顯示 */
+        .custom-trophy-img { position: absolute; top: 70px; left: 30px; width: 280px; height: auto; z-index: 15; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); }
+        .field { position: absolute; z-index: 20; background: transparent; }
+        .text-outline { text-shadow: 3px 3px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff; }
+        .field-date { top: 25px; left: 40px; font-size: 36px; font-weight: 900; color: #d97706; }
+        .field-name { top: 50px; right: 40px; text-align: right; }
+        .name-text { font-size: 90px; font-weight: 900; color: #000; line-height: 1.1; }
+        .title-text { font-size: 32px; font-weight: bold; color: #333; }
+        .field-product { top: 215px; right: 40px; display: flex; align-items: center; justify-content: flex-end; }
+        .product-box { border: 4px solid #2563eb; color: #2563eb; font-size: 50px; font-weight: 900; padding: 0 20px; background: rgba(255,255,255,0.9); }
+        .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
+        .field-amount { top: 335px; right: 40px; text-align: right; }
+        .amount-text { font-weight: 900; color: #dc2626; font-size: 75px; }
+        .currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
+        .field-stats { bottom: 30px; right: 40px; text-align: right; }
+        .stat-line { font-size: 28px; font-weight: bold; color: #be123c; }
+        #result-area { text-align: center; margin-top: 20px; display: none; }
+        #final-img { max-width: 90%; margin: 0 auto; border: 2px solid #D4AF37; border-radius: 10px; }
     </style>
 </head>
 <body>
 <div id="app">
-    <!-- 控制面板省略，保持原樣 -->
     <div class="control-panel">
         <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
         <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow text-lg">生成圖片</button>
@@ -58,26 +56,21 @@ body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background
         <div id="certificate-node" class="certificate" :style="scaleStyle">
             <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
             
-            <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
+            <svg class="svg-layer" viewBox="0 0 800 535">
                 <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="#FFD700" stroke-width="60" fill="none" opacity="0.2"/>
                 <g transform="translate(320, 10) rotate(-10)">
                     <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
-                    <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025">賀</text>
+                    <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
                 </g>
             </svg>
 
-            <!-- 獎盃圖片：此處已換成直接網址，若要用Base64則貼在src引號內 -->
-            <img 
-                src="https://img74.pixhost.to/images/11618/684993877_img_2795.png" 
-                alt="獎盃" 
-                class="custom-trophy-img"
-                crossorigin="anonymous"
-            >
+            <!-- 獎盃圖片：直接內嵌你的圖片數據 -->
+            <img src="data:image/png;base64,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" class="custom-trophy-img">
 
             <div class="field field-date text-outline">{{ rocDate }}</div>
             <div class="field field-name text-outline">
-                <div class="name-text">{{ currentRep.name }}</div>
-                <div class="title-text">{{ currentRep.title }}</div>
+                <div class="name-text">蕭玉春</div>
+                <div class="title-text">業務協理</div>
             </div>
             <div class="field field-product">
                 <div class="product-box">FCN</div>
@@ -91,8 +84,6 @@ body { font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; background
                 <div class="stat-line">手收：12,660元</div>
                 <div class="stat-line">獎金：3,798元</div>
             </div>
-
-            <!-- 不明小圖已在此處刪除 -->
         </div>
     </div>
 </div>
@@ -102,12 +93,11 @@ const { createApp, computed, ref, onMounted } = Vue;
 createApp({
     setup() {
         const windowWidth = ref(window.innerWidth);
-        const rocDate = "113/1/14";
-        const currentRep = { name: '蕭玉春', title: '業務協理' };
         const scaleStyle = computed(() => {
             const scale = Math.min((windowWidth.value - 20) / 800, 1);
             return { transform: `scale(${scale})`, marginBottom: `-${535 * (1 - scale)}px` };
         });
+        const rocDate = "113/1/14";
         const generateImage = () => {
             const element = document.getElementById("certificate-node");
             const originalTransform = element.style.transform;
@@ -120,7 +110,7 @@ createApp({
             });
         };
         onMounted(() => { window.addEventListener('resize', () => windowWidth.value = window.innerWidth); });
-        return { rocDate, currentRep, generateImage, scaleStyle };
+        return { scaleStyle, rocDate, generateImage };
     }
 }).mount('#app');
 </script>
