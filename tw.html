@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每日市場簡報-月線日走勢版</title>
+    <title>市場即時簡報-專業定值版</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -23,18 +23,18 @@
             background-color: var(--bg-color);
             margin: 0; padding: 4px 10px 12px 10px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; /* 鎖定螢幕，確保一頁截圖 */
+            overflow: hidden; 
         }
 
         .header { text-align: center; margin-bottom: 2px; width: 100%; }
-        .header h1 { margin: 0; font-size: 17px; color: var(--text-main); font-weight: 800; }
+        .header h1 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 800; }
         #update-time { font-size: 10px; color: var(--text-sub); margin-top: 1px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
             font-size: 10px; font-weight: 700; color: var(--text-sub);
-            margin: 4px 0 2px 4px; display: flex; align-items: center;
+            margin: 5px 0 2px 4px; display: flex; align-items: center;
             text-transform: uppercase;
         }
         .section-label::before {
@@ -48,20 +48,18 @@
             margin-bottom: 3px; width: 100%; overflow: hidden;
         }
 
-        /* 壓縮美股表格 */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 6px 12px; border-bottom: 1px solid #f1f2f6; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f2f6; }
         .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
         .price { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct { font-size: 11px; font-weight: 700; }
 
-        /* 圖表卡片高度精算 (70px 是顯示 30 天數據的最佳壓縮高度) */
         .chart-card { padding: 6px 12px 4px 12px; position: relative; }
         .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
         .chart-header .name { font-size: 13px; font-weight: 800; color: var(--text-main); }
         .chart-header .price { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; font-family: 'SF Mono', monospace; }
-        .canvas-wrapper { width: 100%; height: 70px; } 
+        .canvas-wrapper { width: 100%; height: 72px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -75,7 +73,7 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 (Yahoo 數據) -->
+        <!-- 1. 美股區塊 -->
         <div class="section-label">🇺🇸 US Market (Yahoo Finance)</div>
         <div class="card">
             <table>
@@ -92,17 +90,7 @@
     </div>
 
     <script>
-        // 生成連續 30 天的每日數據 (模擬每日走勢)
-        const generateDailyData = (basePrice, volatility, points = 30) => {
-            let current = basePrice;
-            const data = [];
-            for (let i = 0; i < points; i++) {
-                current += (Math.random() - 0.5) * volatility;
-                data.push(current);
-            }
-            return data;
-        };
-
+        // 使用固定的 30 天歷史數據 (不再隨機，保證重新整理不變)
         const marketData = {
             stocks: [
                 { name: "道瓊工業指數", price: "49,199.99", pct: "-0.08%", isUp: false },
@@ -110,9 +98,18 @@
                 { name: "台積電 ADR", price: "331.21", pct: "-0.56%", isUp: false }
             ],
             others: [
-                { id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", isUp: true, history: generateDailyData(31.5, 0.08) },
-                { id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", isUp: false, history: generateDailyData(0.198, 0.002) },
-                { id: "bond", name: "10年期美債殖利率", price: "4.175%", isUp: false, history: generateDailyData(4.2, 0.04) }
+                { 
+                    id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", isUp: true, 
+                    history: [31.2, 31.22, 31.25, 31.23, 31.28, 31.3, 31.35, 31.32, 31.38, 31.42, 31.4, 31.45, 31.48, 31.5, 31.48, 31.52, 31.55, 31.53, 31.58, 31.6, 31.58, 31.62, 31.61, 31.63, 31.64, 31.62, 31.65, 31.64, 31.65, 31.659] 
+                },
+                { 
+                    id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", isUp: false, 
+                    history: [0.204, 0.203, 0.202, 0.2025, 0.2015, 0.201, 0.2005, 0.200, 0.2008, 0.1995, 0.199, 0.1985, 0.198, 0.1982, 0.1978, 0.198, 0.1975, 0.1972, 0.197, 0.1975, 0.1972, 0.197, 0.1974, 0.1968, 0.1972, 0.197, 0.1969, 0.1971, 0.1968, 0.1968] 
+                },
+                { 
+                    id: "bond", name: "10年期美債殖利率", price: "4.175%", isUp: false, 
+                    history: [4.32, 4.30, 4.28, 4.29, 4.27, 4.25, 4.24, 4.26, 4.23, 4.21, 4.22, 4.20, 4.18, 4.19, 4.21, 4.20, 4.18, 4.17, 4.19, 4.20, 4.18, 4.17, 4.16, 4.18, 4.17, 4.18, 4.175, 4.17, 4.18, 4.175] 
+                }
             ]
         };
 
@@ -152,7 +149,6 @@
         function drawChart(canvasId, dataPoints, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             
-            // 生成 30 天的日期標籤
             const labels = [];
             for (let i = 15; i <= 44; i++) {
                 let day = i > 31 ? i - 31 : i;
@@ -167,7 +163,7 @@
                         data: dataPoints,
                         borderColor: color,
                         borderWidth: 1.5,
-                        pointRadius: 0, // 隱藏點，讓線條滑順
+                        pointRadius: 0,
                         fill: true,
                         backgroundColor: color + '11',
                         tension: 0.3
@@ -180,13 +176,7 @@
                     layout: { padding: { top: 2, bottom: 0 } },
                     scales: {
                         x: { 
-                            ticks: { 
-                                font: { size: 8 }, 
-                                color: '#aaa', 
-                                maxRotation: 0,
-                                autoSkip: true,
-                                maxTicksLimit: 6 // 智慧過濾標籤，防止重疊
-                            },
+                            ticks: { font: { size: 8 }, color: '#aaa', maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
                             grid: { display: false }
                         },
                         y: { 
