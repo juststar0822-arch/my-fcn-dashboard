@@ -10,10 +10,11 @@
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --accent: #007aff;
+            --up-color: #ff3b30; /* 台灣習慣紅漲 */
+            --down-color: #34c759; /* 台灣習慣綠跌 */
         }
 
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        * { box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -23,7 +24,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            overflow: hidden; /* 確保不產生捲軸，方便一頁截圖 */
+            overflow: hidden; /* 防止捲動，確保一頁 */
         }
 
         /* 頂部標題與日期 */
@@ -31,7 +32,7 @@
         .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; }
         #update-time { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
 
-        .container { width: 100%; max-width: 400px; }
+        .container { width: 100%; max-width: 380px; }
         
         .section-label {
             font-size: 11px;
@@ -39,15 +40,8 @@
             color: var(--text-sub);
             margin: 10px 0 4px 4px;
             text-transform: uppercase;
-            display: flex;
-            align-items: center;
-        }
-        .section-label::before {
-            content: ""; display: inline-block; width: 3px; height: 12px; 
-            background: var(--accent); margin-right: 6px; border-radius: 2px;
         }
 
-        /* 萬用卡片容器 */
         .card {
             background: var(--card-bg);
             border-radius: 14px;
@@ -61,23 +55,40 @@
         /* 美股表格區塊高度 */
         .stock-box { height: 165px; }
 
-        /* K線卡片容器：關鍵裁切技術，遮擋底部 Logo */
-        .kline-wrapper {
-            height: 145px; /* 卡片可見高度 */
-            position: relative;
+        /* 帶有走勢圖的卡片高度 (裁剪 Logo 專用) */
+        .chart-card-wrapper {
+            height: 100px;
+            display: flex;
+            align-items: center;
         }
-        .kline-inner {
-            margin-top: -5px; /* 向上微調遮擋頂部多餘空間 */
-            height: 185px; /* 組件載入實際高度 */
+        
+        .chart-inner {
+            margin-top: -15px; /* 向上微調遮擋頂部多餘空間 */
+            height: 140px; /* 組件實際載入高度 */
+            width: 100%;
         }
+
+        /* 遮罩蓋住底部的 TradingView 字樣 */
         .mask-bottom {
             position: absolute;
             bottom: 0;
             left: 0;
             width: 100%;
-            height: 35px; /* 物理遮擋底部的商標 */
+            height: 25px; 
             background: white;
             z-index: 10;
+        }
+
+        /* 卡片內的中文標籤 (置頂覆蓋) */
+        .name-label-float {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-main);
+            z-index: 20;
+            pointer-events: none;
         }
 
         .footer { margin-top: 10px; font-size: 9px; color: var(--text-sub); text-align: center; opacity: 0.5; }
@@ -91,7 +102,7 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股大盤區塊 (標準表格，道瓊 49xxx 點正確版) -->
+        <!-- 1. 美股大盤區塊 (道瓊 49xxx 點精確版) -->
         <div class="section-label">🇺🇸 US Market Overview</div>
         <div class="card stock-box">
             <div class="tradingview-widget-container">
@@ -112,51 +123,51 @@
             </div>
         </div>
 
-        <!-- 2. 美元/台幣 K線走勢卡 -->
+        <!-- 2. 美元/台幣 (帶走勢圖) -->
         <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
-        <div class="card kline-wrapper">
-            <div class="kline-inner">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        <div class="card chart-card-wrapper">
+            <div class="name-label-float">美元 / 台幣 (USD/TWD)</div>
+            <div class="chart-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
                 {
                   "symbol": "FX_IDC:USDTWD",
-                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
                   "colorTheme": "light", "trendLineColor": "rgba(255, 59, 48, 1)",
-                  "underLineColor": "rgba(255, 59, 48, 0.1)", "isTransparent": true, "autosize": false,
-                  "chartType": "candlesticks"
+                  "underLineColor": "rgba(255, 59, 48, 0.1)", "isTransparent": true, "autosize": false
                 }
                 </script>
             </div>
             <div class="mask-bottom"></div>
         </div>
 
-        <!-- 3. 日圓/台幣 K線走勢卡 -->
+        <!-- 3. 日圓/台幣 (帶走勢圖) -->
         <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
-        <div class="card kline-wrapper">
-            <div class="kline-inner">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        <div class="card chart-card-wrapper">
+            <div class="name-label-float">日圓 / 台幣 (JPY/TWD)</div>
+            <div class="chart-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
                 {
                   "symbol": "FX_IDC:JPYTWD",
-                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
                   "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
-                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
-                  "chartType": "candlesticks"
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false
                 }
                 </script>
             </div>
             <div class="mask-bottom"></div>
         </div>
 
-        <!-- 4. 美國 10 年期公債 K線走勢卡 -->
+        <!-- 4. 美國 10 年期公債 (帶走勢圖) -->
         <div class="section-label">📈 美國 10 年期公債 (US10Y)</div>
-        <div class="card kline-wrapper">
-            <div class="kline-inner">
-                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+        <div class="card chart-card-wrapper">
+            <div class="name-label-float">美國 10 年期公債</div>
+            <div class="chart-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-chart.js" async>
                 {
                   "symbol": "US10Y",
-                  "width": "100%", "height": "180", "locale": "zh_TW", "dateRange": "1M",
+                  "width": "100%", "height": "140", "locale": "zh_TW", "dateRange": "1M",
                   "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
-                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
-                  "chartType": "candlesticks"
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false
                 }
                 </script>
             </div>
@@ -164,18 +175,12 @@
         </div>
     </div>
 
-    <div class="footer">Real-time data synced via Market Terminal</div>
+    <div class="footer">Real-time market data synced automatically</div>
 
     <script>
         function updateTime() {
             const now = new Date();
-            const y = now.getFullYear();
-            const m = now.getMonth() + 1;
-            const d = now.getDate();
-            const h = String(now.getHours()).padStart(2, '0');
-            const min = String(now.getMinutes()).padStart(2, '0');
-            const sec = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('update-time').innerText = `台北時間：${y}/${m}/${d} ${h}:${min}:${sec}`;
+            document.getElementById('update-time').innerText = `台北時間：${now.toLocaleString('zh-TW', {hour12: false})}`;
         }
         updateTime();
         setInterval(updateTime, 1000);
