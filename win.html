@@ -1,3 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>榮譽榜生成器 (間距完美版)</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
+code
+Code
+body { 
+        font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+        background-color: #1a1a1a; 
+        padding-bottom: 80px; 
+        color: #333;
+        overflow-x: hidden;
+    }
+
+    /* 輸入介面 */
+    .control-panel {
+        background: #2d2d2d;
+        border-bottom: 1px solid #444;
+        color: white;
+        padding: 20px;
+        margin-bottom: 10px;
+    }
+
+    .list-panel {
+        background: #222;
+        padding: 10px 20px;
+        color: white;
+    }
+
+    .item-card {
+        background: #3a3a3a;
+        border-left: 4px solid #D4AF37;
+        padding: 10px;
+        margin-bottom: 8px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
+    input, select {
+        background: #444; color: white; border: 1px solid #555;
+        padding: 10px; border-radius: 6px; width: 100%;
+        font-size: 1rem; outline: none;
+    }
+    
+    /* === 預覽容器 === */
+    #preview-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        overflow: hidden; 
+        background: #1a1a1a;
+        padding-top: 10px;
+        min-height: 550px; 
+    }
+
+    /* 獎狀本體 */
+    .certificate {
+        width: 800px; 
+        height: 535px;
+        background-color: #fff;
+        position: relative; 
+        border: 5px solid #D93025;
+        box-sizing: border-box;
+        overflow: hidden;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        flex-shrink: 0; 
+        transform-origin: top center;
+        font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+    }
+
+    /* === 背景與物件 === */
+    .corner {
+        position: absolute; width: 50px; height: 50px;
+        border: 5px solid #D93025; z-index: 10;
+    }
+    .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+    .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+    .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+    .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+
+    .svg-layer {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 5;
+        pointer-events: none;
+    }
+
+    /* === 文字層 === */
+    .field {
+        position: absolute;
+        z-index: 20;
+        background: transparent;
+    }
+
+    .text-outline {
+        text-shadow: 
+            3px 3px 0 #fff, -2px -2px 0 #fff,  
+            2px -2px 0 #fff, -2px 2px 0 #fff,
+            2px 2px 0 #fff;
+    }
+
+    .field-date {
+        top: 25px; left: 40px;
+        font-size: 36px; font-weight: 900;
+        color: #d97706; 
+        line-height: 1;
+    }
+
+    /* 1. 姓名區：往上移到 50px (原本 70px) */
+    .field-name {
+        top: 50px; 
+        right: 40px;
+        text-align: right;
+        display: flex; flex-direction: column; align-items: flex-end;
+        min-width: 350px;
+    }
+    .name-text { 
+        font-size: 90px; font-weight: 900; color: #000; 
+        line-height: 1.1; letter-spacing: 2px;
+    }
+    .title-text { 
+        font-size: 32px; font-weight: bold; color: #333; 
+        margin-top: -5px; 
+    }
+
+    /* 2. 商品區：設定在 215px (保持在中間) */
+    .field-product {
+        top: 215px; 
+        right: 40px;
+        display: flex; 
+        align-items: center; 
+        justify-content: flex-end;
+        min-width: 450px;
+    }
+    
+    .product-list {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 8px;
+    }
+
+    .product-box {
+        border: 4px solid #2563eb; 
+        color: #2563eb;
+        font-size: 50px;
+        font-weight: 900;
+        padding: 0 20px; 
+        white-space: nowrap; 
+        line-height: 1.2;
+        background: rgba(255,255,255,0.95);
+    }
+    .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
+
+    /* 3. 金額區：往下移到 335px (原本 300px) */
+    .field-amount {
+        top: 335px; 
+        right: 40px;
+        text-align: right;
+        min-width: 500px;
+        display: flex;
+        flex-direction: column; 
+        align-items: flex-end;
+        gap: 0px;
+    }
+    .amount-row {
+        display: flex;
+        align-items: baseline;
+        line-height: 1.1;
+    }
+    .amount-text { 
+        font-weight: 900; color: #dc2626; 
+        font-family: Arial, 'Microsoft JhengHei', sans-serif;
+    }
+    .currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
+
+    .field-stats {
+        bottom: 25px; right: 40px;
+        text-align: right;
+        min-width: 400px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+    .stat-line { 
+        font-size: 28px; font-weight: bold; color: #be123c; 
+        line-height: 1.4;
+    }
+
+    #result-area {
+        text-align: center; margin-top: 20px; display: none;
+    }
+    #result-img {
+        max-width: 90%; margin: 0 auto;
+        border: 2px solid #D4AF37; border-radius: 10px;
+    }
+</style>
+</head>
+<body>
+<div id="app">
+code
+Code
 <!-- 1. 輸入面板 -->
 <div class="control-panel">
     <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
@@ -161,3 +375,153 @@
         </div>
     </div>
 </div>
+</div>
+<script>
+    const { createApp, reactive, computed, ref, onMounted } = Vue;
+
+    createApp({
+        setup() {
+            const windowWidth = ref(window.innerWidth);
+            const loadingRate = ref(false);
+            const globalDate = ref(new Date().toISOString().split('T')[0]);
+            const repIndex = ref(4);
+
+            const cart = ref([]);
+            const form = reactive({
+                productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
+            });
+
+            const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
+
+            const scaleStyle = computed(() => {
+                const targetWidth = 820; 
+                const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
+                return {
+                    transform: `scale(${scale})`,
+                    marginBottom: `-${535 * (1 - scale)}px`
+                };
+            });
+
+            onMounted(async () => {
+                window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; });
+                await fetchLiveRates();
+            });
+
+            const fetchLiveRates = async () => {
+                loadingRate.value = true;
+                try {
+                    const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+                    const data = await res.json();
+                    if(data && data.rates) {
+                        liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
+                        liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
+                        updateExRate();
+                    }
+                } catch(e) {}
+                loadingRate.value = false;
+            };
+
+            const repList = [
+                { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
+                { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
+                { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
+                { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
+                { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
+                { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
+                { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
+            ];
+
+            const currentRep = computed(() => repList[repIndex.value]);
+            const rocDate = computed(() => {
+                const d = new Date(globalDate.value);
+                return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
+            });
+
+            const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
+            const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
+            const handleProductChange = () => {
+                if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
+                else if(form.productType === 'FCN') form.bp = 50; 
+            };
+
+            const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
+            const calculatedBonus = computed(() => {
+                let rate = 0;
+                if(form.productType === 'FCN') rate = 30;
+                else if(['U6', 'U5'].includes(form.productType)) rate = 38;
+                else if(form.productType === 'BOND') rate = 25;
+                return Math.round(calculatedRevenue.value * (rate / 100));
+            });
+
+            const addToCart = () => {
+                cart.value.push({
+                    productType: form.productType, currency: form.currency, amount: form.amount,
+                    bp: form.bp, exRate: form.exRate, revenue: calculatedRevenue.value, bonus: calculatedBonus.value
+                });
+            };
+            const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
+
+            const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
+            const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
+
+            const finalProductList = computed(() => {
+                if (cart.value.length === 0) return ['FCN'];
+                const types = [...new Set(cart.value.map(i => i.productType))];
+                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
+                return types.map(t => map[t]);
+            });
+
+            const formatAmountWithUnit = (num) => {
+                if (num >= 10000) {
+                    const val = num / 10000;
+                    const formatted = parseFloat(val.toFixed(2));
+                    return `${formatted} 萬`;
+                }
+                return formatNumber(num);
+            };
+
+            const finalAmountList = computed(() => {
+                if(cart.value.length === 0) return [{ val: formatAmountWithUnit(form.amount), curr: form.currency }];
+                const sums = {};
+                cart.value.forEach(item => {
+                    if(!sums[item.currency]) sums[item.currency] = 0;
+                    sums[item.currency] += item.amount;
+                });
+                return Object.keys(sums).map(curr => ({ val: formatAmountWithUnit(sums[curr]), curr: curr }));
+            });
+
+            const amountFontSize = computed(() => {
+                if (finalAmountList.value.length > 1) return '40px'; 
+                return '75px'; 
+            });
+
+            const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+            const generateImage = () => {
+                window.scrollTo(0, 0);
+                const element = document.getElementById("certificate-node");
+                const originalTransform = element.style.transform;
+                element.style.transform = 'scale(1)'; 
+
+                html2canvas(element, { 
+                    scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
+                }).then(canvas => {
+                    document.getElementById("final-img").src = canvas.toDataURL("image/png");
+                    document.getElementById("result-area").style.display = "block";
+                    element.style.transform = originalTransform; 
+                    setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
+                });
+            };
+
+            return {
+                repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
+                updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
+                addToCart, removeFromCart, totalRevenue, totalBonus, 
+                finalProductList, finalAmountList, amountFontSize,
+                formatNumber, generateImage, scaleStyle
+            };
+        }
+    }).mount('#app');
+</script>
+</body>
+</html>
