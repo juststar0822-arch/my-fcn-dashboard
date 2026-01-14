@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Yahoo 財經即時簡報</title>
+    <title>市場快訊-極速精確版</title>
+    <!-- 使用專業繪圖庫 (無廣告、純淨版) -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -11,7 +12,7 @@
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --price-blue: #0040ff;
+            --price-blue: #0040ff; /* 醒目數字藍 */
             --up-red: #ff3b30;
             --down-green: #34c759;
         }
@@ -22,7 +23,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0; 
-            padding: 40px 12px 10px 12px; /* 頂部留白 40px 確保截圖不切到標題 */
+            padding: 40px 12px 10px 12px; /* 頂部留白 40px 防止截圖切到標題 */
             display: flex; flex-direction: column; align-items: center;
             overflow: hidden; 
             height: 100vh;
@@ -47,14 +48,14 @@
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 8px 14px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        td { padding: 9px 14px; border-bottom: 1px solid #f1f2f6; }
+        .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
-        .price-text { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
+        .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct-text { font-size: 11px; font-weight: 700; margin-top: 1px; }
 
-        .k-card { padding: 12px 12px 0 12px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -10px; z-index: 10; position: relative; }
+        .k-card { padding: 12px 12px 0 12px; height: 135px; position: relative; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -15px; z-index: 10; position: relative; }
         .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-sub); }
         .k-header .price { font-size: 18px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
@@ -72,12 +73,15 @@
     </div>
 
     <div class="container">
-        <div class="section-label">🇺🇸 US Market Overview</div>
+        <!-- 1. 美股區塊 -->
+        <div class="section-label">🇺🇸 US Market Overview (Yahoo Finance)</div>
         <div class="card">
             <table id="stock-list">
-                <!-- 數據及時載入 -->
+                <!-- 及時載入 -->
             </table>
         </div>
+
+        <!-- 2. 下面三個 K線卡片 -->
         <div id="k-list-container"></div>
     </div>
 
@@ -93,19 +97,26 @@
 
         let charts = {};
 
+        async function fetchItem(item) {
+            // 使用更穩定的 Proxy 接口並增加快取控制
+            const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=3mo`)}&disableCache=true`;
+            const response = await fetch(url);
+            const rawData = await response.json();
+            return { item, result: JSON.parse(rawData.contents).chart.result[0] };
+        }
+
         async function fetchYahooData() {
             try {
-                for (const item of symbols) {
-                    const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=3mo`)}`;
-                    const response = await fetch(url);
-                    const rawData = await response.json();
-                    const json = JSON.parse(rawData.contents);
-                    const result = json.chart.result[0];
-                    
+                // 使用並行抓取，大幅提升速度
+                const allData = await Promise.all(symbols.map(item => fetchItem(item)));
+                
+                allData.forEach(({ item, result }) => {
                     const meta = result.meta;
                     const price = meta.regularMarketPrice;
-                    // 改進百分比計算邏輯，防止 NaN
-                    const prevClose = meta.chartPreviousClose || meta.previousClose || result.indicators.quote[0].close[result.indicators.quote[0].close.length - 2];
+                    
+                    // 修正計算邏輯：從歷史數據中抓取昨日收盤，確保百分比精確
+                    const closeArr = result.indicators.quote[0].close.filter(c => c != null);
+                    const prevClose = closeArr[closeArr.length - 2];
                     const changePct = prevClose ? ((price - prevClose) / prevClose * 100).toFixed(2) : "0.00";
                     
                     if (["DJI", "IXIC", "TSM"].includes(item.id)) {
@@ -113,11 +124,12 @@
                     } else {
                         updateChartUI(item, result, price);
                     }
-                }
+                });
+                
                 const now = new Date();
-                document.getElementById('update-time').innerText = `台北時間：${now.toLocaleString('zh-TW', {hour12: false})}`;
+                document.getElementById('update-time').innerText = `最後更新：${now.toLocaleString('zh-TW', {hour12: false})}`;
             } catch (error) {
-                console.error("Fetch error:", error);
+                console.error("同步失敗:", error);
             }
         }
 
@@ -176,7 +188,7 @@
                 series: [{ data: seriesData }],
                 chart: {
                     type: 'candlestick',
-                    height: 145,
+                    height: 140,
                     toolbar: { show: false },
                     animations: { enabled: false },
                     zoom: { enabled: false }
@@ -194,7 +206,7 @@
                 },
                 yaxis: {
                     opposite: true,
-                    tickAmount: 5,
+                    tickAmount: 4,
                     labels: { 
                         style: { fontSize: '8px', colors: '#999', fontWeight: 600 },
                         formatter: (v) => v.toFixed(item.prec)
@@ -229,7 +241,7 @@
         }
 
         fetchYahooData();
-        setInterval(fetchYahooData, 60000); // 每一分鐘及時更新一次
+        setInterval(fetchYahooData, 60000); 
     </script>
 </body>
 </html>
