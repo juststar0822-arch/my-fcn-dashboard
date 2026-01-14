@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場快訊-最終修正版</title>
+    <title>每日市場即時簡報</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f2f2f7;
             margin: 0;
-            padding: 5px;
+            padding: 4px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -20,27 +20,29 @@
 
         .section-label {
             width: 100%;
-            max-width: 400px;
-            font-size: 12px;
+            max-width: 420px;
+            font-size: 11px;
             font-weight: bold;
             color: #007aff;
-            margin: 6px 0 2px 5px;
+            margin: 5px 0 2px 5px;
+            border-left: 3px solid #007aff;
+            padding-left: 5px;
         }
 
         .widget-container {
             width: 100%;
-            max-width: 400px;
+            max-width: 420px;
             background: white;
-            border-radius: 12px;
+            border-radius: 10px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
             overflow: hidden;
         }
 
-        /* 美股清單高度 */
-        .stock-box { height: 190px; }
+        /* 美股大盤區塊高度 */
+        .stock-box { height: 185px; }
         
-        /* 匯率與公債高度：110px 確保數據 100% 加載 */
+        /* 匯率與公債高度 (確保 100% 出圖) */
         .chart-box { height: 110px; }
 
     </style>
@@ -52,7 +54,7 @@
         <div id="current-date">載入中...</div>
     </div>
 
-    <!-- 1. 美股區塊 (道瓊、標普SPY、那指、台積電) -->
+    <!-- 1. 美股大盤 & TSMC (使用 TVC 官方指數源，報價精確) -->
     <div class="section-label">🇺🇸 美股大盤 & 台積電 ADR (昨日收盤)</div>
     <div class="widget-container stock-box">
         <div class="tradingview-widget-container">
@@ -60,14 +62,14 @@
             <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
             {
               "width": "100%",
-              "height": "190",
+              "height": "185",
               "symbolsGroups": [
                 {
                   "name": "",
                   "symbols": [
-                    { "name": "DJI", "displayName": "道瓊工業" },
-                    { "name": "SPY", "displayName": "標普 500 (SPY)" },
-                    { "name": "IXIC", "displayName": "那斯達克" },
+                    { "name": "DJI", "displayName": "道瓊工業指數" },
+                    { "name": "SPX", "displayName": "標普 500 指數" },
+                    { "name": "IXIC", "displayName": "那斯達克指數" },
                     { "name": "TSM", "displayName": "台積電 ADR" }
                   ]
                 }
@@ -81,7 +83,7 @@
         </div>
     </div>
 
-    <!-- 2. 美元/台幣 -->
+    <!-- 2. 美元/台幣 (大數字 + 趨勢圖) -->
     <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
@@ -97,7 +99,7 @@
         </div>
     </div>
 
-    <!-- 3. 日圓/台幣 -->
+    <!-- 3. 日圓/台幣 (大數字 + 趨勢圖) -->
     <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
@@ -113,7 +115,7 @@
         </div>
     </div>
 
-    <!-- 4. 美國 10 年期公債 (修復代碼) -->
+    <!-- 4. 美國 10 年期公債 (大數字 + 趨勢圖) -->
     <div class="section-label">📉 美國 10 年期公債 (US10Y)</div>
     <div class="widget-container chart-box">
         <div class="tradingview-widget-container">
