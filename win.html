@@ -3,20 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 - 獎盃更新版</title>
+    <title>榮譽榜生成器 (間距完美版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
 body { 
-    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
-    background-color: #1a1a1a; 
-    padding-bottom: 80px; 
-    overflow-x: hidden;
+        font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+        background-color: #1a1a1a; 
+        padding-bottom: 80px; 
+        color: #333;
+        overflow-x: hidden;
+    }
+/* 輸入介面 */
+.control-panel {
+    background: #2d2d2d;
+    border-bottom: 1px solid #444;
+    color: white;
+    padding: 20px;
+    margin-bottom: 10px;
 }
-.control-panel { background: #2d2d2d; padding: 20px; color: white; }
-#preview-container { width: 100%; display: flex; justify-content: center; background: #1a1a1a; padding-top: 10px; min-height: 550px; }
+
+.list-panel {
+    background: #222;
+    padding: 10px 20px;
+    color: white;
+}
+
+.item-card {
+    background: #3a3a3a;
+    border-left: 4px solid #D4AF37;
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
+input, select {
+    background: #444; color: white; border: 1px solid #555;
+    padding: 10px; border-radius: 6px; width: 100%;
+    font-size: 1rem; outline: none;
+}
+
+/* === 預覽容器 === */
+#preview-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    overflow: hidden; 
+    background: #1a1a1a;
+    padding-top: 10px;
+    min-height: 550px; 
+}
 
 /* 獎狀本體 */
 .certificate {
@@ -30,122 +73,441 @@ body {
     box-shadow: 0 0 20px rgba(0,0,0,0.5);
     flex-shrink: 0; 
     transform-origin: top center;
+    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
 }
 
-.corner { position: absolute; width: 50px; height: 50px; border: 5px solid #D93025; z-index: 10; }
+/* === 背景與物件 === */
+.corner {
+    position: absolute; width: 50px; height: 50px;
+    border: 5px solid #D93025; z-index: 10;
+}
 .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
 .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
 .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
 .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-.svg-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
-
-/* === 這裡是修改後的 CSS === */
-.custom-trophy-img {
+.svg-layer {
     position: absolute;
-    top: 40px;    /* 稍微往上移一點，因為這張圖有底座 */
-    left: 20px;   /* 往左移一點增加空間感 */
-    width: 380px; /* 這張圖細節多，調大一點更好看 */
-    height: auto;
-    z-index: 12;  /* 在裝飾背景上方 */
-    filter: drop-shadow(4px 4px 10px rgba(0,0,0,0.2)); /* 柔和的投影 */
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    z-index: 5;
+    pointer-events: none;
 }
 
-.field { position: absolute; z-index: 20; background: transparent; }
-.text-outline { text-shadow: 3px 3px 0 #fff, -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff; }
+/* 新增：替換的獎盃圖片樣式 */
+.custom-trophy-img {
+    position: absolute;
+    top: 80px;    /* 調整位置 */
+    left: 60px;   /* 調整位置 */
+    width: 250px; /* 調整大小 */
+    height: auto;
+    z-index: 15;  /* 確保在背景之上，文字之下 */
+    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); /* 增加一點陰影 */
+}
 
-.field-date { top: 25px; left: 40px; font-size: 36px; font-weight: 900; color: #d97706; }
-.field-name { top: 50px; right: 40px; text-align: right; }
-.name-text { font-size: 90px; font-weight: 900; color: #000; line-height: 1.1; }
-.title-text { font-size: 32px; font-weight: bold; color: #333; }
-.field-product { top: 215px; right: 40px; display: flex; align-items: center; justify-content: flex-end; }
-.product-box { border: 4px solid #2563eb; color: #2563eb; font-size: 50px; font-weight: 900; padding: 0 20px; background: rgba(255,255,255,0.9); }
-.field-amount { top: 335px; right: 40px; text-align: right; }
-.amount-text { font-weight: 900; color: #dc2626; font-size: 75px; }
+/* === 文字層 === */
+.field {
+    position: absolute;
+    z-index: 20;
+    background: transparent;
+}
+
+.text-outline {
+    text-shadow: 
+        3px 3px 0 #fff, -2px -2px 0 #fff,  
+        2px -2px 0 #fff, -2px 2px 0 #fff,
+        2px 2px 0 #fff;
+}
+
+.field-date {
+    top: 25px; left: 40px;
+    font-size: 36px; font-weight: 900;
+    color: #d97706; 
+    line-height: 1;
+}
+
+/* 1. 姓名區 */
+.field-name {
+    top: 50px; 
+    right: 40px;
+    text-align: right;
+    display: flex; flex-direction: column; align-items: flex-end;
+    min-width: 350px;
+}
+.name-text { 
+    font-size: 90px; font-weight: 900; color: #000; 
+    line-height: 1.1; letter-spacing: 2px;
+}
+.title-text { 
+    font-size: 32px; font-weight: bold; color: #333; 
+    margin-top: -5px; 
+}
+
+/* 2. 商品區 */
+.field-product {
+    top: 215px; 
+    right: 40px;
+    display: flex; 
+    align-items: center; 
+    justify-content: flex-end;
+    min-width: 450px;
+}
+
+.product-list {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.product-box {
+    border: 4px solid #2563eb; 
+    color: #2563eb;
+    font-size: 50px;
+    font-weight: 900;
+    padding: 0 20px; 
+    white-space: nowrap; 
+    line-height: 1.2;
+    background: rgba(255,255,255,0.95);
+}
+.count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
+
+/* 3. 金額區 */
+.field-amount {
+    top: 335px; 
+    right: 40px;
+    text-align: right;
+    min-width: 500px;
+    display: flex;
+    flex-direction: column; 
+    align-items: flex-end;
+    gap: 0px;
+}
+.amount-row {
+    display: flex;
+    align-items: baseline;
+    line-height: 1.1;
+}
+.amount-text { 
+    font-weight: 900; color: #dc2626; 
+    font-family: Arial, 'Microsoft JhengHei', sans-serif;
+}
 .currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
-.field-stats { bottom: 25px; right: 40px; text-align: right; }
-.stat-line { font-size: 28px; font-weight: bold; color: #be123c; }
 
-#result-area { text-align: center; margin-top: 20px; display: none; }
-#final-img { max-width: 90%; margin: 0 auto; border: 2px solid #D4AF37; border-radius: 10px; }
+.field-stats {
+    bottom: 25px; right: 40px;
+    text-align: right;
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.stat-line { 
+    font-size: 28px; font-weight: bold; color: #be123c; 
+    line-height: 1.4;
+}
+
+#result-area {
+    text-align: center; margin-top: 20px; display: none;
+}
+#result-img {
+    max-width: 90%; margin: 0 auto;
+    border: 2px solid #D4AF37; border-radius: 10px;
+}
 </style>
 </head>
 <body>
 <div id="app">
 <div class="control-panel">
     <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
-    <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow text-lg">生成圖片 (長按儲存)</button>
+<div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
+    <div><label>日期</label><input type="date" v-model="globalDate"></div>
+    <div>
+        <label>業代</label>
+        <select v-model="repIndex">
+            <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+        </select>
+    </div>
 </div>
 
+<div class="bg-gray-800 p-3 rounded-lg mb-4">
+    <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
+    <div class="grid grid-cols-2 gap-3 mb-2">
+        <div>
+            <label>商品</label>
+            <select v-model="form.productType" @change="handleProductChange">
+                <option value="FCN">FCN</option>
+                <option value="U6">元元致富 U6</option>
+                <option value="U5">元元致富 U5</option>
+                <option value="BOND">海外債</option>
+            </select>
+        </div>
+        <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
+    </div>
+    <div class="grid grid-cols-3 gap-2 mb-2">
+        <div>
+            <label>幣別</label>
+            <select v-model="form.currency" @change="updateExRate">
+                <option value="USD">USD</option>
+                <option value="JPY">JPY</option>
+                <option value="TWD">TWD</option>
+            </select>
+        </div>
+        <div class="relative">
+            <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
+            <input type="number" v-model="form.exRate" step="0.01">
+        </div>
+        <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
+    </div>
+    <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
+        ➕ 加入清單
+    </button>
+</div>
+</div>
+<div class="list-panel" v-if="cart.length > 0">
+    <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
+    <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+        <div>
+            <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
+            <span class="text-gray-300">{{ item.currency }} {{ formatNumber(item.amount) }}</span>
+        </div>
+        <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
+    </div>
+    <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
+        <div class="flex justify-between font-bold mb-1">
+            <span class="text-gray-300">總手收</span>
+            <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
+        </div>
+        <div class="flex justify-between font-bold">
+            <span class="text-gray-300">總獎金</span>
+            <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
+        </div>
+    </div>
+    <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
+        生成圖片 (長按儲存)
+    </button>
+</div>
+<div class="list-panel text-center text-gray-500 py-4" v-else>請先輸入並加入清單</div>
 <div id="result-area">
     <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
     <img id="final-img" alt="長按儲存">
 </div>
-
 <div id="preview-container">
     <div id="certificate-node" class="certificate" :style="scaleStyle">
-        <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
 
-        <svg class="svg-layer" viewBox="0 0 800 535">
-            <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="#FFD700" stroke-width="60" fill="none" opacity="0.1"/>
-            <g transform="translate(320, 10) rotate(-10)">
-                <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
-                <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
-            </g>
+    <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
+                <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
+            </linearGradient>
+            <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stop-color="#FDB931"/><stop offset="50%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B78628"/>
+            </linearGradient>
+        </defs>
+        <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
+        <path d="M850 400 Q 600 200 400 450 T -50 300" stroke="url(#ribbonGrad)" stroke-width="40" fill="none" opacity="0.5"/>
+        <circle cx="100" cy="100" r="10" fill="#4CAF50" opacity="0.2"/>
+        <circle cx="700" cy="400" r="15" fill="#2196F3" opacity="0.2"/>
+        <rect x="600" y="80" width="20" height="20" fill="#FFC107" opacity="0.2" transform="rotate(30 610 90)"/>
+        <rect x="150" y="450" width="15" height="15" fill="#E91E63" opacity="0.2" transform="rotate(45 157 457)"/>
+
+        <g transform="translate(320, 10) rotate(-10)">
+            <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
+            <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
+        </g>
+    </svg>
+
+    <img 
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Gold_cup_icon.svg/600px-Gold_cup_icon.svg.png" 
+        alt="獎盃" 
+        class="custom-trophy-img"
+        crossorigin="anonymous"
+    >
+
+    <div class="field field-date text-outline">{{ rocDate }}</div>
+
+    <div class="field field-name text-outline">
+        <div class="name-text">{{ currentRep.name }}</div>
+        <div class="title-text">{{ currentRep.title }}</div>
+    </div>
+
+    <div class="field field-product">
+        <div class="product-list">
+            <div v-for="prod in finalProductList" :key="prod" class="product-box">
+                {{ prod }}
+            </div>
+        </div>
+        <div class="count-text text-outline">共計{{ cart.length }}筆</div>
+    </div>
+
+    <div class="field field-amount text-outline">
+        <div v-for="item in finalAmountList" :key="item.curr" class="amount-row">
+            <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ item.val }}</span>
+            <span class="currency-text">{{ item.curr }}</span>
+        </div>
+    </div>
+
+    <div class="field field-stats text-outline">
+        <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
+        <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
+    </div>
+
+    <div style="position: absolute; bottom: 15px; right: 15px;">
+         <svg width="60" height="40" viewBox="0 0 100 60">
+             <rect x="30" y="20" width="40" height="40" fill="#ccc"/>
+             <rect x="0" y="35" width="30" height="25" fill="#aaa"/>
+             <rect x="70" y="45" width="30" height="15" fill="#eee"/>
+             <text x="50" y="50" text-anchor="middle" fill="white" font-weight="bold" font-size="20">1</text>
         </svg>
-
-        <!-- === 這裡更換為你提供的圖片 (Base64格式) === -->
-        <img src="data:image/png;base64,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h+y/P5UfS7Yv/+q/m5v67//5xO/93NfH/+7/9eD0xO/9q75m9mN8V8YADK588j8enH74T4bWbn64NDD9873m4Ydqm88vVEfmG6XB2Uald6RarS9VymOzlcrkVKUyNl2tjE5XqqPTVfrMVDm9S10Nq6YpS2X+zF967tTz/P27t72ZuvN0f89M9W6qE++6U+Xm0Nn73809/K7n6E21mU/17N63n6H61T8p06r0oNptO6/r7V6t7fH91K72zO69m5r5u76f1rVntmG6V6U/S75VfN711H/Dbe7G6f8mK10fXbUf9O7f3v3rI9B5pXat3p30XW7d+Lp+P/X8bFq/8oV6GPl97Wv5O5fX5696d7vT79O70X41804f8m383637v/F98/p19uY9atYnU+/5v6p/rXvU40r52mO6uLw93Y7O/X1z3P517rU4yI7S0Wq7D742N+8613lX3N6m+N6nndzOf7vS/rX+86l78U9S+8L/P3XPf3N75/LPD8+c+A3oP38+vE038vO6FwDGlpYfGJ48+96+0Z/uG5v64ECp/tCg3v0m5f7704AnmK7nC/C/O7fK/Lpyd9Y02X0O6fK06X/E7P5h+1v16tPzXOfuOfnS+/m986R6Ff9N7G7C927+Uf+W/7Gf9zW+98O9C/42Xv6H7R/pA6D8699hP6+07qWv8C/79Y71l/P9Xp7/W5XpA/mB++Yq7N/hA+n62W/p/9N2fK6tX/m89v7l7lOf2fR5q649/k0Y6P2Xp39X77v2f8P/Xv9p6XFp5Kx7XGvH3+T71G60G529O2q99+26B7W2fVfX9f57S+/u6F174W6v9V/I06N6j6e/XyvW7m/86O3L/+TfN8YvfbG28fX7Oiv9f79v5L6TveE7f++uCQC907/2u2vnf/y/95pXnqkvXm+X6t/S6C6fOFC9YI+S0qKk8R32vE06/uVv6e46YmO7Yv23F788tVd2+mUjO56f7v8t/6f/u69mO69p968j9yH0/6NndkX7A+yN+P+XF78W6T371P+pT/f4X9I8jKzYf9l7DshObeKz3p/D7w8v5RreEit688v6OIdYhD/6vF5O8uC12A34oE+j95N+lK36U147yDk6Y8uFz5rBNoWvHwH8HId027K5L92V0tV/yI3t6Ssh6G7T42yFPyu613XvD+fX/yIofN8/76Xv6r7q9t6Yp/uXv7o/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H9bf/W//1/7R/+m/bhz789/qf/z/fmD4yM//V+3S+V9vV59690Rtfm978YnH6mOnfrI/NvO+UmXvU6Xm6KPlXv+RZq//SHvX8ce6u08eqh28+X9f2vHUP+o/9s1fqm3/m99pPvm9T9Z+7v9e7u/86p+v9T/1L/Y98I8eLd1x6L3V0e9vO0v/8977u8c6e4881O0/d//07N8/2D36D9+0PXL4iWp34m91D596rH7m2QvN8WvPl1un/vF6vXGs1d+9s1atvt6unX56oXfyW5s37r/O69f9W7unf6p169R/qV7beP766i10uG/s625vXl++07vS+Wf5p/P70v/L//v86O+7vP6jK+fO/X1/XWp2S63WrvHq1J7fWh146Wfbu0785erY6Qfq0x861Vq+f6V9+rOfG/30z+6pff/eN7cP/4/3V5/9k9+rDR+uVY6ePVm7+Vev1k78p19vPfF3vqf/U0f/5fLwS/+mveXNf9T72pM/VD/06Qfq1+55uTz9xPFrYyeOlO64cKJ/9/O7eodf2T228mK1eunYfO/6V86U1i69r9s6+lK93f1K877v7O/sOLvU7+0bqO16pXatXWq3mne16937fH3S97zW6BxrXzt9un3sh969un75hWrj7P3N19r/+6W1f/b/rL31yH9d7X734Wp3/6XW9v3/Zf3Mub83s3L2A5Xm8uFyeWpPpbq8vzayZ7AyNF6vDA7XykOlUnVsrlYvjeW/q7l8fH6iNDW5Uu3NjeVv9OfG5scHy2MDUzOnS/0L89X+6M399d7Y8qFyaX5xIuU9v8o9/uD7uivV1Vq5NDU9Uu/PzE9Xy7PT0yPlmYly/9R0pT+YGR2qT85OV5enpsfGR+r90XJleXisXpqpN7rz/eXy6Hzv7GShMTlVq9UX6pVStX98enSyv9S/0S2XJ2YmxmYmU/uS6Xw6XW6M18tjtVp9stzojU4O9A/XquVq/7f7C6XGxES5OTZRLfVXqkvV6v8B3uGj309V61EAAAAASUVORK5CYII=" 
-            alt="獎盃" 
-            class="custom-trophy-img"
-        >
-
-        <div class="field field-date text-outline">{{ rocDate }}</div>
-        <div class="field field-name text-outline">
-            <div class="name-text">{{ currentRep.name }}</div>
-            <div class="title-text">{{ currentRep.title }}</div>
-        </div>
-        <div class="field field-product">
-            <div class="product-box">FCN</div>
-            <div class="count-text text-outline">共計1筆</div>
-        </div>
-        <div class="field field-amount text-outline">
-            <span class="amount-text">2 萬</span>
-            <span class="currency-text">USD</span>
-        </div>
-        <div class="field field-stats text-outline">
-            <div class="stat-line">手收：12,660元</div>
-            <div class="stat-line">獎金：3,798元</div>
-        </div>
     </div>
 </div>
 </div>
-
+</div>
 <script>
-const { createApp, computed, ref, onMounted } = Vue;
+    const { createApp, reactive, computed, ref, onMounted } = Vue;
 createApp({
     setup() {
         const windowWidth = ref(window.innerWidth);
-        const scaleStyle = computed(() => {
-            const scale = Math.min((windowWidth.value - 20) / 800, 1);
-            return { transform: `scale(${scale})`, marginBottom: `-${535 * (1 - scale)}px` };
+        const loadingRate = ref(false);
+        const globalDate = ref(new Date().toISOString().split('T')[0]);
+        const repIndex = ref(4);
+
+        const cart = ref([]);
+        const form = reactive({
+            productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
         });
-        const rocDate = "113/1/14";
-        const currentRep = { name: '蕭玉春', title: '業務協理' };
+
+        const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
+
+        const scaleStyle = computed(() => {
+            const targetWidth = 820; 
+            const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
+            return {
+                transform: `scale(${scale})`,
+                marginBottom: `-${535 * (1 - scale)}px`
+            };
+        });
+
+        onMounted(async () => {
+            window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; });
+            await fetchLiveRates();
+        });
+
+        const fetchLiveRates = async () => {
+            loadingRate.value = true;
+            try {
+                const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+                const data = await res.json();
+                if(data && data.rates) {
+                    liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
+                    liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
+                    updateExRate();
+                }
+            } catch(e) {}
+            loadingRate.value = false;
+        };
+
+        const repList = [
+            { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
+            { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
+            { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
+            { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
+            { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
+            { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
+            { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
+        ];
+
+        const currentRep = computed(() => repList[repIndex.value]);
+        const rocDate = computed(() => {
+            const d = new Date(globalDate.value);
+            return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
+        });
+
+        const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
+        const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
+        const handleProductChange = () => {
+            if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
+            else if(form.productType === 'FCN') form.bp = 50; 
+        };
+
+        const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
+        const calculatedBonus = computed(() => {
+            let rate = 0;
+            if(form.productType === 'FCN') rate = 30;
+            else if(['U6', 'U5'].includes(form.productType)) rate = 38;
+            else if(form.productType === 'BOND') rate = 25;
+            return Math.round(calculatedRevenue.value * (rate / 100));
+        });
+
+        const addToCart = () => {
+            cart.value.push({
+                productType: form.productType, currency: form.currency, amount: form.amount,
+                bp: form.bp, exRate: form.exRate, revenue: calculatedRevenue.value, bonus: calculatedBonus.value
+            });
+        };
+        const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
+
+        const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
+        const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
+
+        const finalProductList = computed(() => {
+            if (cart.value.length === 0) return ['FCN'];
+            const types = [...new Set(cart.value.map(i => i.productType))];
+            const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
+            return types.map(t => map[t]);
+        });
+
+        const formatAmountWithUnit = (num) => {
+            if (num >= 10000) {
+                const val = num / 10000;
+                const formatted = parseFloat(val.toFixed(2));
+                return `${formatted} 萬`;
+            }
+            return formatNumber(num);
+        };
+
+        const finalAmountList = computed(() => {
+            if(cart.value.length === 0) return [{ val: formatAmountWithUnit(form.amount), curr: form.currency }];
+            const sums = {};
+            cart.value.forEach(item => {
+                if(!sums[item.currency]) sums[item.currency] = 0;
+                sums[item.currency] += item.amount;
+            });
+            return Object.keys(sums).map(curr => ({ val: formatAmountWithUnit(sums[curr]), curr: curr }));
+        });
+
+        const amountFontSize = computed(() => {
+            if (finalAmountList.value.length > 1) return '40px'; 
+            return '75px'; 
+        });
+
+        const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
         const generateImage = () => {
+            window.scrollTo(0, 0);
             const element = document.getElementById("certificate-node");
             const originalTransform = element.style.transform;
             element.style.transform = 'scale(1)'; 
-            html2canvas(element, { scale: 2, useCORS: true }).then(canvas => {
+
+            html2canvas(element, { 
+                scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
+            }).then(canvas => {
                 document.getElementById("final-img").src = canvas.toDataURL("image/png");
                 document.getElementById("result-area").style.display = "block";
-                element.style.transform = originalTransform;
-                window.scrollTo(0, 0);
+                element.style.transform = originalTransform; 
+                setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
             });
         };
-        onMounted(() => { window.addEventListener('resize', () => windowWidth.value = window.innerWidth); });
-        return { scaleStyle, rocDate, generateImage, currentRep };
+
+        return {
+            repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
+            updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
+            addToCart, removeFromCart, totalRevenue, totalBonus, 
+            finalProductList, finalAmountList, amountFontSize,
+            formatNumber, generateImage, scaleStyle
+        };
     }
 }).mount('#app');
 </script>
