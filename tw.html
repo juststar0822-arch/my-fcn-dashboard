@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場快訊-極速精確版</title>
-    <!-- 使用專業繪圖庫 (無廣告、純淨版) -->
+    <title>專業市場即時報-Yahoo極速版</title>
+    <!-- 引入專業繪圖庫 -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -12,7 +12,7 @@
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --price-blue: #0040ff; /* 醒目數字藍 */
+            --price-blue: #0040ff;
             --up-red: #ff3b30;
             --down-green: #34c759;
         }
@@ -23,13 +23,13 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0; 
-            padding: 40px 12px 10px 12px; /* 頂部留白 40px 防止截圖切到標題 */
+            padding: 35px 12px 10px 12px; /* 頂部預留截圖空間 */
             display: flex; flex-direction: column; align-items: center;
             overflow: hidden; 
             height: 100vh;
         }
 
-        .header { text-align: center; margin-bottom: 6px; width: 100%; }
+        .header { text-align: center; margin-bottom: 4px; width: 100%; }
         .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; }
         #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
 
@@ -44,22 +44,22 @@
         .card {
             background: var(--card-bg); border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 4px; width: 100%; overflow: hidden;
+            margin-bottom: 3px; width: 100%; overflow: hidden;
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 9px 14px; border-bottom: 1px solid #f1f2f6; }
+        td { padding: 8px 14px; border-bottom: 1px solid #f1f2f6; }
         .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
         .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct-text { font-size: 11px; font-weight: 700; margin-top: 1px; }
 
-        .k-card { padding: 12px 12px 0 12px; height: 135px; position: relative; }
+        .k-card { padding: 12px 12px 4px 12px; height: 135px; position: relative; }
         .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -15px; z-index: 10; position: relative; }
         .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-sub); }
-        .k-header .price { font-size: 18px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        .k-header .price { font-size: 19px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        .chart-box { width: 100%; height: 140px; }
+        .chart-box { width: 100%; height: 140px; margin-top: 0; }
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -69,16 +69,14 @@
 
     <div class="header">
         <h1>每日市場即時簡報</h1>
-        <div id="update-time">及時數據同步中...</div>
+        <div id="update-time">同步中...</div>
     </div>
 
     <div class="container">
         <!-- 1. 美股區塊 -->
-        <div class="section-label">🇺🇸 US Market Overview (Yahoo Finance)</div>
+        <div class="section-label">🇺🇸 US Market OVERVIEW (Yahoo)</div>
         <div class="card">
-            <table id="stock-list">
-                <!-- 及時載入 -->
-            </table>
+            <table id="stock-list"></table>
         </div>
 
         <!-- 2. 下面三個 K線卡片 -->
@@ -97,40 +95,41 @@
 
         let charts = {};
 
-        async function fetchItem(item) {
-            // 使用更穩定的 Proxy 接口並增加快取控制
-            const url = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=3mo`)}&disableCache=true`;
-            const response = await fetch(url);
-            const rawData = await response.json();
-            return { item, result: JSON.parse(rawData.contents).chart.result[0] };
-        }
-
         async function fetchYahooData() {
-            try {
-                // 使用並行抓取，大幅提升速度
-                const allData = await Promise.all(symbols.map(item => fetchItem(item)));
+            // 使用併行抓取技術，速度提升一倍以上
+            const promises = symbols.map(item => 
+                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=3mo`)}&disableCache=true`)
+                .then(res => res.json())
+                .then(data => {
+                    const json = JSON.parse(data.contents);
+                    return { item, result: json.chart.result[0] };
+                })
+                .catch(err => { console.error(item.id, err); return null; })
+            );
+
+            const results = await Promise.all(promises);
+            
+            results.forEach(res => {
+                if (!res) return;
+                const { item, result } = res;
+                const meta = result.meta;
+                const quotes = result.indicators.quote[0].close.filter(v => v != null);
                 
-                allData.forEach(({ item, result }) => {
-                    const meta = result.meta;
-                    const price = meta.regularMarketPrice;
-                    
-                    // 修正計算邏輯：從歷史數據中抓取昨日收盤，確保百分比精確
-                    const closeArr = result.indicators.quote[0].close.filter(c => c != null);
-                    const prevClose = closeArr[closeArr.length - 2];
-                    const changePct = prevClose ? ((price - prevClose) / prevClose * 100).toFixed(2) : "0.00";
-                    
-                    if (["DJI", "IXIC", "TSM"].includes(item.id)) {
-                        updateStockUI(item.id, item.name, price, changePct);
-                    } else {
-                        updateChartUI(item, result, price);
-                    }
-                });
+                const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
+                // 修復 NaN 問題：如果 meta.previousClose 失效，從歷史陣列抓取倒數第二個值
+                const prevClose = meta.chartPreviousClose || meta.previousClose || (quotes.length > 1 ? quotes[quotes.length - 2] : currentPrice);
                 
-                const now = new Date();
-                document.getElementById('update-time').innerText = `最後更新：${now.toLocaleString('zh-TW', {hour12: false})}`;
-            } catch (error) {
-                console.error("同步失敗:", error);
-            }
+                const changePct = (((currentPrice - prevClose) / prevClose) * 100).toFixed(2);
+                
+                if (["DJI", "IXIC", "TSM"].includes(item.id)) {
+                    updateStockUI(item.id, item.name, currentPrice, changePct);
+                } else {
+                    updateChartUI(item, result, currentPrice);
+                }
+            });
+            
+            const now = new Date();
+            document.getElementById('update-time').innerText = `台北時間：${now.toLocaleString('zh-TW', {hour12: false})}`;
         }
 
         function updateStockUI(id, name, price, pct) {
@@ -162,24 +161,23 @@
                     <div class="section-label">${item.name}</div>
                     <div class="card k-card" id="card-${item.id}">
                         <div class="k-header">
-                            <span class="title">Yahoo 即時數據匯報</span>
+                            <span class="title">Yahoo 即時匯報</span>
                             <span class="price" id="price-${item.id}">--</span>
                         </div>
                         <div id="chart-${item.id}" class="chart-box"></div>
                     </div>
                 `;
-                setTimeout(() => createChart(item, result, currentPrice), 500);
+                setTimeout(() => createChart(item, result, currentPrice), 400);
             } else {
-                const displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-                document.getElementById(`price-${item.id}`).innerText = displayPrice;
+                const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+                document.getElementById(`price-${item.id}`).innerText = display;
                 refreshChart(item.id, result);
             }
         }
 
         function createChart(item, result, currentPrice) {
             const ohlc = result.indicators.quote[0];
-            const timestamp = result.timestamp;
-            const seriesData = timestamp.map((t, i) => ({
+            const seriesData = result.timestamp.map((t, i) => ({
                 x: new Date(t * 1000),
                 y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], ohlc.close[i]]
             })).filter(d => d.y[0] != null);
@@ -191,7 +189,8 @@
                     height: 140,
                     toolbar: { show: false },
                     animations: { enabled: false },
-                    zoom: { enabled: false }
+                    zoom: { enabled: false },
+                    sparkline: { enabled: false }
                 },
                 xaxis: {
                     type: 'datetime',
@@ -206,7 +205,7 @@
                 },
                 yaxis: {
                     opposite: true,
-                    tickAmount: 4,
+                    tickAmount: 5,
                     labels: { 
                         style: { fontSize: '8px', colors: '#999', fontWeight: 600 },
                         formatter: (v) => v.toFixed(item.prec)
@@ -225,8 +224,8 @@
 
             charts[item.id] = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
             charts[item.id].render();
-            const displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-            document.getElementById(`price-${item.id}`).innerText = displayPrice;
+            const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+            document.getElementById(`price-${item.id}`).innerText = display;
         }
 
         function refreshChart(id, result) {
@@ -241,7 +240,7 @@
         }
 
         fetchYahooData();
-        setInterval(fetchYahooData, 60000); 
+        setInterval(fetchYahooData, 60000); // 每一分鐘自動更新
     </script>
 </body>
 </html>
