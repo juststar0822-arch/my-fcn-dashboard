@@ -478,18 +478,42 @@ createApp({
         const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
         const generateImage = () => {
-            window.scrollTo(0, 0);
-            const element = document.getElementById("certificate-node");
-            const originalTransform = element.style.transform;
-            element.style.transform = 'scale(1)'; 
+    // 確保回到最上方，避免座標計算錯誤
+    window.scrollTo(0, 0);
+    
+    const element = document.getElementById("certificate-node");
+    const originalTransform = element.style.transform;
+    
+    // 截圖前移除縮放，強制設為原始 1:1 比例
+    element.style.transform = 'none'; 
 
-            html2canvas(element, { 
-                scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
-            }).then(canvas => {
-                document.getElementById("final-img").src = canvas.toDataURL("image/png");
-                document.getElementById("result-area").style.display = "block";
-                element.style.transform = originalTransform; 
-                setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
+    // 重要：確保 Noto Sans 字體加載完畢後再截圖
+    document.fonts.ready.then(() => {
+        html2canvas(element, { 
+            scale: 2,               // 提高清晰度
+            backgroundColor: "#ffffff", 
+            useCORS: true,         // 支援跨域圖片
+            width: 800,            // 鎖定寬度 800px
+            height: 535,           // 鎖定高度 535px
+            logging: false
+        }).then(canvas => {
+            const finalImg = document.getElementById("final-img");
+            finalImg.src = canvas.toDataURL("image/png");
+            document.getElementById("result-area").style.display = "block";
+            
+            // 恢復畫面上的縮放預覽
+            element.style.transform = originalTransform; 
+            
+            // 自動捲動到結果圖，方便長按儲存
+            setTimeout(() => { 
+                document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); 
+            }, 100);
+        });
+    }).catch(err => {
+        console.error("截圖發生錯誤:", err);
+        element.style.transform = originalTransform; 
+    });
+};
             });
         };
 
