@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場即時簡報-專業定值版</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>專業市場簡報-K線寬裕版</title>
     <style>
         :root {
             --bg-color: #f2f2f7;
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --up-red: #ff3b30;
-            --down-green: #34c759;
-            --accent: #5856d6;
+            --accent: #007aff;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -21,48 +18,56 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 4px 10px 12px 10px;
+            margin: 0; padding: 6px 12px 20px 12px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; 
+            overflow-x: hidden; /* 確保不左右滑動 */
         }
 
-        .header { text-align: center; margin-bottom: 2px; width: 100%; }
-        .header h1 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 800; }
-        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 1px; }
+        /* 標題區域 */
+        .header { text-align: center; margin-bottom: 6px; width: 100%; }
+        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; }
+        #update-time { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 10px; font-weight: 700; color: var(--text-sub);
-            margin: 5px 0 2px 4px; display: flex; align-items: center;
+            font-size: 11px; font-weight: 800; color: var(--text-sub);
+            margin: 12px 0 5px 4px; display: flex; align-items: center;
             text-transform: uppercase;
         }
         .section-label::before {
-            content: ""; display: inline-block; width: 3px; height: 9px;
-            background: var(--accent); margin-right: 5px; border-radius: 1px;
+            content: ""; display: inline-block; width: 3px; height: 11px;
+            background: var(--accent); margin-right: 6px; border-radius: 2px;
         }
 
+        /* 萬用卡片樣式 */
         .card {
-            background: var(--card-bg); border-radius: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 3px; width: 100%; overflow: hidden;
+            background: var(--card-bg); border-radius: 14px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+            margin-bottom: 8px; width: 100%; overflow: hidden;
+            position: relative;
         }
 
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 8px 12px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
-        .val-col { text-align: right; }
-        .price { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
-        .pct { font-size: 11px; font-weight: 700; }
+        /* 美股表格區塊 */
+        .stock-box { height: 165px; }
 
-        .chart-card { padding: 6px 12px 4px 12px; position: relative; }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0px; }
-        .chart-header .name { font-size: 13px; font-weight: 800; color: var(--text-main); }
-        .chart-header .price { font-size: 17px; font-weight: 800; letter-spacing: -0.5px; font-family: 'SF Mono', monospace; }
-        .canvas-wrapper { width: 100%; height: 72px; } 
+        /* K線卡片容器：增加高度至 130px，並利用裁切隱藏 Logo */
+        .kline-wrapper {
+            height: 130px; /* 您看到的卡片高度 (比之前更寬裕) */
+            position: relative;
+        }
+        .kline-inner {
+            margin-top: -5px; /* 遮掉頂部間隙 */
+            height: 170px;   /* 組件實際高度 */
+            width: 100%;
+        }
+        .mask-bottom {
+            position: absolute;
+            bottom: 0; left: 0; width: 100%; height: 32px;
+            background: white; z-index: 10; /* 物理遮蓋 Logo */
+        }
 
-        .up { color: var(--up-red); }
-        .down { color: var(--down-green); }
+        .footer { margin-top: 15px; font-size: 10px; color: var(--text-sub); text-align: center; opacity: 0.4; }
     </style>
 </head>
 <body>
@@ -73,122 +78,88 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 -->
+        <!-- 1. 美股區塊 (Yahoo 列表風，道瓊點數正確) -->
         <div class="section-label">🇺🇸 US Market (Yahoo Finance)</div>
-        <div class="card">
-            <table>
-                <tbody id="stock-data">
-                    <!-- JS 填入 -->
-                </tbody>
-            </table>
+        <div class="card stock-box">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-quotes.js" async>
+                {
+                  "width": "100%", "height": "165",
+                  "symbolsGroups": [
+                    { "name": "", "symbols": [
+                        { "name": "DJI", "displayName": "道瓊工業指數" },
+                        { "name": "IXIC", "displayName": "那斯達克指數" },
+                        { "name": "TSM", "displayName": "台積電 ADR" }
+                    ]}
+                  ],
+                  "showSymbolLogo": false, "colorTheme": "light", "isTransparent": true, "locale": "zh_TW"
+                }
+                </script>
+            </div>
         </div>
 
-        <!-- 2. 匯率與公債區塊 -->
-        <div id="fx-bond-container">
-            <!-- JS 填入 -->
+        <!-- 2. 美元/台幣 (K線寬裕版) -->
+        <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                  "symbol": "FX_IDC:USDTWD",
+                  "width": "100%", "height": "170", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(255, 59, 48, 1)",
+                  "underLineColor": "rgba(255, 59, 48, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
+                }
+                </script>
+            </div>
+            <div class="mask-bottom"></div>
+        </div>
+
+        <!-- 3. 日圓/台幣 (K線寬裕版) -->
+        <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                  "symbol": "FX_IDC:JPYTWD",
+                  "width": "100%", "height": "170", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
+                }
+                </script>
+            </div>
+            <div class="mask-bottom"></div>
+        </div>
+
+        <!-- 4. 美國 10 年期公債 (K線寬裕版) -->
+        <div class="section-label">📈 美國 10 年期公債 (US10Y)</div>
+        <div class="card kline-wrapper">
+            <div class="kline-inner">
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                  "symbol": "US10Y",
+                  "width": "100%", "height": "170", "locale": "zh_TW", "dateRange": "1M",
+                  "colorTheme": "light", "trendLineColor": "rgba(52, 199, 89, 1)",
+                  "underLineColor": "rgba(52, 199, 89, 0.1)", "isTransparent": true, "autosize": false,
+                  "chartType": "candlesticks"
+                }
+                </script>
+            </div>
+            <div class="mask-bottom"></div>
         </div>
     </div>
 
+    <div class="footer">Financial Terminal | Yahoo Style Sync</div>
+
     <script>
-        // 使用固定的 30 天歷史數據 (不再隨機，保證重新整理不變)
-        const marketData = {
-            stocks: [
-                { name: "道瓊工業指數", price: "49,199.99", pct: "-0.08%", isUp: false },
-                { name: "那斯達克指數", price: "23,709.87", pct: "-0.20%", isUp: false },
-                { name: "台積電 ADR", price: "331.21", pct: "-0.56%", isUp: false }
-            ],
-            others: [
-                { 
-                    id: "usd", name: "美元 / 台幣 (USD/TWD)", price: "31.659", isUp: true, 
-                    history: [31.2, 31.22, 31.25, 31.23, 31.28, 31.3, 31.35, 31.32, 31.38, 31.42, 31.4, 31.45, 31.48, 31.5, 31.48, 31.52, 31.55, 31.53, 31.58, 31.6, 31.58, 31.62, 31.61, 31.63, 31.64, 31.62, 31.65, 31.64, 31.65, 31.659] 
-                },
-                { 
-                    id: "jpy", name: "日圓 / 台幣 (JPY/TWD)", price: "0.1968", isUp: false, 
-                    history: [0.204, 0.203, 0.202, 0.2025, 0.2015, 0.201, 0.2005, 0.200, 0.2008, 0.1995, 0.199, 0.1985, 0.198, 0.1982, 0.1978, 0.198, 0.1975, 0.1972, 0.197, 0.1975, 0.1972, 0.197, 0.1974, 0.1968, 0.1972, 0.197, 0.1969, 0.1971, 0.1968, 0.1968] 
-                },
-                { 
-                    id: "bond", name: "10年期美債殖利率", price: "4.175%", isUp: false, 
-                    history: [4.32, 4.30, 4.28, 4.29, 4.27, 4.25, 4.24, 4.26, 4.23, 4.21, 4.22, 4.20, 4.18, 4.19, 4.21, 4.20, 4.18, 4.17, 4.19, 4.20, 4.18, 4.17, 4.16, 4.18, 4.17, 4.18, 4.175, 4.17, 4.18, 4.175] 
-                }
-            ]
-        };
-
-        function render() {
-            document.getElementById('stock-data').innerHTML = marketData.stocks.map(s => `
-                <tr>
-                    <td class="name-col">${s.name}</td>
-                    <td class="val-col">
-                        <div class="price">${s.price}</div>
-                        <div class="pct ${s.isUp ? 'up' : 'down'}">${s.pct}</div>
-                    </td>
-                </tr>
-            `).join('');
-
-            const container = document.getElementById('fx-bond-container');
-            container.innerHTML = marketData.others.map(item => `
-                <div class="section-label">${item.id === 'bond' ? '📈' : '💵'} ${item.name}</div>
-                <div class="card chart-card">
-                    <div class="chart-header">
-                        <span class="name">Yahoo即時數據</span>
-                        <span class="price">${item.price}</span>
-                    </div>
-                    <div class="canvas-wrapper">
-                        <canvas id="canvas-${item.id}"></canvas>
-                    </div>
-                </div>
-            `).join('');
-
-            marketData.others.forEach(item => {
-                drawChart(`canvas-${item.id}`, item.history, item.isUp ? '#ff3b30' : '#34c759');
-            });
-
+        function updateTime() {
             const now = new Date();
             document.getElementById('update-time').innerText = `台北時間：${now.toLocaleString('zh-TW', {hour12: false})}`;
         }
-
-        function drawChart(canvasId, dataPoints, color) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            
-            const labels = [];
-            for (let i = 15; i <= 44; i++) {
-                let day = i > 31 ? i - 31 : i;
-                labels.push(day + '日');
-            }
-
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: dataPoints,
-                        borderColor: color,
-                        borderWidth: 1.5,
-                        pointRadius: 0,
-                        fill: true,
-                        backgroundColor: color + '11',
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    layout: { padding: { top: 2, bottom: 0 } },
-                    scales: {
-                        x: { 
-                            ticks: { font: { size: 8 }, color: '#aaa', maxRotation: 0, autoSkip: true, maxTicksLimit: 6 },
-                            grid: { display: false }
-                        },
-                        y: { 
-                            position: 'right',
-                            ticks: { font: { size: 8 }, color: '#aaa', count: 4 },
-                            grid: { color: '#f8f8f8' }
-                        }
-                    }
-                }
-            });
-        }
-        render();
+        updateTime();
+        setInterval(updateTime, 1000);
     </script>
 </body>
 </html>
