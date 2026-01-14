@@ -3,158 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>尊爵榮譽榜生成器</title>
+    <title>極致奢華榮譽榜</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&family=Montserrat:wght@700;800&family=Noto+Sans+TC:wght@400;700&display=swap');
         
-        body { 
-            font-family: 'Noto Sans TC', sans-serif; 
-            background-color: #0f172a; 
-            padding-bottom: 80px; 
-            color: #fff;
-        }
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #0b1120; padding-bottom: 80px; color: #fff; }
 
         /* 預覽區域 */
-        #preview-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            padding: 30px 0;
-            overflow: hidden;
-        }
+        #preview-container { width: 100%; display: flex; justify-content: center; padding: 30px 0; overflow: hidden; }
 
         /* 榮譽榜本體 */
         .certificate {
             width: 800px; 
             height: 535px;
-            background: radial-gradient(circle at center, #ffffff 0%, #f1f5f9 100%);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
             position: relative; 
             box-sizing: border-box;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 40px 100px rgba(0,0,0,0.8);
             flex-shrink: 0; 
             transform-origin: top center;
-            border: 12px double #b4975a; /* 經典金屬雙邊框 */
-            color: #1e293b;
+            border: 15px solid transparent;
+            border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath d='M0 0 L100 0 L100 100 L0 100 Z' fill='none' stroke='%23C5A059' stroke-width='10'/%3E%3C/svg%3E") 30 stretch;
         }
 
-        /* 質感紋理遮罩 */
-        .certificate::before {
-            content: "";
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: url('https://www.transparenttextures.com/patterns/brushed-alum.png');
-            opacity: 0.3;
-            pointer-events: none;
+        /* 內鑲金屬邊線 */
+        .inner-line {
+            position: absolute; top: 10px; left: 10px; right: 10px; bottom: 10px;
+            border: 1px solid rgba(197, 160, 89, 0.5); pointer-events: none; z-index: 5;
         }
 
-        /* 金屬角飾 */
-        .corner {
-            position: absolute; width: 60px; height: 60px;
-            border: 2px solid #b4975a; z-index: 10;
+        /* 背景流動彩帶 SVG */
+        .ribbon-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; opacity: 0.15; pointer-events: none;
         }
-        .tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
-        .tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
-        .bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
-        .br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
 
-        /* 左上日期 */
+        /* 金屬亮片裝飾 */
+        .confetti-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: radial-gradient(circle, #C5A059 1px, transparent 1px);
+            background-size: 40px 40px;
+            opacity: 0.1; z-index: 1;
+        }
+
+        /* 左上日期 - 奢華字體 */
         .field-date {
             position: absolute; top: 35px; left: 45px;
             font-size: 32px; font-weight: 800;
-            color: #b4975a; font-family: 'Montserrat', sans-serif;
-            letter-spacing: 1px;
+            color: #C5A059; font-family: 'Montserrat';
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10;
         }
 
         /* 右上姓名區 */
-        .field-name {
-            position: absolute; top: 60px; right: 50px;
-            text-align: right;
-        }
+        .field-name { position: absolute; top: 60px; right: 50px; text-align: right; z-index: 10; }
         .name-text { 
-            font-family: 'Noto Serif TC', serif;
-            font-size: 80px; font-weight: 900; 
-            color: #0f172a; line-height: 1; margin-bottom: 5px;
+            font-family: 'Noto Serif TC', serif; font-size: 80px; font-weight: 900; 
+            color: #fff; line-height: 1; text-shadow: 2px 2px 0px #8b6e37;
         }
         .title-text { 
-            font-size: 28px; font-weight: 700; color: #64748b; 
-            letter-spacing: 4px; border-top: 2px solid #b4975a; padding-top: 5px;
+            font-size: 26px; font-weight: 700; color: #C5A059; 
+            letter-spacing: 5px; margin-top: 5px; text-transform: uppercase;
         }
 
-        /* 商品標籤 */
-        .field-product {
-            position: absolute; top: 220px; right: 50px;
-            display: flex; align-items: center; gap: 15px;
-        }
+        /* 商品標籤 - 更加立體 */
+        .field-product { position: absolute; top: 220px; right: 50px; display: flex; align-items: center; gap: 15px; z-index: 10; }
         .product-badge {
-            background-color: #1e3a8a;
-            color: white;
-            font-size: 40px; font-weight: 900;
-            padding: 5px 25px;
-            box-shadow: 4px 4px 0px #b4975a;
+            background: linear-gradient(to bottom, #1e40af, #1e3a8a);
+            color: white; font-size: 42px; font-weight: 900;
+            padding: 2px 30px; border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.3);
+            border: 1px solid #3b82f6;
         }
-        .count-text { font-size: 20px; font-weight: bold; color: #1e3a8a; }
 
-        /* 金額區 - 大器排版 */
-        .field-amount {
-            position: absolute; top: 300px; right: 50px;
-            text-align: right;
-        }
+        /* 金額區 */
+        .field-amount { position: absolute; top: 300px; right: 50px; text-align: right; z-index: 10; }
         .amount-val {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 110px; font-weight: 800;
-            color: #be123c; line-height: 0.9;
+            font-family: 'Montserrat'; font-size: 115px; font-weight: 800;
+            color: #ef4444; line-height: 0.9; text-shadow: 0 5px 15px rgba(239, 68, 68, 0.3);
         }
-        .amount-unit {
-            font-size: 30px; font-weight: 900; color: #be123c; margin-left: 10px;
+        .amount-unit { font-size: 32px; font-weight: 900; color: #ef4444; margin-left: 10px; }
+
+        /* 左下角華麗徽章 (新增) */
+        .laurel-award {
+            position: absolute; bottom: 40px; left: 60px;
+            width: 220px; height: 220px; z-index: 10;
+            opacity: 0.9;
         }
 
         /* 底部統計資訊 */
         .field-stats {
-            position: absolute; bottom: 40px; right: 50px;
-            display: flex; gap: 40px;
-            border-top: 1px solid #e2e8f0; padding-top: 15px;
+            position: absolute; bottom: 45px; right: 50px;
+            display: flex; gap: 40px; z-index: 10;
         }
         .stat-box { text-align: right; }
-        .stat-label { font-size: 18px; color: #64748b; margin-bottom: 2px; font-weight: bold;}
-        .stat-value { font-size: 32px; font-weight: 800; color: #0f172a; font-family: 'Montserrat'; }
-        .bonus-color { color: #b91c1c; }
+        .stat-label { font-size: 18px; color: #94a3b8; margin-bottom: 2px; font-weight: bold; }
+        .stat-value { font-size: 34px; font-weight: 800; color: #fff; font-family: 'Montserrat'; }
+        .bonus-color { color: #facc15; }
 
-        /* 書法賀章 (取代卡通圖案) */
-        .honor-seal {
-            position: absolute; top: 50px; left: 80px;
-            width: 180px; height: 180px;
-            background: rgba(185, 28, 28, 0.05);
-            border-radius: 50%;
-            border: 2px dashed #b91c1c;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transform: rotate(-10deg);
-        }
-        .seal-text {
-            font-family: 'Noto Serif TC', serif;
-            font-size: 100px; font-weight: 900; color: #b91c1c;
-            line-height: 1; opacity: 0.8;
-        }
-        .seal-sub { font-size: 14px; color: #b91c1c; font-weight: 900; letter-spacing: 5px; margin-top: -10px;}
-
-        /* 輸入介面 */
-        .control-panel { background: #1e293b; padding: 25px; border-bottom: 4px solid #b4975a; }
-        input, select { background: #334155; color: white; border: 1px solid #475569; padding: 12px; border-radius: 8px; width: 100%; margin-top: 5px;}
-        label { font-size: 0.8rem; color: #94a3b8; font-weight: bold; }
-        .btn-add { background: #b4975a; color: #1e293b; font-weight: 800; padding: 12px; border-radius: 8px; width: 100%; margin-top: 15px; transition: 0.2s; }
-        .btn-add:active { transform: scale(0.98); }
-        .btn-gen { background: #be123c; color: white; font-weight: 800; padding: 16px; border-radius: 12px; width: 100%; margin-top: 20px; font-size: 1.2rem; }
+        /* UI樣式不變 */
+        .control-panel { background: #1a2233; padding: 25px; border-bottom: 4px solid #C5A059; }
+        input, select { background: #2d3748; color: white; border: 1px solid #4a5568; padding: 12px; border-radius: 8px; width: 100%; margin-top: 5px;}
+        .btn-gen { background: linear-gradient(to right, #C5A059, #8b6e37); color: #fff; font-weight: 800; padding: 16px; border-radius: 12px; width: 100%; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <!-- 控制面板 -->
+    <!-- UI 控制區 (節錄) -->
     <div class="control-panel">
-        <h2 class="text-2xl font-black text-center mb-6 text-white tracking-widest">PREMIUM HONOR ROLL</h2>
-        <div class="grid grid-cols-2 gap-4 mb-4">
+        <h2 class="text-2xl font-black text-center mb-6 text-white tracking-widest">🏆 卓越績優榮譽榜</h2>
+        <div class="grid grid-cols-2 gap-4">
             <div><label>結算日期</label><input type="date" v-model="globalDate"></div>
             <div>
                 <label>績優人員</label>
@@ -163,74 +124,73 @@
                 </select>
             </div>
         </div>
-        <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label>成交商品</label>
-                    <select v-model="form.productType">
-                        <option value="FCN">FCN</option>
-                        <option value="元元致富">元元致富</option>
-                        <option value="海外債">海外債</option>
-                    </select>
-                </div>
-                <div><label>BP (基點)</label><input type="number" v-model="form.bp"></div>
-            </div>
-            <div class="grid grid-cols-3 gap-3 mt-3">
-                <div><label>幣別</label><select v-model="form.currency"><option>USD</option><option>JPY</option><option>TWD</option></select></div>
-                <div><label>匯率</label><input type="number" v-model="form.exRate" step="0.01"></div>
-                <div><label>金額</label><input type="number" v-model="form.amount"></div>
-            </div>
-            <button @click="addToCart" class="btn-add">➕ 加入當日績優清單</button>
+        <div class="grid grid-cols-2 gap-4 mt-4">
+            <div><label>商品</label><select v-model="form.productType"><option>海外債</option><option>FCN</option><option>元元致富</option></select></div>
+            <div><label>金額</label><input type="number" v-model="form.amount"></div>
         </div>
-        
-        <div v-if="cart.length > 0" class="mt-4">
-            <div class="flex flex-wrap gap-2">
-                <span v-for="(item, idx) in cart" class="bg-slate-700 px-3 py-1 rounded-full text-xs flex items-center">
-                    {{ item.productType }} | {{ item.amount }} {{ item.currency }}
-                    <button @click="removeFromCart(idx)" class="ml-2 text-red-400">✕</button>
-                </span>
-            </div>
-            <button @click="generateImage" class="btn-gen shadow-xl">生成正式榮譽榜</button>
-        </div>
+        <button @click="addToCart" class="w-full bg-blue-600 mt-4 py-2 rounded-lg font-bold">➕ 加入數據</button>
+        <button @click="generateImage" class="btn-gen shadow-xl" v-if="cart.length > 0">生成奢華版榮譽榜</button>
     </div>
 
-    <!-- 預覽區域 -->
     <div id="preview-container">
         <div id="certificate-node" class="certificate" :style="scaleStyle">
-            <div class="corner tl"></div><div class="corner tr"></div>
-            <div class="corner bl"></div><div class="corner br"></div>
+            <div class="inner-line"></div>
+            <div class="confetti-overlay"></div>
+            
+            <!-- 滿版彩帶 SVG -->
+            <svg class="ribbon-overlay" viewBox="0 0 800 535">
+                <path d="M-50,100 C150,50 350,250 550,150 S850,300 850,300" stroke="#C5A059" stroke-width="60" fill="none" opacity="0.3"/>
+                <path d="M-50,400 C150,450 450,200 650,400 S850,350 850,350" stroke="#8b6e37" stroke-width="40" fill="none" opacity="0.2"/>
+            </svg>
 
-            <!-- 左側質感印章 -->
-            <div class="honor-seal">
-                <div class="seal-sub">HONOR</div>
-                <div class="seal-text">賀</div>
-                <div class="seal-sub">AWARD</div>
-            </div>
-
+            <!-- 左上日期 -->
             <div class="field-date">{{ rocDate }}</div>
 
+            <!-- 右上姓名 -->
             <div class="field-name">
                 <div class="name-text">{{ currentRep.name }}</div>
                 <div class="title-text">{{ currentRep.title }}</div>
             </div>
 
-            <div class="field-product">
-                <div class="product-badge">{{ displayProduct }}</div>
-                <div class="count-text">共計 {{ cart.length }} 筆成交</div>
+            <!-- 左下角桂冠徽章 -->
+            <div class="laurel-award">
+                <svg viewBox="0 0 200 200">
+                    <defs>
+                        <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:%23FDE68A;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:%23B45309;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <!-- 桂冠葉 -->
+                    <path d="M50,150 Q20,100 50,50" fill="none" stroke="#C5A059" stroke-width="5" stroke-linecap="round"/>
+                    <path d="M150,150 Q180,100 150,50" fill="none" stroke="#C5A059" stroke-width="5" stroke-linecap="round"/>
+                    <!-- 中央五角星 -->
+                    <polygon points="100,60 115,100 155,100 125,125 135,165 100,140 65,165 75,125 45,100 85,100" fill="#C5A059" />
+                    <circle cx="100" cy="110" r="70" stroke="#C5A059" stroke-width="2" fill="none" stroke-dasharray="5,5"/>
+                    <text x="100" y="190" text-anchor="middle" fill="#C5A059" font-size="16" font-weight="900" letter-spacing="2">EXCELLENCE</text>
+                </svg>
             </div>
 
+            <!-- 中間商品 -->
+            <div class="field-product">
+                <div class="product-badge">{{ displayProduct }}</div>
+                <div class="text-slate-400 font-bold">共計 {{ cart.length }} 筆成交</div>
+            </div>
+
+            <!-- 金額 -->
             <div class="field-amount">
                 <span class="amount-val">{{ totalAmountDisplay }}</span>
                 <span class="amount-unit">{{ displayCurrency }}</span>
             </div>
 
+            <!-- 底部統計 -->
             <div class="field-stats">
                 <div class="stat-box">
-                    <div class="stat-label">預估手續費收入</div>
+                    <div class="stat-label">PREMIUM INCOME</div>
                     <div class="stat-value">NT$ {{ formatNumber(totalRevenue) }}</div>
                 </div>
                 <div class="stat-box">
-                    <div class="stat-label bonus-color">預估成就獎金</div>
+                    <div class="stat-label bonus-color">ACHIEVEMENT BONUS</div>
                     <div class="stat-value bonus-color">NT$ {{ formatNumber(totalBonus) }}</div>
                 </div>
             </div>
@@ -238,14 +198,13 @@
     </div>
 
     <div id="result-area" class="text-center pb-20 hidden">
-        <p class="text-yellow-500 font-bold mb-4 animate-pulse">✨ 榮譽榜已生成，長按下方圖片儲存 ✨</p>
+        <p class="text-yellow-500 font-bold mb-4">✨ 榮譽榜生成成功，長按儲存 ✨</p>
         <img id="final-img" class="mx-auto border-4 border-white shadow-2xl rounded-lg max-w-[95%]">
     </div>
 </div>
 
 <script>
     const { createApp, reactive, computed, ref, onMounted } = Vue;
-
     createApp({
         setup() {
             const windowWidth = ref(window.innerWidth);
@@ -256,8 +215,7 @@
 
             const repList = [
                 { name: '吳坤達', title: '業務協理' }, { name: '陳雅鈴', title: '業務經理' },
-                { name: '蕭玉春', title: '業務協理' }, { name: '黃思婷', title: '業務協理' },
-                { name: '王淑卿', title: '業務協理' }, { name: '陳翰泰', title: '業務員' }
+                { name: '蕭玉春', title: '業務協理' }, { name: '黃思婷', title: '業務協理' }
             ];
 
             const scaleStyle = computed(() => {
@@ -278,17 +236,11 @@
                 cart.value.push({ ...form, revenue: rev, bonus: bon });
             };
 
-            const removeFromCart = (idx) => cart.value.splice(idx, 1);
-
             const totalRevenue = computed(() => cart.value.reduce((s, i) => s + i.revenue, 0));
             const totalBonus = computed(() => cart.value.reduce((s, i) => s + i.bonus, 0));
-            
+            const totalAmountDisplay = computed(() => cart.value.reduce((s, i) => s + i.amount, 0).toLocaleString());
             const displayProduct = computed(() => cart.value.length > 0 ? cart.value[0].productType : '海外債');
             const displayCurrency = computed(() => cart.value.length > 0 ? (cart.value[0].currency === 'USD' ? '美元' : cart.value[0].currency) : '美元');
-            const totalAmountDisplay = computed(() => {
-                const total = cart.value.reduce((s, i) => s + i.amount, 0);
-                return total.toLocaleString();
-            });
 
             const formatNumber = (num) => num.toLocaleString();
 
@@ -304,7 +256,7 @@
                 });
             };
 
-            return { repList, repIndex, globalDate, form, cart, rocDate, scaleStyle, currentRep: computed(()=>repList[repIndex.value]), addToCart, removeFromCart, totalRevenue, totalBonus, displayProduct, totalAmountDisplay, displayCurrency, formatNumber, generateImage };
+            return { repList, repIndex, globalDate, form, cart, rocDate, scaleStyle, currentRep: computed(()=>repList[repIndex.value]), addToCart, totalRevenue, totalBonus, displayProduct, totalAmountDisplay, displayCurrency, formatNumber, generateImage };
         }
     }).mount('#app');
 </script>
