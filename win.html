@@ -2,208 +2,337 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>成交賀卡生成器 - 專業樣式版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>榮譽榜生成器 - 完美復刻版</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --p-blue: #007aff; }
-        body { font-family: "Microsoft JhengHei", sans-serif; background: #f2f2f7; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
         
-        /* 保持原本的生成器 UI 不變 */
-        .ui-panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .ui-panel h2 { grid-column: span 2; margin: 0 0 10px 0; font-size: 18px; color: #333; }
-        .input-group { display: flex; flex-direction: column; }
-        .input-group label { font-size: 12px; color: #666; margin-bottom: 4px; }
-        .input-group input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; }
-        .input-group input:focus { border-color: var(--p-blue); }
-        .full-width { grid-column: span 2; }
+        body { 
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+            background-color: #1a1a1a; 
+            padding-bottom: 80px; 
+            color: #333;
+        }
 
-        #canvas-container { box-shadow: 0 10px 40px rgba(0,0,0,0.2); line-height: 0; border-radius: 5px; overflow: hidden; }
-        canvas { max-width: 100%; height: auto; background: white; }
-        .footer-tip { margin-top: 15px; color: #888; font-size: 14px; }
+        /* 控制面板樣式 */
+        .control-panel { background: #2d2d2d; border-bottom: 1px solid #444; color: white; padding: 20px; }
+        .list-panel { background: #222; padding: 10px 20px; color: white; }
+        .item-card { background: #3a3a3a; border-left: 4px solid #D4AF37; padding: 10px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
+        input, select { background: #444; color: white; border: 1px solid #555; padding: 10px; border-radius: 6px; width: 100%; font-size: 1rem; outline: none; }
+        
+        /* 獎狀本體 */
+        #preview-container { width: 100%; display: flex; justify-content: center; padding-top: 20px; min-height: 560px; overflow: hidden; }
+        
+        .certificate {
+            width: 800px; 
+            height: 535px;
+            background-color: #fff;
+            position: relative; 
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            flex-shrink: 0; 
+            transform-origin: top center;
+            /* 外部金色邊框 */
+            border: 2px solid #E5C37C;
+        }
+
+        /* 裝飾性內框與角飾 */
+        .inner-border {
+            position: absolute;
+            top: 15px; left: 15px; right: 15px; bottom: 15px;
+            border: 1px solid #E5C37C;
+            pointer-events: none;
+        }
+        .corner-deco {
+            position: absolute; width: 40px; height: 40px;
+            z-index: 10; border: 2px solid #E5C37C;
+        }
+        .corner-deco.tl { top: 10px; left: 10px; border-right: none; border-bottom: none; }
+        .corner-deco.tr { top: 10px; right: 10px; border-left: none; border-bottom: none; }
+        .corner-deco.bl { bottom: 10px; left: 10px; border-right: none; border-top: none; }
+        .corner-deco.br { bottom: 10px; right: 10px; border-left: none; border-top: none; }
+        /* 內部轉角裝飾細節 */
+        .corner-deco::after {
+            content: ''; position: absolute; width: 15px; height: 15px;
+            border: 1px solid #E5C37C;
+        }
+        .tl::after { top: 5px; left: 5px; border-right: none; border-bottom: none; }
+        .tr::after { top: 5px; right: 5px; border-left: none; border-bottom: none; }
+        .bl::after { bottom: 5px; left: 5px; border-right: none; border-top: none; }
+        .br::after { bottom: 5px; right: 5px; border-left: none; border-top: none; }
+
+        /* 文字欄位基礎 */
+        .field { position: absolute; z-index: 20; }
+
+        /* 1. 左上角日期 */
+        .field-date {
+            top: 25px; left: 65px;
+            font-size: 42px; font-weight: 700;
+            color: #d1b16a; font-family: 'Arial', sans-serif;
+        }
+
+        /* 2. 右上角姓名職稱 */
+        .field-name-block {
+            top: 120px; right: 40px;
+            text-align: right; line-height: 1;
+        }
+        .name-text { font-size: 85px; font-weight: 900; color: #000; letter-spacing: 5px; }
+        .title-text { font-size: 38px; font-weight: bold; color: #000; margin-top: 5px; }
+
+        /* 3. 中間商品框 */
+        .field-product-box {
+            top: 230px; right: 40px;
+            display: flex; align-items: flex-end; gap: 10px;
+        }
+        .product-border {
+            border: 1.5px solid #1e4b8a;
+            color: #1e4b8a;
+            font-size: 70px; font-weight: 900;
+            padding: 0px 15px; line-height: 1.1;
+            background: white;
+        }
+        .count-tag { color: #1e4b8a; font-size: 18px; font-weight: bold; margin-bottom: 5px; }
+
+        /* 4. 金額區 */
+        .field-amount-block {
+            top: 310px; right: 40px;
+            text-align: right;
+        }
+        .amount-text { font-size: 105px; font-weight: 900; color: #e11d48; line-height: 1; font-family: Arial; }
+        .currency-label { font-size: 28px; font-weight: bold; color: #be123c; margin-top: -5px; }
+
+        /* 5. 手收與獎金 */
+        .field-stats-block {
+            bottom: 60px; right: 230px;
+            text-align: left;
+        }
+        .stat-item { font-size: 32px; font-weight: bold; color: #db2777; line-height: 1.3; }
+
+        /* 下方獎台 */
+        .podium-icon {
+            position: absolute; bottom: 35px; right: 60px;
+            width: 140px;
+        }
+
+        /* SVG 圖層控制 */
+        .main-graphic {
+            position: absolute; left: -50px; top: 0;
+            width: 600px; height: 535px; z-index: 15;
+        }
+
+        #result-area { text-align: center; margin-top: 20px; display: none; }
+        #final-img { max-width: 90%; margin: 0 auto; border: 2px solid #D4AF37; border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. 原本的生成器介面 (保留 ID 與邏輯) -->
-    <div class="ui-panel">
-        <h2>賀卡資訊編輯</h2>
-        <div class="input-group">
-            <label>日期 (例如 115/1/16)</label>
-            <input type="text" id="date" value="115/1/16">
+<div id="app">
+    <!-- UI 控制區 (保持原樣) -->
+    <div class="control-panel">
+        <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器 (復刻版)</h2>
+        <div class="grid grid-cols-2 gap-3 mb-4">
+            <div><label>日期</label><input type="date" v-model="globalDate"></div>
+            <div>
+                <label>業代</label>
+                <select v-model="repIndex">
+                    <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+                </select>
+            </div>
         </div>
-        <div class="input-group">
-            <label>姓名</label>
-            <input type="text" id="name" value="蕭玉春">
-        </div>
-        <div class="input-group">
-            <label>職稱</label>
-            <input type="text" id="title" value="業務協理">
-        </div>
-        <div class="input-group">
-            <label>產品名稱</label>
-            <input type="text" id="product" value="海外債">
-        </div>
-        <div class="input-group full-width">
-            <label>成交總額 (美元)</label>
-            <input type="number" id="amount" value="27000">
-        </div>
-        <div class="input-group">
-            <label>手收 (自動計算)</label>
-            <input type="text" id="hand" readonly style="background:#f9f9f9">
-        </div>
-        <div class="input-group">
-            <label>獎金 (自動計算)</label>
-            <input type="text" id="bonus" readonly style="background:#f9f9f9">
+        <div class="bg-gray-800 p-3 rounded-lg mb-4">
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                    <label>商品</label>
+                    <select v-model="form.productType" @change="handleProductChange">
+                        <option value="FCN">FCN</option>
+                        <option value="U6">元元致富 U6</option>
+                        <option value="U5">元元致富 U5</option>
+                        <option value="BOND">海外債</option>
+                    </select>
+                </div>
+                <div><label>BP</label><input type="number" v-model="form.bp"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+                <div><label>幣別</label><select v-model="form.currency"><option value="USD">USD</option><option value="JPY">JPY</option><option value="TWD">TWD</option></select></div>
+                <div><label>匯率</label><input type="number" v-model="form.exRate" step="0.01"></div>
+                <div><label>金額</label><input type="number" v-model="form.amount"></div>
+            </div>
+            <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-3">➕ 加入清單</button>
         </div>
     </div>
 
-    <!-- 2. 生成圖片區域 -->
-    <div id="canvas-container">
-        <canvas id="awardCanvas" width="1050" height="735"></canvas>
+    <div class="list-panel" v-if="cart.length > 0">
+        <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+            <span>{{ item.productType }} / {{ formatNumber(item.amount) }} {{ item.currency }}</span>
+            <button @click="removeFromCart(idx)" class="text-red-500 font-bold">✕</button>
+        </div>
+        <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg mt-4 text-lg">生成圖片</button>
     </div>
-    
-    <p class="footer-tip">💡 手機長按圖片即可儲存賀卡</p>
 
-    <script>
-        const canvas = document.getElementById('awardCanvas');
-        const ctx = canvas.getContext('2d');
+    <div id="result-area">
+        <p class="text-yellow-400 font-bold mb-2">👇 長按圖片儲存 👇</p>
+        <img id="final-img">
+    </div>
 
-        // 原本的計算邏輯 (請依據您的實際需求調整公式)
-        function doCalculation() {
-            const amt = parseFloat(document.getElementById('amount').value) || 0;
-            // 這裡放您原本的計算公式，以下為示範
-            const handValue = Math.round(amt * 0.5618); 
-            const bonusValue = Math.round(handValue * 0.25);
+    <!-- 預覽畫布：這部分是重點 -->
+    <div id="preview-container">
+        <div id="certificate-node" class="certificate" :style="scaleStyle">
+            <!-- 邊框裝飾 -->
+            <div class="inner-border"></div>
+            <div class="corner-deco tl"></div><div class="corner-deco tr"></div>
+            <div class="corner-deco bl"></div><div class="corner-deco br"></div>
 
-            document.getElementById('hand').value = handValue.toLocaleString();
-            document.getElementById('bonus').value = bonusValue.toLocaleString();
-        }
+            <!-- 背景 SVG：繪製金盃與大賀字 -->
+            <svg class="main-graphic" viewBox="0 0 600 535">
+                <!-- 底部裝飾性圓圈背景 -->
+                <circle cx="280" cy="350" r="220" fill="#f0f9ff" opacity="0.6" />
+                
+                <!-- 手與獎盃意象 -->
+                <g transform="translate(40, 60)">
+                    <!-- 彩帶 -->
+                    <path d="M100 200 Q 150 150 200 250" stroke="#facc15" stroke-width="8" fill="none" stroke-linecap="round" />
+                    <path d="M400 180 Q 450 130 500 230" stroke="#facc15" stroke-width="12" fill="none" opacity="0.5" />
+                    
+                    <!-- 手 -->
+                    <rect x="130" y="320" width="40" height="200" rx="10" fill="#f87171" /> <!-- 手臂1 -->
+                    <rect x="360" y="210" width="35" height="300" rx="10" fill="#fb923c" /> <!-- 手臂2 -->
+                    
+                    <!-- 獎盃主體 -->
+                    <path d="M150 120 L380 120 L340 330 Q 265 380 190 330 Z" fill="#eab308" stroke="#ca8a04" stroke-width="2"/>
+                    <ellipse cx="265" cy="120" rx="115" ry="25" fill="#fef08a" stroke="#ca8a04" stroke-width="2"/>
+                    
+                    <!-- 獎盃耳朵 -->
+                    <path d="M150 140 C 80 140, 80 260, 165 280" fill="none" stroke="#eab308" stroke-width="20" stroke-linecap="round"/>
+                    <path d="M380 140 C 450 140, 450 260, 365 280" fill="none" stroke="#eab308" stroke-width="20" stroke-linecap="round"/>
+                    
+                    <!-- 獎盃底座 -->
+                    <path d="M180 380 L350 380 L380 460 L150 460 Z" fill="#78350f" />
+                    <text x="265" y="435" text-anchor="middle" fill="#d97706" font-size="55" font-weight="900" font-family="Arial">BEST</text>
+                </g>
 
-        // --- 核心繪圖函式 (完全對標照片樣式) ---
-        function draw() {
-            const vDate = document.getElementById('date').value;
-            const vName = document.getElementById('name').value;
-            const vTitle = document.getElementById('title').value;
-            const vProduct = document.getElementById('product').value;
-            const vAmount = parseFloat(document.getElementById('amount').value || 0).toLocaleString();
-            const vHand = document.getElementById('hand').value;
-            const vBonus = document.getElementById('bonus').value;
+                <!-- 噴灑的碎片 -->
+                <rect x="120" y="100" width="15" height="10" fill="#3b82f6" transform="rotate(20)" />
+                <rect x="450" y="250" width="15" height="10" fill="#3b82f6" transform="rotate(-15)" />
+                <rect x="80" y="350" width="15" height="10" fill="#ef4444" transform="rotate(45)" />
+                <rect x="500" y="380" width="15" height="10" fill="#f59e0b" transform="rotate(-30)" />
 
-            // 1. 背景
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                <!-- 核心：大紅「賀」字 (壓在上方) -->
+                <g transform="translate(320, 10) rotate(-15)">
+                    <text x="0" y="110" font-size="160" font-weight="900" fill="#ff0000" style="font-family: 'Noto Serif TC', serif; filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2))">賀</text>
+                </g>
+            </svg>
 
-            // 2. 金色四角裝飾 (回字紋)
-            drawBorderDeco();
+            <!-- 資料顯示區 -->
+            <div class="field field-date">{{ rocDate }}</div>
 
-            // 3. 左上角日期 (黃綠色)
-            ctx.fillStyle = "#b5c411";
-            ctx.font = "bold 44px Arial";
-            ctx.textAlign = "left";
-            ctx.fillText(vDate, 85, 80);
+            <div class="field field-name-block">
+                <div class="name-text">{{ currentRep.name }}</div>
+                <div class="title-text">{{ currentRep.title }}</div>
+            </div>
 
-            // 4. 書法「賀」字 (紅色大字在背景)
-            ctx.save();
-            ctx.fillStyle = "#e60012";
-            ctx.font = "bold 280px 'Kaiti', 'STKaiti', '標楷體', serif";
-            ctx.fillText("賀", 400, 265);
-            ctx.restore();
+            <div class="field field-product-box">
+                <div v-for="p in finalProductList" class="product-border">{{ p }}</div>
+                <div class="count-tag">共計{{ cart.length }}筆</div>
+            </div>
 
-            // 5. 姓名與職稱 (右上角黑色)
-            ctx.textAlign = "right";
-            ctx.fillStyle = "#000000";
-            ctx.font = "900 115px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText(vName, 980, 185);
-            ctx.font = "bold 42px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText(vTitle, 980, 255);
+            <div class="field field-amount-block">
+                <div v-for="item in finalAmountList">
+                    <div class="amount-text">{{ item.val }}</div>
+                    <div class="currency-label">{{ item.curr }}</div>
+                </div>
+            </div>
 
-            // 6. 產品名稱藍色方框 (海外債)
-            ctx.strokeStyle = "#006699";
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(610, 315, 330, 135);
-            ctx.textAlign = "center";
-            ctx.fillStyle = "#006699";
-            ctx.font = "900 90px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText(vProduct, 775, 415);
-            
-            // 方框右側備註小字
-            ctx.textAlign = "left";
-            ctx.font = "bold 22px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText("共計2筆", 955, 435);
+            <div class="field field-stats-block">
+                <div class="stat-item">手收：{{ formatNumber(totalRevenue) }}元</div>
+                <div class="stat-item">獎金：{{ formatNumber(totalBonus) }}元</div>
+            </div>
 
-            // 7. 成交金額 (巨大紅字)
-            ctx.textAlign = "right";
-            ctx.fillStyle = "#ff0000";
-            ctx.font = "900 155px Arial, sans-serif";
-            ctx.fillText(vAmount, 940, 595);
-            ctx.font = "bold 34px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText("美元", 995, 620);
+            <!-- 獎台 Icon -->
+            <div class="podium-icon">
+                <svg viewBox="0 0 200 120">
+                    <rect x="60" y="20" width="80" height="80" fill="#94a3b8" />
+                    <rect x="0" y="50" width="65" height="50" fill="#64748b" />
+                    <rect x="135" y="70" width="65" height="30" fill="#cbd5e1" />
+                    <text x="100" y="80" text-anchor="middle" fill="white" font-weight="900" font-size="40">1</text>
+                    <text x="32" y="90" text-anchor="middle" fill="white" font-weight="900" font-size="30">2</text>
+                    <text x="168" y="100" text-anchor="middle" fill="white" font-weight="900" font-size="20">3</text>
+                    <!-- 小獎盃 -->
+                    <circle cx="100" cy="15" r="12" fill="#fbbf24" />
+                    <circle cx="32" cy="45" r="8" fill="#e5e7eb" />
+                    <circle cx="168" cy="65" r="6" fill="#fb923c" />
+                </svg>
+            </div>
+        </div>
+    </div>
+</div>
 
-            // 8. 下方數據區 (粉紅色)
-            ctx.fillStyle = "#ff6699";
-            ctx.textAlign = "left";
-            ctx.font = "bold 40px 'Microsoft JhengHei', sans-serif";
-            ctx.fillText(`手收：${vHand}元`, 550, 685);
-            ctx.fillText(`獎金：${vBonus}元`, 550, 730);
+<script>
+    const { createApp, reactive, computed, ref, onMounted } = Vue;
+    createApp({
+        setup() {
+            const windowWidth = ref(window.innerWidth);
+            const globalDate = ref(new Date().toISOString().split('T')[0]);
+            const repIndex = ref(3); // 預設蕭玉春
+            const cart = ref([]);
+            const form = reactive({ productType: 'BOND', currency: 'USD', exRate: 31.5, amount: 27000, bp: 50 });
 
-            // 9. 左側獎盃插圖 (用圖形模擬原圖效果)
-            drawTrophy();
+            const repList = [
+                { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
+                { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
+                { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' }
+            ];
 
-            // 10. 右下角頒獎台小圖
-            drawPodiumIcon(830, 650);
-        }
-
-        function drawBorderDeco() {
-            ctx.strokeStyle = "#d4af37";
-            ctx.lineWidth = 3.5;
-            const s = 65, m = 35;
-            const p = [[m, m], [1050-m-s, m], [m, 735-m-s], [1050-m-s, 735-m-s]];
-            p.forEach(pos => {
-                ctx.strokeRect(pos[0], pos[1], s, s);
-                ctx.strokeRect(pos[0]+12, pos[1]+12, s-24, s-24);
+            const currentRep = computed(() => repList[repIndex.value]);
+            const rocDate = computed(() => {
+                const d = new Date(globalDate.value);
+                return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
             });
-        }
 
-        function drawTrophy() {
-            // 背景發光效果
-            ctx.fillStyle = "#fff4e0";
-            ctx.beginPath(); ctx.arc(260, 420, 215, 0, Math.PI*2); ctx.fill();
-            // 金色獎盃
-            ctx.fillStyle = "#f1c40f";
-            ctx.beginPath();
-            ctx.moveTo(160, 310); ctx.lineTo(360, 310); ctx.lineTo(320, 510); ctx.lineTo(200, 510);
-            ctx.closePath(); ctx.fill();
-            // 底座
-            ctx.fillStyle = "#5d4037";
-            ctx.fillRect(180, 510, 160, 90);
-            ctx.fillStyle = "#fff"; ctx.font = "bold 35px Arial"; ctx.textAlign="center";
-            ctx.fillText("BEST", 260, 570);
-            // 手部線條模擬
-            ctx.strokeStyle = "#ffccbc"; ctx.lineWidth = 40; ctx.lineCap = "round";
-            ctx.beginPath(); ctx.moveTo(120, 550); ctx.lineTo(180, 420); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(400, 550); ctx.lineTo(340, 420); ctx.stroke();
-        }
-
-        function drawPodiumIcon(x, y) {
-            ctx.fillStyle = "#bdc3c7"; ctx.fillRect(x, y+30, 110, 45); // 第一名
-            ctx.fillStyle = "#95a5a6"; ctx.fillRect(x-45, y+50, 45, 25); // 第二名
-            ctx.fillRect(x+110, y+55, 45, 20); // 第三名
-        }
-
-        // 監聽所有輸入框變動
-        const inputs = ['date', 'name', 'title', 'product', 'amount'];
-        inputs.forEach(id => {
-            document.getElementById(id).addEventListener('input', () => {
-                doCalculation();
-                draw();
+            const scaleStyle = computed(() => {
+                const scale = Math.min((windowWidth.value - 20) / 800, 1);
+                return { transform: `scale(${scale})`, marginBottom: `-${535 * (1 - scale)}px` };
             });
-        });
 
-        // 初始運行
-        window.onload = () => {
-            doCalculation();
-            draw();
-        };
-    </script>
+            onMounted(() => { window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; }); });
+
+            const handleProductChange = () => { if(form.productType === 'BOND') form.bp = 50; };
+            const addToCart = () => {
+                const revenue = Math.round(form.amount * form.exRate * (form.bp / 10000));
+                const bonus = Math.round(revenue * 0.25);
+                cart.value.push({ ...form, revenue, bonus });
+            };
+            const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
+
+            const totalRevenue = computed(() => cart.value.reduce((s, i) => s + i.revenue, 0));
+            const totalBonus = computed(() => cart.value.reduce((s, i) => s + i.bonus, 0));
+            const finalProductList = computed(() => [...new Set(cart.value.map(i => i.productType === 'BOND' ? '海外債' : i.productType))]);
+            const finalAmountList = computed(() => {
+                const sums = {};
+                cart.value.forEach(i => { sums[i.currency] = (sums[i.currency] || 0) + i.amount; });
+                return Object.keys(sums).map(curr => ({ val: sums[curr].toLocaleString(), curr: curr === 'USD' ? '美元' : curr }));
+            });
+
+            const formatNumber = (num) => num.toLocaleString();
+            const generateImage = () => {
+                const node = document.getElementById("certificate-node");
+                const oldTransform = node.style.transform;
+                node.style.transform = "scale(1)";
+                html2canvas(node, { scale: 2, useCORS: true }).then(canvas => {
+                    document.getElementById("final-img").src = canvas.toDataURL("image/png");
+                    document.getElementById("result-area").style.display = "block";
+                    node.style.transform = oldTransform;
+                    window.scrollTo(0, document.body.scrollHeight);
+                });
+            };
+
+            return { repList, repIndex, globalDate, form, cart, currentRep, rocDate, scaleStyle, addToCart, removeFromCart, totalRevenue, totalBonus, finalProductList, finalAmountList, formatNumber, generateImage, handleProductChange };
+        }
+    }).mount('#app');
+</script>
 </body>
 </html>
