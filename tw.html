@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業市場簡報-Yahoo風格</title>
+    <title>鉅亨監測-每日市場簡報</title>
     <style>
         :root {
             --bg-color: #f2f2f7;
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
+            --anue-blue: #0055ff; /* 鉅亨網品牌藍 */
             --up-red: #ff3b30;
             --down-green: #34c759;
-            --accent-blue: #007aff;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -22,48 +22,48 @@
             background-color: var(--bg-color);
             margin: 0; padding: 6px 10px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; /* 鎖定螢幕不捲動，方便截圖 */
+            overflow: hidden; /* 鎖定不捲動，方便完美截圖 */
         }
 
-        /* 標題與時間 */
+        /* 標題區域 */
         .header { text-align: center; margin-bottom: 4px; width: 100%; }
-        .header h1 { margin: 0; font-size: 18px; color: var(--text-main); font-weight: 800; }
+        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; letter-spacing: -0.5px; }
         #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 11px; font-weight: 700; color: var(--text-sub);
-            margin: 8px 0 4px 4px; text-transform: uppercase;
+            font-size: 11px; font-weight: 800; color: var(--text-sub);
+            margin: 10px 0 4px 4px; text-transform: uppercase;
             display: flex; align-items: center;
         }
         .section-label::before {
             content: ""; display: inline-block; width: 3px; height: 11px;
-            background: var(--accent-blue); margin-right: 6px; border-radius: 2px;
+            background: var(--anue-blue); margin-right: 6px; border-radius: 2px;
         }
 
         /* 萬用卡片樣式 */
         .card {
             background: var(--card-bg); border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            margin-bottom: 5px; width: 100%; overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 6px; width: 100%; overflow: hidden;
             position: relative;
         }
 
-        /* 美股列表區塊 */
+        /* 美股列表高度 */
         .stock-box { height: 160px; }
 
-        /* 專業走勢圖卡片 (包含座標軸且遮蔽 Logo) */
+        /* 鉅亨專業走勢圖卡片 (帶座標軸且物理遮蔽 Logo) */
         .pro-chart-wrapper {
-            height: 145px; /* 足夠顯示座標的高度 */
+            height: 145px; /* 卡片可視高度 */
             position: relative;
         }
         .chart-mask {
             position: absolute;
-            top: -46px; /* 向上移動遮掉組件自帶的頂部標題 */
+            top: -46px; /* 向上移動：遮掉組件自帶的按鈕 */
             left: 0;
             width: 100%;
-            height: 220px; /* 加高以便裁切 */
+            height: 220px; /* 拉高組件：為了讓底部 Logo 掉出裁切範圍 */
         }
         .bottom-cover {
             position: absolute;
@@ -71,13 +71,13 @@
             background: white; z-index: 10; /* 擋住底部的商標 */
         }
         
-        /* 覆蓋在圖表上的中文標籤 */
+        /* 覆蓋標籤 */
         .floating-label {
             position: absolute;
             top: 10px; left: 12px; z-index: 20;
-            font-size: 14px; font-weight: 800; color: var(--text-main);
+            font-size: 14px; font-weight: 800; color: var(--anue-blue);
             pointer-events: none;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.85);
             padding: 2px 6px; border-radius: 4px;
         }
     </style>
@@ -85,13 +85,13 @@
 <body>
 
     <div class="header">
-        <h1>每日市場即時簡報</h1>
+        <h1>鉅亨監測 | 每日市場簡報</h1>
         <div id="update-time">Loading...</div>
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 (Yahoo 列表風) -->
-        <div class="section-label">🇺🇸 US Market (昨日收盤)</div>
+        <!-- 1. 美股區塊 (鉅亨列表風) -->
+        <div class="section-label">🇺🇸 US Market (道瓊指數正確報價)</div>
         <div class="card stock-box">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
@@ -105,16 +105,16 @@
                         { "name": "TSM", "displayName": "台積電 ADR" }
                     ]}
                   ],
-                  "showSymbolLogo": false, "colorTheme": "light", "isTransparent": true, "locale": "zh_TW"
+                  "showSymbolLogo": true, "colorTheme": "light", "isTransparent": true, "locale": "zh_TW"
                 }
                 </script>
             </div>
         </div>
 
-        <!-- 2. 美元/台幣 (專業圖表版) -->
-        <div class="section-label">💵 美元 / 台幣 (USD/TWD)</div>
+        <!-- 2. 美元/台幣 (鉅亨專業圖表版) -->
+        <div class="section-label">💵 美元 / 台幣 (鉅亨數據)</div>
         <div class="card pro-chart-wrapper">
-            <div class="floating-label">美元 / 台幣 (USD/TWD)</div>
+            <div class="floating-label">USD / TWD 走勢圖</div>
             <div class="chart-mask">
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
                 {
@@ -122,44 +122,44 @@
                   "chartOnly": true, "width": "100%", "height": "220",
                   "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
                   "fontColor": "#787b86", "isTransparent": true, "autosize": false,
-                  "showFloatingTooltip": false, "scalePosition": "right", "scaleMode": "Normal",
-                  "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
-                  "noTimeScale": false, "valuesTracking": "1", "changeMode": "price-and-percent",
-                  "chartType": "area", "lineColor": "rgba(255, 59, 48, 1)", "topColor": "rgba(255, 59, 48, 0.1)", "bottomColor": "rgba(255, 59, 48, 0)"
+                  "scalePosition": "right", "scaleMode": "Normal", "fontFamily": "-apple-system, sans-serif",
+                  "lineColor": "rgba(255, 59, 48, 1)", "topColor": "rgba(255, 59, 48, 0.12)", "bottomColor": "rgba(255, 59, 48, 0)"
                 }
                 </script>
             </div>
             <div class="bottom-cover"></div>
         </div>
 
-        <!-- 3. 日圓/台幣 (專業圖表版) -->
-        <div class="section-label">💴 日圓 / 台幣 (JPY/TWD)</div>
+        <!-- 3. 日圓/台幣 (鉅亨專業圖表版) -->
+        <div class="section-label">💴 日圓 / 台幣 (鉅亨數據)</div>
         <div class="card pro-chart-wrapper">
-            <div class="floating-label">日圓 / 台幣 (JPY/TWD)</div>
+            <div class="floating-label">JPY / TWD 走勢圖</div>
             <div class="chart-mask">
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
                 {
                   "symbols": [ ["FX_IDC:JPYTWD|1M"] ],
                   "chartOnly": true, "width": "100%", "height": "220",
-                  "colorTheme": "light", "isTransparent": true, "scalePosition": "right",
-                  "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.1)", "bottomColor": "rgba(52, 199, 89, 0)"
+                  "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
+                  "fontColor": "#787b86", "isTransparent": true, "autosize": false,
+                  "scalePosition": "right", "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.12)", "bottomColor": "rgba(52, 199, 89, 0)"
                 }
                 </script>
             </div>
             <div class="bottom-cover"></div>
         </div>
 
-        <!-- 4. 美國 10 年期公債 (專業圖表版) -->
-        <div class="section-label">📈 10 年期美債殖利率 (US10Y)</div>
+        <!-- 4. 美國 10 年期公債 (鉅亨專業圖表版) -->
+        <div class="section-label">📈 10年期美債殖利率 (鉅亨數據)</div>
         <div class="card pro-chart-wrapper">
-            <div class="floating-label">美國 10 年期公債</div>
+            <div class="floating-label">10Y Bond Yield 走勢</div>
             <div class="chart-mask">
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
                 {
                   "symbols": [ ["US10Y|1M"] ],
                   "chartOnly": true, "width": "100%", "height": "220",
-                  "colorTheme": "light", "isTransparent": true, "scalePosition": "right",
-                  "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.1)", "bottomColor": "rgba(52, 199, 89, 0)"
+                  "colorTheme": "light", "gridLineColor": "rgba(240, 243, 250, 0)",
+                  "fontColor": "#787b86", "isTransparent": true, "autosize": false,
+                  "scalePosition": "right", "lineColor": "rgba(52, 199, 89, 1)", "topColor": "rgba(52, 199, 89, 0.12)", "bottomColor": "rgba(52, 199, 89, 0)"
                 }
                 </script>
             </div>
