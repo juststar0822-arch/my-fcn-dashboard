@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>每日市場匯率與公債監測</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f5f7f9;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+        .date-display {
+            color: #666;
+            margin-top: 5px;
+        }
+        .container {
+            width: 100%;
+            max-width: 500px; /* 適合手機截圖的寬度 */
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .widget-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+            padding: 10px;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>市場即時數據簡報</h1>
+        <div class="date-display" id="current-date"></div>
+    </div>
+
+    <div class="container">
+        <!-- 美元/台幣 -->
+        <div class="widget-card">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                "symbol": "FX_IDC:USDTWD",
+                "width": "100%",
+                "height": "220",
+                "locale": "zh_TW",
+                "dateRange": "1M",
+                "colorTheme": "light",
+                "trendLineColor": "rgba(41, 98, 255, 1)",
+                "underLineColor": "rgba(41, 98, 255, 0.3)",
+                "underLineBottomColor": "rgba(41, 98, 255, 0)",
+                "isTransparent": false,
+                "autosize": false,
+                "largeChartUrl": ""
+                }
+                </script>
+            </div>
+        </div>
+
+        <!-- 日圓/台幣 -->
+        <div class="widget-card">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                "symbol": "FX_IDC:JPYTWD",
+                "width": "100%",
+                "height": "220",
+                "locale": "zh_TW",
+                "dateRange": "1M",
+                "colorTheme": "light",
+                "trendLineColor": "rgba(255, 82, 82, 1)",
+                "underLineColor": "rgba(255, 82, 82, 0.3)",
+                "underLineBottomColor": "rgba(255, 82, 82, 0)",
+                "isTransparent": false,
+                "autosize": false,
+                "largeChartUrl": ""
+                }
+                </script>
+            </div>
+        </div>
+
+        <!-- 美國10年期公債 -->
+        <div class="widget-card">
+            <div class="tradingview-widget-container">
+                <div class="tradingview-widget-container__widget"></div>
+                <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
+                {
+                "symbol": "TVC:US10Y",
+                "width": "100%",
+                "height": "220",
+                "locale": "zh_TW",
+                "dateRange": "1M",
+                "colorTheme": "light",
+                "trendLineColor": "rgba(76, 175, 80, 1)",
+                "underLineColor": "rgba(76, 175, 80, 0.3)",
+                "underLineBottomColor": "rgba(76, 175, 80, 0)",
+                "isTransparent": false,
+                "autosize": false,
+                "largeChartUrl": ""
+                }
+                </script>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        數據由 TradingView 提供 | 自動即時更新
+    </div>
+
+    <script>
+        // 顯示當前日期
+        const now = new Date();
+        document.getElementById('current-date').innerText = now.toLocaleString('zh-TW', { 
+            year: 'numeric', month: 'long', day: 'numeric', 
+            hour: '2-digit', minute: '2-digit' 
+        });
+    </script>
+</body>
+</html>
