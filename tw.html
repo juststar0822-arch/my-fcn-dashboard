@@ -7,57 +7,62 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f5f7f9;
+            background-color: #f0f2f5;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         .header {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            width: 100%;
+            max-width: 500px;
         }
         .header h1 {
             margin: 0;
-            color: #333;
-            font-size: 24px;
+            color: #1a1a1a;
+            font-size: 22px;
+            font-weight: 600;
         }
         .date-display {
             color: #666;
             margin-top: 5px;
+            font-size: 14px;
         }
         .container {
             width: 100%;
-            max-width: 500px; /* 適合手機截圖的寬度 */
+            max-width: 500px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
         }
         .widget-card {
             background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             overflow: hidden;
-            padding: 10px;
+            padding: 5px;
         }
         .footer {
             margin-top: 20px;
-            font-size: 12px;
+            font-size: 11px;
             color: #999;
             text-align: center;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>市場即時數據簡報</h1>
-        <div class="date-display" id="current-date"></div>
+        <h1>財經匯率/公債即時監測</h1>
+        <div class="date-display" id="current-date">載入中...</div>
     </div>
 
     <div class="container">
-        <!-- 美元/台幣 -->
+        <!-- 美元/台幣 (漲：紅線) -->
         <div class="widget-card">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
@@ -65,22 +70,20 @@
                 {
                 "symbol": "FX_IDC:USDTWD",
                 "width": "100%",
-                "height": "220",
+                "height": "210",
                 "locale": "zh_TW",
                 "dateRange": "1M",
                 "colorTheme": "light",
-                "trendLineColor": "rgba(41, 98, 255, 1)",
-                "underLineColor": "rgba(41, 98, 255, 0.3)",
-                "underLineBottomColor": "rgba(41, 98, 255, 0)",
+                "trendLineColor": "rgba(255, 82, 82, 1)",
+                "underLineColor": "rgba(255, 82, 82, 0.15)",
                 "isTransparent": false,
-                "autosize": false,
-                "largeChartUrl": ""
+                "autosize": false
                 }
                 </script>
             </div>
         </div>
 
-        <!-- 日圓/台幣 -->
+        <!-- 日圓/台幣 (跌：綠線) -->
         <div class="widget-card">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
@@ -88,39 +91,35 @@
                 {
                 "symbol": "FX_IDC:JPYTWD",
                 "width": "100%",
-                "height": "220",
+                "height": "210",
                 "locale": "zh_TW",
                 "dateRange": "1M",
                 "colorTheme": "light",
-                "trendLineColor": "rgba(255, 82, 82, 1)",
-                "underLineColor": "rgba(255, 82, 82, 0.3)",
-                "underLineBottomColor": "rgba(255, 82, 82, 0)",
+                "trendLineColor": "rgba(34, 171, 148, 1)",
+                "underLineColor": "rgba(34, 171, 148, 0.15)",
                 "isTransparent": false,
-                "autosize": false,
-                "largeChartUrl": ""
+                "autosize": false
                 }
                 </script>
             </div>
         </div>
 
-        <!-- 美國10年期公債 -->
+        <!-- 美國10年期公債 (跌：綠線) -->
         <div class="widget-card">
             <div class="tradingview-widget-container">
                 <div class="tradingview-widget-container__widget"></div>
                 <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
                 {
-                "symbol": "TVC:US10Y",
+                "symbol": "US10Y",
                 "width": "100%",
-                "height": "220",
+                "height": "210",
                 "locale": "zh_TW",
                 "dateRange": "1M",
                 "colorTheme": "light",
-                "trendLineColor": "rgba(76, 175, 80, 1)",
-                "underLineColor": "rgba(76, 175, 80, 0.3)",
-                "underLineBottomColor": "rgba(76, 175, 80, 0)",
+                "trendLineColor": "rgba(34, 171, 148, 1)",
+                "underLineColor": "rgba(34, 171, 148, 0.15)",
                 "isTransparent": false,
-                "autosize": false,
-                "largeChartUrl": ""
+                "autosize": false
                 }
                 </script>
             </div>
@@ -128,16 +127,22 @@
     </div>
 
     <div class="footer">
-        數據由 TradingView 提供 | 即時更新
+        數據由 TradingView 提供 | 網頁自動即時更新
     </div>
 
     <script>
-        // 顯示當前日期
-        const now = new Date();
-        document.getElementById('current-date').innerText = now.toLocaleString('zh-TW', { 
-            year: 'numeric', month: 'long', day: 'numeric', 
-            hour: '2-digit', minute: '2-digit' 
-        });
+        function updateDate() {
+            const now = new Date();
+            const options = { 
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                hour: '2-digit', minute: '2-digit', second: '2-digit',
+                hour12: false 
+            };
+            document.getElementById('current-date').innerText = '最後更新：' + now.toLocaleString('zh-TW', options);
+        }
+        updateDate();
+        // 每分鐘更新一次時間顯示
+        setInterval(updateDate, 60000);
     </script>
 </body>
 </html>
