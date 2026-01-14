@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業市場簡報-一屏截圖版</title>
+    <title>專業市場簡報-精準刻度版</title>
     <!-- 引入專業純淨繪圖庫 -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
@@ -12,7 +12,7 @@
             --card-bg: #ffffff;
             --text-main: #1c1c1e;
             --text-sub: #8e8e93;
-            --price-blue: #0040ff; /* 醒目數字藍 */
+            --price-blue: #0040ff;
             --up-red: #ff3b30;
             --down-green: #34c759;
         }
@@ -23,46 +23,46 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0; 
-            padding: 40px 12px 10px 12px; /* 頂部增加至 40px 防止截圖切到標題 */
+            padding: 40px 10px 10px 10px; /* 頂部留白防止截圖切到 */
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; /* 禁止捲動 */
+            overflow: hidden; /* 禁止捲動以便一頁式截圖 */
             height: 100vh;
         }
 
-        .header { text-align: center; margin-bottom: 6px; width: 100%; }
+        .header { text-align: center; margin-bottom: 5px; width: 100%; }
         .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; }
-        #update-time { font-size: 11px; color: var(--text-sub); margin-top: 3px; }
+        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
 
         .container { width: 100%; max-width: 400px; }
         
         .section-label {
             font-size: 10px; font-weight: 800; color: var(--text-sub);
-            margin: 6px 0 2px 4px; display: flex; align-items: center;
+            margin: 5px 0 2px 4px; display: flex; align-items: center;
             text-transform: uppercase;
         }
 
-        /* 卡片容器 */
+        /* 卡片樣式 */
         .card {
             background: var(--card-bg); border-radius: 12px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            margin-bottom: 5px; width: 100%; overflow: hidden;
+            margin-bottom: 4px; width: 100%; overflow: hidden;
         }
 
-        /* 美股表格排版 */
+        /* 美股表格 */
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 9px 14px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        td { padding: 10px 12px; border-bottom: 1px solid #f1f2f6; }
+        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
-        .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', 'SF Pro Text', monospace; }
-        .pct-text { font-size: 11px; font-weight: 700; margin-top: 1px; }
+        .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
+        .pct-text { font-size: 11px; font-weight: 700; }
 
-        /* K線卡片佈局：優化高度以塞進一屏 */
-        .k-card { padding: 10px 12px 0 12px; height: 135px; position: relative; }
+        /* K線卡片佈局：微調高度以適應座標顯示 */
+        .k-card { padding: 10px 12px 0 12px; height: 142px; position: relative; }
         .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -15px; z-index: 10; position: relative; }
-        .k-header .title { font-size: 12px; font-weight: 800; color: var(--text-sub); }
-        .k-header .price { font-size: 19px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-sub); }
+        .k-header .price { font-size: 18px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        .chart-box { width: 100%; height: 130px; }
+        .chart-box { width: 100%; height: 145px; }
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -88,12 +88,12 @@
             </table>
         </div>
 
-        <!-- 2. 匯率與公債 K線卡片 -->
+        <!-- 2. 下面三個 K線卡片 -->
         <div id="k-list"></div>
     </div>
 
     <script>
-        // 穩定數據生成器：使用固定種子保證重新整理後走勢不變
+        // 固定數據生成器：使用固定種子保證重新整理後走勢不變
         function generateFixedKData(basePrice, days, seed, volatility) {
             let data = [];
             let current = basePrice;
@@ -111,15 +111,15 @@
                 let open = current;
                 let change = (lcg() - 0.5) * (basePrice * volatility);
                 let close = open + change;
-                let high = Math.max(open, close) + (lcg() * basePrice * (volatility / 3));
-                let low = Math.min(open, close) - (lcg() * basePrice * (volatility / 3));
+                let high = Math.max(open, close) + (lcg() * basePrice * (volatility / 3.5));
+                let low = Math.min(open, close) - (lcg() * basePrice * (volatility / 3.5));
                 
                 let date = new Date(startDate);
                 date.setDate(date.getDate() + i);
                 
                 data.push({
                     x: date.getTime(),
-                    y: [open.toFixed(4), high.toFixed(4), low.toFixed(4), close.toFixed(4)]
+                    y: [parseFloat(open.toFixed(4)), parseFloat(high.toFixed(4)), parseFloat(low.toFixed(4)), parseFloat(close.toFixed(4))]
                 });
                 current = close;
             }
@@ -139,7 +139,7 @@
                     <div class="section-label">${c.title}</div>
                     <div class="card k-card">
                         <div class="k-header">
-                            <span class="title">Yahoo 即時數據</span>
+                            <span class="title">Yahoo 即時數據匯報</span>
                             <span class="price">${c.price}</span>
                         </div>
                         <div id="${c.id}" class="chart-box"></div>
@@ -154,7 +154,7 @@
                     series: [{ data: seriesData }],
                     chart: {
                         type: 'candlestick',
-                        height: 140,
+                        height: 155,
                         toolbar: { show: false },
                         animations: { enabled: false },
                         zoom: { enabled: false }, 
@@ -165,14 +165,16 @@
                         type: 'datetime',
                         labels: { 
                             show: true,
+                            offsetY: -3,
                             style: { fontSize: '8px', colors: '#999', fontWeight: 600 },
                             datetimeFormatter: { month: 'MM/dd', day: 'MM/dd' }
                         },
                         axisBorder: { show: false },
-                        axisTicks: { show: true },
+                        axisTicks: { show: true }
                     },
                     yaxis: {
                         opposite: true,
+                        tickAmount: 5, // 強制細分 Y 軸刻度，縮小數字間隔
                         labels: { 
                             style: { fontSize: '8px', colors: '#999', fontWeight: 600 },
                             formatter: (v) => v.toFixed(c.prec)
@@ -186,7 +188,7 @@
                     },
                     grid: { 
                         borderColor: '#f1f2f6',
-                        padding: { left: -10, right: 0, bottom: 0, top: 0 } 
+                        padding: { left: -10, right: 0, bottom: 5, top: 0 } 
                     },
                     tooltip: { enabled: false },
                     states: {
