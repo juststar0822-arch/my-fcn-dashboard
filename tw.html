@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業市場即時報-K棒強化版</title>
+    <title>專業市場即時報-2個月強化版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -24,7 +24,6 @@
             margin: 0; 
             padding: 40px 12px 10px 12px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; 
             height: 100vh;
         }
 
@@ -53,13 +52,12 @@
         .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct-text { font-size: 11px; font-weight: 700; margin-top: 1px; }
 
-        /* 卡片高度微調為 140px，確保 X 軸日期不被切掉 */
-        .k-card { padding: 12px 12px 0 12px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -15px; z-index: 10; position: relative; }
+        .k-card { padding: 12px 12px 5px 12px; height: 160px; position: relative; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: -10px; z-index: 10; position: relative; }
         .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-sub); }
         .k-header .price { font-size: 19px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        .chart-box { width: 100%; height: 145px; } /* 圖表容器高度 */
+        .chart-box { width: 100%; height: 150px; }
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -73,13 +71,10 @@
     </div>
 
     <div class="container">
-        <!-- 1. 美股區塊 -->
         <div class="section-label">🇺🇸 US Market Overview (Yahoo)</div>
         <div class="card">
             <table id="stock-list"></table>
         </div>
-
-        <!-- 2. 下面三個 K線卡片 -->
         <div id="k-list-container"></div>
     </div>
 
@@ -96,7 +91,7 @@
         let charts = {};
 
         async function fetchYahooData() {
-            // 使用並行抓取，跨度改為 60 天以增加 K 棒厚度
+            // 設定 range=2mo 獲取兩個月數據
             const promises = symbols.map(item => 
                 fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=2mo`)}&disableCache=true`)
                 .then(res => res.json())
@@ -172,7 +167,6 @@
 
         function renderKChart(item, result, currentPrice) {
             const ohlc = result.indicators.quote[0];
-            // 過濾掉空值，解決 K 棒長得怪的問題
             const seriesData = result.timestamp.map((t, i) => {
                 const o = ohlc.open[i], h = ohlc.high[i], l = ohlc.low[i], c = ohlc.close[i];
                 if (o == null || h == null || l == null || c == null) return null;
@@ -182,33 +176,35 @@
             const options = {
                 series: [{ data: seriesData }],
                 chart: {
-                    type: 'candlestick', height: 140,
+                    type: 'candlestick', height: 150,
                     toolbar: { show: false }, animations: { enabled: false },
                     zoom: { enabled: false }, sparkline: { enabled: false }
                 },
                 xaxis: {
                     type: 'datetime',
+                    tickAmount: 6, // 強制顯示 6 個時間點，確保不會太擠
                     labels: { 
                         show: true, 
-                        offsetY: -3,
+                        rotate: -45, // 旋轉日期防止重疊
+                        rotateAlways: true,
+                        offsetY: 5,
                         style: { fontSize: '9px', colors: '#999', fontWeight: 600 },
-                        datetimeFormatter: { month: 'MM/dd', day: 'dd' }
+                        datetimeFormatter: { month: 'MM/dd', day: 'MM/dd' }
                     },
-                    axisBorder: { show: false },
-                    axisTicks: { show: true }
+                    axisBorder: { show: false }
                 },
                 yaxis: {
                     opposite: true, tickAmount: 4,
                     labels: { style: { fontSize: '9px', colors: '#999', fontWeight: 600 }, formatter: (v) => v.toFixed(item.prec) }
                 },
-                stroke: { width: 1.5 }, // 增加 K 棒邊框寬度，使其更立體
+                stroke: { width: 1 }, 
                 plotOptions: {
                     candlestick: {
                         colors: { upward: '#ff3b30', downward: '#34c759' },
                         wick: { useFillColor: true }
                     }
                 },
-                grid: { borderColor: '#f1f2f6', padding: { left: -10, right: 0, bottom: 8, top: 0 } },
+                grid: { borderColor: '#f1f2f6', padding: { left: -10, right: 0, bottom: 10, top: 0 } },
                 tooltip: { enabled: false }
             };
 
