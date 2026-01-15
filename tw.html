@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業市場即時報-近一月趨勢版</title>
+    <title>市場快報-極致壓縮版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -22,47 +22,50 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0; 
-            padding: 20px 12px 30px 12px; 
+            padding: 8px 10px; /* 極小化邊距 */
             display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden; 
-            overflow-y: auto; /* 允許捲動以查看所有圖表 */
-            min-height: 100vh;
+            overflow: hidden; /* 強制不捲動 */
+            height: 100vh;
         }
 
-        .header { text-align: center; margin-bottom: 15px; width: 100%; }
-        .header h1 { margin: 0; font-size: 19px; color: var(--text-main); font-weight: 800; }
-        #update-time { font-size: 10px; color: var(--text-sub); margin-top: 2px; }
+        /* 更新時間改為右上角浮動 */
+        #update-time { 
+            align-self: flex-end;
+            font-size: 9px; 
+            color: var(--text-sub); 
+            margin-bottom: 2px;
+            font-family: 'SF Mono', monospace;
+        }
 
-        .container { width: 100%; max-width: 400px; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
         
         .section-label {
-            font-size: 11px; font-weight: 800; color: var(--text-sub);
-            margin: 15px 0 5px 4px; display: flex; align-items: center;
+            font-size: 10px; font-weight: 800; color: var(--text-sub);
+            margin: 4px 0 2px 4px; display: flex; align-items: center;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
         .card {
-            background: var(--card-bg); border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            background: var(--card-bg); border-radius: 10px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             margin-bottom: 4px; width: 100%; overflow: hidden;
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 10px 14px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
+        td { padding: 6px 12px; border-bottom: 1px solid #f1f2f6; } /* 縮減表格高度 */
+        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
-        .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
-        .pct-text { font-size: 11px; font-weight: 700; margin-top: 1px; }
+        .price-text { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
+        .pct-text { font-size: 10px; font-weight: 700; }
 
-        /* 增加高度以容納 X 軸文字 */
-        .k-card { padding: 12px 12px 5px 12px; height: 185px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0px; z-index: 10; position: relative; }
-        .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-sub); }
-        .k-header .price { font-size: 18px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        /* K線卡片高度精簡 */
+        .k-card { padding: 8px 10px 4px 10px; height: 145px; position: relative; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; z-index: 10; position: relative; }
+        .k-header .title { font-size: 10px; font-weight: 800; color: var(--text-sub); }
+        .k-header .price { font-size: 16px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        /* 圖表高度調整 */
-        .chart-box { width: 100%; height: 155px; margin-top: -5px; } 
+        /* 圖表容器，確保 X 軸標籤有空間 */
+        .chart-box { width: 100%; height: 125px; margin-top: -10px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -70,19 +73,16 @@
 </head>
 <body>
 
-    <div class="header">
-        <h1>每日市場即時簡報</h1>
-        <div id="update-time">及時數據更新中...</div>
-    </div>
+    <div id="update-time">SYNCING...</div>
 
     <div class="container">
-        <!-- 1. 指數/ADR 區塊 -->
-        <div class="section-label">🇺🇸 US Market Overview</div>
+        <!-- 1. 美股區塊 -->
+        <div class="section-label" style="margin-top:0;">🇺🇸 Markets</div>
         <div class="card">
             <table id="stock-list"></table>
         </div>
 
-        <!-- 2. 下面三個 K線卡片 (匯率與債券) -->
+        <!-- 2. 下面三個 K線卡片 (動態產生) -->
         <div id="k-list-container"></div>
     </div>
 
@@ -91,15 +91,14 @@
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2 },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2 },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 },
-            { id: "USD", sym: "USDTWD=X", name: "美元 / 台幣 (USD/TWD)", prec: 3 },
-            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 台幣 (JPY/TWD)", prec: 4 },
+            { id: "USD", sym: "USDTWD=X", name: "美元 / 台幣", prec: 3 },
+            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 台幣", prec: 4 },
             { id: "TNX", sym: "^TNX", name: "10年期美債殖利率", prec: 3 }
         ];
 
         let charts = {};
 
         async function fetchYahooData() {
-            // range 改為 1mo 取得近一個月數據
             const promises = symbols.map(item => 
                 fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
                 .then(res => res.json())
@@ -114,7 +113,6 @@
                 const { item, result } = res;
                 const meta = result.meta;
                 const quotes = result.indicators.quote[0].close.filter(v => v != null);
-                
                 const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
                 const prevClose = quotes.length > 1 ? quotes[quotes.length - 2] : meta.chartPreviousClose;
                 const changePct = prevClose ? (((currentPrice - prevClose) / prevClose) * 100).toFixed(2) : "0.00";
@@ -127,7 +125,7 @@
             });
             
             const now = new Date();
-            document.getElementById('update-time').innerText = `最後更新：${now.toLocaleString('zh-TW', {hour12: false})}`;
+            document.getElementById('update-time').innerText = `UPDATED: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
         }
 
         function updateStockUI(id, name, price, pct) {
@@ -140,12 +138,11 @@
             }
             const isUp = parseFloat(pct) >= 0;
             const colorClass = isUp ? 'up' : 'down';
-            const arrow = isUp ? '▲' : '▼';
             row.innerHTML = `
                 <td class="name-col">${name}</td>
                 <td class="val-col">
-                    <div class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-                    <div class="pct-text ${colorClass}">${arrow} ${pct}%</div>
+                    <span class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
+                    <span class="pct-text ${colorClass}" style="margin-left:8px;">${isUp?'▲':'▼'}${pct}%</span>
                 </td>
             `;
         }
@@ -171,7 +168,6 @@
                     <div id="chart-${item.id}" class="chart-box"></div>
                 `;
                 container.appendChild(cardDiv);
-                
                 setTimeout(() => renderKChart(item, result, currentPrice), 400);
             } else {
                 const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
@@ -191,50 +187,34 @@
             const options = {
                 series: [{ data: seriesData }],
                 chart: {
-                    type: 'candlestick', 
-                    height: 150,
-                    toolbar: { show: false }, 
-                    animations: { enabled: false },
-                    zoom: { enabled: false }, 
-                    sparkline: { enabled: false } // 確保 X 軸不被視為隱藏的 sparkline
+                    type: 'candlestick', height: 135,
+                    toolbar: { show: false }, animations: { enabled: false },
+                    sparkline: { enabled: false }
                 },
                 xaxis: {
                     type: 'datetime',
                     labels: { 
                         show: true, 
-                        rotate: 0,
-                        style: { fontSize: '10px', colors: '#8e8e93' },
-                        datetimeFormatter: { month: 'MM/dd', day: 'MM/dd' }
+                        style: { fontSize: '8px', colors: '#999' },
+                        datetimeFormatter: { month: 'MM/dd', day: 'dd' },
+                        offsetY: -4
                     },
-                    axisBorder: { show: false },
-                    axisTicks: { show: true }
+                    axisTicks: { show: false }
                 },
                 yaxis: {
-                    opposite: true, 
-                    tickAmount: 3,
-                    labels: { 
-                        style: { fontSize: '10px', colors: '#8e8e93' }, 
-                        formatter: (v) => v.toFixed(item.prec) 
-                    }
+                    opposite: true, tickAmount: 3,
+                    labels: { style: { fontSize: '8px', colors: '#999' }, formatter: (v) => v.toFixed(item.prec) }
                 },
-                stroke: { width: 1 },
                 plotOptions: {
-                    candlestick: {
-                        colors: { upward: '#ff3b30', downward: '#34c759' },
-                        wick: { useFillColor: true }
-                    }
+                    candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } }
                 },
-                grid: { 
-                    borderColor: '#f1f2f6', 
-                    padding: { left: 0, right: 0, bottom: 0, top: 0 } 
-                },
-                tooltip: { enabled: true, theme: 'light' }
+                grid: { borderColor: '#f1f2f6', padding: { bottom: 0 } },
+                tooltip: { enabled: false }
             };
 
             const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
             chart.render();
             charts[item.id] = chart;
-            
             const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
             document.getElementById(`price-${item.id}`).innerText = display;
         }
@@ -252,7 +232,6 @@
         }
 
         fetchYahooData();
-        // 每 60 秒自動更新一次
         setInterval(fetchYahooData, 60000); 
     </script>
 </body>
