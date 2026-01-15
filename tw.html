@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場即時報-固定月線版</title>
+    <title>市場即時報-極速版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -21,26 +21,22 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; 
-            padding: 6px 10px; 
+            margin: 0; padding: 6px 10px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; 
-            height: 100vh;
+            min-height: 100vh;
         }
 
         #update-time { 
             align-self: flex-end;
-            font-size: 9px; 
-            color: var(--text-sub); 
-            margin-bottom: 2px;
-            font-family: 'SF Mono', monospace;
+            font-size: 9px; color: var(--text-sub); 
+            margin-bottom: 2px; font-family: 'SF Mono', monospace;
         }
 
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
         
         .section-label {
             font-size: 10px; font-weight: 800; color: var(--text-sub);
-            margin: 2px 0 2px 4px; display: flex; align-items: center;
+            margin: 8px 0 4px 4px; display: flex; align-items: center;
             text-transform: uppercase;
         }
 
@@ -51,195 +47,195 @@
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 5px 12px; border-bottom: 1px solid #f1f2f6; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f2f6; }
         .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
         .price-text { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
-        .pct-text { font-size: 10px; font-weight: 700; }
+        .pct-text { font-size: 10px; font-weight: 700; margin-left: 5px; }
 
-        .k-card { padding: 6px 10px 4px 10px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; position: relative; z-index: 10; margin-bottom: -4px; }
-        .k-header .title { font-size: 9px; font-weight: 800; color: var(--text-sub); }
+        .k-card { padding: 10px; height: 160px; position: relative; margin-bottom: 10px; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+        .k-header .title { font-size: 11px; font-weight: 800; color: var(--text-main); }
         .k-header .price { font-size: 16px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        .chart-box { width: 100%; height: 125px; } 
+        .chart-box { width: 100%; height: 120px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
+        .loading-shimmer { color: #ccc; font-style: italic; font-size: 10px; }
     </style>
 </head>
 <body>
 
-    <div id="update-time">SYNCING...</div>
+    <div id="update-time">INITIALIZING...</div>
 
     <div class="container">
-        <!-- 指數列表 -->
-        <div class="section-label">🇺🇸 US Indices / ADR</div>
+        <div class="section-label">🇺🇸 US Market / FX</div>
         <div class="card">
-            <table id="stock-list"></table>
+            <table id="stock-list">
+                <!-- 預先佔位，體驗更好 -->
+                <tr id="row-DJI"><td>...</td></tr>
+                <tr id="row-IXIC"><td>...</td></tr>
+                <tr id="row-TSM"><td>...</td></tr>
+                <tr id="row-USD"><td>...</td></tr>
+                <tr id="row-JPY"><td>...</td></tr>
+                <tr id="row-TNX"><td>...</td></tr>
+            </table>
         </div>
 
-        <!-- 動態生成的 K 線圖 -->
-        <div id="k-list-container"></div>
+        <div id="k-list-container">
+            <!-- 圖表會動態插入這裡 -->
+        </div>
     </div>
 
     <script>
         const symbols = [
-            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2 },
-            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2 },
-            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 },
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3 }
+            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2, hasChart: false },
+            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2, hasChart: false },
+            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2, hasChart: false },
+            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, hasChart: true },
+            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, hasChart: true },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, hasChart: true }
         ];
 
+        // 使用更快的 CORS 代理
+        const PROXY = "https://corsproxy.io/?";
         let charts = {};
 
-        async function fetchYahooData() {
-            const now = new Date();
-            // 抓取 1mo 資料
-            const promises = symbols.map(item => 
-                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
-                .then(res => res.json())
-                .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
-                .catch(err => null)
-            );
-
-            const results = await Promise.all(promises);
-            
-            results.forEach(res => {
-                if (!res) return;
-                const { item, result } = res;
-                const meta = result.meta;
-                const quotes = result.indicators.quote[0].close.filter(v => v != null);
-                const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
-                const prevClose = quotes.length > 1 ? quotes[quotes.length - 2] : meta.chartPreviousClose;
-                const changePct = prevClose ? (((currentPrice - prevClose) / prevClose) * 100).toFixed(2) : "0.00";
-                
-                if (["DJI", "IXIC", "TSM"].includes(item.id)) {
-                    updateStockUI(item.id, item.name, currentPrice, changePct);
-                } else {
-                    updateChartUI(item, result, currentPrice);
-                }
-            });
-            
-            document.getElementById('update-time').innerText = `UPDATED: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        async function init() {
+            // 1. 先抓取所有項目的即時報價 (一次請求，最快)
+            await fetchQuotes();
+            // 2. 隨後非同步抓取 K 線 (一個一個出，不卡死)
+            fetchCharts();
         }
 
-        function updateStockUI(id, name, price, pct) {
-            const list = document.getElementById('stock-list');
-            let row = document.getElementById(`row-${id}`);
-            if (!row) {
-                row = document.createElement('tr'); row.id = `row-${id}`;
-                list.appendChild(row);
+        async function fetchQuotes() {
+            const symList = symbols.map(s => s.sym).join(',');
+            const url = `${PROXY}${encodeURIComponent(`https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symList}`)}`;
+            
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                const quotes = data.quoteResponse.result;
+
+                symbols.forEach(s => {
+                    const q = quotes.find(item => item.symbol === s.sym);
+                    if (q) {
+                        updateStockUI(s.id, s.name, q.regularMarketPrice, q.regularMarketChangePercent, s.prec);
+                    }
+                });
+                document.getElementById('update-time').innerText = `UPDATED: ${new Date().toLocaleTimeString()}`;
+            } catch (e) {
+                console.error("Quote fetch error", e);
             }
-            const isUp = parseFloat(pct) >= 0;
+        }
+
+        function updateStockUI(id, name, price, pct, prec) {
+            const row = document.getElementById(`row-${id}`);
+            if (!row) return;
+            const isUp = pct >= 0;
             row.innerHTML = `
                 <td class="name-col">${name}</td>
                 <td class="val-col">
-                    <span class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-                    <span class="pct-text ${isUp?'up':'down'}" style="margin-left:8px;">${isUp?'▲':'▼'}${pct}%</span>
+                    <span class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: prec})}</span>
+                    <span class="pct-text ${isUp?'up':'down'}">${isUp?'▲':'▼'}${Math.abs(pct).toFixed(2)}%</span>
                 </td>
             `;
         }
 
-        function updateChartUI(item, result, currentPrice) {
-            const container = document.getElementById('k-list-container');
-            let card = document.getElementById(`card-${item.id}`);
+        async function fetchCharts() {
+            // 只針對需要圖表的項目抓取 1mo 數據
+            const chartSymbols = symbols.filter(s => s.hasChart);
             
-            if (!card) {
-                container.innerHTML += `
-                    <div class="section-label">${item.name}</div>
+            chartSymbols.forEach(async (item) => {
+                const url = `${PROXY}${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}`;
+                try {
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const result = data.chart.result[0];
+                    renderOrUpdateKChart(item, result);
+                } catch (e) {
+                    console.error(`Chart error for ${item.id}`, e);
+                }
+            });
+        }
+
+        function renderOrUpdateKChart(item, result) {
+            const container = document.getElementById('k-list-container');
+            const currentPrice = result.meta.regularMarketPrice;
+            const priceStr = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+
+            if (!document.getElementById(`card-${item.id}`)) {
+                const cardHtml = `
+                    <div class="section-label">${item.name} TREND</div>
                     <div class="card k-card" id="card-${item.id}">
                         <div class="k-header">
-                            <span class="title">近一個月趨勢</span>
-                            <span class="price" id="price-${item.id}">--</span>
+                            <span class="title">近一個月走勢</span>
+                            <span class="price" id="price-${item.id}">${priceStr}</span>
                         </div>
                         <div id="chart-${item.id}" class="chart-box"></div>
                     </div>
                 `;
-                setTimeout(() => renderKChart(item, result, currentPrice), 400);
+                container.insertAdjacentHTML('beforeend', cardHtml);
+                createApexChart(item, result);
             } else {
-                const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-                document.getElementById(`price-${item.id}`).innerText = display;
-                refreshChart(item.id, result);
+                document.getElementById(`price-${item.id}`).innerText = priceStr;
+                updateApexData(item.id, result);
             }
         }
 
-        function renderKChart(item, result, currentPrice) {
-            const ohlc = result.indicators.quote[0];
-            const seriesData = result.timestamp.map((t, i) => {
-                const o = ohlc.open[i], h = ohlc.high[i], l = ohlc.low[i], c = ohlc.close[i];
-                if (o == null || h == null || l == null || c == null) return null;
-                return { x: t * 1000, y: [o, h, l, c] };
-            }).filter(d => d !== null);
-
-            // 計算一個月前的時間點
+        function createApexChart(item, result) {
+            const seriesData = parseChartData(result);
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
             const options = {
                 series: [{ data: seriesData }],
                 chart: {
-                    type: 'candlestick', height: 125,
+                    type: 'candlestick', height: 120,
                     toolbar: { show: false }, animations: { enabled: false },
                     sparkline: { enabled: false }
                 },
                 xaxis: {
                     type: 'datetime',
-                    min: oneMonthAgo.getTime(), // 強制從一個月前開始
-                    max: new Date().getTime(),   // 到現在結束
-                    labels: { 
-                        show: true, 
-                        format: 'MM/dd', // 固定顯示 月份/日期
-                        style: { fontSize: '8px', colors: '#999' },
-                        offsetY: -4
-                    },
-                    tickAmount: 4, // 限制標籤數量避免重疊
-                    axisTicks: { show: false }
+                    labels: { show: true, format: 'MM/dd', style: { fontSize: '8px' }, offsetY: -4 },
+                    axisTicks: { show: false }, tickAmount: 4
                 },
                 yaxis: {
                     opposite: true, tickAmount: 3,
-                    labels: { style: { fontSize: '8px', colors: '#999' }, formatter: (v) => v.toFixed(item.prec) }
+                    labels: { style: { fontSize: '8px' }, formatter: v => v.toFixed(item.prec) }
                 },
                 plotOptions: {
                     candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } }
                 },
-                grid: { borderColor: '#f1f2f6', padding: { bottom: 0, top: 0 } },
-                tooltip: { enabled: false }
+                grid: { borderColor: '#f1f2f6' },
+                tooltip: { enabled: true, theme: 'light' }
             };
 
             const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
             chart.render();
             charts[item.id] = chart;
-            const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-            document.getElementById(`price-${item.id}`).innerText = display;
         }
 
-        function refreshChart(id, result) {
-            if (charts[id]) {
-                const ohlc = result.indicators.quote[0];
-                const seriesData = result.timestamp.map((t, i) => {
-                    const o = ohlc.open[i], h = ohlc.high[i], l = ohlc.low[i], c = ohlc.close[i];
-                    if (o == null || h == null || l == null || c == null) return null;
-                    return { x: t * 1000, y: [o, h, l, c] };
-                }).filter(d => d !== null);
-                
-                const oneMonthAgo = new Date();
-                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+        function parseChartData(result) {
+            const ohlc = result.indicators.quote[0];
+            return result.timestamp.map((t, i) => ({
+                x: t * 1000,
+                y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], ohlc.close[i]]
+            })).filter(d => d.y[0] !== null);
+        }
 
-                charts[id].updateOptions({
-                    xaxis: { 
-                        min: oneMonthAgo.getTime(),
-                        max: new Date().getTime()
-                    }
-                });
-                charts[id].updateSeries([{ data: seriesData }]);
+        function updateApexData(id, result) {
+            if (charts[id]) {
+                charts[id].updateSeries([{ data: parseChartData(result) }]);
             }
         }
 
-        fetchYahooData();
-        setInterval(fetchYahooData, 60000); 
+        // 執行
+        init();
+        // 每 60 秒刷一次即時報價，每 5 分鐘刷一次圖表
+        setInterval(fetchQuotes, 60000);
+        setInterval(fetchCharts, 300000);
     </script>
 </body>
 </html>
