@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>專業市場即時報-2個月強化版</title>
+    <title>專業市場即時報-1個月優化版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -91,9 +91,9 @@
         let charts = {};
 
         async function fetchYahooData() {
-            // 設定 range=2mo 獲取兩個月數據
+            // 已修改：range=1mo (一個月)
             const promises = symbols.map(item => 
-                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=2mo`)}&disableCache=true`)
+                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
                 .then(res => res.json())
                 .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
                 .catch(err => null)
@@ -182,10 +182,10 @@
                 },
                 xaxis: {
                     type: 'datetime',
-                    tickAmount: 6, // 強制顯示 6 個時間點，確保不會太擠
+                    tickAmount: 5, // 已修改：設為 5 確保日期標籤有空間顯示
                     labels: { 
                         show: true, 
-                        rotate: -45, // 旋轉日期防止重疊
+                        rotate: -45, // 已修改：斜放標籤防止重疊
                         rotateAlways: true,
                         offsetY: 5,
                         style: { fontSize: '9px', colors: '#999', fontWeight: 600 },
@@ -197,7 +197,7 @@
                     opposite: true, tickAmount: 4,
                     labels: { style: { fontSize: '9px', colors: '#999', fontWeight: 600 }, formatter: (v) => v.toFixed(item.prec) }
                 },
-                stroke: { width: 1 }, 
+                stroke: { width: 1.5 }, 
                 plotOptions: {
                     candlestick: {
                         colors: { upward: '#ff3b30', downward: '#34c759' },
