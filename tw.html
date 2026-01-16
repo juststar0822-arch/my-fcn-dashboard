@@ -14,7 +14,6 @@
             --price-blue: #0040ff;
             --up-red: #ff3b30;
             --down-green: #34c759;
-            --highlight-color: #000000;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -22,51 +21,58 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 6px 10px; 
+            margin: 0; 
+            padding: 6px 10px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow-y: auto; 
+            overflow-y: auto; /* 改為可捲動以確保看得到所有內容 */
             min-height: 100vh;
         }
 
-        .main-title {
+        /* 頂部標題居中樣式 */
+        .main-header {
             width: 100%;
             max-width: 400px;
-            font-size: 22px;
+            text-align: center;
+            margin: 10px 0 5px 0;
+        }
+        .main-header h1 {
+            font-size: 20px;
             font-weight: 800;
             color: var(--text-main);
-            margin: 12px 0 2px 4px;
+            margin: 0;
         }
 
         #update-time { 
             align-self: flex-end;
-            font-size: 9px; color: var(--text-sub); 
-            margin-bottom: 5px;
+            font-size: 9px; 
+            color: var(--text-sub); 
+            margin-bottom: 2px;
             font-family: 'SF Mono', monospace;
-            padding-right: 5px;
         }
 
         .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
         
         .section-label {
-            font-size: 11px; font-weight: 800; color: var(--text-sub);
-            margin: 8px 0 4px 4px; display: flex; align-items: center;
+            font-size: 10px; font-weight: 800; color: var(--text-sub);
+            margin: 4px 0 2px 4px; display: flex; align-items: center;
             text-transform: uppercase;
         }
 
-        /* 針對 美元、日圓、債券 的強化標題 */
+        /* 這裡針對重點項目做顯眼修改 */
         .highlight-label {
-            font-size: 16px !important;
-            color: var(--highlight-color) !important;
-            border-left: 4px solid var(--price-blue);
-            padding-left: 8px;
-            margin-top: 15px;
+            font-size: 16px !important; /* 加大字體 */
             font-weight: 900 !important;
+            color: #000000 !important; /* 變深色 */
+            border-left: 4px solid var(--price-blue); /* 側邊藍條 */
+            padding-left: 8px;
+            margin: 15px 0 5px 4px !important;
+            text-transform: none !important;
         }
 
         .card {
             background: var(--card-bg); border-radius: 10px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 3px; width: 100%; overflow: hidden;
+            margin-bottom: 5px; width: 100%; overflow: hidden;
         }
 
         table { width: 100%; border-collapse: collapse; }
@@ -77,7 +83,7 @@
         .pct-text { font-size: 10px; font-weight: 700; }
 
         .k-card { padding: 6px 10px 4px 10px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; z-index: 10; margin-bottom: -4px; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; position: relative; z-index: 10; margin-bottom: -4px; }
         .k-header .title { font-size: 9px; font-weight: 800; color: var(--text-sub); }
         .k-header .price { font-size: 24px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
@@ -85,15 +91,14 @@
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
-
-        /* 資產顯示區 */
-        .asset-card { padding: 12px; background: #e5e5ea; margin-top: 10px; border: 1px solid #d1d1d6; }
-        .asset-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; font-weight: 700; color: #1c1c1e; }
     </style>
 </head>
 <body>
 
-    <div class="main-title">每日市場追蹤</div>
+    <div class="main-header">
+        <h1>每日市場追蹤</h1>
+    </div>
+    
     <div id="update-time">SYNCING...</div>
 
     <div class="container">
@@ -103,12 +108,6 @@
         </div>
 
         <div id="k-list-container"></div>
-
-        <div class="section-label">Current Assets (資產查詢)</div>
-        <div class="card asset-card">
-            <div class="asset-row"><span>美元資產 (USD)</span><span id="asset-usd">$ --</span></div>
-            <div class="asset-row"><span>日幣資產 (JPY)</span><span id="asset-jpy">¥ --</span></div>
-        </div>
     </div>
 
     <script>
@@ -116,9 +115,9 @@
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2 },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2 },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 },
-            { id: "USD", sym: "USDTWD=X", name: "美元 / 台幣", prec: 3, high: true },
-            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 台幣", prec: 4, high: true },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, high: true }
+            { id: "USD", sym: "USDTWD=X", name: "美元 / 台幣", prec: 3, isHigh: true },
+            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 台幣", prec: 4, isHigh: true },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, isHigh: true }
         ];
 
         let charts = {};
@@ -161,7 +160,6 @@
                 list.appendChild(row);
             }
             const isUp = parseFloat(pct) >= 0;
-
             row.innerHTML = `
                 <td class="name-col">${name}</td>
                 <td class="val-col">
@@ -176,7 +174,9 @@
             let card = document.getElementById(`card-${item.id}`);
             
             if (!card) {
-                const labelClass = item.high ? "section-label highlight-label" : "section-label";
+                // 根據 isHigh 標籤判斷是否使用顯眼樣式
+                const labelClass = item.isHigh ? "section-label highlight-label" : "section-label";
+                
                 container.innerHTML += `
                     <div class="${labelClass}">${item.name}</div>
                     <div class="card k-card" id="card-${item.id}">
@@ -233,7 +233,7 @@
                 plotOptions: {
                     candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } }
                 },
-                grid: { borderColor: '#f1f2f6' },
+                grid: { borderColor: '#f1f2f6', padding: { bottom: 0, top: 0 } },
                 tooltip: { enabled: false }
             };
 
@@ -257,7 +257,10 @@
                 oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
                 charts[id].updateOptions({
-                    xaxis: { min: oneMonthAgo.getTime(), max: new Date().getTime() }
+                    xaxis: { 
+                        min: oneMonthAgo.getTime(),
+                        max: new Date().getTime()
+                    }
                 });
                 charts[id].updateSeries([{ data: seriesData }]);
             }
