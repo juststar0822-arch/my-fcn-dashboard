@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場即時報-固定月線版</title>
+    <title>每日市場簡報</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -22,47 +22,63 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
             margin: 0; 
-            padding: 6px 10px; 
+            padding: 10px 12px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; 
-            height: 100vh;
+            min-height: 100vh;
+        }
+
+        /* 標題區域 */
+        .top-bar {
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .main-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 0;
         }
 
         #update-time { 
-            align-self: flex-end;
-            font-size: 9px; 
+            font-size: 10px; 
             color: var(--text-sub); 
-            margin-bottom: 2px;
             font-family: 'SF Mono', monospace;
+            margin-bottom: 4px;
         }
 
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
+        .container { width: 100%; max-width: 400px; }
         
         .section-label {
-            font-size: 10px; font-weight: 800; color: var(--text-sub);
-            margin: 2px 0 2px 4px; display: flex; align-items: center;
-            text-transform: uppercase;
+            font-size: 11px; font-weight: 800; color: var(--text-sub);
+            margin: 12px 0 6px 4px; text-transform: uppercase;
+            display: flex; justify-content: space-between;
         }
 
         .card {
-            background: var(--card-bg); border-radius: 10px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 3px; width: 100%; overflow: hidden;
+            background: var(--card-bg); border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 10px; width: 100%; overflow: hidden;
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 5px 12px; border-bottom: 1px solid #f1f2f6; }
-        .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
+        td { padding: 12px; border-bottom: 1px solid #f1f2f6; }
+        .name-col { font-size: 14px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
-        .price-text { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
-        .pct-text { font-size: 10px; font-weight: 700; }
+        .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
+        .pct-text { font-size: 11px; font-weight: 700; margin-left: 6px; }
 
-        .k-card { padding: 6px 10px 4px 10px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; position: relative; z-index: 10; margin-bottom: -4px; }
-        .k-header .title { font-size: 9px; font-weight: 800; color: var(--text-sub); }
-        .k-header .price { font-size: 16px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        .k-card { padding: 12px; height: 160px; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
+        .k-header .title { font-size: 12px; font-weight: 800; color: var(--text-main); }
+        .k-header .price { font-size: 18px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        .chart-box { width: 100%; height: 125px; } 
+        .chart-box { width: 100%; height: 120px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -70,7 +86,11 @@
 </head>
 <body>
 
-    <div id="update-time">SYNCING...</div>
+    <!-- 新增的大標題欄位 -->
+    <div class="top-bar">
+        <h1 class="main-title">每日市場簡報</h1>
+        <div id="update-time">SYNCING...</div>
+    </div>
 
     <div class="container">
         <!-- 指數列表 -->
@@ -79,167 +99,138 @@
             <table id="stock-list"></table>
         </div>
 
-        <!-- 動態生成的 K 線圖 -->
+        <!-- 圖表區域 -->
         <div id="k-list-container"></div>
     </div>
 
     <script>
+        // 設定要顯示的項目與格式
         const symbols = [
-            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2 },
-            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2 },
-            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 },
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3 }
+            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, showChart: false },
+            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, showChart: false },
+            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2, showChart: false },
+            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, showChart: true },
+            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, showChart: true },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 殖利率", prec: 3, showChart: true }
         ];
 
+        const PROXY = "https://corsproxy.io/?";
         let charts = {};
 
-        async function fetchYahooData() {
-            const now = new Date();
-            // 抓取 1mo 資料
-            const promises = symbols.map(item => 
-                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
-                .then(res => res.json())
-                .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
-                .catch(err => null)
-            );
+        // 初始化 UI 框架
+        function initUI() {
+            const list = document.getElementById('stock-list');
+            const kContainer = document.getElementById('k-list-container');
 
-            const results = await Promise.all(promises);
-            
-            results.forEach(res => {
-                if (!res) return;
-                const { item, result } = res;
-                const meta = result.meta;
-                const quotes = result.indicators.quote[0].close.filter(v => v != null);
-                const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
-                const prevClose = quotes.length > 1 ? quotes[quotes.length - 2] : meta.chartPreviousClose;
-                const changePct = prevClose ? (((currentPrice - prevClose) / prevClose) * 100).toFixed(2) : "0.00";
-                
-                if (["DJI", "IXIC", "TSM"].includes(item.id)) {
-                    updateStockUI(item.id, item.name, currentPrice, changePct);
-                } else {
-                    updateChartUI(item, result, currentPrice);
+            symbols.forEach(s => {
+                // 建立列表行
+                const tr = document.createElement('tr');
+                tr.id = `row-${s.id}`;
+                tr.innerHTML = `<td class="name-col">${s.name}</td><td class="val-col"><span class="price-text">...</span></td>`;
+                list.appendChild(tr);
+
+                // 建立圖表容器
+                if (s.showChart) {
+                    kContainer.insertAdjacentHTML('beforeend', `
+                        <div class="section-label">${s.name} TREND</div>
+                        <div class="card k-card" id="card-${s.id}">
+                            <div class="k-header">
+                                <span class="title">近一個月走勢</span>
+                                <span class="price" id="price-${s.id}">--</span>
+                            </div>
+                            <div id="chart-${s.id}" class="chart-box"></div>
+                        </div>
+                    `);
                 }
             });
-            
-            document.getElementById('update-time').innerText = `UPDATED: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
         }
 
-        function updateStockUI(id, name, price, pct) {
-            const list = document.getElementById('stock-list');
-            let row = document.getElementById(`row-${id}`);
-            if (!row) {
-                row = document.createElement('tr'); row.id = `row-${id}`;
-                list.appendChild(row);
-            }
-            const isUp = parseFloat(pct) >= 0;
-            row.innerHTML = `
-                <td class="name-col">${name}</td>
-                <td class="val-col">
-                    <span class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>
-                    <span class="pct-text ${isUp?'up':'down'}" style="margin-left:8px;">${isUp?'▲':'▼'}${pct}%</span>
-                </td>
+        // 核心抓取函數
+        async function refreshData() {
+            document.getElementById('update-time').innerText = "UPDATING...";
+            
+            // 每個項目獨立 fetch，確保其中一個失敗不會影響其他項目的顯示
+            symbols.forEach(async (item) => {
+                try {
+                    const url = `${PROXY}${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}`;
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    const result = data.chart.result[0];
+                    
+                    const price = result.meta.regularMarketPrice;
+                    const prevClose = result.meta.chartPreviousClose;
+                    const pct = ((price - prevClose) / prevClose * 100).toFixed(2);
+
+                    // 1. 更新清單
+                    updateRowUI(item, price, pct);
+
+                    // 2. 如果有圖表則更新圖表
+                    if (item.showChart) {
+                        updateChartUI(item, result, price);
+                    }
+                } catch (err) {
+                    console.error(`Fetch failed for ${item.id}`, err);
+                }
+            });
+
+            const now = new Date();
+            document.getElementById('update-time').innerText = `更新於 ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        }
+
+        function updateRowUI(item, price, pct) {
+            const row = document.getElementById(`row-${item.id}`);
+            if (!row) return;
+            const isUp = pct >= 0;
+            const formattedPrice = price.toLocaleString('en-US', { minimumFractionDigits: item.prec });
+            row.querySelector('.val-col').innerHTML = `
+                <span class="price-text">${formattedPrice}</span>
+                <span class="pct-text ${isUp?'up':'down'}">${isUp?'▲':'▼'}${Math.abs(pct)}%</span>
             `;
         }
 
-        function updateChartUI(item, result, currentPrice) {
-            const container = document.getElementById('k-list-container');
-            let card = document.getElementById(`card-${item.id}`);
-            
-            if (!card) {
-                container.innerHTML += `
-                    <div class="section-label">${item.name}</div>
-                    <div class="card k-card" id="card-${item.id}">
-                        <div class="k-header">
-                            <span class="title">近一個月趨勢</span>
-                            <span class="price" id="price-${item.id}">--</span>
-                        </div>
-                        <div id="chart-${item.id}" class="chart-box"></div>
-                    </div>
-                `;
-                setTimeout(() => renderKChart(item, result, currentPrice), 400);
-            } else {
-                const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-                document.getElementById(`price-${item.id}`).innerText = display;
-                refreshChart(item.id, result);
-            }
-        }
+        function updateChartUI(item, result, price) {
+            const priceDisplay = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
+            document.getElementById(`price-${item.id}`).innerText = priceDisplay;
 
-        function renderKChart(item, result, currentPrice) {
             const ohlc = result.indicators.quote[0];
-            const seriesData = result.timestamp.map((t, i) => {
-                const o = ohlc.open[i], h = ohlc.high[i], l = ohlc.low[i], c = ohlc.close[i];
-                if (o == null || h == null || l == null || c == null) return null;
-                return { x: t * 1000, y: [o, h, l, c] };
-            }).filter(d => d !== null);
+            const seriesData = result.timestamp.map((t, i) => ({
+                x: t * 1000,
+                y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], ohlc.close[i]]
+            })).filter(d => d.y[0] !== null);
 
-            // 計算一個月前的時間點
-            const oneMonthAgo = new Date();
-            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-            const options = {
-                series: [{ data: seriesData }],
-                chart: {
-                    type: 'candlestick', height: 125,
-                    toolbar: { show: false }, animations: { enabled: false },
-                    sparkline: { enabled: false }
-                },
-                xaxis: {
-                    type: 'datetime',
-                    min: oneMonthAgo.getTime(), // 強制從一個月前開始
-                    max: new Date().getTime(),   // 到現在結束
-                    labels: { 
-                        show: true, 
-                        format: 'MM/dd', // 固定顯示 月份/日期
-                        style: { fontSize: '8px', colors: '#999' },
-                        offsetY: -4
+            if (!charts[item.id]) {
+                const options = {
+                    series: [{ data: seriesData }],
+                    chart: { 
+                        type: 'candlestick', height: 120, 
+                        toolbar: { show: false }, animations: { enabled: false },
+                        sparkline: { enabled: false }
                     },
-                    tickAmount: 4, // 限制標籤數量避免重疊
-                    axisTicks: { show: false }
-                },
-                yaxis: {
-                    opposite: true, tickAmount: 3,
-                    labels: { style: { fontSize: '8px', colors: '#999' }, formatter: (v) => v.toFixed(item.prec) }
-                },
-                plotOptions: {
-                    candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } }
-                },
-                grid: { borderColor: '#f1f2f6', padding: { bottom: 0, top: 0 } },
-                tooltip: { enabled: false }
-            };
-
-            const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
-            chart.render();
-            charts[item.id] = chart;
-            const display = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-            document.getElementById(`price-${item.id}`).innerText = display;
-        }
-
-        function refreshChart(id, result) {
-            if (charts[id]) {
-                const ohlc = result.indicators.quote[0];
-                const seriesData = result.timestamp.map((t, i) => {
-                    const o = ohlc.open[i], h = ohlc.high[i], l = ohlc.low[i], c = ohlc.close[i];
-                    if (o == null || h == null || l == null || c == null) return null;
-                    return { x: t * 1000, y: [o, h, l, c] };
-                }).filter(d => d !== null);
-                
-                const oneMonthAgo = new Date();
-                oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
-
-                charts[id].updateOptions({
                     xaxis: { 
-                        min: oneMonthAgo.getTime(),
-                        max: new Date().getTime()
-                    }
-                });
-                charts[id].updateSeries([{ data: seriesData }]);
+                        type: 'datetime', 
+                        labels: { show: true, format: 'MM/dd', style: { fontSize: '9px', colors: '#999' } },
+                        axisTicks: { show: false }, axisBorder: { show: false }, tickAmount: 4
+                    },
+                    yaxis: { 
+                        opposite: true, tickAmount: 3, 
+                        labels: { style: { fontSize: '9px', colors: '#999' }, formatter: v => v.toFixed(item.prec) } 
+                    },
+                    plotOptions: { candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } } },
+                    grid: { borderColor: '#f1f2f6', strokeDashArray: 2 },
+                    tooltip: { enabled: true, theme: 'light' }
+                };
+                charts[item.id] = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
+                charts[item.id].render();
+            } else {
+                charts[item.id].updateSeries([{ data: seriesData }]);
             }
         }
 
-        fetchYahooData();
-        setInterval(fetchYahooData, 60000); 
+        // 啟動程序
+        initUI();
+        refreshData();
+        // 每 60 秒自動更新一次
+        setInterval(refreshData, 60000);
     </script>
 </body>
 </html>
