@@ -57,7 +57,6 @@
         .section-label {
             font-size: 11px; font-weight: 800; color: var(--text-sub);
             margin: 12px 0 6px 4px; text-transform: uppercase;
-            display: flex; justify-content: space-between;
         }
 
         .card {
@@ -73,6 +72,7 @@
         .price-text { font-size: 14px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct-text { font-size: 11px; font-weight: 700; margin-left: 6px; }
 
+        /* 圖表卡片樣式 */
         .k-card { padding: 12px; height: 160px; }
         .k-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 2px; }
         .k-header .title { font-size: 12px; font-weight: 800; color: var(--text-main); }
@@ -86,90 +86,86 @@
 </head>
 <body>
 
-    <!-- 新增的大標題欄位 -->
     <div class="top-bar">
         <h1 class="main-title">每日市場簡報</h1>
         <div id="update-time">SYNCING...</div>
     </div>
 
     <div class="container">
-        <!-- 指數列表 -->
+        <!-- 上方清單：僅顯示指數與 ADR -->
         <div class="section-label">🇺🇸 US Indices / ADR</div>
         <div class="card">
-            <table id="stock-list"></table>
+            <table id="stock-list">
+                <tr id="row-DJI"><td class="name-col">道瓊工業指數</td><td class="val-col"><span class="price-text">...</span></td></tr>
+                <tr id="row-IXIC"><td class="name-col">那斯達克指數</td><td class="val-col"><span class="price-text">...</span></td></tr>
+                <tr id="row-TSM"><td class="name-col">台積電 ADR</td><td class="val-col"><span class="price-text">...</span></td></tr>
+            </table>
         </div>
 
-        <!-- 圖表區域 -->
+        <!-- 下方圖表：顯示匯率與債券 -->
         <div id="k-list-container"></div>
     </div>
 
     <script>
-        // 設定要顯示的項目與格式
-        const symbols = [
-            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, showChart: false },
-            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, showChart: false },
-            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2, showChart: false },
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, showChart: true },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, showChart: true },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 殖利率", prec: 3, showChart: true }
+        // 配置數據
+        const listItems = [
+            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0 },
+            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0 },
+            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 }
+        ];
+
+        const chartItems = [
+            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
+            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 殖利率", prec: 3 }
         ];
 
         const PROXY = "https://corsproxy.io/?";
         let charts = {};
 
-        // 初始化 UI 框架
-        function initUI() {
-            const list = document.getElementById('stock-list');
-            const kContainer = document.getElementById('k-list-container');
-
-            symbols.forEach(s => {
-                // 建立列表行
-                const tr = document.createElement('tr');
-                tr.id = `row-${s.id}`;
-                tr.innerHTML = `<td class="name-col">${s.name}</td><td class="val-col"><span class="price-text">...</span></td>`;
-                list.appendChild(tr);
-
-                // 建立圖表容器
-                if (s.showChart) {
-                    kContainer.insertAdjacentHTML('beforeend', `
-                        <div class="section-label">${s.name} TREND</div>
-                        <div class="card k-card" id="card-${s.id}">
-                            <div class="k-header">
-                                <span class="title">近一個月走勢</span>
-                                <span class="price" id="price-${s.id}">--</span>
-                            </div>
-                            <div id="chart-${s.id}" class="chart-box"></div>
+        // 初始化圖表容器
+        function initChartContainers() {
+            const container = document.getElementById('k-list-container');
+            chartItems.forEach(item => {
+                container.insertAdjacentHTML('beforeend', `
+                    <div class="section-label">${item.name} TREND</div>
+                    <div class="card k-card" id="card-${item.id}">
+                        <div class="k-header">
+                            <span class="title">近一個月走勢</span>
+                            <span class="price" id="price-${item.id}">--</span>
                         </div>
-                    `);
-                }
+                        <div id="chart-${item.id}" class="chart-box"></div>
+                    </div>
+                `);
             });
         }
 
-        // 核心抓取函數
-        async function refreshData() {
+        async function updateAllData() {
             document.getElementById('update-time').innerText = "UPDATING...";
-            
-            // 每個項目獨立 fetch，確保其中一個失敗不會影響其他項目的顯示
-            symbols.forEach(async (item) => {
-                try {
-                    const url = `${PROXY}${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}`;
-                    const res = await fetch(url);
-                    const data = await res.json();
-                    const result = data.chart.result[0];
-                    
+
+            // 更新上方清單
+            listItems.forEach(async (item) => {
+                const result = await fetchYahoo(item.sym);
+                if (result) {
                     const price = result.meta.regularMarketPrice;
-                    const prevClose = result.meta.chartPreviousClose;
-                    const pct = ((price - prevClose) / prevClose * 100).toFixed(2);
+                    const prev = result.meta.chartPreviousClose;
+                    const pct = ((price - prev) / prev * 100).toFixed(2);
+                    const isUp = pct >= 0;
+                    document.getElementById(`row-${item.id}`).querySelector('.val-col').innerHTML = `
+                        <span class="price-text">${price.toLocaleString('en-US', {minimumFractionDigits: item.prec})}</span>
+                        <span class="pct-text ${isUp?'up':'down'}">${isUp?'▲':'▼'}${Math.abs(pct)}%</span>
+                    `;
+                }
+            });
 
-                    // 1. 更新清單
-                    updateRowUI(item, price, pct);
-
-                    // 2. 如果有圖表則更新圖表
-                    if (item.showChart) {
-                        updateChartUI(item, result, price);
-                    }
-                } catch (err) {
-                    console.error(`Fetch failed for ${item.id}`, err);
+            // 更新下方圖表
+            chartItems.forEach(async (item) => {
+                const result = await fetchYahoo(item.sym);
+                if (result) {
+                    const price = result.meta.regularMarketPrice;
+                    const priceStr = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
+                    document.getElementById(`price-${item.id}`).innerText = priceStr;
+                    renderOrUpdateChart(item, result);
                 }
             });
 
@@ -177,21 +173,16 @@
             document.getElementById('update-time').innerText = `更新於 ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
         }
 
-        function updateRowUI(item, price, pct) {
-            const row = document.getElementById(`row-${item.id}`);
-            if (!row) return;
-            const isUp = pct >= 0;
-            const formattedPrice = price.toLocaleString('en-US', { minimumFractionDigits: item.prec });
-            row.querySelector('.val-col').innerHTML = `
-                <span class="price-text">${formattedPrice}</span>
-                <span class="pct-text ${isUp?'up':'down'}">${isUp?'▲':'▼'}${Math.abs(pct)}%</span>
-            `;
+        async function fetchYahoo(symbol) {
+            try {
+                const url = `${PROXY}${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1mo`)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                return data.chart.result[0];
+            } catch (e) { return null; }
         }
 
-        function updateChartUI(item, result, price) {
-            const priceDisplay = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
-            document.getElementById(`price-${item.id}`).innerText = priceDisplay;
-
+        function renderOrUpdateChart(item, result) {
             const ohlc = result.indicators.quote[0];
             const seriesData = result.timestamp.map((t, i) => ({
                 x: t * 1000,
@@ -201,23 +192,11 @@
             if (!charts[item.id]) {
                 const options = {
                     series: [{ data: seriesData }],
-                    chart: { 
-                        type: 'candlestick', height: 120, 
-                        toolbar: { show: false }, animations: { enabled: false },
-                        sparkline: { enabled: false }
-                    },
-                    xaxis: { 
-                        type: 'datetime', 
-                        labels: { show: true, format: 'MM/dd', style: { fontSize: '9px', colors: '#999' } },
-                        axisTicks: { show: false }, axisBorder: { show: false }, tickAmount: 4
-                    },
-                    yaxis: { 
-                        opposite: true, tickAmount: 3, 
-                        labels: { style: { fontSize: '9px', colors: '#999' }, formatter: v => v.toFixed(item.prec) } 
-                    },
+                    chart: { type: 'candlestick', height: 120, toolbar: { show: false }, animations: { enabled: false } },
+                    xaxis: { type: 'datetime', labels: { show: true, format: 'MM/dd', style: { fontSize: '9px' } }, axisTicks:{show:false}, tickAmount:4 },
+                    yaxis: { opposite: true, tickAmount: 3, labels: { style: { fontSize: '9px' }, formatter: v => v.toFixed(item.prec) } },
                     plotOptions: { candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } } },
-                    grid: { borderColor: '#f1f2f6', strokeDashArray: 2 },
-                    tooltip: { enabled: true, theme: 'light' }
+                    grid: { borderColor: '#f1f2f6' }
                 };
                 charts[item.id] = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
                 charts[item.id].render();
@@ -226,11 +205,10 @@
             }
         }
 
-        // 啟動程序
-        initUI();
-        refreshData();
-        // 每 60 秒自動更新一次
-        setInterval(refreshData, 60000);
+        // 啟動
+        initChartContainers();
+        updateAllData();
+        setInterval(updateAllData, 60000);
     </script>
 </body>
 </html>
