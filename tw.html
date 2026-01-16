@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場即時報-固定月線版</title>
+    <title>每日市場追蹤</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -14,6 +14,7 @@
             --price-blue: #0040ff;
             --up-red: #ff3b30;
             --down-green: #34c759;
+            --highlight-color: #000000;
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
@@ -21,27 +22,45 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; 
-            padding: 6px 10px; 
+            margin: 0; padding: 6px 10px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; 
-            height: 100vh;
+            overflow-y: auto; 
+            min-height: 100vh;
+        }
+
+        .main-title {
+            width: 100%;
+            max-width: 400px;
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+            margin: 12px 0 2px 4px;
         }
 
         #update-time { 
             align-self: flex-end;
-            font-size: 9px; 
-            color: var(--text-sub); 
-            margin-bottom: 2px;
+            font-size: 9px; color: var(--text-sub); 
+            margin-bottom: 5px;
             font-family: 'SF Mono', monospace;
+            padding-right: 5px;
         }
 
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
         
         .section-label {
-            font-size: 10px; font-weight: 800; color: var(--text-sub);
-            margin: 2px 0 2px 4px; display: flex; align-items: center;
+            font-size: 11px; font-weight: 800; color: var(--text-sub);
+            margin: 8px 0 4px 4px; display: flex; align-items: center;
             text-transform: uppercase;
+        }
+
+        /* 針對 美元、日圓、債券 的強化標題 */
+        .highlight-label {
+            font-size: 16px !important;
+            color: var(--highlight-color) !important;
+            border-left: 4px solid var(--price-blue);
+            padding-left: 8px;
+            margin-top: 15px;
+            font-weight: 900 !important;
         }
 
         .card {
@@ -51,36 +70,45 @@
         }
 
         table { width: 100%; border-collapse: collapse; }
-        td { padding: 5px 12px; border-bottom: 1px solid #f1f2f6; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f1f2f6; }
         .name-col { font-size: 13px; font-weight: 700; color: var(--text-main); }
         .val-col { text-align: right; }
         .price-text { font-size: 13px; font-weight: 700; font-family: 'SF Mono', monospace; }
         .pct-text { font-size: 10px; font-weight: 700; }
 
         .k-card { padding: 6px 10px 4px 10px; height: 140px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: baseline; position: relative; z-index: 10; margin-bottom: -4px; }
+        .k-header { display: flex; justify-content: space-between; align-items: baseline; z-index: 10; margin-bottom: -4px; }
         .k-header .title { font-size: 9px; font-weight: 800; color: var(--text-sub); }
-        .k-header .price { font-size: 16px; font-weight: 800; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        .k-header .price { font-size: 24px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
         .chart-box { width: 100%; height: 125px; } 
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
+
+        /* 資產顯示區 */
+        .asset-card { padding: 12px; background: #e5e5ea; margin-top: 10px; border: 1px solid #d1d1d6; }
+        .asset-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; font-weight: 700; color: #1c1c1e; }
     </style>
 </head>
 <body>
 
+    <div class="main-title">每日市場追蹤</div>
     <div id="update-time">SYNCING...</div>
 
     <div class="container">
-        <!-- 指數列表 -->
         <div class="section-label">🇺🇸 US Indices / ADR</div>
         <div class="card">
             <table id="stock-list"></table>
         </div>
 
-        <!-- 動態生成的 K 線圖 -->
         <div id="k-list-container"></div>
+
+        <div class="section-label">Current Assets (資產查詢)</div>
+        <div class="card asset-card">
+            <div class="asset-row"><span>美元資產 (USD)</span><span id="asset-usd">$ --</span></div>
+            <div class="asset-row"><span>日幣資產 (JPY)</span><span id="asset-jpy">¥ --</span></div>
+        </div>
     </div>
 
     <script>
@@ -88,16 +116,15 @@
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 2 },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 2 },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 2 },
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3 }
+            { id: "USD", sym: "USDTWD=X", name: "美元 / 台幣", prec: 3, high: true },
+            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 台幣", prec: 4, high: true },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, high: true }
         ];
 
         let charts = {};
 
         async function fetchYahooData() {
             const now = new Date();
-            // 抓取 1mo 資料
             const promises = symbols.map(item => 
                 fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
                 .then(res => res.json())
@@ -134,6 +161,7 @@
                 list.appendChild(row);
             }
             const isUp = parseFloat(pct) >= 0;
+
             row.innerHTML = `
                 <td class="name-col">${name}</td>
                 <td class="val-col">
@@ -148,8 +176,9 @@
             let card = document.getElementById(`card-${item.id}`);
             
             if (!card) {
+                const labelClass = item.high ? "section-label highlight-label" : "section-label";
                 container.innerHTML += `
-                    <div class="section-label">${item.name}</div>
+                    <div class="${labelClass}">${item.name}</div>
                     <div class="card k-card" id="card-${item.id}">
                         <div class="k-header">
                             <span class="title">近一個月趨勢</span>
@@ -174,7 +203,6 @@
                 return { x: t * 1000, y: [o, h, l, c] };
             }).filter(d => d !== null);
 
-            // 計算一個月前的時間點
             const oneMonthAgo = new Date();
             oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
@@ -187,15 +215,15 @@
                 },
                 xaxis: {
                     type: 'datetime',
-                    min: oneMonthAgo.getTime(), // 強制從一個月前開始
-                    max: new Date().getTime(),   // 到現在結束
+                    min: oneMonthAgo.getTime(),
+                    max: new Date().getTime(),
                     labels: { 
                         show: true, 
-                        format: 'MM/dd', // 固定顯示 月份/日期
+                        format: 'MM/dd',
                         style: { fontSize: '8px', colors: '#999' },
                         offsetY: -4
                     },
-                    tickAmount: 4, // 限制標籤數量避免重疊
+                    tickAmount: 4,
                     axisTicks: { show: false }
                 },
                 yaxis: {
@@ -205,7 +233,7 @@
                 plotOptions: {
                     candlestick: { colors: { upward: '#ff3b30', downward: '#34c759' } }
                 },
-                grid: { borderColor: '#f1f2f6', padding: { bottom: 0, top: 0 } },
+                grid: { borderColor: '#f1f2f6' },
                 tooltip: { enabled: false }
             };
 
@@ -229,10 +257,7 @@
                 oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
 
                 charts[id].updateOptions({
-                    xaxis: { 
-                        min: oneMonthAgo.getTime(),
-                        max: new Date().getTime()
-                    }
+                    xaxis: { min: oneMonthAgo.getTime(), max: new Date().getTime() }
                 });
                 charts[id].updateSeries([{ data: seriesData }]);
             }
