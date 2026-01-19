@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每日市場截圖版 (12/01起)</title>
+    <title>市場追蹤 (精確間隔版)</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -56,7 +56,7 @@
             margin-bottom: 2px; width: 100%; overflow: hidden;
         }
 
-        .k-card { padding: 4px 8px; height: 120px; position: relative; }
+        .k-card { padding: 4px 8px; height: 125px; position: relative; }
         .k-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: -10px; z-index: 10; position: relative; }
         .k-header .price { font-size: 18px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         .chart-box { width: 100%; height: 110px; } 
@@ -76,7 +76,6 @@
     </div>
 
     <script>
-        // 設定起始時間為 2025/12/01
         const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
 
         const symbols = [
@@ -85,9 +84,10 @@
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
             
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3 }
+            // 下方走勢圖，加入 stepSize 定義
+            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, step: 0.2 },
+            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, step: 0.001 },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, step: 0.04 }
         ];
 
         let charts = {};
@@ -146,14 +146,16 @@
                 `;
                 setTimeout(() => renderKChart(item, result, currentPrice), 400);
             } else {
-                let displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-                // 根據您的需求：總資產那邊需要顯示美元跟日幣字樣
-                if(item.id === "USD") displayPrice = "USD " + displayPrice;
-                if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
-                
-                document.getElementById(`price-${item.id}`).innerText = displayPrice;
+                updatePriceLabel(item, currentPrice);
                 refreshChart(item.id, result);
             }
+        }
+
+        function updatePriceLabel(item, price) {
+            let displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
+            if(item.id === "USD") displayPrice = "USD " + displayPrice;
+            if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
+            document.getElementById(`price-${item.id}`).innerText = displayPrice;
         }
 
         function renderKChart(item, result, currentPrice) {
@@ -177,17 +179,18 @@
                     labels: { 
                         show: true, 
                         format: 'MM/dd', 
-                        style: { fontSize: '9px', colors: '#8e8e93', fontWeight: 600 },
+                        style: { fontSize: '9px', colors: '#8e8e93' },
                         offsetY: -5 
                     },
-                    tickAmount: 4, // 因為橫跨兩個月，減少刻度避免擠在一起
+                    tickAmount: 4,
                     axisTicks: { show: false },
                     axisBorder: { show: false }
                 },
                 yaxis: { 
                     opposite: true, 
-                    tickAmount: 3,
-                    forceNiceScale: true,
+                    // 關鍵修正：設定精確間隔
+                    stepSize: item.step, 
+                    forceNiceScale: false, // 關閉 NiceScale 以便嚴格執行 stepSize
                     labels: { 
                         style: { fontSize: '9px', colors: '#8e8e93', fontFamily: 'SF Mono' }, 
                         formatter: v => v.toFixed(item.prec) 
@@ -210,11 +213,7 @@
             const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
             chart.render(); 
             charts[item.id] = chart;
-
-            let displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
-            if(item.id === "USD") displayPrice = "USD " + displayPrice;
-            if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
-            document.getElementById(`price-${item.id}`).innerText = displayPrice;
+            updatePriceLabel(item, currentPrice);
         }
 
         function refreshChart(id, result) {
