@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>每日市場截圖版</title>
+    <title>每日市場截圖版 (12/01起)</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -76,26 +76,30 @@
     </div>
 
     <script>
+        // 設定起始時間為 2025/12/01
+        const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
+
         const symbols = [
             { id: "TWII", sym: "^TWII", name: "台股加權指數", prec: 0, grid: true },
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, grid: true },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
             
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, isHigh: true },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, isHigh: true },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, isHigh: true }
+            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3 },
+            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4 },
+            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3 }
         ];
 
         let charts = {};
 
         async function fetchYahooData() {
-            const promises = symbols.map(item => 
-                fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`)}&disableCache=true`)
+            const promises = symbols.map(item => {
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&period1=${startTime}&period2=9999999999`;
+                return fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`)
                 .then(res => res.json())
                 .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
-                .catch(err => null)
-            );
+                .catch(err => null);
+            });
 
             const results = await Promise.all(promises);
             results.forEach(res => {
@@ -142,7 +146,12 @@
                 `;
                 setTimeout(() => renderKChart(item, result, currentPrice), 400);
             } else {
-                document.getElementById(`price-${item.id}`).innerText = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+                let displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+                // 根據您的需求：總資產那邊需要顯示美元跟日幣字樣
+                if(item.id === "USD") displayPrice = "USD " + displayPrice;
+                if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
+                
+                document.getElementById(`price-${item.id}`).innerText = displayPrice;
                 refreshChart(item.id, result);
             }
         }
@@ -151,7 +160,7 @@
             const ohlc = result.indicators.quote[0];
             const seriesData = result.timestamp.map((t, i) => {
                 const c = ohlc.close[i];
-                return c ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
+                return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
             }).filter(d => d);
 
             const options = {
@@ -160,8 +169,7 @@
                     type: 'candlestick', 
                     height: 110, 
                     toolbar: { show: false }, 
-                    animations: { enabled: false }, 
-                    sparkline: { enabled: false },
+                    animations: { enabled: false },
                     offsetY: -10 
                 },
                 xaxis: { 
@@ -172,14 +180,14 @@
                         style: { fontSize: '9px', colors: '#8e8e93', fontWeight: 600 },
                         offsetY: -5 
                     },
-                    tickAmount: 5,
+                    tickAmount: 4, // 因為橫跨兩個月，減少刻度避免擠在一起
                     axisTicks: { show: false },
                     axisBorder: { show: false }
                 },
                 yaxis: { 
                     opposite: true, 
                     tickAmount: 3,
-                    forceNiceScale: true, // 核心改進：強制優化比例
+                    forceNiceScale: true,
                     labels: { 
                         style: { fontSize: '9px', colors: '#8e8e93', fontFamily: 'SF Mono' }, 
                         formatter: v => v.toFixed(item.prec) 
@@ -200,8 +208,13 @@
             };
 
             const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
-            chart.render(); charts[item.id] = chart;
-            document.getElementById(`price-${item.id}`).innerText = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+            chart.render(); 
+            charts[item.id] = chart;
+
+            let displayPrice = item.id === "TNX" ? currentPrice.toFixed(3) + "%" : currentPrice.toFixed(item.prec);
+            if(item.id === "USD") displayPrice = "USD " + displayPrice;
+            if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
+            document.getElementById(`price-${item.id}`).innerText = displayPrice;
         }
 
         function refreshChart(id, result) {
@@ -209,7 +222,7 @@
                 const ohlc = result.indicators.quote[0];
                 const seriesData = result.timestamp.map((t, i) => {
                     const c = ohlc.close[i];
-                    return c ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
+                    return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
                 }).filter(d => d);
                 charts[id].updateSeries([{ data: seriesData }]);
             }
