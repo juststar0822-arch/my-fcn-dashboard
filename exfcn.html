@@ -59,7 +59,7 @@
         <!-- Scenario A -->
         <div class="glass-card p-8 border-b-4 border-green-500/50">
             <h3 class="text-xl font-bold mb-2">情境 A：大漲提前出場 (KO)</h3>
-            <p class="text-xs text-gray-400 mb-6">保證領息期後，三檔標的皆達到KO價100%，合約提早結束。</p>
+            <p class="text-xs text-gray-400 mb-6">保證領息期後，三檔標的皆曾達到KO價100%，合約提早結束。</p>
             <div class="flex gap-4 mb-4">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
@@ -72,20 +72,20 @@
         <!-- Scenario B -->
         <div class="glass-card p-8 border-b-4 border-blue-500/50">
             <h3 class="text-xl font-bold mb-2">情境 B：區間震盪穩領息</h3>
-            <p class="text-xs text-gray-400 mb-6">股價有跌有漲，但最差的一檔也沒跌破 60% KI。</p>
+            <p class="text-xs text-gray-400 mb-6">股價有跌有漲，但都沒觸及60%的KI保護價。</p>
             <div class="flex gap-4 mb-4">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
                 <span class="asset-label bg-teal-500/30 text-teal-400">標的 3 (Worst)</span>
             </div>
             <div class="chart-container"><canvas id="chartNoKI"></canvas></div>
-            <div class="mt-4 text-blue-400 font-bold text-sm">✓ 領滿 6 個月高息 + 拿回 100% 本金</div>
+            <div class="mt-4 text-blue-400 font-bold text-sm">✓ 領滿 6 個月利息 + 拿回 100% 本金</div>
         </div>
 
         <!-- Scenario C -->
         <div class="glass-card p-8 border-b-4 border-orange-500/50">
             <h3 class="text-xl font-bold mb-2">情境 C：觸及KI保護價，到期漲回履約價之上</h3>
-            <p class="text-xs text-gray-400 mb-6">中間曾跌破保護線，但最後收在 70% 履約價之上。</p>
+            <p class="text-xs text-gray-400 mb-6">中間曾跌破保護線，但到期股價收在70% 履約價之上。</p>
             <div class="flex gap-4 mb-4">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
@@ -98,7 +98,7 @@
         <!-- Scenario D -->
         <div class="glass-card p-8 border-b-4 border-red-500/50">
             <h3 class="text-xl font-bold mb-2">情境 D：低接股票 (雙雙觸發 KI)</h3>
-            <p class="text-xs text-gray-400 mb-6">假設兩檔標的曾觸及KI價且到期未回履約價之上，接回股票表現最差者。</p>
+            <p class="text-xs text-gray-400 mb-6">假設兩檔標的曾經觸及KI價且到期未漲回履約價之上，接回股票表現最差者。</p>
             <div class="flex gap-4 mb-4">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1 (強)</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2 (弱)</span>
