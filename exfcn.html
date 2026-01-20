@@ -3,167 +3,161 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN 定期配息票據介紹 | 投資方案數位手冊</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <title>FCN Premium | 高階資產配置方案</title>
+    <!-- Tailwind CSS & Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8f9fa; color: #333; }
-        .hero-section { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 80px 0; }
-        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; }
-        .card:hover { transform: translateY(-5px); }
-        
-        /* 模擬股價走勢圖的樣式 */
-        .chart-container { height: 200px; background: #eee; border-radius: 10px; position: relative; overflow: hidden; margin: 20px 0; }
-        .line-ko { border-top: 2px dashed #28a745; position: absolute; width: 100%; top: 30%; }
-        .line-ki { border-top: 2px dashed #dc3545; position: absolute; width: 100%; top: 70%; }
-        .label-text { position: absolute; font-size: 12px; font-weight: bold; right: 5px; }
-        
-        /* 股價路徑動畫 */
-        .stock-path { position: absolute; width: 100%; height: 100%; }
-        .path-svg { fill: none; stroke: #007bff; stroke-width: 3; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 3s forwards ease-in-out; }
-        @keyframes draw { to { stroke-dashoffset: 0; } }
-
-        .market-badge { font-size: 0.9rem; padding: 5px 12px; border-radius: 20px; }
-        .footer { background: #343a40; color: white; padding: 40px 0; margin-top: 60px; }
+        body { font-family: 'Inter', 'Noto Sans TC', sans-serif; background-color: #0a0e17; color: #e2e8f0; }
+        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; }
+        .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .nav-blur { background: rgba(10, 14, 23, 0.8); backdrop-filter: blur(8px); }
+        .chart-box { position: relative; height: 220px; width: 100%; }
+        .status-badge { padding: 4px 12px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
     </style>
 </head>
-<body>
+<body class="antialiased">
 
-<!-- 導覽列 -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-    <div class="container">
-        <a class="navbar-brand" href="#">FCN 產品手冊</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#scenarios">情境分析</a></li>
-                <li class="nav-item"><a class="nav-link" href="#markets">標的選擇</a></li>
-                <li class="nav-item"><a class="nav-link" href="#risk">風險提示</a></li>
-            </ul>
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 nav-blur border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="text-2xl font-bold tracking-tighter">FCN <span class="gradient-text">PREMIUM</span></div>
+            <div class="hidden md:flex space-x-8 text-sm font-medium text-gray-400">
+                <a href="#scenarios" class="hover:text-white transition">情境模擬</a>
+                <a href="#markets" class="hover:text-white transition">全球市場</a>
+                <a href="#strategy" class="hover:text-white transition">投資優勢</a>
+            </div>
+            <button class="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full text-sm font-semibold transition">聯繫顧問</button>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<!-- 主視覺區 -->
-<header class="hero-section text-center">
-    <div class="container">
-        <h1 class="display-4 fw-bold">Fixed Coupon Note (FCN)</h1>
-        <p class="lead">固定配息票據：無論市場震盪，為您鎖定高額利息</p>
-        <div class="mt-4">
-            <span class="badge bg-light text-dark p-2 m-1">月月配息</span>
-            <span class="badge bg-light text-dark p-2 m-1">折價買股機制</span>
-            <span class="badge bg-light text-dark p-2 m-1">提前出場機會</span>
-        </div>
-    </div>
-</header>
-
-<!-- 三種情境說明 -->
-<section id="scenarios" class="container my-5">
-    <h2 class="text-center mb-5 fw-bold">FCN 三大投資情境</h2>
-    <div class="row g-4">
-        <!-- 情境一 -->
-        <div class="col-md-4">
-            <div class="card h-100 p-4">
-                <h4 class="text-success fw-bold">情境 A：提前出場</h4>
-                <p class="text-muted small">股價大漲，觸及 KO 價</p>
-                <div class="chart-container">
-                    <div class="line-ko"><span class="label-text text-success">KO 價 (觸及出場)</span></div>
-                    <svg class="stock-path" viewBox="0 0 200 100">
-                        <path class="path-svg" d="M0,60 L40,55 L80,45 L120,20 L160,10" stroke="#28a745" />
-                    </svg>
-                </div>
-                <p><strong>結果：</strong> 拿回 100% 本金 + 當期利息。資金回收快，準備投入下一檔。</p>
+    <!-- Hero Section -->
+    <section class="pt-40 pb-20 px-6">
+        <div class="max-w-5xl mx-auto text-center">
+            <h1 class="text-5xl md:text-7xl font-bold mb-6">優化您的 <span class="gradient-text">現金流策略</span></h1>
+            <p class="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-light">Fixed Coupon Note (FCN) 結合了「高固定配息」與「折價買股」的優勢，專為追求穩健收益的專業投資者設計。</p>
+            <div class="flex flex-wrap justify-center gap-4 text-sm">
+                <div class="glass-card px-6 py-3">🔥 年化 8% - 18% 潛在收益</div>
+                <div class="glass-card px-6 py-3">🛡️ 下檔保護機制</div>
+                <div class="glass-card px-6 py-3">🌍 美股 / 日股 多元標的</div>
             </div>
         </div>
-        <!-- 情境二 -->
-        <div class="col-md-4">
-            <div class="card h-100 p-4">
-                <h4 class="text-primary fw-bold">情境 B：穩穩領息</h4>
-                <p class="text-muted small">區間震盪，未跌破 KI</p>
-                <div class="chart-container">
-                    <div class="line-ko"><span class="label-text text-success">KO 價</span></div>
-                    <div class="line-ki"><span class="label-text text-danger">KI 價 (保護線)</span></div>
-                    <svg class="stock-path" viewBox="0 0 200 100">
-                        <path class="path-svg" d="M0,55 L40,65 L80,45 L120,55 L160,50 L200,48" stroke="#007bff" />
-                    </svg>
-                </div>
-                <p><strong>結果：</strong> 領滿整個週期的所有利息 + 拿回 100% 本金。最理想的收息情境。</p>
-            </div>
-        </div>
-        <!-- 情境三 -->
-        <div class="col-md-4">
-            <div class="card h-100 p-4">
-                <h4 class="text-danger fw-bold">情境 C：折價買股</h4>
-                <p class="text-muted small">跌破保護線 KI</p>
-                <div class="chart-container">
-                    <div class="line-ki"><span class="label-text text-danger">KI 價 (保護線)</span></div>
-                    <svg class="stock-path" viewBox="0 0 200 100">
-                        <path class="path-svg" d="M0,55 L40,75 L80,85 L120,95 L160,90" stroke="#dc3545" />
-                    </svg>
-                </div>
-                <p><strong>結果：</strong> 利息照領，但到期時以「執行價」換取股票，適合本就想低位佈局的客戶。</p>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- 市場對比 -->
-<section id="markets" class="bg-light py-5">
-    <div class="container">
-        <h2 class="text-center mb-5 fw-bold">美股 vs 日股 FCN 策略</h2>
-        <div class="row">
-            <!-- 美股 -->
-            <div class="col-md-6 mb-4">
-                <div class="card bg-white p-4 border-primary border-top border-5">
-                    <h3><span class="market-badge bg-primary text-white">美股案例</span> 科技雙雄</h3>
-                    <p class="text-muted">標的：NVIDIA (NVDA) + Microsoft (MSFT)</p>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">🔹 預估年化收益：12% - 18%</li>
-                        <li class="list-group-item">🔹 適合對象：追求高收益、看好 AI 發展者</li>
-                        <li class="list-group-item">🔹 優勢：波動度大，權利金收益極高</li>
-                    </ul>
+    <!-- 四種情境分析 Scenarios -->
+    <section id="scenarios" class="py-20 px-6 max-w-7xl mx-auto">
+        <h2 class="text-3xl font-bold mb-12 text-center">FCN 核心運作情境</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- 情境 1: KO -->
+            <div class="glass-card p-8">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-xl font-bold text-green-400">情境 A：強勢漲升 (KO)</h3>
+                    <span class="status-badge bg-green-500/20 text-green-400 border border-green-500/30">提前出場</span>
                 </div>
+                <p class="text-gray-400 text-sm mb-6">股價在觀察日高於提前贖回價 (KO)，投資結束並拿回本金與利息。</p>
+                <div class="chart-box"><canvas id="chartKO"></canvas></div>
             </div>
-            <!-- 日股 -->
-            <div class="col-md-6 mb-4">
-                <div class="card bg-white p-4 border-danger border-top border-5">
-                    <h3><span class="market-badge bg-danger text-white">日股案例</span> 龍頭商社</h3>
-                    <p class="text-muted">標的：Toyota (7203) + Mitsubishi (8058)</p>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">🔹 預估年化收益：8% - 10%</li>
-                        <li class="list-group-item">🔹 適合對象：保守穩健、想佈局日圓資產者</li>
-                        <li class="list-group-item">🔹 優勢：股價基期穩健，抗跌性較強</li>
-                    </ul>
+
+            <!-- 情境 2: No KI -->
+            <div class="glass-card p-8">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-xl font-bold text-blue-400">情境 B：平穩領息 (No KI)</h3>
+                    <span class="status-badge bg-blue-500/20 text-blue-400 border border-blue-500/30">滿期拿回本金</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">股價雖有波動，但從未觸及保護線 (KI)，到期拿回全額本金與高息。</p>
+                <div class="chart-box"><canvas id="chartNoKI"></canvas></div>
+            </div>
+
+            <!-- 情境 3: KI + Recovery -->
+            <div class="glass-card p-8">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-xl font-bold text-yellow-400">情境 C：觸及保護後回升 (KI+Recovery)</h3>
+                    <span class="status-badge bg-yellow-500/20 text-yellow-400 border border-yellow-500/30">滿期拿回本金</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">盤中一度觸及 KI 價位，但到期時股價回升至履約價以上，本金無損。</p>
+                <div class="chart-box"><canvas id="chartKIRecover"></canvas></div>
+            </div>
+
+            <!-- 情境 4: KI + No Recovery -->
+            <div class="glass-card p-8 border-red-500/30">
+                <div class="flex justify-between mb-4">
+                    <h3 class="text-xl font-bold text-red-400">情境 D：觸及保護未回升 (KI+Fail)</h3>
+                    <span class="status-badge bg-red-500/20 text-red-400 border border-red-500/30">轉換為股票</span>
+                </div>
+                <p class="text-gray-400 text-sm mb-6">觸及 KI 且到期股價低於履約價，投資人以折價買入標的股票，利息照領。</p>
+                <div class="chart-box"><canvas id="chartKIFail"></canvas></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 市場選擇 -->
+    <section id="markets" class="py-20 bg-blue-600/5 px-6">
+        <div class="max-w-7xl mx-auto">
+            <h2 class="text-3xl font-bold mb-16 text-center">全球優質標的佈局</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                <!-- 美股 -->
+                <div class="flex flex-col space-y-6">
+                    <div class="text-4xl">🇺🇸</div>
+                    <h3 class="text-2xl font-bold">美股：高效成長策略</h3>
+                    <p class="text-gray-400">專注 AI 與科技龍頭，利用其較大的波動度換取極具吸引力的票息。例如：NVIDIA / Microsoft / Apple。</p>
+                    <div class="border-l-4 border-blue-500 pl-6 space-y-2">
+                        <div class="text-lg font-semibold">12% - 18% <span class="text-sm font-normal text-gray-500">預估年化</span></div>
+                        <div class="text-sm text-gray-400">適合追求資產快速增值的積極型客戶</div>
+                    </div>
+                </div>
+                <!-- 日股 -->
+                <div class="flex flex-col space-y-6">
+                    <div class="text-4xl">🇯🇵</div>
+                    <h3 class="text-2xl font-bold">日股：穩健收息策略</h3>
+                    <p class="text-gray-400">受惠於日圓環境與企業結構改革，精選商社與半導體標的，提供極高的防禦性。例如：三菱商事 / 豐田汽車。</p>
+                    <div class="border-l-4 border-red-500 pl-6 space-y-2">
+                        <div class="text-lg font-semibold">7% - 10% <span class="text-sm font-normal text-gray-500">預估年化</span></div>
+                        <div class="text-sm text-gray-400">適合佈局日圓資產與追求長期穩定領息者</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- 風險提示 -->
-<section id="risk" class="container my-5">
-    <div class="alert alert-warning p-4">
-        <h4 class="fw-bold">⚠️ 重要風險揭露</h4>
-        <ul>
-            <li>本產品並非存款，不保證本金不受損。</li>
-            <li>最大風險情境：標的股票大幅下跌，客戶將以高於市場之價格購入股票並承擔跌幅。</li>
-            <li>投資人應具備衍生性金融商品操作經驗。</li>
-        </ul>
-    </div>
-</section>
+    <footer class="py-20 text-center border-t border-white/5">
+        <p class="text-gray-500 text-sm">© 2024 FCN Portfolio Solutions. For Professional Investors Only.</p>
+    </footer>
 
-<footer class="footer text-center">
-    <div class="container">
-        <p class="mb-0">FCN 投資方案展示網頁 - 僅供教育與情境說明使用</p>
-        <small class="text-muted">Built for Professional Wealth Management</small>
-    </div>
-</footer>
+    <script>
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            elements: { point: { radius: 0 }, line: { tension: 0.3 } },
+            scales: {
+                x: { display: false },
+                y: { display: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { display: false } }
+            },
+            plugins: { legend: { display: false } }
+        };
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        const createChart = (id, data, color, koValue, kiValue) => {
+            new Chart(document.getElementById(id), {
+                type: 'line',
+                data: {
+                    labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                    datasets: [
+                        { data: data, borderColor: color, borderWidth: 3, fill: false },
+                        { data: Array(10).fill(koValue), borderColor: '#22c55e', borderDash: [5, 5], borderWidth: 1 }, // KO Line
+                        { data: Array(10).fill(kiValue), borderColor: '#ef4444', borderDash: [5, 5], borderWidth: 1 }  // KI Line
+                    ]
+                },
+                options: commonOptions
+            });
+        };
+
+        // 繪製四種數據走勢
+        createChart('chartKO', [100, 102, 105, 112, 115], '#4ade80', 110, 80);
+        createChart('chartNoKI', [100, 95, 98, 92, 96, 102, 98, 97, 99, 101], '#60a5fa', 115, 80);
+        createChart('chartKIRecover', [100, 90, 85, 78, 82, 88, 95, 98, 102, 105], '#fbbf24', 115, 80);
+        createChart('chartKIFail', [100, 90, 82, 75, 78, 82, 75, 70, 72, 75], '#f87171', 115, 80);
+    </script>
 </body>
 </html>
