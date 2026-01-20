@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FCN 定期配息票據介紹 | 投資方案數位手冊</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8f9fa; color: #333; }
+        .hero-section { background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; padding: 80px 0; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        
+        /* 模擬股價走勢圖的樣式 */
+        .chart-container { height: 200px; background: #eee; border-radius: 10px; position: relative; overflow: hidden; margin: 20px 0; }
+        .line-ko { border-top: 2px dashed #28a745; position: absolute; width: 100%; top: 30%; }
+        .line-ki { border-top: 2px dashed #dc3545; position: absolute; width: 100%; top: 70%; }
+        .label-text { position: absolute; font-size: 12px; font-weight: bold; right: 5px; }
+        
+        /* 股價路徑動畫 */
+        .stock-path { position: absolute; width: 100%; height: 100%; }
+        .path-svg { fill: none; stroke: #007bff; stroke-width: 3; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: draw 3s forwards ease-in-out; }
+        @keyframes draw { to { stroke-dashoffset: 0; } }
+
+        .market-badge { font-size: 0.9rem; padding: 5px 12px; border-radius: 20px; }
+        .footer { background: #343a40; color: white; padding: 40px 0; margin-top: 60px; }
+    </style>
+</head>
+<body>
+
+<!-- 導覽列 -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="#">FCN 產品手冊</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#scenarios">情境分析</a></li>
+                <li class="nav-item"><a class="nav-link" href="#markets">標的選擇</a></li>
+                <li class="nav-item"><a class="nav-link" href="#risk">風險提示</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- 主視覺區 -->
+<header class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 fw-bold">Fixed Coupon Note (FCN)</h1>
+        <p class="lead">固定配息票據：無論市場震盪，為您鎖定高額利息</p>
+        <div class="mt-4">
+            <span class="badge bg-light text-dark p-2 m-1">月月配息</span>
+            <span class="badge bg-light text-dark p-2 m-1">折價買股機制</span>
+            <span class="badge bg-light text-dark p-2 m-1">提前出場機會</span>
+        </div>
+    </div>
+</header>
+
+<!-- 三種情境說明 -->
+<section id="scenarios" class="container my-5">
+    <h2 class="text-center mb-5 fw-bold">FCN 三大投資情境</h2>
+    <div class="row g-4">
+        <!-- 情境一 -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <h4 class="text-success fw-bold">情境 A：提前出場</h4>
+                <p class="text-muted small">股價大漲，觸及 KO 價</p>
+                <div class="chart-container">
+                    <div class="line-ko"><span class="label-text text-success">KO 價 (觸及出場)</span></div>
+                    <svg class="stock-path" viewBox="0 0 200 100">
+                        <path class="path-svg" d="M0,60 L40,55 L80,45 L120,20 L160,10" stroke="#28a745" />
+                    </svg>
+                </div>
+                <p><strong>結果：</strong> 拿回 100% 本金 + 當期利息。資金回收快，準備投入下一檔。</p>
+            </div>
+        </div>
+        <!-- 情境二 -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <h4 class="text-primary fw-bold">情境 B：穩穩領息</h4>
+                <p class="text-muted small">區間震盪，未跌破 KI</p>
+                <div class="chart-container">
+                    <div class="line-ko"><span class="label-text text-success">KO 價</span></div>
+                    <div class="line-ki"><span class="label-text text-danger">KI 價 (保護線)</span></div>
+                    <svg class="stock-path" viewBox="0 0 200 100">
+                        <path class="path-svg" d="M0,55 L40,65 L80,45 L120,55 L160,50 L200,48" stroke="#007bff" />
+                    </svg>
+                </div>
+                <p><strong>結果：</strong> 領滿整個週期的所有利息 + 拿回 100% 本金。最理想的收息情境。</p>
+            </div>
+        </div>
+        <!-- 情境三 -->
+        <div class="col-md-4">
+            <div class="card h-100 p-4">
+                <h4 class="text-danger fw-bold">情境 C：折價買股</h4>
+                <p class="text-muted small">跌破保護線 KI</p>
+                <div class="chart-container">
+                    <div class="line-ki"><span class="label-text text-danger">KI 價 (保護線)</span></div>
+                    <svg class="stock-path" viewBox="0 0 200 100">
+                        <path class="path-svg" d="M0,55 L40,75 L80,85 L120,95 L160,90" stroke="#dc3545" />
+                    </svg>
+                </div>
+                <p><strong>結果：</strong> 利息照領，但到期時以「執行價」換取股票，適合本就想低位佈局的客戶。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 市場對比 -->
+<section id="markets" class="bg-light py-5">
+    <div class="container">
+        <h2 class="text-center mb-5 fw-bold">美股 vs 日股 FCN 策略</h2>
+        <div class="row">
+            <!-- 美股 -->
+            <div class="col-md-6 mb-4">
+                <div class="card bg-white p-4 border-primary border-top border-5">
+                    <h3><span class="market-badge bg-primary text-white">美股案例</span> 科技雙雄</h3>
+                    <p class="text-muted">標的：NVIDIA (NVDA) + Microsoft (MSFT)</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">🔹 預估年化收益：12% - 18%</li>
+                        <li class="list-group-item">🔹 適合對象：追求高收益、看好 AI 發展者</li>
+                        <li class="list-group-item">🔹 優勢：波動度大，權利金收益極高</li>
+                    </ul>
+                </div>
+            </div>
+            <!-- 日股 -->
+            <div class="col-md-6 mb-4">
+                <div class="card bg-white p-4 border-danger border-top border-5">
+                    <h3><span class="market-badge bg-danger text-white">日股案例</span> 龍頭商社</h3>
+                    <p class="text-muted">標的：Toyota (7203) + Mitsubishi (8058)</p>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item">🔹 預估年化收益：8% - 10%</li>
+                        <li class="list-group-item">🔹 適合對象：保守穩健、想佈局日圓資產者</li>
+                        <li class="list-group-item">🔹 優勢：股價基期穩健，抗跌性較強</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 風險提示 -->
+<section id="risk" class="container my-5">
+    <div class="alert alert-warning p-4">
+        <h4 class="fw-bold">⚠️ 重要風險揭露</h4>
+        <ul>
+            <li>本產品並非存款，不保證本金不受損。</li>
+            <li>最大風險情境：標的股票大幅下跌，客戶將以高於市場之價格購入股票並承擔跌幅。</li>
+            <li>投資人應具備衍生性金融商品操作經驗。</li>
+        </ul>
+    </div>
+</section>
+
+<footer class="footer text-center">
+    <div class="container">
+        <p class="mb-0">FCN 投資方案展示網頁 - 僅供教育與情境說明使用</p>
+        <small class="text-muted">Built for Professional Wealth Management</small>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
