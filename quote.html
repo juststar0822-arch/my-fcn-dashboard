@@ -68,7 +68,12 @@
                     <input v-model="form.tickers" class="w-full glass-input text-center text-lg font-black uppercase" placeholder="NVDA,TSM,AMD">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label><input v-model="form.issuer" class="w-full glass-input text-sm"></div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label>
+                        <select v-model="form.issuer" class="w-full glass-input text-sm appearance-none cursor-pointer">
+                            <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">報價日期</label><input v-model="form.date" type="date" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">天期 (月)</label><input v-model="form.tenor" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息 (月)</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
@@ -196,12 +201,12 @@
                 return {
                     isLocked: false, isCapturing: false, isGenerated: false, isSyncing: false,
                     progressText: '',
-                    form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'Nomura', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL,AMD' },
+                    issuerOptions: ['MS', 'JPM', 'BNP', 'UBS', 'NX', 'NO', 'CG', 'GS', 'BAR', 'CA', 'DBS'],
+                    form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'MS', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL,AMD' },
                     stockData: []
                 }
             },
             methods: {
-                // 修正後的名稱抓取邏輯
                 getStockName(s) {
                     const symbol = s.toUpperCase();
                     if (stockNames[symbol]) return stockNames[symbol];
@@ -239,7 +244,7 @@
                         this.progressText = `正在讀取 ${tickerList[i]}...`;
                         const data = await this.fetchStock(tickerList[i]);
                         if (data) {
-                            data.symbol = tickerList[i]; // 確保 symbol 包含帶入的後綴
+                            data.symbol = tickerList[i];
                             this.stockData.push(data);
                         }
                         await new Promise(r => setTimeout(r, 600));
