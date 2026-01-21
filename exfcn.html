@@ -13,99 +13,93 @@
         .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; }
         .chart-container { position: relative; height: 350px; width: 100%; }
         .gradient-text { background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .asset-label { font-size: 0.7rem; font-weight: bold; padding: 2px 8px; border-radius: 4px; }
+        /* 加大標籤字體 */
+        .asset-label { font-size: 0.9rem; font-weight: bold; padding: 4px 12px; border-radius: 6px; }
     </style>
 </head>
 <body class="antialiased pb-20">
 
-    <!-- 頂部標題 -->
-    <header class="pt-16 pb-8 px-6 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">FCN <span class="gradient-text">客製化</span>投資策略</h1>
-        <p class="text-gray-400 text-sm italic">天期、條件、標的皆可客製化。</p>
+    <header class="pt-20 pb-10 px-6 text-center">
+        <h1 class="text-5xl md:text-6xl font-bold mb-6">FCN <span class="gradient-text">客製化</span>投資策略</h1>
+        <p class="text-gray-400 text-xl italic font-medium">天期、條件、標的皆可客製化。</p>
     </header>
 
-    <!-- 名詞白話文解釋區塊 -->
-    <section class="max-w-6xl mx-auto px-6 mb-16">
-        <div class="glass-card p-8 md:p-10 border-t-4 border-blue-500">
-            <h2 class="text-2xl font-bold mb-8 flex items-center gap-2">核心名詞：解析</h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="space-y-2">
-                    <span class="bg-green-500/20 text-green-400 px-3 py-1 rounded-md text-xs font-bold uppercase">KO 價 (100%)</span>
-                    <h4 class="font-bold">提前出場價</h4>
-                    <p class="text-xs text-gray-400 leading-relaxed">股價漲回期初價格。會提早把錢還你，期間利息照給，讓你獲利了結找下個機會。</p>
+    <section class="max-w-7xl mx-auto px-6 mb-16">
+        <div class="glass-card p-10 md:p-12 border-t-8 border-blue-500">
+            <h2 class="text-3xl font-bold mb-10 flex items-center gap-3">核心名詞：解析</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="space-y-4">
+                    <span class="bg-green-500/20 text-green-400 px-4 py-2 rounded-md text-sm font-black uppercase">KO 價 (100%)</span>
+                    <h4 class="text-2xl font-bold">提前出場價</h4>
+                    <p class="text-lg text-gray-400 leading-relaxed">股價漲回期初價格。會提早把錢還你，期間利息照給，讓你獲利了結找下個機會。</p>
                 </div>
-                <div class="space-y-2">
-                    <span class="bg-orange-500/20 text-orange-400 px-3 py-1 rounded-md text-xs font-bold uppercase">履約價 (70%)</span>
-                    <h4 class="font-bold">預定打折價</h4>
-                    <p class="text-xs text-gray-400 leading-relaxed">這是你「預定執行」的價格。用 7 折價買進，這就是履約價。</p>
+                <div class="space-y-4">
+                    <span class="bg-orange-500/20 text-orange-400 px-4 py-2 rounded-md text-sm font-black uppercase">履約價 (70%)</span>
+                    <h4 class="text-2xl font-bold">預定打折價</h4>
+                    <p class="text-lg text-gray-400 leading-relaxed">這是你「預定執行」的價格。用 7 折價買進，這就是履約價。</p>
                 </div>
-                <div class="space-y-2">
-                    <span class="bg-red-500/20 text-red-400 px-3 py-1 rounded-md text-xs font-bold uppercase">KI 價 (60%)</span>
-                    <h4 class="font-bold">安全保護價</h4>
-                    <p class="text-xs text-gray-400 leading-relaxed">只要股價在 6 個月內「沒跌破」這條線，您的本金就是 100% 安全的。有 40% 的容錯空間。</p>
+                <div class="space-y-4">
+                    <span class="bg-red-500/20 text-red-400 px-4 py-2 rounded-md text-sm font-black uppercase">KI 價 (60%)</span>
+                    <h4 class="text-2xl font-bold">安全保護價</h4>
+                    <p class="text-lg text-gray-400 leading-relaxed">只要股價在 6 個月內「沒跌破」這條線，您的本金就是 100% 安全的。有 40% 的容錯空間。</p>
                 </div>
-                <div class="space-y-2">
-                    <span class="bg-blue-500/20 text-blue-400 px-3 py-1 rounded-md text-xs font-bold uppercase">Worst-of</span>
-                    <h4 class="font-bold">表現最差之標的</h4>
-                    <p class="text-xs text-gray-400 leading-relaxed">我們連結3 檔股票。接股票是看「表現最差」的那一檔。最弱的沒跌破 KI，您就大獲全勝。</p>
+                <div class="space-y-4">
+                    <span class="bg-blue-500/20 text-blue-400 px-4 py-2 rounded-md text-sm font-black uppercase">Worst-of</span>
+                    <h4 class="text-2xl font-bold">表現最差標的</h4>
+                    <p class="text-lg text-gray-400 leading-relaxed">連結多檔股票時，接股票是看「表現最差」的那一檔。最弱的沒破 KI，您就大獲全勝。</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- 情境展示區 -->
     <main class="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-10">
         
-        <!-- Scenario A -->
-        <div class="glass-card p-8 border-b-4 border-green-500/50">
-            <h3 class="text-xl font-bold mb-2">情境 A：大漲提前出場 (KO)</h3>
-            <p class="text-xs text-gray-400 mb-6">保證領息期後，三檔標的皆曾達到KO價100%，合約提早結束。</p>
-            <div class="flex gap-4 mb-4">
+        <div class="glass-card p-10 border-b-8 border-green-500/50">
+            <h3 class="text-2xl font-bold mb-3">情境 A：大漲提前出場 (KO)</h3>
+            <p class="text-lg text-gray-400 mb-6 font-medium">保證領息期後，三檔標的皆曾達到KO價100%，合約提早結束。</p>
+            <div class="flex gap-4 mb-6">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
                 <span class="asset-label bg-teal-500/30 text-teal-400">標的 3 </span>
             </div>
             <div class="chart-container"><canvas id="chartKO"></canvas></div>
-            <div class="mt-4 text-green-400 font-bold text-sm">✓ 拿回 100% 本金 + 各月利息</div>
+            <div class="mt-8 text-green-400 font-black text-xl bg-green-400/10 p-4 rounded-xl inline-block">✓ 拿回 100% 本金 + 各月利息</div>
         </div>
 
-        <!-- Scenario B -->
-        <div class="glass-card p-8 border-b-4 border-blue-500/50">
-            <h3 class="text-xl font-bold mb-2">情境 B：區間震盪穩領息</h3>
-            <p class="text-xs text-gray-400 mb-6">股價有跌有漲，但都沒觸及60%的KI保護價。</p>
-            <div class="flex gap-4 mb-4">
+        <div class="glass-card p-10 border-b-8 border-blue-500/50">
+            <h3 class="text-2xl font-bold mb-3">情境 B：區間震盪穩領息</h3>
+            <p class="text-lg text-gray-400 mb-6 font-medium">股價有跌有漲，但都沒觸及60%的KI保護價。</p>
+            <div class="flex gap-4 mb-6">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
                 <span class="asset-label bg-teal-500/30 text-teal-400">標的 3 (Worst)</span>
             </div>
             <div class="chart-container"><canvas id="chartNoKI"></canvas></div>
-            <div class="mt-4 text-blue-400 font-bold text-sm">✓ 領滿 6 個月利息 + 拿回 100% 本金</div>
+            <div class="mt-8 text-blue-400 font-black text-xl bg-blue-400/10 p-4 rounded-xl inline-block">✓ 領滿 6 個月利息 + 拿回 100% 本金</div>
         </div>
 
-        <!-- Scenario C -->
-        <div class="glass-card p-8 border-b-4 border-orange-500/50">
-            <h3 class="text-xl font-bold mb-2">情境 C：觸及KI保護價，到期漲回履約價之上</h3>
-            <p class="text-xs text-gray-400 mb-6">中間曾跌破保護線，但到期股價收在70% 履約價之上。</p>
-            <div class="flex gap-4 mb-4">
+        <div class="glass-card p-10 border-b-8 border-orange-500/50">
+            <h3 class="text-2xl font-bold mb-3">情境 C：觸及 KI 但到期收高</h3>
+            <p class="text-lg text-gray-400 mb-6 font-medium">中間曾跌破保護線，但到期股價收在70% 履約價之上。</p>
+            <div class="flex gap-4 mb-6">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2</span>
                 <span class="asset-label bg-teal-500/30 text-teal-400">標的 3 (Worst)</span>
             </div>
             <div class="chart-container"><canvas id="chartKIRecover"></canvas></div>
-            <div class="mt-4 text-orange-400 font-bold text-sm">✓ 領滿 6 個月高息 + 拿回 100% 本金</div>
+            <div class="mt-8 text-orange-400 font-black text-xl bg-orange-400/10 p-4 rounded-xl inline-block">✓ 領滿 6 個月高息 + 拿回 100% 本金</div>
         </div>
 
-        <!-- Scenario D -->
-        <div class="glass-card p-8 border-b-4 border-red-500/50">
-            <h3 class="text-xl font-bold mb-2">情境 D：低接股票 (雙雙觸發 KI)</h3>
-            <p class="text-xs text-gray-400 mb-6">假設兩檔標的曾經觸及KI價且到期未漲回履約價之上，接回股票表現最差者。</p>
-            <div class="flex gap-4 mb-4">
+        <div class="glass-card p-10 border-b-8 border-red-500/50">
+            <h3 class="text-2xl font-bold mb-3">情境 D：低接股票 (觸發 KI)</h3>
+            <p class="text-lg text-gray-400 mb-6 font-medium">標的觸及KI且到期未漲回履約價之上，接回表現最差者。</p>
+            <div class="flex gap-4 mb-6">
                 <span class="asset-label bg-blue-500/30 text-blue-400">標的 1 (強)</span>
                 <span class="asset-label bg-purple-500/30 text-purple-400">標的 2 (弱)</span>
                 <span class="asset-label bg-red-500 text-white">標的 3 (Worst)</span>
             </div>
             <div class="chart-container"><canvas id="chartKIFail"></canvas></div>
-            <div class="mt-4 text-red-400 font-bold text-sm">⚠ 接回最差的「標的 3」股票 (以 70% 價格買入)</div>
+            <div class="mt-8 text-red-400 font-black text-xl bg-red-400/10 p-4 rounded-xl inline-block">⚠ 接回「標的 3」股票 (以 70% 價格買入)</div>
         </div>
 
     </main>
@@ -116,51 +110,50 @@
 
         const getAnno = () => ({
             annotations: {
-                ko: { type: 'line', yMin: KO, yMax: KO, borderColor: '#22c55e', borderDash: [6, 6], label: { display: true, content: 'KO 100%', position: 'start', backgroundColor: '#22c55e', color: '#000', font: {size: 10} } },
-                st: { type: 'line', yMin: STRIKE, yMax: STRIKE, borderColor: '#fbbf24', borderDash: [4, 4], label: { display: true, content: '履約 70%', position: 'end', backgroundColor: '#fbbf24', color: '#000', font: {size: 10} } },
-                ki: { type: 'line', yMin: KI, yMax: KI, borderColor: '#ef4444', borderDash: [6, 6], label: { display: true, content: 'KI 60%', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: {size: 10} } }
+                ko: { type: 'line', yMin: KO, yMax: KO, borderColor: '#22c55e', borderDash: [6, 6], label: { display: true, content: 'KO 100%', position: 'start', backgroundColor: '#22c55e', color: '#000', font: {size: 12, weight: 'bold'} } },
+                st: { type: 'line', yMin: STRIKE, yMax: STRIKE, borderColor: '#fbbf24', borderDash: [4, 4], label: { display: true, content: '履約 70%', position: 'end', backgroundColor: '#fbbf24', color: '#000', font: {size: 12, weight: 'bold'} } },
+                ki: { type: 'line', yMin: KI, yMax: KI, borderColor: '#ef4444', borderDash: [6, 6], label: { display: true, content: 'KI 60%', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: {size: 12, weight: 'bold'} } }
             }
         });
 
         const chart = (id, datasets) => {
             new Chart(document.getElementById(id), {
                 type: 'line',
-                data: { labels: LABELS, datasets: datasets.map(d => ({ ...d, borderWidth: d.isWorst ? 4 : 2, tension: 0.35, pointRadius: 3 })) },
+                data: { labels: LABELS, datasets: datasets.map(d => ({ ...d, borderWidth: d.isWorst ? 5 : 3, tension: 0.35, pointRadius: 4 })) },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    scales: { y: { min: 40, max: 130, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { grid: { display: false } } },
+                    scales: { 
+                        y: { min: 40, max: 130, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { font: { size: 14 } } }, 
+                        x: { grid: { display: false }, ticks: { font: { size: 14 } } } 
+                    },
                     plugins: { legend: { display: false }, annotation: getAnno() }
                 }
             });
         };
 
         window.onload = () => {
-            // A: 震盪上漲
             chart('chartKO', [
                 { data: [100, 105, 102, 115], color: '#60a5fa' },
                 { data: [100, 88, 93, 109], color: '#c084fc' },
                 { data: [100, 97, 102, 105], color: '#2dd4bf', isWorst: true }
             ]);
 
-            // B: 全員震盪守住 KI
             chart('chartNoKI', [
                 { data: [100, 110, 105, 115, 112, 120, 118], color: '#60a5fa' },
                 { data: [100, 95, 98, 90, 94, 91, 95], color: '#c084fc' },
                 { data: [100, 85, 82, 72, 78, 75, 80], color: '#2dd4bf', isWorst: true }
             ]);
 
-            // C: 驚險回升 (標的3破KI後彈回)
             chart('chartKIRecover', [
                 { data: [100, 98, 105, 102, 108, 105, 110], color: '#60a5fa' },
                 { data: [100, 85, 75, 80, 78, 82, 85], color: '#c084fc' },
                 { data: [100, 82, 55, 62, 65, 68, 75], color: '#2dd4bf', isWorst: true }
             ]);
 
-            // D: 兩檔破 KI，Worst決定損益
             chart('chartKIFail', [
                 { data: [100, 110, 105, 115, 112, 120, 118], color: '#60a5fa' },
-                { data: [100, 75, 55, 58, 62, 60, 68], color: '#c084fc' }, // 也破了 KI，但到期收盤 68
-                { data: [100, 70, 52, 55, 50, 58, 62], color: '#f87171', isWorst: true } // 最差的一檔，收盤 62
+                { data: [100, 75, 55, 58, 62, 60, 68], color: '#c084fc' },
+                { data: [100, 70, 52, 55, 50, 58, 62], color: '#f87171', isWorst: true }
             ]);
         };
     </script>
