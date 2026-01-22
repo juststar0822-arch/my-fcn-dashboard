@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場監控 - 走勢修正版</title>
+    <title>市場監控 - 固定順序版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -35,7 +35,7 @@
 
     <div class="main-header">
         <h1 style="font-size:18px; margin:0;">市場數據監控</h1>
-        <div id="update-time">資料載入中...</div>
+        <div id="update-time">資料同步中...</div>
     </div>
 
     <div class="container">
@@ -45,16 +45,45 @@
 
     <script>
         const symbols = [
+            // grid: true 會顯示在上方格子
             { id: "TWII", sym: "^TWII", name: "台股加權", prec: 0, grid: true },
             { id: "DJI", sym: "^DJI", name: "道瓊工業", prec: 0, grid: true },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
+            // grid: false 會顯示在下方走勢圖，順序依照此陣列排列
             { id: "USD", sym: "TWD=X", name: "美元/台幣", prec: 3, grid: false, unit: "USD" },
             { id: "JPY", sym: "JPYTWD=X", name: "日圓/台幣", prec: 4, grid: false, unit: "JPY" },
             { id: "TNX", sym: "^TNX", name: "10Y Bond 美債殖利率", prec: 3, grid: false, unit: "" }
         ];
 
         let charts = {};
+
+        // 初始化：先建立空的 HTML 結構，確保順序固定
+        function initLayout() {
+            const gridContainer = document.getElementById('stock-grid');
+            const listContainer = document.getElementById('chart-list');
+
+            symbols.forEach(item => {
+                if (item.grid) {
+                    const el = document.createElement('div');
+                    el.id = `box-${item.id}`;
+                    el.className = 'mini-card';
+                    el.innerHTML = `<span class="mini-name">${item.name}</span><span class="mini-price">--</span>`;
+                    gridContainer.appendChild(el);
+                } else {
+                    const el = document.createElement('div');
+                    el.id = `card-${item.id}`;
+                    el.className = 'chart-card';
+                    el.innerHTML = `
+                        <div class="chart-header">
+                            <div class="chart-title">${item.name}</div>
+                            <div class="chart-price" id="price-${item.id}">--</div>
+                        </div>
+                        <div id="chart-obj-${item.id}" class="chart-box"></div>`;
+                    listContainer.appendChild(el);
+                }
+            });
+        }
 
         async function fetchData(item) {
             try {
@@ -68,7 +97,6 @@
                 const prevClose = result.meta.chartPreviousClose;
                 const change = ((price - prevClose) / prevClose * 100).toFixed(2);
                 
-                // 處理走勢圖數據
                 const quotes = result.indicators.quote[0].close;
                 const timestamps = result.timestamp;
                 const chartData = timestamps.map((t, i) => ({
@@ -76,70 +104,45 @@
                     y: quotes[i] ? parseFloat(quotes[i].toFixed(item.prec + 2)) : null
                 })).filter(d => d.y !== null);
 
-                if (item.grid) {
-                    renderGrid(item, price, change);
-                } else {
-                    renderChartCard(item, price, change, chartData);
-                }
-            } catch (e) { console.error(item.id + " 錯誤:", e); }
+                updateUI(item, price, change, chartData);
+            } catch (e) { console.error(item.id + " 更新出錯"); }
         }
 
-        function renderGrid(item, price, change) {
-            let el = document.getElementById(`box-${item.id}`);
-            if (!el) {
-                el = document.createElement('div'); el.id = `box-${item.id}`; el.className = 'mini-card';
-                document.getElementById('stock-grid').appendChild(el);
-            }
+        function updateUI(item, price, change, chartData) {
             const isUp = change >= 0;
-            el.innerHTML = `<span class="mini-name">${item.name}</span>
-                <span class="mini-price">${price.toLocaleString(undefined, {minimumFractionDigits: item.prec})}</span>
-                <span class="${isUp?'up':'down'}" style="font-size:11px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</span>`;
-        }
-
-        function renderChartCard(item, price, change, chartData) {
-            let el = document.getElementById(`card-${item.id}`);
-            if (!el) {
-                const container = document.getElementById('chart-list');
-                el = document.createElement('div'); el.id = `card-${item.id}`; el.className = 'chart-card';
-                el.innerHTML = `<div class="chart-header">
-                    <div class="chart-title">${item.name}</div>
-                    <div class="chart-price" id="price-${item.id}">--</div>
-                </div><div id="chart-obj-${item.id}" class="chart-box"></div>`;
-                container.appendChild(el);
-                initChart(item, chartData);
-            }
-            
-            const displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : `${item.unit} ${price.toFixed(item.prec)}`;
-            document.getElementById(`price-${item.id}`).innerText = displayPrice;
-            
-            if (charts[item.id]) {
-                charts[item.id].updateSeries([{ data: chartData }]);
+            if (item.grid) {
+                const el = document.getElementById(`box-${item.id}`);
+                el.innerHTML = `
+                    <span class="mini-name">${item.name}</span>
+                    <span class="mini-price">${price.toLocaleString(undefined, {minimumFractionDigits: item.prec})}</span>
+                    <span class="${isUp?'up':'down'}" style="font-size:11px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</span>`;
+            } else {
+                const displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : `${item.unit} ${price.toFixed(item.prec)}`;
+                document.getElementById(`price-${item.id}`).innerText = displayPrice;
+                
+                if (!charts[item.id]) {
+                    renderChart(item, chartData);
+                } else {
+                    charts[item.id].updateSeries([{ data: chartData }]);
+                }
             }
         }
 
-        function initChart(item, chartData) {
+        function renderChart(item, chartData) {
             const options = {
                 series: [{ name: item.name, data: chartData }],
-                chart: { 
-                    type: 'area', height: 120, 
-                    toolbar: { show: false }, 
-                    animations: { enabled: false },
-                    sparkline: { enabled: false } // 關閉 sparkline 以便顯示 Y 軸標籤
-                },
-                dataLabels: { enabled: false }, // 關鍵：關閉那些藍色數字標籤
+                chart: { type: 'area', height: 120, toolbar: { show: false }, animations: { enabled: false } },
+                dataLabels: { enabled: false },
                 stroke: { curve: 'smooth', width: 2 },
-                colors: [item.id === 'TNX' ? '#0040ff' : '#0040ff'],
+                colors: ['#0040ff'],
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05 } },
                 xaxis: { type: 'datetime', labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
                 yaxis: { 
                     opposite: true,
-                    labels: { 
-                        style: { fontSize: '9px', colors: '#8e8e93' },
-                        formatter: (val) => val.toFixed(item.prec)
-                    },
-                    forceNiceScale: true // 讓縮放更自然
+                    labels: { style: { fontSize: '9px', colors: '#8e8e93' }, formatter: (v) => v.toFixed(item.prec) },
+                    forceNiceScale: true 
                 },
-                grid: { borderColor: '#f1f1f1', strokeDashArray: 3, xaxis: { lines: { show: true } } },
+                grid: { borderColor: '#f1f1f1', strokeDashArray: 3 },
                 tooltip: { enabled: true, x: { format: 'HH:mm' } }
             };
             const chart = new ApexCharts(document.querySelector(`#chart-obj-${item.id}`), options);
@@ -148,11 +151,14 @@
         }
 
         async function updateAll() {
+            // 同時執行但會填入預先建好的固定位置
             await Promise.all(symbols.map(item => fetchData(item)));
             document.getElementById('update-time').innerText = `LAST UPDATE: ${new Date().toLocaleTimeString('zh-TW', {hour12: false})}`;
         }
 
-        updateAll();
+        // 啟動流程
+        initLayout(); // 1. 先把順序排好
+        updateAll();  // 2. 抓資料填空
         setInterval(updateAll, 15000);
     </script>
 </body>
