@@ -158,7 +158,7 @@
 <!-- 主選單 UI -->
 <div class="main-container" id="main-ui">
     <div class="welcome-section">
-        <h1 id="greeting">午安, 專業經理人</h1>
+        <h1 id="greeting">午安, 各位超業</h1>
         <p><i class="fa-solid fa-shield-halved"></i> 專業資產管理系統已就緒</p>
     </div>
 
@@ -268,11 +268,11 @@
     // 問候語邏輯
     function setGreeting() {
         const hr = new Date().getHours();
-        let g = "您好, 專業經理人";
+        let g = "您好, 各位超業";
         if (hr < 5) g = "深夜了, 請注意休息";
-        else if (hr < 12) g = "早安, 專業經理人";
-        else if (hr < 18) g = "午安, 專業經理人";
-        else g = "晚安, 專業經理人";
+        else if (hr < 12) g = "早安, 各位超業";
+        else if (hr < 18) g = "午安, 各位超業";
+        else g = "晚安, 各位超業";
         document.getElementById('greeting').innerText = g;
     }
     setGreeting();
