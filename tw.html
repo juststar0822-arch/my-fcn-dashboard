@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場追蹤 (精確間隔版)</title>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <title>市場即時追蹤</title>
     <style>
         :root {
             --bg-color: #f2f2f7;
@@ -17,49 +16,42 @@
         }
 
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 4px 10px; 
+            margin: 0; padding: 15px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; height: 100vh;
         }
 
-        .main-header { text-align: center; margin: 4px 0; }
-        .main-header h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--text-main); }
+        .main-header { text-align: center; margin-bottom: 15px; }
+        .main-header h1 { font-size: 22px; font-weight: 800; color: var(--text-main); margin: 0; }
+        #update-time { font-size: 11px; color: var(--text-sub); margin-top: 5px; font-family: 'SF Mono', monospace; }
 
-        #update-time { align-self: flex-end; font-size: 8px; color: var(--text-sub); margin-bottom: 2px; font-family: 'SF Mono', monospace; }
-
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
+        .container { width: 100%; max-width: 450px; }
         
+        /* 指數區塊 */
         .stock-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
         }
         .mini-card {
-            background: var(--card-bg); padding: 5px 8px; border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; justify-content: center;
+            background: var(--card-bg); padding: 12px; border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
         }
-        .mini-name { font-size: 10px; font-weight: 700; color: var(--text-sub); margin-bottom: 1px; }
-        .mini-price { font-size: 12px; font-weight: 800; color: var(--text-main); font-family: 'SF Mono', monospace; white-space: nowrap; }
-
+        .mini-name { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 4px; }
+        .mini-price { font-size: 16px; font-weight: 800; color: var(--text-main); font-family: 'SF Mono'; }
+        
+        /* 匯率區塊 */
         .highlight-label {
-            font-size: 13px !important; font-weight: 900; color: #000;
-            border-left: 4px solid var(--price-blue); padding-left: 6px;
-            margin: 4px 0 2px 2px !important;
+            font-size: 15px; font-weight: 900; border-left: 4px solid var(--price-blue);
+            padding-left: 10px; margin: 20px 0 10px; color: var(--text-main);
         }
-
-        .card {
-            background: var(--card-bg); border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 2px; width: 100%; overflow: hidden;
+        .rate-card {
+            background: var(--card-bg); border-radius: 14px; padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 10px;
+            display: flex; justify-content: space-between; align-items: center;
         }
-
-        .k-card { padding: 4px 8px; height: 125px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: -10px; z-index: 10; position: relative; }
-        .k-header .price { font-size: 18px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
-        .chart-box { width: 100%; height: 110px; } 
+        .rate-val { font-size: 24px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono'; }
+        .rate-info { text-align: right; }
 
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
@@ -67,168 +59,96 @@
 </head>
 <body>
 
-    <div class="main-header"><h1>每日市場追蹤</h1></div>
-    <div id="update-time">SYNCING...</div>
+    <div class="main-header">
+        <h1>市場即時追蹤</h1>
+        <div id="update-time">正在獲取數據...</div>
+    </div>
 
     <div class="container">
         <div class="stock-grid" id="stock-grid"></div>
-        <div id="k-list-container"></div>
+        <div id="rate-list"></div>
     </div>
 
     <script>
-        const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
-
         const symbols = [
-            { id: "TWII", sym: "^TWII", name: "台股加權指數", prec: 0, grid: true },
-            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, grid: true },
-            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
+            { id: "TWII", sym: "^TWII", name: "台股加權", prec: 0, grid: true },
+            { id: "DJI", sym: "^DJI", name: "道瓊工業", prec: 0, grid: true },
+            { id: "IXIC", sym: "^IXIC", name: "那斯達克", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
-            
-            // 下方走勢圖，加入 stepSize 定義
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, step: 0.2 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, step: 0.001 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, step: 0.04 }
+            { id: "USD", sym: "TWD=X", name: "美元/台幣", prec: 3, grid: false, unit: "USD" },
+            { id: "JPY", sym: "JPYTWD=X", name: "日圓/台幣", prec: 4, grid: false, unit: "JPY" }
         ];
 
-        let charts = {};
+        async function updateMarket() {
+            for (const item of symbols) {
+                try {
+                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1m&range=1d`;
+                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`);
+                    const json = await res.json();
+                    const data = JSON.parse(json.contents).chart.result[0];
+                    
+                    const price = data.meta.regularMarketPrice;
+                    const prevClose = data.meta.chartPreviousClose;
+                    const change = ((price - prevClose) / prevClose * 100).toFixed(2);
 
-        async function fetchYahooData() {
-            const promises = symbols.map(item => {
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&period1=${startTime}&period2=9999999999`;
-                return fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`)
-                .then(res => res.json())
-                .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
-                .catch(err => null);
-            });
-
-            const results = await Promise.all(promises);
-            results.forEach(res => {
-                if (!res) return;
-                const { item, result } = res;
-                const meta = result.meta;
-                const quotes = result.indicators.quote[0].close.filter(v => v != null);
-                const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
-                const prevClose = quotes.length > 1 ? quotes[quotes.length - 2] : meta.chartPreviousClose;
-                const changePct = prevClose ? (((currentPrice - prevClose) / prevClose) * 100).toFixed(2) : "0.00";
-                
-                if (item.grid) {
-                    updateStockUI(item.id, item.name, currentPrice, changePct);
-                } else {
-                    updateChartUI(item, result, currentPrice);
+                    if (item.grid) {
+                        renderGrid(item, price, change);
+                    } else {
+                        renderRate(item, price, change);
+                    }
+                } catch (e) {
+                    console.log("Error fetching " + item.id);
                 }
-            });
-            document.getElementById('update-time').innerText = `UPDATED: ${new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
+            }
+            document.getElementById('update-time').innerText = `最後更新時間：${new Date().toLocaleTimeString()}`;
         }
 
-        function updateStockUI(id, name, price, pct) {
-            const grid = document.getElementById('stock-grid');
-            let el = document.getElementById(`box-${id}`);
+        function renderGrid(item, price, change) {
+            let el = document.getElementById(`box-${item.id}`);
             if (!el) {
-                el = document.createElement('div'); el.id = `box-${id}`; el.className = 'mini-card';
-                grid.appendChild(el);
+                el = document.createElement('div');
+                el.id = `box-${item.id}`;
+                el.className = 'mini-card';
+                document.getElementById('stock-grid').appendChild(el);
             }
-            const isUp = parseFloat(pct) >= 0;
+            const isUp = change >= 0;
             el.innerHTML = `
-                <span class="mini-name">${name}</span>
-                <span class="mini-price">${price.toLocaleString('en-US', {maximumFractionDigits: 1})} <small class="${isUp?'up':'down'}" style="font-size:9px">${isUp?'▲':'▼'}${pct}%</small></span>
+                <span class="mini-name">${item.name}</span>
+                <span class="mini-price">${price.toLocaleString(undefined, {maximumFractionDigits: item.prec})}</span>
+                <div style="font-size:11px; margin-top:2px;" class="${isUp?'up':'down'}">
+                    ${isUp?'▲':'▼'}${Math.abs(change)}%
+                </div>
             `;
         }
 
-        function updateChartUI(item, result, currentPrice) {
-            const container = document.getElementById('k-list-container');
-            if (!document.getElementById(`card-${item.id}`)) {
-                container.innerHTML += `
-                    <div class="highlight-label">${item.name}</div>
-                    <div class="card k-card" id="card-${item.id}">
-                        <div class="k-header"><span class="price" id="price-${item.id}">--</span></div>
-                        <div id="chart-${item.id}" class="chart-box"></div>
+        function renderRate(item, price, change) {
+            let el = document.getElementById(`rate-${item.id}`);
+            if (!el) {
+                const list = document.getElementById('rate-list');
+                const label = document.createElement('div');
+                label.className = 'highlight-label';
+                label.innerText = item.name;
+                list.appendChild(label);
+
+                el = document.createElement('div');
+                el.id = `rate-${item.id}`;
+                el.className = 'rate-card';
+                list.appendChild(el);
+            }
+            
+            const isUp = change >= 0;
+            el.innerHTML = `
+                <div class="rate-val">${item.unit} ${price.toFixed(item.prec)}</div>
+                <div class="rate-info">
+                    <div class="${isUp?'up':'down'}" style="font-size:13px; font-weight:700;">
+                        ${isUp?'▲':'▼'}${Math.abs(change)}%
                     </div>
-                `;
-                setTimeout(() => renderKChart(item, result, currentPrice), 400);
-            } else {
-                updatePriceLabel(item, currentPrice);
-                refreshChart(item.id, result);
-            }
+                </div>
+            `;
         }
 
-        function updatePriceLabel(item, price) {
-            let displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
-            if(item.id === "USD") displayPrice = "USD " + displayPrice;
-            if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
-            document.getElementById(`price-${item.id}`).innerText = displayPrice;
-        }
-
-        function renderKChart(item, result, currentPrice) {
-            const ohlc = result.indicators.quote[0];
-            const seriesData = result.timestamp.map((t, i) => {
-                const c = ohlc.close[i];
-                return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
-            }).filter(d => d);
-
-            const options = {
-                series: [{ data: seriesData }],
-                chart: { 
-                    type: 'candlestick', 
-                    height: 110, 
-                    toolbar: { show: false }, 
-                    animations: { enabled: false },
-                    offsetY: -10 
-                },
-                xaxis: { 
-                    type: 'datetime', 
-                    labels: { 
-                        show: true, 
-                        format: 'MM/dd', 
-                        style: { fontSize: '9px', colors: '#8e8e93' },
-                        offsetY: -5 
-                    },
-                    tickAmount: 4,
-                    axisTicks: { show: false },
-                    axisBorder: { show: false }
-                },
-                yaxis: { 
-                    opposite: true, 
-                    // 關鍵修正：設定精確間隔
-                    stepSize: item.step, 
-                    forceNiceScale: false, // 關閉 NiceScale 以便嚴格執行 stepSize
-                    labels: { 
-                        style: { fontSize: '9px', colors: '#8e8e93', fontFamily: 'SF Mono' }, 
-                        formatter: v => v.toFixed(item.prec) 
-                    } 
-                },
-                plotOptions: { 
-                    candlestick: { 
-                        colors: { upward: '#ff3b30', downward: '#34c759' },
-                        wick: { useFillColor: true }
-                    } 
-                },
-                grid: { 
-                    borderColor: '#f1f2f6', 
-                    strokeDashArray: 3,
-                    padding: { bottom: 0, top: 0, left: 10, right: 10 } 
-                },
-                tooltip: { enabled: false }
-            };
-
-            const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
-            chart.render(); 
-            charts[item.id] = chart;
-            updatePriceLabel(item, currentPrice);
-        }
-
-        function refreshChart(id, result) {
-            if (charts[id]) {
-                const ohlc = result.indicators.quote[0];
-                const seriesData = result.timestamp.map((t, i) => {
-                    const c = ohlc.close[i];
-                    return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
-                }).filter(d => d);
-                charts[id].updateSeries([{ data: seriesData }]);
-            }
-        }
-
-        fetchYahooData();
-        setInterval(fetchYahooData, 60000); 
+        updateMarket();
+        setInterval(updateMarket, 30000); // 30秒自動刷新
     </script>
 </body>
 </html>
