@@ -52,11 +52,11 @@
                     <div class="flex gap-4 mt-2">
                         <div class="flex-1 bg-slate-50 p-2 rounded-lg">
                             <p class="text-[9px] text-slate-400 uppercase">USD/TWD</p>
-                            <p class="text-sm font-black">{{ rates.USD.toFixed(3) }}</p>
+                            <input type="number" v-model.number="rates.USD" step="0.001" class="bg-transparent border-none w-full text-sm font-black outline-none">
                         </div>
                         <div class="flex-1 bg-slate-50 p-2 rounded-lg">
                             <p class="text-[9px] text-slate-400 uppercase">JPY/TWD</p>
-                            <p class="text-sm font-black">{{ rates.JPY.toFixed(4) }}</p>
+                            <input type="number" v-model.number="rates.JPY" step="0.0001" class="bg-transparent border-none w-full text-sm font-black outline-none">
                         </div>
                     </div>
                 </div>
@@ -65,23 +65,19 @@
 
         <div class="cashflow-card p-8 shadow-2xl relative overflow-hidden mb-4">
             <div class="absolute -right-10 -top-10 w-40 h-40 bg-white/5 rounded-full"></div>
-            
             <div class="relative z-10">
                 <p class="text-xs font-bold text-white/50 uppercase tracking-widest">預估每月領息金額</p>
-                
                 <div class="mt-4">
                     <p class="text-5xl font-black italic tracking-tighter">
                         {{ form.currency == 'USD' ? '$' : '¥' }} {{ formatNum(payoutOriginal) }}
                     </p>
                     <p class="text-sm font-bold text-white/40 mt-1">原幣月配息量</p>
                 </div>
-
                 <div class="mt-8 pt-6 border-t border-white/10">
                     <p class="text-xs font-bold text-white/50 uppercase tracking-widest twd-highlight">約當新台幣</p>
                     <div class="flex items-baseline gap-2">
                         <span class="text-3xl font-black twd-highlight italic">NT$ {{ formatNum(payoutTWD) }}</span>
                     </div>
-                    <p class="text-[10px] font-bold text-white/30 mt-1">此金額係依據即時匯率換算之預估值</p>
                 </div>
             </div>
         </div>
@@ -99,76 +95,53 @@
             </div>
         </div>
 
-        <div class="mt-8 px-4 text-center">
-            <p class="text-[11px] font-bold text-slate-400 leading-relaxed">
-                ※ 以上數據均為預估試算結果，不保證實際獲利。<br>
-                實際配息金額及匯率依成交當時、實際派息日之銀行牌告為主。<br>
-                <span class="text-blue-500">本工具僅供參考，不構成任何投資建議。</span>
-            </p>
+        <div class="mt-8 px-4 text-center text-[11px] font-bold text-slate-400">
+            ※ 匯率欄位可手動微調。資料抓取自 Yahoo Finance。<br>
+            <span class="text-blue-500">本工具僅供參考，不構成投資建議。</span>
         </div>
-
     </div>
 
     <script>
         const { createApp } = Vue;
-
         createApp({
             data() {
                 return {
                     isSyncing: false,
-                    form: {
-                        currency: 'USD',
-                        amount: 10,
-                        coupon: 12.00 
-                    },
-                    rates: {
-                        USD: 32.50,
-                        JPY: 0.2150
-                    }
+                    form: { currency: 'USD', amount: 10, coupon: 12.00 },
+                    rates: { USD: 31.625, JPY: 0.2085 } // 2026/1/22 預設值
                 }
             },
             computed: {
-                payoutOriginal() {
-                    return (this.form.amount * 10000 * (this.form.coupon / 100)) / 12;
-                },
-                payoutTWD() {
+                payoutOriginal() { return (this.form.amount * 10000 * (this.form.coupon / 100)) / 12; },
+                payoutTWD() { 
                     const currentRate = this.form.currency === 'USD' ? this.rates.USD : this.rates.JPY;
-                    return this.payoutOriginal * currentRate;
+                    return this.payoutOriginal * currentRate; 
                 }
             },
             methods: {
-                formatNum(n) {
-                    return Math.floor(n).toLocaleString();
-                },
+                formatNum(n) { return Math.floor(n).toLocaleString(); },
                 async fetchRates() {
                     this.isSyncing = true;
                     try {
-                        const ts = new Date().getTime();
-                        const symbols = ['USDTWD=X', 'JPYTWD=X'];
-                        const yahooUrl = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols.join(',')}&_=${ts}`;
-                        
-                        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}&disableCache=true`);
+                        const ts = Date.now();
+                        const symbols = 'USDTWD=X,JPYTWD=X';
+                        const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbols}&_=${ts}`;
+                        const response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`);
                         const data = await response.json();
-                        const result = JSON.parse(data.contents);
+                        const res = JSON.parse(data.contents).quoteResponse.result;
                         
-                        if (result.quoteResponse?.result) {
-                            const quotes = result.quoteResponse.result;
-                            const usd = quotes.find(q => q.symbol === 'USDTWD=X');
-                            const jpy = quotes.find(q => q.symbol === 'JPYTWD=X');
-                            
-                            if (usd?.regularMarketPrice) this.rates.USD = usd.regularMarketPrice;
-                            if (jpy?.regularMarketPrice) this.rates.JPY = jpy.regularMarketPrice;
-                        }
+                        const u = res.find(q => q.symbol === 'USDTWD=X');
+                        const j = res.find(q => q.symbol === 'JPYTWD=X');
+                        if (u) this.rates.USD = u.regularMarketPrice;
+                        if (j) this.rates.JPY = j.regularMarketPrice;
                     } catch (e) {
-                        console.error('匯率抓取失敗', e);
+                        console.error("更新失敗，請檢查網路或手動輸入");
                     } finally {
-                        setTimeout(() => { this.isSyncing = false; }, 500);
+                        setTimeout(() => { this.isSyncing = false; }, 800);
                     }
                 }
             },
-            mounted() {
-                this.fetchRates();
-            }
+            mounted() { this.fetchRates(); }
         }).mount('#app');
     </script>
 </body>
