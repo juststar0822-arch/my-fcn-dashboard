@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場即時追蹤</title>
+    <title>即時追蹤 (加速版)</title>
     <style>
         :root {
             --bg-color: #f2f2f7;
@@ -19,49 +19,46 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             background-color: var(--bg-color);
-            margin: 0; padding: 15px; 
-            display: flex; flex-direction: column; align-items: center;
+            margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center;
         }
 
-        .main-header { text-align: center; margin-bottom: 15px; }
-        .main-header h1 { font-size: 22px; font-weight: 800; color: var(--text-main); margin: 0; }
-        #update-time { font-size: 11px; color: var(--text-sub); margin-top: 5px; font-family: 'SF Mono', monospace; }
+        .main-header { text-align: center; margin-bottom: 10px; }
+        .main-header h1 { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
+        #update-time { font-size: 10px; color: var(--text-sub); font-family: 'SF Mono', monospace; margin-top: 4px; }
 
         .container { width: 100%; max-width: 450px; }
         
-        /* 指數區塊 */
         .stock-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px;
         }
         .mini-card {
-            background: var(--card-bg); padding: 12px; border-radius: 14px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            background: var(--card-bg); padding: 12px; border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-height: 70px;
         }
-        .mini-name { font-size: 12px; font-weight: 700; color: var(--text-sub); display: block; margin-bottom: 4px; }
+        .mini-name { font-size: 11px; font-weight: 700; color: var(--text-sub); display: block; }
         .mini-price { font-size: 16px; font-weight: 800; color: var(--text-main); font-family: 'SF Mono'; }
         
-        /* 匯率區塊 */
         .highlight-label {
-            font-size: 15px; font-weight: 900; border-left: 4px solid var(--price-blue);
-            padding-left: 10px; margin: 20px 0 10px; color: var(--text-main);
+            font-size: 14px; font-weight: 900; border-left: 4px solid var(--price-blue);
+            padding-left: 10px; margin: 15px 0 8px; color: var(--text-main);
         }
         .rate-card {
-            background: var(--card-bg); border-radius: 14px; padding: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 10px;
+            background: var(--card-bg); border-radius: 12px; padding: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 8px;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .rate-val { font-size: 24px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono'; }
-        .rate-info { text-align: right; }
-
+        .rate-val { font-size: 22px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono'; }
+        
         .up { color: var(--up-red); }
         .down { color: var(--down-green); }
+        .loading { opacity: 0.5; font-style: italic; }
     </style>
 </head>
 <body>
 
     <div class="main-header">
         <h1>市場即時追蹤</h1>
-        <div id="update-time">正在獲取數據...</div>
+        <div id="update-time">正在連線至市場數據源...</div>
     </div>
 
     <div class="container">
@@ -79,45 +76,48 @@
             { id: "JPY", sym: "JPYTWD=X", name: "日圓/台幣", prec: 4, grid: false, unit: "JPY" }
         ];
 
-        async function updateMarket() {
-            for (const item of symbols) {
-                try {
-                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1m&range=1d`;
-                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`);
-                    const json = await res.json();
-                    const data = JSON.parse(json.contents).chart.result[0];
-                    
-                    const price = data.meta.regularMarketPrice;
-                    const prevClose = data.meta.chartPreviousClose;
-                    const change = ((price - prevClose) / prevClose * 100).toFixed(2);
+        // 核心抓取邏輯：改用 corsproxy.io
+        async function fetchSingle(item) {
+            try {
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1m&range=1d`;
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
+                
+                const res = await fetch(proxyUrl);
+                const data = await res.json();
+                const result = data.chart.result[0];
+                
+                const price = result.meta.regularMarketPrice;
+                const prevClose = result.meta.chartPreviousClose;
+                const change = ((price - prevClose) / prevClose * 100).toFixed(2);
 
-                    if (item.grid) {
-                        renderGrid(item, price, change);
-                    } else {
-                        renderRate(item, price, change);
-                    }
-                } catch (e) {
-                    console.log("Error fetching " + item.id);
-                }
+                if (item.grid) renderGrid(item, price, change);
+                else renderRate(item, price, change);
+            } catch (e) {
+                console.error(`Error: ${item.id}`, e);
             }
-            document.getElementById('update-time').innerText = `最後更新時間：${new Date().toLocaleTimeString()}`;
+        }
+
+        async function updateMarket() {
+            document.getElementById('update-time').classList.add('loading');
+            // 同時啟動所有請求，不需要等待上一個結束
+            await Promise.all(symbols.map(item => fetchSingle(item)));
+            
+            document.getElementById('update-time').innerText = `最後更新：${new Date().toLocaleTimeString()}`;
+            document.getElementById('update-time').classList.remove('loading');
         }
 
         function renderGrid(item, price, change) {
             let el = document.getElementById(`box-${item.id}`);
             if (!el) {
                 el = document.createElement('div');
-                el.id = `box-${item.id}`;
-                el.className = 'mini-card';
+                el.id = `box-${item.id}`; el.className = 'mini-card';
                 document.getElementById('stock-grid').appendChild(el);
             }
             const isUp = change >= 0;
             el.innerHTML = `
                 <span class="mini-name">${item.name}</span>
                 <span class="mini-price">${price.toLocaleString(undefined, {maximumFractionDigits: item.prec})}</span>
-                <div style="font-size:11px; margin-top:2px;" class="${isUp?'up':'down'}">
-                    ${isUp?'▲':'▼'}${Math.abs(change)}%
-                </div>
+                <div style="font-size:11px;" class="${isUp?'up':'down'}">${isUp?'▲':'▼'}${Math.abs(change)}%</div>
             `;
         }
 
@@ -126,29 +126,26 @@
             if (!el) {
                 const list = document.getElementById('rate-list');
                 const label = document.createElement('div');
-                label.className = 'highlight-label';
-                label.innerText = item.name;
+                label.className = 'highlight-label'; label.innerText = item.name;
                 list.appendChild(label);
 
                 el = document.createElement('div');
-                el.id = `rate-${item.id}`;
-                el.className = 'rate-card';
+                el.id = `rate-${item.id}`; el.className = 'rate-card';
                 list.appendChild(el);
             }
-            
             const isUp = change >= 0;
             el.innerHTML = `
                 <div class="rate-val">${item.unit} ${price.toFixed(item.prec)}</div>
-                <div class="rate-info">
-                    <div class="${isUp?'up':'down'}" style="font-size:13px; font-weight:700;">
-                        ${isUp?'▲':'▼'}${Math.abs(change)}%
-                    </div>
+                <div class="${isUp?'up':'down'}" style="font-size:14px; font-weight:700;">
+                    ${isUp?'▲':'▼'}${Math.abs(change)}%
                 </div>
             `;
         }
 
+        // 啟動
         updateMarket();
-        setInterval(updateMarket, 30000); // 30秒自動刷新
+        // 縮短自動更新間隔至 15 秒，保持資料新鮮度
+        setInterval(updateMarket, 15000);
     </script>
 </body>
 </html>
