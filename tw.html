@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場監控 - 窄屏優化版</title>
+    <title>市場監控 - X軸日期版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -12,28 +12,33 @@
             --price-blue: #0040ff; --up-red: #ff3b30; --down-green: #34c759;
         }
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 5px; overflow-x: hidden; }
+        html, body { height: 100%; overflow: hidden; } /* 強制不產生捲軸 */
+        body { font-family: -apple-system, sans-serif; background: var(--bg-color); margin: 0; padding: 8px; display: flex; flex-direction: column; }
         
-        /* 頁首縮小 */
-        .main-header { text-align: center; margin-bottom: 5px; }
-        #update-time { font-size: 9px; color: var(--text-sub); font-family: monospace; }
+        .main-header { text-align: center; margin-bottom: 5px; flex-shrink: 0; }
+        #update-time { font-size: 10px; color: var(--text-sub); font-family: monospace; }
         
-        .container { width: 100%; max-width: 400px; margin: 0 auto; }
+        .container { flex-grow: 1; width: 100%; max-width: 450px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
         
-        /* 指數區塊壓縮 */
-        .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px; }
-        .mini-card { background: var(--card-bg); padding: 8px 10px; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        /* 指數格子區 */
+        .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; flex-shrink: 0; }
+        .mini-card { background: var(--card-bg); padding: 8px 10px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .mini-name { font-size: 10px; font-weight: 700; color: var(--text-sub); display: block; }
-        .mini-price { font-size: 14px; font-weight: 800; font-family: 'SF Mono', monospace; }
+        .mini-price { font-size: 15px; font-weight: 800; font-family: 'SF Mono', monospace; }
         
-        /* 走勢圖卡片壓縮 */
-        .chart-card { background: var(--card-bg); border-radius: 10px; padding: 8px 12px; margin-bottom: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .chart-header { display: flex; justify-content: space-between; align-items: center; }
-        .chart-title { font-size: 12px; font-weight: 800; color: var(--text-main); border-left: 3px solid var(--price-blue); padding-left: 6px; }
-        .chart-price { font-size: 16px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        /* 走勢圖區塊：由 flex 決定高度 */
+        .chart-card { 
+            background: var(--card-bg); border-radius: 12px; padding: 10px; 
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+            flex: 1; /* 重要：平均分配剩餘空間 */
+            display: flex; flex-direction: column; min-height: 0; 
+        }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .chart-title { font-size: 13px; font-weight: 800; color: var(--text-main); border-left: 4px solid var(--price-blue); padding-left: 8px; }
+        .chart-price { font-size: 18px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         
-        /* 圖表高度限制，確保一屏顯示 */
-        .chart-box { width: 100%; height: 85px; margin-top: 2px; }
+        /* 圖表容器撐滿卡片 */
+        .chart-box { flex-grow: 1; width: 100%; min-height: 0; }
 
         .up { color: var(--up-red); } .down { color: var(--down-green); }
     </style>
@@ -42,12 +47,12 @@
 
     <div class="main-header">
         <h1 style="font-size:16px; margin:0;">市場數據監控</h1>
-        <div id="update-time">SYNCING...</div>
+        <div id="update-time">資料載入中...</div>
     </div>
 
     <div class="container">
         <div class="stock-grid" id="stock-grid"></div>
-        <div id="chart-list"></div>
+        <div id="chart-list" style="display:contents;"></div>
     </div>
 
     <script>
@@ -84,20 +89,18 @@
             });
         }
 
-        async function fetchData(item) {
+        async function fetchWithProxy(item) {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=30m&range=5d`;
+            const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
             try {
-                // 改用 5d/1h 數據，點數較少，繪圖與載入速度會快很多
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1h&range=5d`;
-                // 更換為替代代理伺服器
-                const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`;
-                const res = await fetch(proxyUrl);
+                const res = await fetch(proxy);
                 const json = await res.json();
-                const result = json.chart.result[0];
+                const data = JSON.parse(json.contents);
+                const result = data.chart.result[0];
                 
                 const price = result.meta.regularMarketPrice;
                 const prevClose = result.meta.chartPreviousClose;
                 const change = ((price - prevClose) / prevClose * 100).toFixed(2);
-                
                 const quotes = result.indicators.quote[0].close;
                 const timestamps = result.timestamp;
                 const chartData = timestamps.map((t, i) => ({
@@ -106,7 +109,7 @@
                 })).filter(d => d.y !== null);
 
                 updateUI(item, price, change, chartData);
-            } catch (e) { console.error(item.id + " ERR"); }
+            } catch (e) { console.error(item.id + " 讀取失敗"); }
         }
 
         function updateUI(item, price, change, chartData) {
@@ -115,7 +118,7 @@
                 const el = document.getElementById(`box-${item.id}`);
                 el.innerHTML = `<span class="mini-name">${item.name}</span>
                     <span class="mini-price">${price.toLocaleString(undefined, {minimumFractionDigits: item.prec})}</span>
-                    <span class="${isUp?'up':'down'}" style="font-size:9px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</span>`;
+                    <div class="${isUp?'up':'down'}" style="font-size:10px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</div>`;
             } else {
                 const displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : `${item.unit} ${price.toFixed(item.prec)}`;
                 document.getElementById(`price-${item.id}`).innerText = displayPrice;
@@ -127,22 +130,26 @@
         function renderChart(item, chartData) {
             const options = {
                 series: [{ data: chartData }],
-                chart: { type: 'area', height: 85, toolbar: { show: false }, animations: { enabled: false }, sparkline: { enabled: false } },
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 1.5, colors: ['#0040ff'] },
+                chart: { 
+                    type: 'area', height: '100%', width: '100%',
+                    toolbar: { show: false }, animations: { enabled: false },
+                    sparkline: { enabled: false }
+                },
+                stroke: { curve: 'smooth', width: 2, colors: ['#0040ff'] },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.2, opacityTo: 0 } },
                 xaxis: { 
                     type: 'datetime', 
-                    labels: { show: true, style: { fontSize: '8px' }, format: 'MM/dd', datetimeUTC: false },
-                    axisBorder: { show: false }, tickAmount: 3
+                    labels: { show: true, style: { fontSize: '9px' }, format: 'MM/dd', datetimeUTC: false },
+                    axisBorder: { show: false }, axisTicks: { show: false }, tickAmount: 3
                 },
                 yaxis: { 
                     opposite: true,
-                    labels: { style: { fontSize: '8px' }, formatter: (v) => v.toFixed(item.prec) },
+                    labels: { style: { fontSize: '9px', colors: '#8e8e93' }, formatter: (v) => v.toFixed(item.prec) },
                     forceNiceScale: true 
                 },
-                grid: { borderColor: '#f1f1f1', padding: { top: 0, bottom: 0 } },
-                tooltip: { enabled: false }
+                grid: { borderColor: '#f1f1f1', strokeDashArray: 2, padding: { left: 5, right: 5, top: 0, bottom: 0 } },
+                dataLabels: { enabled: false },
+                tooltip: { x: { format: 'MM/dd HH:mm' } }
             };
             const chart = new ApexCharts(document.querySelector(`#chart-obj-${item.id}`), options);
             chart.render();
@@ -150,13 +157,13 @@
         }
 
         async function updateAll() {
-            await Promise.all(symbols.map(item => fetchData(item)));
-            document.getElementById('update-time').innerText = `UPDATED: ${new Date().toLocaleTimeString('zh-TW', {hour12: false})}`;
+            await Promise.all(symbols.map(item => fetchWithProxy(item)));
+            document.getElementById('update-time').innerText = `最後更新: ${new Date().toLocaleTimeString('zh-TW', {hour12: false})}`;
         }
 
         initLayout();
         updateAll();
-        setInterval(updateAll, 30000);
+        setInterval(updateAll, 60000);
     </script>
 </body>
 </html>
