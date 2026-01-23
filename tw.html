@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場監控 - 絕對滿版</title>
+    <title>市場監控 - 一個月滿版版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -12,64 +12,40 @@
             --price-blue: #0040ff; --up-red: #ff3b30; --down-green: #34c759;
         }
         * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
+        html, body { height: 100vh; width: 100vw; margin: 0; padding: 0; overflow: hidden; background: var(--bg-color); font-family: -apple-system, sans-serif; }
+        body { padding: 6px; display: flex; flex-direction: column; }
         
-        /* 核心：禁止整個頁面滾動 */
-        html, body { 
-            height: 100vh; width: 100vw; 
-            margin: 0; padding: 0; 
-            overflow: hidden; 
-            background: var(--bg-color);
-            font-family: -apple-system, sans-serif;
-        }
-
-        body { padding: 8px; display: flex; flex-direction: column; }
+        .main-header { text-align: center; height: 32px; flex-shrink: 0; }
+        #update-time { font-size: 9px; color: var(--text-sub); font-family: monospace; }
         
-        .main-header { text-align: center; height: 40px; flex-shrink: 0; }
-        #update-time { font-size: 10px; color: var(--text-sub); font-family: monospace; }
+        .container { flex: 1; display: flex; flex-direction: column; gap: 5px; min-height: 0; }
         
-        .container { 
-            flex: 1; /* 佔滿剩餘高度 */
-            display: flex; flex-direction: column; 
-            gap: 6px; 
-            min-height: 0; /* 關鍵：允許容器縮小 */
-        }
+        /* 指數格子區：高度再縮小 */
+        .stock-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 100px; flex-shrink: 0; }
+        .mini-card { background: var(--card-bg); padding: 6px 8px; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .mini-name { font-size: 9px; font-weight: 700; color: var(--text-sub); display: block; }
+        .mini-price { font-size: 14px; font-weight: 800; font-family: 'SF Mono', monospace; }
         
-        /* 指數格子區：固定高度 */
-        .stock-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 6px; 
-            height: 110px; flex-shrink: 0; 
-        }
-        .mini-card { background: var(--card-bg); padding: 8px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .mini-name { font-size: 10px; font-weight: 700; color: var(--text-sub); display: block; }
-        .mini-price { font-size: 15px; font-weight: 800; font-family: 'SF Mono', monospace; }
-        
-        /* 走勢圖區塊：平分剩餘空間並嚴格限制高度 */
+        /* 走勢圖區塊：嚴格限制高度以符合一屏 */
         .chart-card { 
-            background: var(--card-bg); border-radius: 12px; padding: 8px 10px; 
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
-            flex: 1; /* 平分剩餘空間 */
-            display: flex; flex-direction: column;
-            min-height: 0; /* 讓內容物不會撐開 */
-            overflow: hidden;
+            background: var(--card-bg); border-radius: 10px; padding: 6px 10px; 
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05); flex: 1; 
+            display: flex; flex-direction: column; min-height: 0; overflow: hidden;
         }
-
-        .chart-header { display: flex; justify-content: space-between; align-items: center; height: 25px; flex-shrink: 0; }
-        .chart-title { font-size: 13px; font-weight: 800; border-left: 4px solid var(--price-blue); padding-left: 8px; }
-        .chart-price { font-size: 18px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono'; }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; height: 22px; flex-shrink: 0; }
+        .chart-title { font-size: 12px; font-weight: 800; border-left: 3px solid var(--price-blue); padding-left: 6px; }
+        .chart-price { font-size: 16px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono'; }
         
-        /* 圖表區域：強制填滿且不允許溢出 */
-        .chart-box { flex: 1; width: 100%; min-height: 0; margin-top: -5px; }
+        .chart-box { flex: 1; width: 100%; min-height: 0; margin-top: -8px; }
 
         .up { color: var(--up-red); } .down { color: var(--down-green); }
     </style>
 </head>
 <body>
-
     <div class="main-header">
-        <h1 style="font-size:16px; margin:0;">市場數據監控</h1>
-        <div id="update-time">資料載入中...</div>
+        <h1 style="font-size:15px; margin:0;">市場數據監控</h1>
+        <div id="update-time">SYNCING...</div>
     </div>
-
     <div class="container">
         <div class="stock-grid" id="stock-grid"></div>
         <div id="chart-list" style="display:contents;"></div>
@@ -110,14 +86,14 @@
         }
 
         async function fetchWithProxy(item) {
-            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=30m&range=5d`;
+            // 設定範圍為一個月 (1mo)，間隔為一天 (1d)
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&range=1mo`;
             const proxy = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
             try {
                 const res = await fetch(proxy);
                 const json = await res.json();
                 const data = JSON.parse(json.contents);
                 const result = data.chart.result[0];
-                
                 const price = result.meta.regularMarketPrice;
                 const prevClose = result.meta.chartPreviousClose;
                 const change = ((price - prevClose) / prevClose * 100).toFixed(2);
@@ -127,7 +103,6 @@
                     x: t * 1000,
                     y: quotes[i] ? parseFloat(quotes[i].toFixed(item.prec + 2)) : null
                 })).filter(d => d.y !== null);
-
                 updateUI(item, price, change, chartData);
             } catch (e) { console.error(item.id + " ERR"); }
         }
@@ -138,7 +113,7 @@
                 const el = document.getElementById(`box-${item.id}`);
                 el.innerHTML = `<span class="mini-name">${item.name}</span>
                     <span class="mini-price">${price.toLocaleString(undefined, {minimumFractionDigits: item.prec})}</span>
-                    <div class="${isUp?'up':'down'}" style="font-size:10px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</div>`;
+                    <div class="${isUp?'up':'down'}" style="font-size:9px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</div>`;
             } else {
                 const displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : `${item.unit} ${price.toFixed(item.prec)}`;
                 document.getElementById(`price-${item.id}`).innerText = displayPrice;
@@ -150,26 +125,22 @@
         function renderChart(item, chartData) {
             const options = {
                 series: [{ data: chartData }],
-                chart: { 
-                    type: 'area', height: '100%', 
-                    toolbar: { show: false }, animations: { enabled: false },
-                    sparkline: { enabled: false } // 雖然是 false 但我們會手動壓縮空間
-                },
-                stroke: { curve: 'smooth', width: 2, colors: ['#0040ff'] },
+                chart: { type: 'area', height: '100%', toolbar: { show: false }, animations: { enabled: false }, sparkline: { enabled: false } },
+                stroke: { curve: 'smooth', width: 1.5, colors: ['#0040ff'] },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.2, opacityTo: 0 } },
                 xaxis: { 
                     type: 'datetime', 
-                    labels: { show: true, style: { fontSize: '8px' }, format: 'MM/dd', datetimeUTC: false, offsetY: -5 },
-                    axisBorder: { show: false }, axisTicks: { show: false }, tickAmount: 3
+                    labels: { show: true, style: { fontSize: '7px' }, format: 'MM/dd', datetimeUTC: false, offsetY: -8 },
+                    axisBorder: { show: false }, axisTicks: { show: false }, tickAmount: 4
                 },
                 yaxis: { 
                     opposite: true,
-                    labels: { style: { fontSize: '8px', colors: '#8e8e93' }, formatter: (v) => v.toFixed(item.prec), offsetX: -5 },
+                    labels: { style: { fontSize: '7px', colors: '#8e8e93' }, formatter: (v) => v.toFixed(item.prec), offsetX: -8 },
                     forceNiceScale: true 
                 },
                 grid: { borderColor: '#f1f1f1', strokeDashArray: 2, padding: { left: 0, right: 0, top: 0, bottom: 0 } },
                 dataLabels: { enabled: false },
-                tooltip: { enabled: true, x: { format: 'MM/dd HH:mm' } }
+                tooltip: { x: { format: 'MM/dd' } }
             };
             const chart = new ApexCharts(document.querySelector(`#chart-obj-${item.id}`), options);
             chart.render();
