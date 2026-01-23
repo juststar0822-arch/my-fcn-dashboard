@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場監控 - 固定順序版</title>
+    <title>市場監控 - 時間顯示版</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -26,7 +26,7 @@
         .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 5px; }
         .chart-title { font-size: 14px; font-weight: 800; color: var(--text-main); border-left: 4px solid var(--price-blue); padding-left: 8px; }
         .chart-price { font-size: 20px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; text-align: right; }
-        .chart-box { width: 100%; height: 120px; margin-top: 10px; }
+        .chart-box { width: 100%; height: 140px; margin-top: 10px; } /* 稍微增加高度以容納日期標籤 */
 
         .up { color: var(--up-red); } .down { color: var(--down-green); }
     </style>
@@ -45,12 +45,10 @@
 
     <script>
         const symbols = [
-            // grid: true 會顯示在上方格子
             { id: "TWII", sym: "^TWII", name: "台股加權", prec: 0, grid: true },
             { id: "DJI", sym: "^DJI", name: "道瓊工業", prec: 0, grid: true },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
-            // grid: false 會顯示在下方走勢圖，順序依照此陣列排列
             { id: "USD", sym: "TWD=X", name: "美元/台幣", prec: 3, grid: false, unit: "USD" },
             { id: "JPY", sym: "JPYTWD=X", name: "日圓/台幣", prec: 4, grid: false, unit: "JPY" },
             { id: "TNX", sym: "^TNX", name: "10Y Bond 美債殖利率", prec: 3, grid: false, unit: "" }
@@ -58,28 +56,22 @@
 
         let charts = {};
 
-        // 初始化：先建立空的 HTML 結構，確保順序固定
         function initLayout() {
             const gridContainer = document.getElementById('stock-grid');
             const listContainer = document.getElementById('chart-list');
-
             symbols.forEach(item => {
                 if (item.grid) {
                     const el = document.createElement('div');
-                    el.id = `box-${item.id}`;
-                    el.className = 'mini-card';
+                    el.id = `box-${item.id}`; el.className = 'mini-card';
                     el.innerHTML = `<span class="mini-name">${item.name}</span><span class="mini-price">--</span>`;
                     gridContainer.appendChild(el);
                 } else {
                     const el = document.createElement('div');
-                    el.id = `card-${item.id}`;
-                    el.className = 'chart-card';
-                    el.innerHTML = `
-                        <div class="chart-header">
-                            <div class="chart-title">${item.name}</div>
-                            <div class="chart-price" id="price-${item.id}">--</div>
-                        </div>
-                        <div id="chart-obj-${item.id}" class="chart-box"></div>`;
+                    el.id = `card-${item.id}`; el.className = 'chart-card';
+                    el.innerHTML = `<div class="chart-header">
+                        <div class="chart-title">${item.name}</div>
+                        <div class="chart-price" id="price-${item.id}">--</div>
+                    </div><div id="chart-obj-${item.id}" class="chart-box"></div>`;
                     listContainer.appendChild(el);
                 }
             });
@@ -87,7 +79,8 @@
 
         async function fetchData(item) {
             try {
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=5m&range=1d`;
+                // 為了顯示日期，抓取最近 5 天的資料（5d），間隔 15 分鐘，這樣曲線會比較完整
+                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=15m&range=5d`;
                 const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(url)}`;
                 const res = await fetch(proxyUrl);
                 const json = await res.json();
@@ -105,45 +98,50 @@
                 })).filter(d => d.y !== null);
 
                 updateUI(item, price, change, chartData);
-            } catch (e) { console.error(item.id + " 更新出錯"); }
+            } catch (e) { console.error(item.id + " 更新失敗"); }
         }
 
         function updateUI(item, price, change, chartData) {
             const isUp = change >= 0;
             if (item.grid) {
                 const el = document.getElementById(`box-${item.id}`);
-                el.innerHTML = `
-                    <span class="mini-name">${item.name}</span>
+                el.innerHTML = `<span class="mini-name">${item.name}</span>
                     <span class="mini-price">${price.toLocaleString(undefined, {minimumFractionDigits: item.prec})}</span>
                     <span class="${isUp?'up':'down'}" style="font-size:11px; font-weight:bold;">${isUp?'▲':'▼'}${Math.abs(change)}%</span>`;
             } else {
                 const displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : `${item.unit} ${price.toFixed(item.prec)}`;
                 document.getElementById(`price-${item.id}`).innerText = displayPrice;
-                
-                if (!charts[item.id]) {
-                    renderChart(item, chartData);
-                } else {
-                    charts[item.id].updateSeries([{ data: chartData }]);
-                }
+                if (!charts[item.id]) renderChart(item, chartData);
+                else charts[item.id].updateSeries([{ data: chartData }]);
             }
         }
 
         function renderChart(item, chartData) {
             const options = {
                 series: [{ name: item.name, data: chartData }],
-                chart: { type: 'area', height: 120, toolbar: { show: false }, animations: { enabled: false } },
+                chart: { type: 'area', height: 140, toolbar: { show: false }, animations: { enabled: false } },
                 dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 2 },
-                colors: ['#0040ff'],
+                stroke: { curve: 'smooth', width: 2, colors: ['#0040ff'] },
                 fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05 } },
-                xaxis: { type: 'datetime', labels: { show: false }, axisBorder: { show: false }, axisTicks: { show: false } },
+                xaxis: { 
+                    type: 'datetime', 
+                    labels: { 
+                        show: true, 
+                        rotate: 0,
+                        style: { fontSize: '9px', colors: '#8e8e93' },
+                        format: 'MM/dd', // 顯示日期
+                        datetimeUTC: false
+                    },
+                    axisBorder: { show: false },
+                    tickAmount: 4 // 確保標籤不會太擠
+                },
                 yaxis: { 
                     opposite: true,
                     labels: { style: { fontSize: '9px', colors: '#8e8e93' }, formatter: (v) => v.toFixed(item.prec) },
                     forceNiceScale: true 
                 },
                 grid: { borderColor: '#f1f1f1', strokeDashArray: 3 },
-                tooltip: { enabled: true, x: { format: 'HH:mm' } }
+                tooltip: { enabled: true, x: { format: 'MM/dd HH:mm' } }
             };
             const chart = new ApexCharts(document.querySelector(`#chart-obj-${item.id}`), options);
             chart.render();
@@ -151,15 +149,13 @@
         }
 
         async function updateAll() {
-            // 同時執行但會填入預先建好的固定位置
             await Promise.all(symbols.map(item => fetchData(item)));
             document.getElementById('update-time').innerText = `LAST UPDATE: ${new Date().toLocaleTimeString('zh-TW', {hour12: false})}`;
         }
 
-        // 啟動流程
-        initLayout(); // 1. 先把順序排好
-        updateAll();  // 2. 抓資料填空
-        setInterval(updateAll, 15000);
+        initLayout();
+        updateAll();
+        setInterval(updateAll, 30000); // 延長到 30 秒更新一次，減少 API 壓力
     </script>
 </body>
 </html>
