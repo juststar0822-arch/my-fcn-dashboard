@@ -3,503 +3,462 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (間距完美版)</title>
+    <title>榮譽榜生成器 (基金新增版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
-body { 
-        font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
-        background-color: #1a1a1a; 
-        padding-bottom: 80px; 
-        color: #333;
-        overflow-x: hidden;
-    }
-/* 輸入介面 */
-.control-panel {
-    background: #2d2d2d;
-    border-bottom: 1px solid #444;
-    color: white;
-    padding: 20px;
-    margin-bottom: 10px;
-}
+        body { 
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif; 
+            background-color: #1a1a1a; 
+            padding-bottom: 80px; 
+            color: #333;
+            overflow-x: hidden;
+        }
+        .control-panel {
+            background: #2d2d2d;
+            border-bottom: 1px solid #444;
+            color: white;
+            padding: 20px;
+            margin-bottom: 10px;
+        }
+        .list-panel {
+            background: #222;
+            padding: 10px 20px;
+            color: white;
+        }
+        .item-card {
+            background: #3a3a3a;
+            border-left: 4px solid #D4AF37;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
+        input, select {
+            background: #444; color: white; border: 1px solid #555;
+            padding: 10px; border-radius: 6px; width: 100%;
+            font-size: 1rem; outline: none;
+        }
+        #preview-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow: hidden; 
+            background: #1a1a1a;
+            padding-top: 10px;
+            min-height: 550px; 
+        }
+        .certificate {
+            width: 800px; 
+            height: 535px;
+            background-color: #fff;
+            position: relative; 
+            border: 5px solid #D93025;
+            box-sizing: border-box;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+            flex-shrink: 0; 
+            transform-origin: top center;
+            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+        }
+        .corner {
+            position: absolute; width: 50px; height: 50px;
+            border: 5px solid #D93025; z-index: 10;
+        }
+        .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+        .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+        .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+        .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
 
-.list-panel {
-    background: #222;
-    padding: 10px 20px;
-    color: white;
-}
+        .svg-layer {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+        .custom-trophy-img {
+            position: absolute;
+            top: 60px;
+            left: 30px;
+            width: 450px;
+            height: auto;
+            z-index: 15;
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3));
+        }
+        .field {
+            position: absolute;
+            z-index: 20;
+            background: transparent;
+        }
+        .text-outline {
+            text-shadow: 
+                3px 3px 0 #fff, -2px -2px 0 #fff,  
+                2px -2px 0 #fff, -2px 2px 0 #fff,
+                2px 2px 0 #fff;
+        }
+        .field-date {
+            top: 25px; left: 40px;
+            font-size: 36px; font-weight: 900;
+            color: #d97706; 
+            line-height: 1;
+        }
+        .field-name {
+            top: 50px; 
+            right: 40px;
+            text-align: right;
+            display: flex; flex-direction: column; align-items: flex-end;
+            width: 400px;
+        }
+        .name-text { 
+            font-size: 90px; font-weight: 900; color: #000; 
+            line-height: 1.1; letter-spacing: 2px;
+        }
+        .title-text { 
+            font-size: 32px; font-weight: bold; color: #333; 
+            margin-top: -5px; 
+        }
+        .field-product {
+            top: 215px; 
+            right: 40px;
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end;
+            width: 450px;
+        }
+        .product-list {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+        }
+        .product-box {
+            border: 4px solid #2563eb; 
+            color: #2563eb;
+            font-size: 50px;
+            font-weight: 900;
+            padding: 0 20px; 
+            white-space: nowrap; 
+            line-height: 1.2;
+            background: rgba(255,255,255,0.95);
+        }
+        .count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
+        .field-amount {
+            top: 335px; 
+            right: 40px;
+            text-align: right;
+            width: 450px;
+            display: flex;
+            flex-direction: column; 
+            align-items: flex-end;
+            gap: 0px;
+        }
+        .amount-row {
+            display: flex;
+            align-items: baseline;
+            line-height: 1.1;
+        }
+        .amount-text { 
+            font-weight: 900; color: #dc2626; 
+            font-family: Arial, 'Microsoft JhengHei', sans-serif;
+        }
+        .currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
 
-.item-card {
-    background: #3a3a3a;
-    border-left: 4px solid #D4AF37;
-    padding: 10px;
-    margin-bottom: 8px;
-    border-radius: 4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-label { color: #aaa; font-size: 0.85rem; margin-bottom: 4px; display: block; }
-input, select {
-    background: #444; color: white; border: 1px solid #555;
-    padding: 10px; border-radius: 6px; width: 100%;
-    font-size: 1rem; outline: none;
-}
-
-/* === 預覽容器 === */
-#preview-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    overflow: hidden; 
-    background: #1a1a1a;
-    padding-top: 10px;
-    min-height: 550px; 
-}
-
-/* 獎狀本體 */
-.certificate {
-    width: 800px; 
-    height: 535px;
-    background-color: #fff;
-    position: relative; 
-    border: 5px solid #D93025;
-    box-sizing: border-box;
-    overflow: hidden;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    flex-shrink: 0; 
-    transform-origin: top center;
-    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
-}
-
-/* === 背景與物件 === */
-.corner {
-    position: absolute; width: 50px; height: 50px;
-    border: 5px solid #D93025; z-index: 10;
-}
-.tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
-.tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
-.bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
-.br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
-
-.svg-layer {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: 5;
-    pointer-events: none;
-}
-
-/* 新增：替換的獎盃圖片樣式 */
-.custom-trophy-img {
-    position: absolute;
-    top: 60px;    /* 調整位置 */
-    left: 30px;   /* 調整位置 */
-    width: 450px; /* 調整大小 */
-    height: auto;
-    z-index: 15;  /* 確保在背景之上，文字之下 */
-    filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.3)); /* 增加一點陰影 */
-}
-
-/* === 文字層 === */
-.field {
-    position: absolute;
-    z-index: 20;
-    background: transparent;
-}
-
-.text-outline {
-    text-shadow: 
-        3px 3px 0 #fff, -2px -2px 0 #fff,  
-        2px -2px 0 #fff, -2px 2px 0 #fff,
-        2px 2px 0 #fff;
-}
-
-.field-date {
-    top: 25px; left: 40px;
-    font-size: 36px; font-weight: 900;
-    color: #d97706; 
-    line-height: 1;
-}
-
-/* 1. 姓名區 */
-.field-name {
-    top: 50px; 
-    right: 40px;
-    text-align: right;
-    display: flex; flex-direction: column; align-items: flex-end;
-    width: 400px;
-}
-.name-text { 
-    font-size: 90px; font-weight: 900; color: #000; 
-    line-height: 1.1; letter-spacing: 2px;
-}
-.title-text { 
-    font-size: 32px; font-weight: bold; color: #333; 
-    margin-top: -5px; 
-}
-
-/* 2. 商品區 */
-.field-product {
-    top: 215px; 
-    right: 40px;
-    display: flex; 
-    align-items: center; 
-    justify-content: flex-end;
-    width: 450px;
-}
-
-.product-list {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 8px;
-}
-
-.product-box {
-    border: 4px solid #2563eb; 
-    color: #2563eb;
-    font-size: 50px;
-    font-weight: 900;
-    padding: 0 20px; 
-    white-space: nowrap; 
-    line-height: 1.2;
-    background: rgba(255,255,255,0.95);
-}
-.count-text { font-size: 20px; font-weight: bold; color: #2563eb; margin-left: 15px; }
-
-/* 3. 金額區 */
-.field-amount {
-    top: 335px; 
-    right: 40px;
-    text-align: right;
-    width: 450px;
-    display: flex;
-    flex-direction: column; 
-    align-items: flex-end;
-    gap: 0px;
-}
-.amount-row {
-    display: flex;
-    align-items: baseline;
-    line-height: 1.1;
-}
-.amount-text { 
-    font-weight: 900; color: #dc2626; 
-    font-family: Arial, 'Microsoft JhengHei', sans-serif;
-}
-.currency-text { font-size: 30px; font-weight: bold; color: #dc2626; margin-left: 8px; }
-
-.field-stats {
-    bottom: 25px; right: 40px;
-    text-align: right;
-    min-width: 400px;
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-.stat-line { 
-    font-size: 28px; font-weight: bold; color: #be123c; 
-    line-height: 1.4;
-}
-
-#result-area {
-    text-align: center; margin-top: 20px; display: none;
-}
-#result-img {
-    max-width: 90%; margin: 0 auto;
-    border: 2px solid #D4AF37; border-radius: 10px;
-}
-</style>
+        .field-stats {
+            bottom: 25px; right: 40px;
+            text-align: right;
+            min-width: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .stat-line { 
+            font-size: 28px; font-weight: bold; color: #be123c; 
+            line-height: 1.4;
+        }
+        #result-area {
+            text-align: center; margin-top: 20px; display: none;
+        }
+        #result-img {
+            max-width: 90%; margin: 0 auto;
+            border: 2px solid #D4AF37; border-radius: 10px;
+        }
+    </style>
 </head>
 <body>
 <div id="app">
-<div class="control-panel">
-    <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
-<div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
-    <div><label>日期</label><input type="date" v-model="globalDate"></div>
-    <div>
-        <label>業代</label>
-        <select v-model="repIndex">
-            <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
-        </select>
-    </div>
-</div>
-
-<div class="bg-gray-800 p-3 rounded-lg mb-4">
-    <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
-    <div class="grid grid-cols-2 gap-3 mb-2">
-        <div>
-            <label>商品</label>
-            <select v-model="form.productType" @change="handleProductChange">
-                <option value="FCN">FCN</option>
-                <option value="U6">元元致富 U6</option>
-                <option value="U5">元元致富 U5</option>
-                <option value="BOND">海外債</option>
-            </select>
-        </div>
-        <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
-    </div>
-    <div class="grid grid-cols-3 gap-2 mb-2">
-        <div>
-            <label>幣別</label>
-            <select v-model="form.currency" @change="updateExRate">
-                <option value="USD">USD</option>
-                <option value="JPY">JPY</option>
-                <option value="TWD">TWD</option>
-            </select>
-        </div>
-        <div class="relative">
-            <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
-            <input type="number" v-model="form.exRate" step="0.01">
-        </div>
-        <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
-    </div>
-    <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
-        ➕ 加入清單
-    </button>
-</div>
-</div>
-<div class="list-panel" v-if="cart.length > 0">
-    <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
-    <div v-for="(item, idx) in cart" :key="idx" class="item-card">
-        <div>
-            <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
-            <span class="text-gray-300">{{ item.currency }} {{ formatNumber(item.amount) }}</span>
-        </div>
-        <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
-    </div>
-    <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
-        <div class="flex justify-between font-bold mb-1">
-            <span class="text-gray-300">總手收</span>
-            <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
-        </div>
-        <div class="flex justify-between font-bold">
-            <span class="text-gray-300">總獎金</span>
-            <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
-        </div>
-    </div>
-    <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
-        生成圖片 (長按儲存)
-    </button>
-</div>
-<div class="list-panel text-center text-gray-500 py-4" v-else>請先輸入並加入清單</div>
-<div id="result-area">
-    <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
-    <img id="final-img" alt="長按儲存">
-</div>
-<div id="preview-container">
-    <div id="certificate-node" class="certificate" :style="scaleStyle">
-<div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
-
-    <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-            <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
-                <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
-            </linearGradient>
-            <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
-                <stop offset="0%" stop-color="#FDB931"/><stop offset="50%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B78628"/>
-            </linearGradient>
-        </defs>
-        <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
-        <path d="M850 400 Q 600 200 400 450 T -50 300" stroke="url(#ribbonGrad)" stroke-width="40" fill="none" opacity="0.5"/>
-        <circle cx="100" cy="100" r="10" fill="#4CAF50" opacity="0.2"/>
-        <circle cx="700" cy="400" r="15" fill="#2196F3" opacity="0.2"/>
-        <rect x="600" y="80" width="20" height="20" fill="#FFC107" opacity="0.2" transform="rotate(30 610 90)"/>
-        <rect x="150" y="450" width="15" height="15" fill="#E91E63" opacity="0.2" transform="rotate(45 157 457)"/>
-
-        <g transform="translate(320, 10) rotate(-10)">
-            <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
-            <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
-        </g>
-    </svg>
-
-    <img 
-    src="IMG_2795.png" 
-    alt="獎盃" 
-    class="custom-trophy-img"
-    >
-
-    <div class="field field-date text-outline">{{ rocDate }}</div>
-
-    <div class="field field-name text-outline">
-        <div class="name-text">{{ currentRep.name }}</div>
-        <div class="title-text">{{ currentRep.title }}</div>
-    </div>
-
-    <div class="field field-product">
-        <div class="product-list">
-            <div v-for="prod in finalProductList" :key="prod" class="product-box">
-                {{ prod }}
+    <div class="control-panel">
+        <h2 class="text-xl font-bold text-center mb-4 text-yellow-500">🏆 榮譽榜生成器</h2>
+        <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
+            <div><label>日期</label><input type="date" v-model="globalDate"></div>
+            <div>
+                <label>業代</label>
+                <select v-model="repIndex">
+                    <option v-for="(rep, index) in repList" :value="index">{{ rep.name }}</option>
+                </select>
             </div>
         </div>
-        <div class="count-text text-outline">共計{{ cart.length }}筆</div>
-    </div>
 
-    <div class="field field-amount text-outline">
-        <div v-for="item in finalAmountList" :key="item.curr" class="amount-row">
-            <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ item.val }}</span>
-            <span class="currency-text">{{ item.curr }}</span>
+        <div class="bg-gray-800 p-3 rounded-lg mb-4">
+            <h3 class="text-sm font-bold text-gray-400 mb-2">新增成交紀錄</h3>
+            <div class="grid grid-cols-2 gap-3 mb-2">
+                <div>
+                    <label>商品</label>
+                    <select v-model="form.productType" @change="handleProductChange">
+                        <option value="FCN">FCN</option>
+                        <option value="U6">元元致富 U6</option>
+                        <option value="U5">元元致富 U5</option>
+                        <option value="BOND">海外債</option>
+                        <option value="fund">基金</option>
+                    </select>
+                </div>
+                <div><label>BP</label><input type="number" v-model="form.bp" :disabled="isFixedBP"></div>
+            </div>
+            <div class="grid grid-cols-3 gap-2 mb-2">
+                <div>
+                    <label>幣別</label>
+                    <select v-model="form.currency" @change="updateExRate">
+                        <option value="USD">USD</option>
+                        <option value="JPY">JPY</option>
+                        <option value="TWD">TWD</option>
+                    </select>
+                </div>
+                <div class="relative">
+                    <label>匯率 <span v-if="loadingRate" class="text-yellow-500 animate-pulse text-xs">...</span></label>
+                    <input type="number" v-model="form.exRate" step="0.01">
+                </div>
+                <div><label>金額</label><input type="number" v-model="form.amount" class="text-yellow-400 font-bold"></div>
+            </div>
+            <button @click="addToCart" class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2 active:scale-95 transition">
+                ➕ 加入清單
+            </button>
         </div>
     </div>
 
-    <div class="field field-stats text-outline">
-        <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
-        <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
+    <div class="list-panel" v-if="cart.length > 0">
+        <h3 class="text-sm font-bold text-gray-400 mb-2">已加入 {{ cart.length }} 筆</h3>
+        <div v-for="(item, idx) in cart" :key="idx" class="item-card">
+            <div>
+                <span class="font-bold text-yellow-500 mr-2">{{ item.productType }}</span>
+                <span class="text-gray-300">{{ item.currency }} {{ formatNumber(item.amount) }}</span>
+            </div>
+            <button @click="removeFromCart(idx)" class="text-red-500 font-bold px-2">✕</button>
+        </div>
+        <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
+            <div class="flex justify-between font-bold mb-1">
+                <span class="text-gray-300">總手收</span>
+                <span class="text-white">NT$ {{ formatNumber(totalRevenue) }}</span>
+            </div>
+            <div class="flex justify-between font-bold">
+                <span class="text-gray-300">總獎金</span>
+                <span class="text-yellow-400">NT$ {{ formatNumber(totalBonus) }}</span>
+            </div>
+        </div>
+        <button @click="generateImage" class="w-full bg-red-600 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg">
+            生成圖片 (長按儲存)
+        </button>
+    </div>
+    <div class="list-panel text-center text-gray-500 py-4" v-else>請先輸入並加入清單</div>
+
+    <div id="result-area">
+        <p class="text-yellow-400 font-bold mb-2 animate-bounce">👇 長按圖片儲存 👇</p>
+        <img id="final-img" alt="長按儲存">
+    </div>
+
+    <div id="preview-container">
+        <div id="certificate-node" class="certificate" :style="scaleStyle">
+            <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+            <svg class="svg-layer" viewBox="0 0 800 535" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="ribbonGrad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="#FFD700" stop-opacity="0.2"/>
+                        <stop offset="100%" stop-color="#FF5722" stop-opacity="0.1"/>
+                    </linearGradient>
+                </defs>
+                <path d="M-50 100 Q 200 300 400 50 T 850 200" stroke="url(#ribbonGrad)" stroke-width="60" fill="none" opacity="0.6"/>
+                <path d="M850 400 Q 600 200 400 450 T -50 300" stroke="url(#ribbonGrad)" stroke-width="40" fill="none" opacity="0.5"/>
+                <g transform="translate(320, 10) rotate(-10)">
+                    <circle cx="70" cy="70" r="60" stroke="#D93025" stroke-width="4" fill="none" stroke-dasharray="10,5"/>
+                    <text x="70" y="110" text-anchor="middle" font-size="100" font-weight="900" fill="#D93025" font-family="'Noto Serif TC', serif">賀</text>
+                </g>
+            </svg>
+            <img src="IMG_2795.png" alt="獎盃" class="custom-trophy-img">
+            <div class="field field-date text-outline">{{ rocDate }}</div>
+            <div class="field field-name text-outline">
+                <div class="name-text">{{ currentRep.name }}</div>
+                <div class="title-text">{{ currentRep.title }}</div>
+            </div>
+            <div class="field field-product">
+                <div class="product-list">
+                    <div v-for="prod in finalProductList" :key="prod" class="product-box">{{ prod }}</div>
+                </div>
+                <div class="count-text text-outline">共計{{ cart.length }}筆</div>
+            </div>
+            <div class="field field-amount text-outline">
+                <div v-for="item in finalAmountList" :key="item.curr" class="amount-row">
+                    <span class="amount-text" :style="{ fontSize: amountFontSize }">{{ item.val }}</span>
+                    <span class="currency-text">{{ item.curr }}</span>
+                </div>
+            </div>
+            <div class="field field-stats text-outline">
+                <div class="stat-line">手收：{{ formatNumber(totalRevenue) }}元</div>
+                <div class="stat-line" style="color:#b91c1c;">獎金：{{ formatNumber(totalBonus) }}元</div>
+            </div>
+        </div>
     </div>
 </div>
-</div>
-</div>
+
 <script>
     const { createApp, reactive, computed, ref, onMounted } = Vue;
-createApp({
-    setup() {
-        const windowWidth = ref(window.innerWidth);
-        const loadingRate = ref(false);
-        const globalDate = ref(new Date().toISOString().split('T')[0]);
-        const repIndex = ref(4);
+    createApp({
+        setup() {
+            const windowWidth = ref(window.innerWidth);
+            const loadingRate = ref(false);
+            const globalDate = ref(new Date().toISOString().split('T')[0]);
+            const repIndex = ref(4);
+            const cart = ref([]);
+            const form = reactive({
+                productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
+            });
 
-        const cart = ref([]);
-        const form = reactive({
-            productType: 'FCN', currency: 'USD', exRate: 32.5, amount: 20000, bp: 50
-        });
+            const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
 
-        const liveRates = { USD: 32.5, JPY: 0.22, TWD: 1.0 };
+            const scaleStyle = computed(() => {
+                const targetWidth = 820; 
+                const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
+                return {
+                    transform: `scale(${scale})`,
+                    marginBottom: `-${535 * (1 - scale)}px`
+                };
+            });
 
-        const scaleStyle = computed(() => {
-            const targetWidth = 820; 
-            const scale = Math.min((windowWidth.value - 20) / targetWidth, 1);
-            return {
-                transform: `scale(${scale})`,
-                marginBottom: `-${535 * (1 - scale)}px`
+            onMounted(async () => {
+                window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; });
+                await fetchLiveRates();
+            });
+
+            const fetchLiveRates = async () => {
+                loadingRate.value = true;
+                try {
+                    const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
+                    const data = await res.json();
+                    if(data && data.rates) {
+                        liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
+                        liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
+                        updateExRate();
+                    }
+                } catch(e) {}
+                loadingRate.value = false;
             };
-        });
 
-        onMounted(async () => {
-            window.addEventListener('resize', () => { windowWidth.value = window.innerWidth; });
-            await fetchLiveRates();
-        });
+            const repList = [
+                { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
+                { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
+                { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
+                { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
+                { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
+                { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
+                { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
+            ];
 
-        const fetchLiveRates = async () => {
-            loadingRate.value = true;
-            try {
-                const res = await fetch('https://api.exchangerate-api.com/v4/latest/TWD');
-                const data = await res.json();
-                if(data && data.rates) {
-                    liveRates.USD = parseFloat((1 / data.rates.USD).toFixed(2));
-                    liveRates.JPY = parseFloat((1 / data.rates.JPY).toFixed(4));
-                    updateExRate();
+            const currentRep = computed(() => repList[repIndex.value]);
+            const rocDate = computed(() => {
+                const d = new Date(globalDate.value);
+                return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
+            });
+
+            const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
+            const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
+            const handleProductChange = () => {
+                if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
+                else if(form.productType === 'FCN') form.bp = 50; 
+                else if(form.productType === 'fund') form.bp = 100; // 基金預設 BP 參考，可自行修改
+            };
+
+            const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
+            const calculatedBonus = computed(() => {
+                let rate = 0;
+                // 設定各產品獎金率
+                if(form.productType === 'FCN') rate = 30;
+                else if(form.productType === 'fund') rate = 30; // 基金獎金率 0.3
+                else if(['U6', 'U5'].includes(form.productType)) rate = 38;
+                else if(form.productType === 'BOND') rate = 25;
+                return Math.round(calculatedRevenue.value * (rate / 100));
+            });
+
+            const addToCart = () => {
+                cart.value.push({
+                    productType: form.productType, currency: form.currency, amount: form.amount,
+                    bp: form.bp, exRate: form.exRate, revenue: calculatedRevenue.value, bonus: calculatedBonus.value
+                });
+            };
+            const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
+
+            const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
+            const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
+
+            const finalProductList = computed(() => {
+                if (cart.value.length === 0) return ['FCN'];
+                const types = [...new Set(cart.value.map(i => i.productType))];
+                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債', 'fund': '基金' };
+                return types.map(t => map[t]);
+            });
+
+            const formatAmountWithUnit = (num) => {
+                if (num >= 10000) {
+                    const val = num / 10000;
+                    return `${parseFloat(val.toFixed(2))} 萬`;
                 }
-            } catch(e) {}
-            loadingRate.value = false;
-        };
+                return formatNumber(num);
+            };
 
-        const repList = [
-            { name: '吳坤達', title: '業務協理' }, { name: '賴婉甄', title: '業務協理' },
-            { name: '陳雅鈴', title: '業務經理' }, { name: '蕭玉春', title: '業務協理' },
-            { name: '黃思婷', title: '業務協理' }, { name: '賴秋萍', title: '業務協理' },
-            { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
-            { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
-            { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
-            { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
-        ];
-
-        const currentRep = computed(() => repList[repIndex.value]);
-        const rocDate = computed(() => {
-            const d = new Date(globalDate.value);
-            return `${d.getFullYear() - 1911}/${d.getMonth() + 1}/${d.getDate()}`;
-        });
-
-        const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
-        const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
-        const handleProductChange = () => {
-            if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
-            else if(form.productType === 'FCN') form.bp = 50; 
-        };
-
-        const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
-        const calculatedBonus = computed(() => {
-            let rate = 0;
-            if(form.productType === 'FCN') rate = 30;
-            else if(['U6', 'U5'].includes(form.productType)) rate = 38;
-            else if(form.productType === 'BOND') rate = 25;
-            return Math.round(calculatedRevenue.value * (rate / 100));
-        });
-
-        const addToCart = () => {
-            cart.value.push({
-                productType: form.productType, currency: form.currency, amount: form.amount,
-                bp: form.bp, exRate: form.exRate, revenue: calculatedRevenue.value, bonus: calculatedBonus.value
+            const finalAmountList = computed(() => {
+                if(cart.value.length === 0) return [{ val: formatAmountWithUnit(form.amount), curr: form.currency }];
+                const sums = {};
+                cart.value.forEach(item => {
+                    if(!sums[item.currency]) sums[item.currency] = 0;
+                    sums[item.currency] += item.amount;
+                });
+                return Object.keys(sums).map(curr => ({ val: formatAmountWithUnit(sums[curr]), curr: curr }));
             });
-        };
-        const removeFromCart = (idx) => { cart.value.splice(idx, 1); };
 
-        const totalRevenue = computed(() => cart.value.reduce((sum, item) => sum + item.revenue, 0));
-        const totalBonus = computed(() => cart.value.reduce((sum, item) => sum + item.bonus, 0));
-
-        const finalProductList = computed(() => {
-            if (cart.value.length === 0) return ['FCN'];
-            const types = [...new Set(cart.value.map(i => i.productType))];
-            const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債' };
-            return types.map(t => map[t]);
-        });
-
-        const formatAmountWithUnit = (num) => {
-            if (num >= 10000) {
-                const val = num / 10000;
-                const formatted = parseFloat(val.toFixed(2));
-                return `${formatted} 萬`;
-            }
-            return formatNumber(num);
-        };
-
-        const finalAmountList = computed(() => {
-            if(cart.value.length === 0) return [{ val: formatAmountWithUnit(form.amount), curr: form.currency }];
-            const sums = {};
-            cart.value.forEach(item => {
-                if(!sums[item.currency]) sums[item.currency] = 0;
-                sums[item.currency] += item.amount;
+            const amountFontSize = computed(() => {
+                if (finalAmountList.value.length > 1) return '40px'; 
+                return '75px'; 
             });
-            return Object.keys(sums).map(curr => ({ val: formatAmountWithUnit(sums[curr]), curr: curr }));
-        });
 
-        const amountFontSize = computed(() => {
-            if (finalAmountList.value.length > 1) return '40px'; 
-            return '75px'; 
-        });
+            const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-        const formatNumber = (num) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            const generateImage = () => {
+                window.scrollTo(0, 0);
+                const element = document.getElementById("certificate-node");
+                const originalTransform = element.style.transform;
+                element.style.transform = 'scale(1)'; 
+                html2canvas(element, { 
+                    scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
+                }).then(canvas => {
+                    document.getElementById("final-img").src = canvas.toDataURL("image/png");
+                    document.getElementById("result-area").style.display = "block";
+                    element.style.transform = originalTransform; 
+                    setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
+                });
+            };
 
-        const generateImage = () => {
-            window.scrollTo(0, 0);
-            const element = document.getElementById("certificate-node");
-            const originalTransform = element.style.transform;
-            element.style.transform = 'scale(1)'; 
-
-            html2canvas(element, { 
-                scale: 2, backgroundColor: "#ffffff", useCORS: true, scrollY: 0
-            }).then(canvas => {
-                document.getElementById("final-img").src = canvas.toDataURL("image/png");
-                document.getElementById("result-area").style.display = "block";
-                element.style.transform = originalTransform; 
-                setTimeout(() => { document.getElementById("result-area").scrollIntoView({ behavior: "smooth" }); }, 100);
-            });
-        };
-
-        return {
-            repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
-            updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
-            addToCart, removeFromCart, totalRevenue, totalBonus, 
-            finalProductList, finalAmountList, amountFontSize,
-            formatNumber, generateImage, scaleStyle
-        };
-    }
-}).mount('#app');
+            return {
+                repList, repIndex, globalDate, form, cart, currentRep, rocDate, isFixedBP, loadingRate,
+                updateExRate, handleProductChange, calculatedRevenue, calculatedBonus,
+                addToCart, removeFromCart, totalRevenue, totalBonus, 
+                finalProductList, finalAmountList, amountFontSize,
+                formatNumber, generateImage, scaleStyle
+            };
+        }
+    }).mount('#app');
 </script>
 </body>
 </html>
