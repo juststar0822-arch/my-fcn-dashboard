@@ -2,94 +2,89 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>元元致富生命力試算 - 專業壽險成本分析</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>元元致富試算-手機版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
-        body { background: #0f172a; color: #f1f5f9; font-family: sans-serif; }
-        .input-group { background: #1e293b; padding: 15px; border-radius: 12px; border: 1px solid #334155; }
-        input, select { background: #334155; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; width: 100%; }
-        .data-card { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #38bdf8; }
+        body { background: #0f172a; color: #f1f5f9; font-size: 14px; }
+        .input-card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #334155; }
+        input, select { background: #334155; border: 1px solid #475569; color: white; padding: 10px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; }
+        label { color: #94a3b8; font-size: 12px; font-weight: bold; }
+        .res-box { background: linear-gradient(135deg, #1e40af 0%, #1e293b 100%); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
     </style>
 </head>
-<body class="p-6">
-<div id="app" class="max-w-5xl mx-auto">
-    <h1 class="text-3xl font-bold mb-8 text-blue-400 text-center">📊 元元致富保單生命力試算系統</h1>
+<body class="p-3">
+<div id="app">
+    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力試算 (萬)</h1>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div class="lg:col-span-1 space-y-6">
-            <div class="input-group shadow-lg">
-                <h3 class="text-blue-300 font-bold mb-4 flex items-center">💰 資產規模 (台幣)</h3>
-                <input type="number" v-model="principal" class="text-xl font-bold text-yellow-400">
-                <div class="mt-3 flex justify-between text-sm font-mono text-gray-400">
-                    <span>USD: ${{ formatCurr(principal/32.5) }}</span>
-                    <span>JPY: ¥{{ formatCurr(principal*4.5) }}</span>
-                </div>
+    <div class="res-box shadow-xl">
+        <p class="text-blue-200 text-sm">預估保障可支撐至</p>
+        <div class="text-5xl font-black my-1">{{ age + survivalYears }} <span class="text-xl">歲</span></div>
+        <p class="text-xs text-blue-300">保障剩餘年限：{{ survivalYears }} 年</p>
+        
+        <div class="grid grid-cols-2 gap-2 mt-4 pt-4 border-t border-blue-400/30">
+            <div>
+                <p class="text-[10px] text-blue-300">每月配息 (萬)</p>
+                <p class="font-bold text-green-400">{{ formatNum(monthlyDiv) }}</p>
             </div>
-
-            <div class="input-group shadow-lg">
-                <h3 class="text-green-300 font-bold mb-4">🛡️ 保障與市場假設</h3>
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-xs text-gray-400">基本保額 (NTD)</label>
-                        <input type="number" v-model="faceAmount">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400">市場即時虧損 (%)</label>
-                        <input type="number" v-model="marketChange">
-                    </div>
-                    <div>
-                        <label class="text-xs text-gray-400">年化配息率 (%)</label>
-                        <input type="number" v-model="divRate" step="0.1">
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-group shadow-lg">
-                <h3 class="text-purple-300 font-bold mb-4">🔄 收益分配</h3>
-                <label class="text-xs text-gray-400">配息「領走」比例 (%)</label>
-                <input type="range" min="0" max="100" v-for="n in 1" v-model="withdrawRatio" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-purple-500">
-                <div class="flex justify-between text-xs mt-2">
-                    <span>再投資: {{ 100 - withdrawRatio }}%</span>
-                    <span class="text-purple-400 font-bold">領走: {{ withdrawRatio }}%</span>
-                </div>
+            <div>
+                <p class="text-[10px] text-blue-300">每月總扣費 (萬)</p>
+                <p class="font-bold text-red-400">{{ formatNum(monthlyTotalFee) }}</p>
             </div>
         </div>
+    </div>
 
-        <div class="lg:col-span-2 space-y-6">
-            <div class="data-card p-8 rounded-2xl shadow-2xl">
-                <div class="text-gray-400 text-sm mb-2">預估保障可支撐年限</div>
-                <div class="flex items-baseline gap-2">
-                    <span class="text-7xl font-black text-white">{{ survivalYears }}</span>
-                    <span class="text-2xl text-blue-400">年</span>
-                </div>
-                <div class="mt-4 p-3 bg-blue-500/10 rounded-lg border border-blue-500/30 text-blue-200 text-sm">
-                    此試算以 <strong>40 歲女性</strong> 起算，考慮逐年跳升之壽險成本費率。<br>
-                    帳戶預計在 <strong>{{ age + survivalYears }} 歲</strong> 時因餘額不足而失效。
-                </div>
+    <div class="input-card">
+        <div class="grid grid-cols-2 gap-3">
+            <div>
+                <label>性別</label>
+                <select v-model="gender"><option value="male">男性</option><option value="female">女性</option></select>
             </div>
+            <div>
+                <label>目前年齡</label>
+                <input type="number" v-model.number="age">
+            </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3 mt-3">
+            <div>
+                <label>投入金額 (萬)</label>
+                <input type="number" v-model.number="principal">
+                <p class="text-[10px] mt-1 text-gray-400">USD: {{ (principal/3.25).toFixed(1) }}k / JPY: {{ (principal*4.5).toFixed(0) }}萬</p>
+            </div>
+            <div>
+                <label>基本保額 (萬)</label>
+                <input type="number" v-model.number="faceAmount">
+            </div>
+        </div>
+    </div>
 
-            <div class="bg-slate-800 rounded-xl overflow-hidden border border-gray-700">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-slate-700 text-gray-300">
-                        <tr>
-                            <th class="p-4">年度(年齡)</th>
-                            <th class="p-4 text-right">帳戶價值</th>
-                            <th class="p-4 text-right">淨危險保額(NAR)</th>
-                            <th class="p-4 text-right">每月壽險成本</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="row in simulation" :key="row.age" class="border-b border-gray-700 hover:bg-slate-700/50">
-                            <td class="p-4 font-mono">{{ row.year }} ({{ row.age }}歲)</td>
-                            <td class="p-4 text-right font-bold" :class="row.balance < 100000 ? 'text-red-400' : 'text-green-400'">
-                                {{ formatNum(row.balance) }}
-                            </td>
-                            <td class="p-4 text-right text-gray-400">{{ formatNum(row.nar) }}</td>
-                            <td class="p-4 text-right text-red-300">{{ formatNum(row.monthlyCOI) }}</td>
-                        </tr>
-                    </tbody>
-                </table>
+    <div class="input-card">
+        <h3 class="text-green-400 text-xs mb-2">📈 標的連結與盈虧 (美金計價標的)</h3>
+        <div class="grid grid-cols-2 gap-3">
+            <div><label>標的淨值 ($)</label><input type="number" v-model.number="nav" step="0.1"></div>
+            <div><label>單位配息 ($)</label><input type="number" v-model.number="divPerUnit" step="0.001"></div>
+        </div>
+        <div class="mt-3">
+            <label>配息領走比例: {{ withdrawRatio }}%</label>
+            <input type="range" v-model.number="withdrawRatio" class="w-full accent-blue-500">
+        </div>
+    </div>
+
+    <div class="bg-slate-800 rounded-lg p-3">
+        <h3 class="text-xs font-bold text-gray-400 mb-2">年度帳戶預估 (萬元)</h3>
+        <div class="space-y-2">
+            <div v-for="row in simulation" :key="row.age" class="flex justify-between items-center bg-slate-700/50 p-3 rounded border-l-4 border-blue-500">
+                <div>
+                    <p class="text-xs font-bold">{{ row.age }}歲 (第{{ row.year }}年)</p>
+                    <p class="text-[10px] text-gray-400">月扣壽險: {{ row.monthlyCOI.toFixed(4) }} 萬</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm font-bold" :class="row.balance < (principal*0.2) ? 'text-red-400' : 'text-green-400'">
+                        {{ row.balance.toFixed(2) }} 萬
+                    </p>
+                    <p class="text-[10px] text-gray-400">NAR: {{ row.nar.toFixed(0) }} 萬</p>
+                </div>
             </div>
         </div>
     </div>
@@ -98,56 +93,70 @@
 <script>
 const { createApp, ref, computed } = Vue;
 
-// 根據上傳圖片整合之 40 歲後女性費率
-const COI_TABLE = {
-    40: 0.55, 41: 0.59, 42: 0.64, 43: 0.69, 44: 0.74, 45: 0.85, 46: 0.91, 47: 0.98, 48: 1.05, 49: 1.13,
-    50: 1.19, 51: 1.27, 52: 1.37, 53: 1.46, 54: 1.56, 55: 1.80, 60: 2.77, 65: 4.67, 70: 8.10, 75: 13.61, 80: 23.99
+// 整合 IMG_3339.jpg 費率 (每萬元)
+const COI_DATA = {
+    male: { 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
+    female: { 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
 };
 
 createApp({
     setup() {
+        const gender = ref('female');
         const age = ref(40);
-        const principal = ref(500000);
-        const faceAmount = ref(10000000);
-        const marketChange = ref(-30);
-        const divRate = ref(7.3);
+        const principal = ref(50); // 萬
+        const faceAmount = ref(1000); // 萬
+        const nav = ref(9);
+        const divPerUnit = ref(0.055);
         const withdrawRatio = ref(100);
+        const fx = 32.5;
 
-        const formatNum = (v) => Math.round(v).toLocaleString();
-        const formatCurr = (v) => v.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
-
-        // 核心試算邏輯
-        const runSim = (isFull) => {
-            let bal = principal.value * (1 + marketChange.value / 100);
-            let results = [];
-            
-            for (let y = 0; y <= 60; y++) {
-                let curAge = age.value + y;
-                // 費率表取值或線性插補
-                let factor = COI_TABLE[curAge] || (COI_TABLE[Math.floor(curAge/5)*5] * Math.pow(1.1, curAge%5));
-                
-                let nar = Math.max(0, faceAmount.value - bal);
-                let mCOI = (nar / 10000) * factor;
-                let mAdmin = (bal * 0.0016) + 100;
-                let mDiv = (bal * (divRate.value/100) / 12);
-
-                if (y % 5 === 0 && results.length < 10) {
-                    results.push({ year: y, age: curAge, balance: bal, nar: nar, monthlyCOI: mCOI });
-                }
-
-                // 月帳戶變化
-                let monthlyNet = (mDiv * (1 - withdrawRatio.value/100)) - (mCOI + mAdmin);
-                bal += (monthlyNet * 12);
-                
-                if (bal <= 0) return isFull ? y : results;
-            }
-            return isFull ? 60 : results;
+        const getCOI = (g, a) => {
+            const table = COI_DATA[g];
+            const keys = Object.keys(table).map(Number).sort((a,b)=>a-b);
+            let key = keys.find(k => k >= a) || 80;
+            return table[key] || table[80];
         };
 
-        const simulation = computed(() => runSim(false));
-        const survivalYears = computed(() => runSim(true));
+        const calc = (isFull) => {
+            let b = principal.value;
+            let res = [];
+            for (let y = 0; y <= 50; y++) {
+                let curAge = age.value + y;
+                let factor = getCOI(gender.value, curAge);
+                let nar = Math.max(0, faceAmount.value - b);
+                
+                let mCOI = (nar * factor) / 10000; // 每萬元係數，所以nar不需除萬
+                let mAdmin = (b * 0.0016) + 0.01; // 100元 = 0.01萬
+                let units = (b * 10000 / fx) / nav.value;
+                let mDiv = (units * divPerUnit.value * fx) / 10000;
 
-        return { age, principal, faceAmount, marketChange, divRate, withdrawRatio, simulation, survivalYears, formatNum, formatCurr };
+                if (y % 5 === 0 && res.length < 8) {
+                    res.push({ year: y, age: curAge, balance: b, nar: nar, monthlyCOI: mCOI });
+                }
+                // 月變化
+                b = b + (mDiv * (1 - withdrawRatio.value/100) * 12) - ((mCOI + mAdmin) * 12);
+                if (b <= 0) return isFull ? y : res;
+            }
+            return isFull ? 50 : res;
+        };
+
+        const simulation = computed(() => calc(false));
+        const survivalYears = computed(() => calc(true));
+        
+        const monthlyDiv = computed(() => {
+            let units = (principal.value * 10000 / fx) / nav.value;
+            return (units * divPerUnit.value * fx) / 10000;
+        });
+
+        const monthlyTotalFee = computed(() => {
+            let factor = getCOI(gender.value, age.value);
+            let mCOI = (Math.max(0, faceAmount.value - principal.value) * factor) / 10000;
+            return mCOI + (principal.value * 0.0016) + 0.01;
+        });
+
+        const formatNum = (v) => v.toFixed(4);
+
+        return { gender, age, principal, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, formatNum };
     }
 }).mount('#app');
 </script>
