@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 專業費用版</title>
+    <title>元元致富生命力試算 - 市場盈虧增強版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -16,7 +16,7 @@
 </head>
 <body class="p-4">
 <div id="app">
-    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富精算 (萬)</h1>
+    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力精算</h1>
 
     <div class="res-box shadow-2xl">
         <p class="text-blue-200 text-sm">預估保障可支撐至</p>
@@ -25,11 +25,11 @@
         
         <div class="grid grid-cols-2 gap-4 pt-4 mt-4 border-t border-blue-400/30">
             <div>
-                <p class="text-[10px] text-blue-300 uppercase font-bold">目前月配息</p>
+                <p class="text-[10px] text-blue-300 uppercase font-bold">預估月配息</p>
                 <p class="font-bold text-green-400 text-lg">{{ smartFormat(monthlyDiv * 10000) }}</p>
             </div>
             <div>
-                <p class="text-[10px] text-blue-300 uppercase font-bold">目前月扣費</p>
+                <p class="text-[10px] text-blue-300 uppercase font-bold">預估月扣費</p>
                 <p class="font-bold text-red-400 text-lg">{{ smartFormat(monthlyTotalFee * 10000) }}</p>
             </div>
         </div>
@@ -42,7 +42,17 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div><label>投入保費 (萬)</label><input type="number" v-model.number="principal"></div>
-            <div><label>假設虧損 (%)</label><input type="number" v-model.number="lossPercent"></div>
+            <div>
+                <label>市場盈虧假設 (%)</label>
+                <input type="number" v-model.number="marketChange" placeholder="漲填正, 跌填負">
+                <p class="text-[10px] text-right mt-1" :class="marketChange >= 0 ? 'text-green-400' : 'text-red-400'">
+                    {{ marketChange >= 0 ? '預期獲利' : '預期虧損' }}
+                </p>
+            </div>
+        </div>
+        <div class="mt-3 flex justify-between text-[11px] text-gray-400 font-mono">
+            <span>USD: ${{ (currentBalance/3.25).toFixed(1) }}k</span>
+            <span>JPY: ¥{{ (currentBalance*4.5).toFixed(0) }}萬</span>
         </div>
     </div>
 
@@ -71,7 +81,7 @@
                     <div class="text-right flex-1">
                         <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
                         <p class="text-[10px] text-red-400 font-bold">月均扣費: {{ smartFormat(row.fees * 10000) }}</p>
-                        <p v-if="row.balance >= 300" class="text-[9px] text-yellow-500">免$100維護費</p>
+                        <p v-if="row.balance >= 300" class="text-[9px] text-yellow-500 font-bold">免$100維護費</p>
                     </div>
                 </div>
             </div>
@@ -92,14 +102,14 @@ createApp({
         const gender = ref('female');
         const age = ref(40);
         const principal = ref(50);
-        const lossPercent = ref(0); 
+        const marketChange = ref(0); 
         const faceAmount = ref(1000);
         const nav = ref(9);
         const divPerUnit = ref(0.055);
         const withdrawRatio = ref(100);
         const fx = 32.5;
 
-        const currentBalance = computed(() => principal.value * (1 - lossPercent.value / 100));
+        const currentBalance = computed(() => principal.value * (1 + marketChange.value / 100));
 
         const getCOI = (g, a) => {
             const table = COI_DATA[g];
@@ -125,15 +135,10 @@ createApp({
                 let factor = getCOI(gender.value, curAge);
                 let nar = Math.max(0, faceAmount.value - b);
                 
-                // 動態帳管費率邏輯
                 let currentFeeRate = 0;
-                if (y < 3) { // 1-3年
-                    currentFeeRate = isLarge ? 0.00155 : 0.0016;
-                } else if (y === 3) { // 第4年
-                    currentFeeRate = isLarge ? 0.001 : 0.0012;
-                } else { // 第5年後
-                    currentFeeRate = 0;
-                }
+                if (y < 3) currentFeeRate = isLarge ? 0.00155 : 0.0016;
+                else if (y === 3) currentFeeRate = isLarge ? 0.001 : 0.0012;
+                else currentFeeRate = 0;
                 
                 let mAdminFee = b >= 300 ? 0 : 0.01;
                 let mCOI = (nar * factor) / 10000;
@@ -170,12 +175,11 @@ createApp({
             let isLarge = principal.value >= 1000;
             let mAdminFee = b >= 300 ? 0 : 0.01;
             let mCOI = (Math.max(0, faceAmount.value - b) * factor) / 10000;
-            // 初始費用 (第1年)
             let feeRate = isLarge ? 0.00155 : 0.0016;
             return mCOI + (b * feeRate) + mAdminFee;
         });
 
-        return { gender, age, principal, lossPercent, currentBalance, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, smartFormat, formatUnit };
+        return { gender, age, principal, marketChange, currentBalance, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, smartFormat, formatUnit };
     }
 }).mount('#app');
 </script>
