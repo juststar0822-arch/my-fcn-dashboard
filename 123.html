@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 整合單位銷除版</title>
+    <title>元元致富精算 - 淨值連動版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -12,7 +12,6 @@
         input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; outline: none; }
         label { color: #94a3b8; font-size: 12px; font-weight: bold; }
         .res-box { background: linear-gradient(135deg, #1e40af 0%, #111827 100%); border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
-        .data-row { border-bottom: 1px solid #334155; padding: 10px 0; }
     </style>
 </head>
 <body class="p-4">
@@ -22,18 +21,7 @@
     <div class="res-box shadow-2xl">
         <p class="text-blue-200 text-sm">預估保障可支撐至</p>
         <div class="text-6xl font-black my-2 text-white">{{ age + survivalYears }} <span class="text-2xl font-normal">歲</span></div>
-        <p class="text-sm text-blue-300">保障剩餘：{{ survivalYears }} 年</p>
-        
-        <div class="grid grid-cols-2 gap-4 pt-4 mt-4 border-t border-blue-400/30">
-            <div>
-                <p class="text-[10px] text-blue-300 uppercase font-bold">初始月配息</p>
-                <p class="font-bold text-green-400 text-lg">{{ smartFormat(monthlyDiv * 10000) }}</p>
-            </div>
-            <div>
-                <p class="text-[10px] text-blue-300 uppercase font-bold">初始月扣費</p>
-                <p class="font-bold text-red-400 text-lg">{{ smartFormat(monthlyTotalFee * 10000) }}</p>
-            </div>
-        </div>
+        <p class="text-sm text-blue-300">美元預估總資產：${{ smartFormatUSD(currentBalanceUSD) }}</p>
     </div>
 
     <div class="input-card">
@@ -43,10 +31,7 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div><label>投入保費 (萬)</label><input type="number" v-model.number="principal"></div>
-            <div>
-                <label>市場盈虧假設 (%)</label>
-                <input type="number" v-model.number="marketChange" placeholder="漲填正, 跌填負">
-            </div>
+            <div><label>淨值假設 (每年漲跌 %)</label><input type="number" v-model.number="marketChange"></div>
         </div>
     </div>
 
@@ -54,28 +39,28 @@
         <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2">📈 標的與保障設定</h3>
         <div class="grid grid-cols-2 gap-3">
             <div><label>基本保額 (萬)</label><input type="number" v-model.number="faceAmount"></div>
-            <div><label>標的淨值 ($)</label><input type="number" v-model.number="nav" step="0.1"></div>
+            <div><label>初始淨值 (USD)</label><input type="number" v-model.number="nav" step="0.1"></div>
         </div>
         <div class="grid grid-cols-2 gap-3 mt-3">
-            <div><label>單位配息 ($)</label><input type="number" v-model.number="divPerUnit" step="0.001"></div>
+            <div><label>單位配息 (USD)</label><input type="number" v-model.number="divPerUnit" step="0.001"></div>
             <div><label>配息領走 (%)</label><input type="number" v-model.number="withdrawRatio"></div>
         </div>
     </div>
 
     <div class="bg-slate-900/50 rounded-xl p-2 mb-10">
-        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">單位數銷除明細 ({{ principal >= 1000 ? '大額件' : '一般件' }})</h3>
+        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度單位銷除與淨值變動明細</h3>
         <div class="space-y-2">
             <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
-                        <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 font-normal ml-1">第{{ row.year + 1 }}年</span></p>
+                        <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 ml-1">第{{ row.year + 1 }}年</span></p>
                         <p class="text-[11px] text-blue-400 mt-1 font-mono">剩餘持分: {{ formatUnit(row.units) }}</p>
-                        <p class="text-[10px] text-slate-500 mt-0.5">危險保額: {{ smartFormat(row.nar * 10000) }}</p>
+                        <p class="text-[10px] text-yellow-500 mt-0.5 font-mono">當前淨值: {{ row.currentNav.toFixed(2) }}</p>
                     </div>
                     <div class="text-right flex-1">
                         <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
+                        <p class="text-[11px] text-white">USD ${{ smartFormatUSD(row.balance * 10000 / fx) }}</p>
                         <p class="text-[10px] text-red-400 font-bold">月扣費: {{ smartFormat(row.fees * 10000) }}</p>
-                        <p v-if="row.isFreeAdmin" class="text-[9px] text-yellow-500 font-bold tracking-tighter">免收$100維護費</p>
                     </div>
                 </div>
             </div>
@@ -87,75 +72,81 @@
 const { createApp, ref, computed } = Vue;
 
 const COI_DATA = {
-    male: { 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
-    female: { 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
+    male: { 15:0.18, 20:0.25, 25:0.35, 30:0.48, 35:0.71, 40:1.27, 41:1.39, 42:1.52, 43:1.67, 44:1.83, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
+    female: { 15:0.08, 20:0.12, 25:0.18, 30:0.28, 35:0.39, 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
 };
 
 createApp({
     setup() {
         const gender = ref('female');
         const age = ref(40);
-        const principal = ref(50);
+        const principal = ref(500);
         const marketChange = ref(0); 
         const faceAmount = ref(1000);
-        const nav = ref(9);
+        const nav = ref(9.0);
         const divPerUnit = ref(0.055);
         const withdrawRatio = ref(100);
         const fx = 32.5;
 
         const smartFormat = (val) => {
+            if (val <= 0) return '帳戶終止';
             if (val >= 10000) return (val / 10000).toFixed(2) + ' 萬';
             return Math.round(val).toLocaleString() + ' 元';
         };
-        const formatUnit = (val) => val.toLocaleString(undefined, {maximumFractionDigits: 2});
+        const smartFormatUSD = (val) => Math.round(val).toLocaleString();
+        const formatUnit = (val) => val.toLocaleString(undefined, {maximumFractionDigits: 1});
+
+        const getCOI = (g, a) => {
+            const table = COI_DATA[g];
+            const ages = Object.keys(table).map(Number).sort((a,b)=>b-a);
+            const target = ages.find(x => x <= a) || 15;
+            return table[target];
+        };
 
         const runSim = (isFull) => {
-            // 初始點：保費經過市場盈虧後的價值
-            let b = principal.value * (1 + marketChange.value / 100);
-            let currentUnits = (b * 10000 / fx) / nav.value;
+            let currentUnits = (principal.value * 10000 / fx) / nav.value;
+            let currentNav = nav.value;
             let res = [];
             const isLarge = principal.value >= 1000;
 
             for (let y = 0; y <= 60; y++) {
                 let curAge = age.value + y;
-                let factor = getCOI(gender.value, curAge);
                 
-                // 每月循環計算 (模擬真實單位扣除)
+                // 淨值隨市場假設變動 (B點修正)
+                if (y > 0) {
+                    currentNav = currentNav * (1 + marketChange.value / 100);
+                }
+
                 for(let m = 0; m < 12; m++) {
-                    let monthlyB = (currentUnits * nav.value * fx) / 10000;
+                    let monthlyB = (currentUnits * currentNav * fx) / 10000;
+                    let factor = getCOI(gender.value, curAge);
                     let nar = Math.max(0, faceAmount.value - monthlyB);
                     
-                    // 階梯帳管費
-                    let feeRate = 0;
-                    if (y < 3) feeRate = isLarge ? 0.00155 : 0.0016;
-                    else if (y === 3) feeRate = isLarge ? 0.001 : 0.0012;
-                    else feeRate = 0;
-
+                    // 費用邏輯
+                    let feeRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
                     let mAdminFee = monthlyB >= 300 ? 0 : 0.01;
                     let mCOI = (nar * factor) / 10000;
                     let mTotalFee = mCOI + (monthlyB * feeRate) + mAdminFee;
 
-                    // 配息與再投資
+                    // 配息與回買邏輯 (統一用初始淨值回買)
                     let mDiv = (currentUnits * divPerUnit.value * fx) / 10000;
                     let reinvestAmt = mDiv * (1 - withdrawRatio.value / 100);
                     
-                    // 單位數變動 = (再投資金額 - 總費用) 換算成單位
-                    let netChangeAmt = reinvestAmt - mTotalFee;
-                    currentUnits += (netChangeAmt * 10000 / fx) / nav.value;
+                    // 單位數變動 (費用扣除 vs 配息回買)
+                    let feeUnits = (mTotalFee * 10000 / fx) / currentNav; 
+                    let reinvestUnits = (reinvestAmt * 10000 / fx) / nav.value; // 固定用初始 NAV 回買
+                    
+                    currentUnits += (reinvestUnits - feeUnits);
                 }
 
-                let endOfYearB = (currentUnits * nav.value * fx) / 10000;
-
-                if (y % 5 === 0 && res.length < 10) {
+                let endOfYearB = (currentUnits * currentNav * fx) / 10000;
+                if (y % 5 === 0 && res.length < 12) {
                     res.push({ 
                         year: y, age: curAge, balance: endOfYearB, 
-                        nar: Math.max(0, faceAmount.value - endOfYearB), 
-                        units: currentUnits, 
-                        fees: (Math.max(0, faceAmount.value - endOfYearB) * factor / 10000), // 僅顯示壽險成本參考
-                        isFreeAdmin: endOfYearB >= 300 
+                        units: currentUnits, currentNav: currentNav,
+                        fees: (Math.max(0, faceAmount.value - endOfYearB) * getCOI(gender.value, curAge) / 10000) 
                     });
                 }
-
                 if (currentUnits <= 0) return isFull ? y : res;
             }
             return isFull ? 60 : res;
@@ -163,31 +154,12 @@ createApp({
 
         const simulation = computed(() => runSim(false));
         const survivalYears = computed(() => runSim(true));
-        
-        const monthlyDiv = computed(() => {
-            let b = principal.value * (1 + marketChange.value / 100);
-            let units = (b * 10000 / fx) / nav.value;
-            return (units * divPerUnit.value * fx) / 10000;
+        const currentBalanceUSD = computed(() => {
+            const last = (simulation.value && simulation.value.length > 0) ? simulation.value[0] : null;
+            return last ? (last.balance * 10000 / fx) : 0;
         });
 
-        const monthlyTotalFee = computed(() => {
-            let factor = getCOI(gender.value, age.value);
-            let b = principal.value * (1 + marketChange.value / 100);
-            let isLarge = principal.value >= 1000;
-            let mAdminFee = b >= 300 ? 0 : 0.01;
-            let mCOI = (Math.max(0, faceAmount.value - b) * factor) / 10000;
-            let feeRate = isLarge ? 0.00155 : 0.0016;
-            return mCOI + (b * feeRate) + mAdminFee;
-        });
-
-        const getCOI = (g, a) => {
-            const table = COI_DATA[g];
-            const sortedAges = Object.keys(table).map(Number).sort((a,b)=>a-b);
-            let targetAge = sortedAges.find(k => k >= a) || 80;
-            return table[targetAge];
-        };
-
-        return { gender, age, principal, marketChange, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, smartFormat, formatUnit };
+        return { gender, age, principal, marketChange, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit, fx };
     }
 }).mount('#app');
 </script>
