@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 費用透明版</title>
+    <title>元元致富精算 - 專業整合版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -12,7 +12,6 @@
         input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; outline: none; }
         label { color: #94a3b8; font-size: 12px; font-weight: bold; }
         .res-box { background: linear-gradient(135deg, #1e40af 0%, #111827 100%); border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
-        .fee-tag { font-size: 10px; padding: 1px 4px; border-radius: 3px; margin-left: 4px; }
     </style>
 </head>
 <body class="p-4">
@@ -48,25 +47,24 @@
     </div>
 
     <div class="bg-slate-900/50 rounded-xl p-2 mb-10">
-        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度費用與資產變動明細</h3>
+        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度費用與資產變動明細 (USD/TWD)</h3>
         <div class="space-y-2">
             <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 ml-1">第{{ row.year + 1 }}年</span></p>
-                        <p class="text-[11px] text-blue-400 mt-1 font-mono">持分: {{ formatUnit(row.units) }}</p>
-                        <p class="text-[10px] text-yellow-500 mt-0.5">淨值: USD {{ row.currentNav.toFixed(2) }}</p>
+                        <p class="text-[11px] text-blue-400 mt-1 font-mono">剩餘持分: {{ formatUnit(row.units) }}</p>
+                        <p class="text-[10px] text-yellow-500 mt-0.5">當前淨值: USD {{ row.currentNav.toFixed(2) }}</p>
                     </div>
                     <div class="text-right flex-1">
                         <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
                         <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / fx) }}</p>
                         
-                        <div class="mt-2 text-[10px]">
-                            <p class="text-red-400">壽險成本: {{ Math.round(row.coiFee * 10000) }} 元</p>
-                            <p class="text-red-300">
-                                帳管費({{ (row.feeRate*100).toFixed(3) }}%): {{ Math.round(row.adminFee * 10000) }} 元
-                            </p>
-                            <p v-if="row.maintenanceFee > 0" class="text-red-200">維護費: 100 元</p>
+                        <div class="mt-2 text-[10px] text-slate-400">
+                            <p>壽險成本: {{ Math.round(row.coiFee * 10000) }} 元</p>
+                            <p>帳管費({{ (row.feeRate*100).toFixed(3) }}%): {{ Math.round(row.adminFee * 10000) }} 元</p>
+                            <p v-if="row.maintenanceFee > 0">維護費: 100 元</p>
+                            <p class="text-red-400 font-bold mt-1 pt-1 border-t border-slate-700">合計月扣持分: {{ row.monthlyUnitFee.toFixed(2) }} 單位</p>
                         </div>
                     </div>
                 </div>
@@ -111,35 +109,41 @@ createApp({
         };
 
         const runSim = (isFull) => {
-            let currentNav = nav.value * (1 + marketShock.value / 100);
-            let currentUnits = (principal.value * 10000 / fx) / nav.value;
+            // 邏輯核心：初始購入單位不變
+            const initialNav = nav.value;
+            let currentUnits = (principal.value * 10000 / fx) / initialNav;
+            let currentNav = initialNav * (1 + marketShock.value / 100);
+            
             let res = [];
             const isLarge = principal.value >= 1000;
 
             for (let y = 0; y <= 60; y++) {
                 let curAge = age.value + y;
-                let lastM_COI = 0, lastM_Admin = 0, lastM_Main = 0, currentFeeRate = 0;
+                let lastM_COI = 0, lastM_Admin = 0, lastM_Main = 0, currentFeeRate = 0, lastM_UnitFee = 0;
 
                 for(let m = 0; m < 12; m++) {
                     let monthlyB = (currentUnits * currentNav * fx) / 10000;
                     let factor = getCOI(gender.value, curAge);
                     let nar = Math.max(0, faceAmount.value - monthlyB);
                     
-                    // 費率判定
                     currentFeeRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
-                    let mAdminFee = monthlyB >= 300 ? 0 : 0.01; // 100元 = 0.01萬
+                    let mAdminFee = monthlyB >= 300 ? 0 : 0.01;
                     let mCOIFee = (nar * factor) / 10000;
                     let mPctFee = (monthlyB * currentFeeRate);
+                    
+                    let mTotalFee = mCOIFee + mPctFee + mAdminFee;
+                    let mUnitFee = (mTotalFee * 10000 / fx) / currentNav; // 換算成扣除單位數
                     
                     lastM_COI = mCOIFee;
                     lastM_Admin = mPctFee;
                     lastM_Main = mAdminFee;
+                    lastM_UnitFee = mUnitFee;
 
-                    let mTotalFee = mCOIFee + mPctFee + mAdminFee;
                     let mDiv = (currentUnits * divPerUnit.value * fx) / 10000;
                     let reinvestAmt = mDiv * (1 - withdrawRatio.value / 100);
+                    let reinvestUnits = (reinvestAmt * 10000 / fx) / initialNav; 
                     
-                    currentUnits += ((reinvestAmt - mTotalFee) * 10000 / fx) / (mTotalFee > reinvestAmt ? currentNav : nav.value);
+                    currentUnits += (reinvestUnits - mUnitFee);
                 }
 
                 let endOfYearB = (currentUnits * currentNav * fx) / 10000;
@@ -148,7 +152,8 @@ createApp({
                         year: y, age: curAge, balance: endOfYearB, 
                         units: currentUnits, currentNav: currentNav,
                         coiFee: lastM_COI, adminFee: lastM_Admin, 
-                        maintenanceFee: lastM_Main, feeRate: currentFeeRate
+                        maintenanceFee: lastM_Main, feeRate: currentFeeRate,
+                        monthlyUnitFee: lastM_UnitFee
                     });
                 }
                 if (currentUnits <= 0) return isFull ? y : res;
