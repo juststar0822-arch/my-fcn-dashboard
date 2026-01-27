@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 壓力測試版</title>
+    <title>元元致富精算 - 費用透明版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -12,6 +12,7 @@
         input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; outline: none; }
         label { color: #94a3b8; font-size: 12px; font-weight: bold; }
         .res-box { background: linear-gradient(135deg, #1e40af 0%, #111827 100%); border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
+        .fee-tag { font-size: 10px; padding: 1px 4px; border-radius: 3px; margin-left: 4px; }
     </style>
 </head>
 <body class="p-4">
@@ -31,12 +32,11 @@
         </div>
         <div class="grid grid-cols-2 gap-3">
             <div><label>投入保費 (台幣萬)</label><input type="number" v-model.number="principal"></div>
-            <div><label>淨值衝擊假設 (%)</label><input type="number" v-model.number="marketShock" placeholder="例如跌20填-20"></div>
+            <div><label>淨值衝擊假設 (%)</label><input type="number" v-model.number="marketShock"></div>
         </div>
     </div>
 
     <div class="input-card">
-        <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2 uppercase">標的與配息設定 (USD)</h3>
         <div class="grid grid-cols-2 gap-3">
             <div><label>基本保額 (台幣萬)</label><input type="number" v-model.number="faceAmount"></div>
             <div><label>初始淨值 (USD)</label><input type="number" v-model.number="nav" step="0.1"></div>
@@ -48,19 +48,26 @@
     </div>
 
     <div class="bg-slate-900/50 rounded-xl p-2 mb-10">
-        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度衝擊測試明細 (匯率 {{fx}})</h3>
+        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度費用與資產變動明細</h3>
         <div class="space-y-2">
             <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 ml-1">第{{ row.year + 1 }}年</span></p>
-                        <p class="text-[11px] text-blue-400 mt-1 font-mono">剩餘持分: {{ formatUnit(row.units) }}</p>
-                        <p class="text-[10px] text-yellow-500 mt-0.5">當前淨值: USD {{ row.currentNav.toFixed(2) }}</p>
+                        <p class="text-[11px] text-blue-400 mt-1 font-mono">持分: {{ formatUnit(row.units) }}</p>
+                        <p class="text-[10px] text-yellow-500 mt-0.5">淨值: USD {{ row.currentNav.toFixed(2) }}</p>
                     </div>
                     <div class="text-right flex-1">
                         <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
                         <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / fx) }}</p>
-                        <p class="text-[10px] text-red-400 font-bold mt-1">月壽險成本: {{ smartFormat(row.fees * 10000) }}</p>
+                        
+                        <div class="mt-2 text-[10px]">
+                            <p class="text-red-400">壽險成本: {{ Math.round(row.coiFee * 10000) }} 元</p>
+                            <p class="text-red-300">
+                                帳管費({{ (row.feeRate*100).toFixed(3) }}%): {{ Math.round(row.adminFee * 10000) }} 元
+                            </p>
+                            <p v-if="row.maintenanceFee > 0" class="text-red-200">維護費: 100 元</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -72,8 +79,8 @@
 const { createApp, ref, computed } = Vue;
 
 const COI_DATA = {
-    male: { 15:0.18, 20:0.25, 25:0.35, 30:0.48, 35:0.71, 40:1.27, 41:1.39, 42:1.52, 43:1.67, 44:1.83, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
-    female: { 15:0.08, 20:0.12, 25:0.18, 30:0.28, 35:0.39, 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
+    male: { 15:0.18, 20:0.25, 25:0.35, 30:0.48, 35:0.71, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
+    female: { 15:0.08, 20:0.12, 25:0.18, 30:0.28, 35:0.39, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
 };
 
 createApp({
@@ -104,36 +111,35 @@ createApp({
         };
 
         const runSim = (isFull) => {
-            // 一次性衝擊：第一年淨值就發生變動，之後維持平盤
-            let currentNav = nav.ref ? nav.value : nav; // 避免 Vue proxy 讀取問題
-            currentNav = nav.value * (1 + marketShock.value / 100);
-            
+            let currentNav = nav.value * (1 + marketShock.value / 100);
             let currentUnits = (principal.value * 10000 / fx) / nav.value;
             let res = [];
             const isLarge = principal.value >= 1000;
 
             for (let y = 0; y <= 60; y++) {
                 let curAge = age.value + y;
+                let lastM_COI = 0, lastM_Admin = 0, lastM_Main = 0, currentFeeRate = 0;
 
                 for(let m = 0; m < 12; m++) {
                     let monthlyB = (currentUnits * currentNav * fx) / 10000;
                     let factor = getCOI(gender.value, curAge);
                     let nar = Math.max(0, faceAmount.value - monthlyB);
                     
-                    // 費用規則 (第5年起免收帳管費)
-                    let feeRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
-                    let mAdminFee = monthlyB >= 300 ? 0 : 0.01;
-                    let mCOI = (nar * factor) / 10000;
-                    let mTotalFee = mCOI + (monthlyB * feeRate) + mAdminFee;
+                    // 費率判定
+                    currentFeeRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
+                    let mAdminFee = monthlyB >= 300 ? 0 : 0.01; // 100元 = 0.01萬
+                    let mCOIFee = (nar * factor) / 10000;
+                    let mPctFee = (monthlyB * currentFeeRate);
+                    
+                    lastM_COI = mCOIFee;
+                    lastM_Admin = mPctFee;
+                    lastM_Main = mAdminFee;
 
-                    // 配息回買 (固定用初始淨值 nav.value)
+                    let mTotalFee = mCOIFee + mPctFee + mAdminFee;
                     let mDiv = (currentUnits * divPerUnit.value * fx) / 10000;
                     let reinvestAmt = mDiv * (1 - withdrawRatio.value / 100);
                     
-                    let feeUnits = (mTotalFee * 10000 / fx) / currentNav; 
-                    let reinvestUnits = (reinvestAmt * 10000 / fx) / nav.value; 
-                    
-                    currentUnits += (reinvestUnits - feeUnits);
+                    currentUnits += ((reinvestAmt - mTotalFee) * 10000 / fx) / (mTotalFee > reinvestAmt ? currentNav : nav.value);
                 }
 
                 let endOfYearB = (currentUnits * currentNav * fx) / 10000;
@@ -141,7 +147,8 @@ createApp({
                     res.push({ 
                         year: y, age: curAge, balance: endOfYearB, 
                         units: currentUnits, currentNav: currentNav,
-                        fees: (Math.max(0, faceAmount.value - endOfYearB) * getCOI(gender.value, curAge) / 10000) 
+                        coiFee: lastM_COI, adminFee: lastM_Admin, 
+                        maintenanceFee: lastM_Main, feeRate: currentFeeRate
                     });
                 }
                 if (currentUnits <= 0) return isFull ? y : res;
@@ -149,14 +156,7 @@ createApp({
             return isFull ? 60 : res;
         };
 
-        const simulation = computed(() => runSim(false));
-        const survivalYears = computed(() => runSim(true));
-        const currentBalanceUSD = computed(() => {
-            const last = (simulation.value && simulation.value.length > 0) ? simulation.value[0] : null;
-            return last ? (last.balance * 10000 / fx) : 0;
-        });
-
-        return { gender, age, principal, marketShock, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit, fx };
+        return { gender, age, principal, marketShock, faceAmount, nav, divPerUnit, withdrawRatio, simulation: computed(() => runSim(false)), survivalYears: computed(() => runSim(true)), currentBalanceUSD: computed(() => { const r = runSim(false)[0]; return r ? r.balance*10000/fx : 0; }), smartFormat, smartFormatUSD, formatUnit, fx };
     }
 }).mount('#app');
 </script>
