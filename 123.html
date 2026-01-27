@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富生命力試算 - 專業版</title>
+    <title>元元致富生命力試算 - 單位銷除版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body { background: #0f172a; color: #f1f5f9; font-size: 14px; }
         .input-card { background: #1e293b; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #334155; }
-        input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; }
+        input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 12px; border-radius: 8px; width: 100%; margin-top: 4px; font-size: 16px; outline: none; }
         label { color: #94a3b8; font-size: 12px; font-weight: bold; }
         .res-box { background: linear-gradient(135deg, #1e40af 0%, #111827 100%); border-radius: 20px; padding: 25px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
     </style>
 </head>
 <body class="p-4">
 <div id="app">
-    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力試算</h1>
+    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力試算 (單位版)</h1>
 
     <div class="res-box shadow-2xl">
         <p class="text-blue-200 text-sm">預估保障可支撐至</p>
@@ -25,43 +25,30 @@
         
         <div class="grid grid-cols-2 gap-4 pt-4 border-t border-blue-400/30">
             <div>
-                <p class="text-[10px] text-blue-300 uppercase">每月配息</p>
+                <p class="text-[10px] text-blue-300 uppercase font-bold">目前每月配息</p>
                 <p class="font-bold text-green-400 text-lg">{{ smartFormat(monthlyDiv * 10000) }}</p>
             </div>
             <div>
-                <p class="text-[10px] text-blue-300 uppercase">每月扣費</p>
+                <p class="text-[10px] text-blue-300 uppercase font-bold">目前每月扣費</p>
                 <p class="font-bold text-red-400 text-lg">{{ smartFormat(monthlyTotalFee * 10000) }}</p>
             </div>
         </div>
     </div>
 
-    <div class="input-card">
-        <div class="grid grid-cols-2 gap-3">
+    <div class="input-card shadow-lg">
+        <div class="grid grid-cols-2 gap-3 mb-3">
             <div>
-                <label>性別</label>
-                <select v-model="gender">
-                    <option value="male">男性</option>
-                    <option value="female">女性</option>
-                </select>
+                <label>投保性別</label>
+                <select v-model="gender"><option value="male">男性</option><option value="female">女性</option></select>
             </div>
             <div>
                 <label>目前年齡</label>
                 <input type="number" v-model.number="age">
             </div>
         </div>
-    </div>
-
-    <div class="input-card">
-        <h3 class="text-blue-300 text-xs mb-3 font-bold border-b border-slate-700 pb-2">💰 投入與虧損模擬</h3>
         <div class="grid grid-cols-2 gap-3">
-            <div>
-                <label>投入金額 (萬)</label>
-                <input type="number" v-model.number="principal">
-            </div>
-            <div>
-                <label>假設虧損 (%)</label>
-                <input type="number" v-model.number="lossPercent" placeholder="例如: 30">
-            </div>
+            <div><label>投入金額 (萬)</label><input type="number" v-model.number="principal"></div>
+            <div><label>假設虧損 (%)</label><input type="number" v-model.number="lossPercent"></div>
         </div>
         <div class="mt-3 flex justify-between text-[11px] text-gray-400 font-mono">
             <span>USD: ${{ (currentBalance/3.25).toFixed(1) }}k</span>
@@ -69,8 +56,8 @@
         </div>
     </div>
 
-    <div class="input-card">
-        <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2">📈 標的與配息 (美金)</h3>
+    <div class="input-card shadow-lg">
+        <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2">📈 標的與配息設定</h3>
         <div class="grid grid-cols-2 gap-3">
             <div><label>基本保額 (萬)</label><input type="number" v-model.number="faceAmount"></div>
             <div><label>標的淨值 ($)</label><input type="number" v-model.number="nav" step="0.1"></div>
@@ -81,19 +68,19 @@
         </div>
     </div>
 
-    <div class="bg-slate-900/50 rounded-xl p-2">
-        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase">預估帳戶價值變化</h3>
+    <div class="bg-slate-900/50 rounded-xl p-2 mb-8">
+        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase">預估帳戶變化 (含單位銷除)</h3>
         <div class="space-y-2">
-            <div v-for="row in simulation" :key="row.age" class="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
-                <div>
-                    <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 font-normal">第{{ row.year }}年</span></p>
-                    <p class="text-[10px] text-red-400 mt-1">月扣費: {{ smartFormat(row.monthlyCOI * 10000) }}</p>
-                </div>
-                <div class="text-right">
-                    <p class="text-base font-black" :class="row.balance < (principal*0.2) ? 'text-red-500' : 'text-green-400'">
-                        {{ smartFormat(row.balance * 10000) }}
-                    </p>
-                    <p class="text-[10px] text-gray-500">危險保額: {{ smartFormat(row.nar * 10000) }}</p>
+            <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 font-normal">第{{ row.year }}年</span></p>
+                        <p class="text-[11px] text-blue-400 mt-1 font-mono">持分: {{ formatUnit(row.units) }} 單位</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
+                        <p class="text-[10px] text-red-400 font-bold">月扣: {{ smartFormat(row.monthlyCOI * 10000) }}</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -105,7 +92,7 @@ const { createApp, ref, computed } = Vue;
 
 const COI_DATA = {
     male: { 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.90, 80:37.65 },
-    female: { 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
+    female: { 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99 }
 };
 
 createApp({
@@ -120,7 +107,6 @@ createApp({
         const withdrawRatio = ref(100);
         const fx = 32.5;
 
-        // 當前實際價值 (考慮虧損)
         const currentBalance = computed(() => principal.value * (1 - lossPercent.value / 100));
 
         const getCOI = (g, a) => {
@@ -131,11 +117,11 @@ createApp({
         };
 
         const smartFormat = (val) => {
-            if (val >= 10000) {
-                return (val / 10000).toFixed(2) + ' 萬';
-            }
+            if (val >= 10000) return (val / 10000).toFixed(2) + ' 萬';
             return Math.round(val).toLocaleString() + ' 元';
         };
+
+        const formatUnit = (val) => val.toLocaleString(undefined, {maximumFractionDigits: 2});
 
         const runSim = (isFull) => {
             let b = currentBalance.value;
@@ -151,9 +137,16 @@ createApp({
                 let mDiv = (units * divPerUnit.value * fx) / 10000;
 
                 if (y % 5 === 0 && res.length < 10) {
-                    res.push({ year: y, age: curAge, balance: b, nar: nar, monthlyCOI: mCOI + mAdmin });
+                    res.push({ year: y, age: curAge, balance: b, nar: nar, units: units, monthlyCOI: mCOI + mAdmin });
                 }
-                b = b + (mDiv * (1 - withdrawRatio.value/100) * 12) - ((mCOI + mAdmin) * 12);
+                
+                // 每月單位變動
+                let feeUnits = ((mCOI + mAdmin) * 10000 / fx) / nav.value;
+                let reinvestUnits = (mDiv * (1 - withdrawRatio.value/100) * 10000 / fx) / nav.value;
+                
+                let newUnits = units + (reinvestUnits - feeUnits) * 12;
+                b = (newUnits * nav.value * fx) / 10000;
+
                 if (b <= 0) return isFull ? y : res;
             }
             return isFull ? 60 : res;
@@ -161,19 +154,17 @@ createApp({
 
         const simulation = computed(() => runSim(false));
         const survivalYears = computed(() => runSim(true));
-        
         const monthlyDiv = computed(() => {
             let units = (currentBalance.value * 10000 / fx) / nav.value;
             return (units * divPerUnit.value * fx) / 10000;
         });
-
         const monthlyTotalFee = computed(() => {
             let factor = getCOI(gender.value, age.value);
             let mCOI = (Math.max(0, faceAmount.value - currentBalance.value) * factor) / 10000;
             return mCOI + (currentBalance.value * 0.0016) + 0.01;
         });
 
-        return { gender, age, principal, lossPercent, currentBalance, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, smartFormat };
+        return { gender, age, principal, lossPercent, currentBalance, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, monthlyDiv, monthlyTotalFee, smartFormat, formatUnit };
     }
 }).mount('#app');
 </script>
