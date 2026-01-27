@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>元元致富生命力模擬器 - 整合精確費率</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        body { background: #0f172a; color: #f1f5f9; font-family: sans-serif; }
+        .input-group { background: #1e293b; padding: 15px; border-radius: 8px; border: 1px solid #334155; }
+        input { background: #334155; border: 1px solid #475569; color: white; padding: 5px 10px; border-radius: 4px; width: 100%; }
+        .ki-marker { color: #f87171; font-weight: bold; border: 1px solid #f87171; padding: 2px 4px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body class="p-5">
+<div id="app" class="max-w-5xl mx-auto">
+    <h1 class="text-2xl font-bold mb-6 text-blue-400 text-center">🛡️ 元大人壽「元元致富」生命力精算 (甲型)</h1>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 space-y-4">
+            <div class="input-group">
+                <h3 class="text-orange-400 font-bold mb-3 border-b border-gray-600">客戶基本資料</h3>
+                <label class="text-xs text-gray-400">起始年齡 (限女性試算)</label>
+                <input type="number" v-model="age" class="mb-3">
+                
+                <label class="text-xs text-gray-400">總資產 (台幣投入)</label>
+                <div class="flex items-center gap-2 mb-1">
+                    <input type="number" v-model="principal">
+                </div>
+                <p class="text-[10px] text-gray-400">
+                    約合：USD {{ formatCurr(principal/32.5) }} / JPY {{ formatCurr(principal*4.5) }}
+                </p>
+            </div>
+
+            <div class="input-group">
+                <h3 class="text-blue-400 font-bold mb-3 border-b border-gray-600">保單參數</h3>
+                <label class="text-xs text-gray-400">基本保額 (NTD)</label>
+                <input type="number" v-model="faceAmount" class="mb-3">
+                
+                <label class="text-xs text-gray-400">市場即時盈虧 (%)</label>
+                <input type="number" v-model="marketChange" class="mb-3">
+                
+                <label class="text-xs text-gray-400">配息再投資比例 (%)</label>
+                <input type="range" min="0" max="100" v-model="reinvestRatio" class="w-full">
+                <div class="text-right text-xs">{{ reinvestRatio }}% 回流帳戶</div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-slate-800 p-6 rounded-xl border-l-4 border-blue-500 shadow-xl">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-gray-300">預估保障支撐年限</span>
+                    <span v-if="hasTouchedKi" class="ki-marker">⚠️ 帳戶曾觸及 KI (低水位警示)</span>
+                </div>
+                <div class="text-6xl font-black text-white mb-2">{{ survivalYears }} <span class="text-2xl">年</span></div>
+                <p class="text-gray-400">預計在 <span class="text-white font-bold">{{ age + survivalYears }} 歲</span> 時，帳戶價值將不足以扣除壽險成本。</p>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl overflow-hidden border border-gray-700">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-700 text-gray-300">
+                        <tr>
+                            <th class="p-3">年齡</th>
+                            <th class="p-3 text-right">帳戶餘額 (台幣)</th>
+                            <th class="p-3 text-right">壽險係數 (圖表值)</th>
+                            <th class="p-3 text-right">每月壽險成本</th>
+                            <th class="p-3 text-right">狀態</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="row in simulation" :key="row.age" class="border-b border-gray-700 hover:bg-slate-700/50">
+                            <td class="p-3 text-center">{{ row.age }} 歲</td>
+                            <td class="p-3 text-right">{{ formatNum(row.balance) }}</td>
+                            <td class="p-3 text-right text-yellow-500">{{ row.coiFactor }}</td>
+                            <td class="p-3 text-right text-red-400">{{ formatNum(row.monthlyCOI) }}</td>
+                            <td class="p-3 text-center">
+                                <span v-if="row.isKi" class="text-red-500 text-[10px] font-bold">觸及 KI</span>
+                                <span v-else class="text-green-500 text-xs">正常</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed } = Vue;
+
+// 整合 IMG_3339.jpg 中的女性費率表
+const FEMALE_COI_TABLE = {
+    40: 0.55, 41: 0.59, 42: 0.64, 43: 0.69, 44: 0.74, 45: 0.85, 46: 0.91, 47: 0.98, 48: 1.05, 49: 1.13,
+    50: 1.19, 55: 1.80, 60: 2.77, 65: 4.67, 70: 8.10, 75: 13.61, 80: 23.99, 85: 41.28, 90: 80.42
+};
+
+createApp({
+    setup() {
+        const age = ref(40);
+        const principal = ref(500000);
+        const faceAmount = ref(10000000);
+        const marketChange = ref(-30);
+        const reinvestRatio = ref(0);
+        const hasTouchedKi = ref(false);
+
+        const formatNum = (v) => Math.round(v).toLocaleString();
+        const formatCurr = (v) => v.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+        const simulation = computed(() => {
+            let results = [];
+            let currentBalance = principal.value * (1 + marketChange.value / 100);
+            let currentAge = age.value;
+            hasTouchedKi.value = false;
+
+            for (let i = 0; i <= 60; i++) {
+                let checkAge = currentAge + i;
+                if (checkAge > 100 || currentBalance <= 0) break;
+
+                // 取得對應年齡費率 (若無精確值則線性推算)
+                let factor = FEMALE_COI_TABLE[checkAge] || 
+                             FEMALE_COI_TABLE[Object.keys(FEMALE_COI_TABLE).reverse().find(a => a <= checkAge)] * Math.pow(1.08, (checkAge % 5));
+
+                let nar = Math.max(0, faceAmount.value - currentBalance);
+                let monthlyCOI = (nar / 10000) * factor;
+                let otherFees = (currentBalance * 0.0016) + 100;
+                
+                // 配息回流計算
+                let monthlyDiv = (currentBalance * 0.073 / 12);
+                let netFlow = (monthlyDiv * reinvestRatio.value / 100) - (monthlyCOI + otherFees);
+
+                let isKiThisYear = currentBalance < (principal.value * 0.5);
+                if (isKiThisYear) hasTouchedKi.value = true; // 永久標記觸及 KI
+
+                if (i % 5 === 0 || i < 5) {
+                    results.push({ age: checkAge, balance: currentBalance, coiFactor: factor.toFixed(2), monthlyCOI, isKi: isKiThisYear });
+                }
+
+                currentBalance += (netFlow * 12);
+            }
+            return results;
+        });
+
+        const survivalYears = computed(() => {
+            let b = principal.value * (1 + marketChange.value / 100);
+            for (let y = 0; y < 60; y++) {
+                let ageIdx = age.value + y;
+                let f = FEMALE_COI_TABLE[ageIdx] || FEMALE_COI_TABLE[Object.keys(FEMALE_COI_TABLE).reverse().find(a => a <= ageIdx)] * 1.1;
+                let monthlyCost = ((faceAmount.value - b) / 10000 * f) + (b * 0.0016) + 100;
+                b = b - (monthlyCost * 12) + (b * 0.073 * reinvestRatio.value / 100);
+                if (b <= 0) return y;
+            }
+            return 60;
+        });
+
+        return { age, principal, faceAmount, marketChange, reinvestRatio, simulation, survivalYears, formatNum, formatCurr, hasTouchedKi };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
