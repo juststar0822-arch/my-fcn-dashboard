@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 淨值連動版</title>
+    <title>元元致富精算 - 壓力測試版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -16,12 +16,12 @@
 </head>
 <body class="p-4">
 <div id="app">
-    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力精算</h1>
+    <h1 class="text-xl font-bold text-center mb-4 text-blue-400">📊 元元致富生命力試算</h1>
 
     <div class="res-box shadow-2xl">
         <p class="text-blue-200 text-sm">預估保障可支撐至</p>
         <div class="text-6xl font-black my-2 text-white">{{ age + survivalYears }} <span class="text-2xl font-normal">歲</span></div>
-        <p class="text-sm text-blue-300">美元預估總資產：${{ smartFormatUSD(currentBalanceUSD) }}</p>
+        <p class="text-sm text-blue-300">美元預估總資產：USD ${{ smartFormatUSD(currentBalanceUSD) }}</p>
     </div>
 
     <div class="input-card">
@@ -30,15 +30,15 @@
             <div><label>目前年齡</label><input type="number" v-model.number="age"></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-            <div><label>投入保費 (萬)</label><input type="number" v-model.number="principal"></div>
-            <div><label>淨值假設 (每年漲跌 %)</label><input type="number" v-model.number="marketChange"></div>
+            <div><label>投入保費 (台幣萬)</label><input type="number" v-model.number="principal"></div>
+            <div><label>淨值衝擊假設 (%)</label><input type="number" v-model.number="marketShock" placeholder="例如跌20填-20"></div>
         </div>
     </div>
 
     <div class="input-card">
-        <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2">📈 標的與保障設定</h3>
+        <h3 class="text-green-400 text-xs mb-3 font-bold border-b border-slate-700 pb-2 uppercase">標的與配息設定 (USD)</h3>
         <div class="grid grid-cols-2 gap-3">
-            <div><label>基本保額 (萬)</label><input type="number" v-model.number="faceAmount"></div>
+            <div><label>基本保額 (台幣萬)</label><input type="number" v-model.number="faceAmount"></div>
             <div><label>初始淨值 (USD)</label><input type="number" v-model.number="nav" step="0.1"></div>
         </div>
         <div class="grid grid-cols-2 gap-3 mt-3">
@@ -48,19 +48,19 @@
     </div>
 
     <div class="bg-slate-900/50 rounded-xl p-2 mb-10">
-        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度單位銷除與淨值變動明細</h3>
+        <h3 class="text-[10px] font-bold text-gray-500 mb-2 px-2 uppercase text-center font-mono">年度衝擊測試明細 (匯率 {{fx}})</h3>
         <div class="space-y-2">
             <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-gray-500 ml-1">第{{ row.year + 1 }}年</span></p>
                         <p class="text-[11px] text-blue-400 mt-1 font-mono">剩餘持分: {{ formatUnit(row.units) }}</p>
-                        <p class="text-[10px] text-yellow-500 mt-0.5 font-mono">當前淨值: {{ row.currentNav.toFixed(2) }}</p>
+                        <p class="text-[10px] text-yellow-500 mt-0.5">當前淨值: USD {{ row.currentNav.toFixed(2) }}</p>
                     </div>
                     <div class="text-right flex-1">
                         <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
-                        <p class="text-[11px] text-white">USD ${{ smartFormatUSD(row.balance * 10000 / fx) }}</p>
-                        <p class="text-[10px] text-red-400 font-bold">月扣費: {{ smartFormat(row.fees * 10000) }}</p>
+                        <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / fx) }}</p>
+                        <p class="text-[10px] text-red-400 font-bold mt-1">月壽險成本: {{ smartFormat(row.fees * 10000) }}</p>
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@ createApp({
         const gender = ref('female');
         const age = ref(40);
         const principal = ref(500);
-        const marketChange = ref(0); 
+        const marketShock = ref(0); 
         const faceAmount = ref(1000);
         const nav = ref(9.0);
         const divPerUnit = ref(0.055);
@@ -104,37 +104,34 @@ createApp({
         };
 
         const runSim = (isFull) => {
+            // 一次性衝擊：第一年淨值就發生變動，之後維持平盤
+            let currentNav = nav.ref ? nav.value : nav; // 避免 Vue proxy 讀取問題
+            currentNav = nav.value * (1 + marketShock.value / 100);
+            
             let currentUnits = (principal.value * 10000 / fx) / nav.value;
-            let currentNav = nav.value;
             let res = [];
             const isLarge = principal.value >= 1000;
 
             for (let y = 0; y <= 60; y++) {
                 let curAge = age.value + y;
-                
-                // 淨值隨市場假設變動 (B點修正)
-                if (y > 0) {
-                    currentNav = currentNav * (1 + marketChange.value / 100);
-                }
 
                 for(let m = 0; m < 12; m++) {
                     let monthlyB = (currentUnits * currentNav * fx) / 10000;
                     let factor = getCOI(gender.value, curAge);
                     let nar = Math.max(0, faceAmount.value - monthlyB);
                     
-                    // 費用邏輯
+                    // 費用規則 (第5年起免收帳管費)
                     let feeRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
                     let mAdminFee = monthlyB >= 300 ? 0 : 0.01;
                     let mCOI = (nar * factor) / 10000;
                     let mTotalFee = mCOI + (monthlyB * feeRate) + mAdminFee;
 
-                    // 配息與回買邏輯 (統一用初始淨值回買)
+                    // 配息回買 (固定用初始淨值 nav.value)
                     let mDiv = (currentUnits * divPerUnit.value * fx) / 10000;
                     let reinvestAmt = mDiv * (1 - withdrawRatio.value / 100);
                     
-                    // 單位數變動 (費用扣除 vs 配息回買)
                     let feeUnits = (mTotalFee * 10000 / fx) / currentNav; 
-                    let reinvestUnits = (reinvestAmt * 10000 / fx) / nav.value; // 固定用初始 NAV 回買
+                    let reinvestUnits = (reinvestAmt * 10000 / fx) / nav.value; 
                     
                     currentUnits += (reinvestUnits - feeUnits);
                 }
@@ -159,7 +156,7 @@ createApp({
             return last ? (last.balance * 10000 / fx) : 0;
         });
 
-        return { gender, age, principal, marketChange, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit, fx };
+        return { gender, age, principal, marketShock, faceAmount, nav, divPerUnit, withdrawRatio, simulation, survivalYears, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit, fx };
     }
 }).mount('#app');
 </script>
