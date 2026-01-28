@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 公式校正版</title>
+    <title>元元致富精算 - 核心修復</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -18,9 +18,9 @@
 <body class="p-4">
 <div id="app">
     <div class="res-box shadow-2xl">
-        <p class="text-blue-200 text-xs">預估保障可支撐至</p>
-        <div class="text-6xl font-black my-1 text-white">{{ finalAge }} <span class="text-2xl font-normal">歲</span></div>
-        <p class="text-sm text-blue-300 font-bold">美元預估總資產：USD ${{ smartFormatUSD(currentBalanceUSD) }}</p>
+        <p class="text-blue-200 text-xs text-center">預估保障可支撐至</p>
+        <div class="text-6xl font-black my-1 text-white text-center">{{ finalAge }} <span class="text-2xl font-normal">歲</span></div>
+        <p class="text-sm text-blue-300 font-bold text-center">預估總資產：USD ${{ smartFormatUSD(currentBalanceUSD) }}</p>
     </div>
 
     <div class="input-card">
@@ -40,7 +40,7 @@
             <div><label>初始淨值 (USD)</label><input type="number" v-model="nav"></div>
         </div>
         <div class="grid grid-cols-2 gap-3 mb-3">
-            <div><label>單位配息 (USD)</label><input type="number" v-model="divPerUnit" step="0.001"></div>
+            <div><label>單位配息 (USD)</label><input type="number" v-model="divPerUnit"></div>
             <div><label>配息領走 (%)</label><input type="number" v-model="withdrawRatio"></div>
         </div>
         <div><label>淨值衝擊假設 (%)</label><input type="number" v-model="marketShock"></div>
@@ -82,56 +82,53 @@ const COI_DATA = {
 };
 
 const getCoi = (g, a) => {
-    const t = COI_DATA[g] || COI_DATA.female;
-    const keys = Object.keys(t).map(Number).sort((a, b) => a - b);
-    let v = parseFloat(a);
-    if (v <= keys[0]) return t[keys[0]];
-    if (v >= keys[keys.length - 1]) return t[keys[keys.length - 1]];
-    let low = keys[0], high = keys[keys.length - 1];
-    for (let k of keys) {
-        if (k <= v) low = k;
-        if (k >= v) { high = k; break; }
+    const table = COI_DATA[g] || COI_DATA.female;
+    const sortedAges = Object.keys(table).map(Number).sort((x, y) => x - y); // 關鍵修復：數值排序
+    const targetAge = parseFloat(a) || 0;
+
+    if (targetAge <= sortedAges[0]) return table[sortedAges[0]];
+    if (targetAge >= sortedAges[sortedAges.length - 1]) return table[sortedAges[sortedAges.length - 1]];
+
+    let low = sortedAges[0], high = sortedAges[sortedAges.length - 1];
+    for (let i = 0; i < sortedAges.length; i++) {
+        if (sortedAges[i] <= targetAge) low = sortedAges[i];
+        if (sortedAges[i] >= targetAge) { high = sortedAges[i]; break; }
     }
-    return t[low] + (t[high] - t[low]) * (v - low) / (high - low);
+    
+    if (low === high) return table[low];
+    const ratio = (targetAge - low) / (high - low);
+    return table[low] + (table[high] - table[low]) * ratio;
 };
 
 createApp({
     setup() {
-        // 初始化數據
-        const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), marketShock = ref(0), faceAmount = ref(1000), nav = ref(9.0), divPerUnit = ref(0.055), withdrawRatio = ref(100);
+        const gender = ref('female'), age = ref(40), principal = ref(50), fx = ref(32), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100), marketShock = ref(0);
 
         const smartFormat = (v) => v <= 0 ? '帳戶終止' : (v >= 10000 ? (v/10000).toFixed(2)+'萬' : Math.round(v).toLocaleString()+'元');
         const smartFormatUSD = (v) => Math.round(v || 0).toLocaleString();
         const formatUnit = (v) => (parseFloat(v) || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
-            // 強制數值轉換以防 NaN
-            const p = parseFloat(principal.value) || 0;
-            const f = parseFloat(fx.value) || 1;
-            const nBase = parseFloat(nav.value) || 9;
-            const startAge = parseInt(age.value) || 40;
-            const face = parseFloat(faceAmount.value) || 0;
-            const div = parseFloat(divPerUnit.value) || 0;
-            const wRatio = parseFloat(withdrawRatio.value) || 0;
-            const shock = parseFloat(marketShock.value) || 0;
+            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 32, nBase = parseFloat(nav.value) || 9;
+            const startAge = parseInt(age.value) || 40, face = parseFloat(faceAmount.value) || 0;
+            const div = parseFloat(divPerUnit.value) || 0, wRatio = parseFloat(withdrawRatio.value) || 0;
 
             if (p <= 0) return isFull ? startAge : [];
 
-            let currentUnits = (p * 10000 / f) / nBase;
-            let currentNav = nBase * (1 + shock / 100);
+            let units = (p * 10000 / f) / nBase;
+            let currentNav = nBase * (1 + (parseFloat(marketShock.value) || 0) / 100);
             let res = [];
 
-            for (let y = 0; y <= 75; y++) {
+            for (let y = 0; y <= 80; y++) {
                 let curAge = startAge + y;
                 let mC = 0, mAdm = 0, mU = 0, mR = 0, cFact = 0;
 
                 for (let m = 0; m < 12; m++) {
-                    let bal = (currentUnits * currentNav * f) / 10000;
+                    let bal = (units * currentNav * f) / 10000;
                     cFact = getCoi(gender.value, curAge);
                     
-                    // 修正核心公式：月壽險成本 = (淨危險保額 / 10000) * 月係數
                     let narTenThousand = Math.max(0, (face - bal));
-                    let mCOI = (narTenThousand * cFact) / 10000; 
+                    let mCOI = (narTenThousand * cFact) / 10000; // 月壽險成本直接使用月係數
                     
                     let fRate = (y < 3) ? (p >= 1000 ? 0.00155 : 0.0016) : (y === 3 ? (p >= 1000 ? 0.001 : 0.0012) : 0);
                     let mPct = (bal * fRate);
@@ -139,22 +136,22 @@ createApp({
                     
                     let mTotal = mCOI + mPct + mAdminVal;
                     let mUnitFee = (mTotal * 10000 / f) / currentNav;
-                    let reinvestUnits = (currentUnits * div * (1 - wRatio / 100)) / nBase;
+                    let reinvestUnits = (units * div * (1 - wRatio / 100)) / nBase;
                     
                     mC = mCOI; mAdm = mAdminVal; mU = mUnitFee; mR = reinvestUnits;
-                    currentUnits += (reinvestUnits - mUnitFee);
-                    if (currentUnits <= 1e-6) { currentUnits = 0; break; }
+                    units += (reinvestUnits - mUnitFee);
+                    if (units <= 1e-6) { units = 0; break; }
                 }
 
-                if (y % 5 === 0) {
-                    res.push({ age: curAge, year: y, balance: (currentUnits * currentNav * f) / 10000, units: currentUnits, coiFee: mC, maintenanceFee: mAdm, monthlyUnitFee: mU, monthlyReinvest: mR, currentFactor: cFact.toFixed(2) });
+                if (y % 5 === 0 || units <= 0) {
+                    res.push({ age: curAge, year: y, balance: (units * currentNav * f) / 10000, units: units, coiFee: mC, maintenanceFee: mAdm, monthlyUnitFee: mU, monthlyReinvest: mR, currentFactor: cFact.toFixed(2) });
                 }
-                if (currentUnits <= 0) break;
+                if (units <= 0) break;
             }
             return isFull ? (res.length > 0 ? res[res.length-1].age : startAge) : res;
         };
 
-        return { gender, age, principal, fx, marketShock, faceAmount, nav, divPerUnit, withdrawRatio, simulation: computed(()=>runSim(false)), finalAge: computed(()=>runSim(true)), currentBalanceUSD: computed(() => { const r = runSim(false)[0]; return r ? (r.balance * 10000 / (parseFloat(fx.value) || 1)) : 0; }), smartFormat, smartFormatUSD, formatUnit };
+        return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, marketShock, simulation: computed(()=>runSim(false)), finalAge: computed(()=>runSim(true)), currentBalanceUSD: computed(() => { const r = runSim(false)[0]; return r ? (r.balance * 10000 / (parseFloat(fx.value) || 1)) : 0; }), smartFormat, smartFormatUSD, formatUnit };
     }
 }).mount('#app');
 </script>
