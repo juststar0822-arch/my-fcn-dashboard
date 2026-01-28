@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 費用全透明版</title>
+    <title>元元致富精算 - 淨值衝擊校正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -12,7 +12,6 @@
         input, select { background: #475569; border: 1px solid #64748b; color: white; padding: 10px; border-radius: 8px; width: 100%; margin-top: 4px; outline: none; }
         label { color: #94a3b8; font-size: 11px; font-weight: bold; }
         .res-box { background: linear-gradient(135deg, #1e40af 0%, #111827 100%); border-radius: 20px; padding: 20px; text-align: center; margin-bottom: 15px; border: 1px solid #3b82f6; }
-        .fee-tag { background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); color: #f87171; padding: 2px 6px; border-radius: 4px; font-size: 10px; }
         .coi-badge { background: #1e293b; color: #fbbf24; border: 1px solid #fbbf24; padding: 1px 4px; border-radius: 4px; font-size: 9px; }
     </style>
 </head>
@@ -48,7 +47,7 @@
     </div>
 
     <div class="space-y-4 mb-10">
-        <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-lg">
+        <div v-for="row in simulation" :key="row.age" class="bg-slate-800 p-4 rounded-xl border border-slate-700">
             <div class="flex justify-between items-start mb-3 border-b border-slate-700 pb-2">
                 <div>
                     <p class="text-sm font-bold text-white">{{ row.age }}歲 <span class="text-[10px] text-slate-500 font-normal ml-1">第{{ row.year + 1 }}年</span></p>
@@ -60,15 +59,14 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-2 mb-3">
-                <div class="space-y-1">
-                    <p class="text-[10px] text-slate-400">月壽險成本: <span class="text-red-300">{{ Math.round(row.fees * 10000).toLocaleString() }} 元</span></p>
-                    <p class="text-[10px] text-slate-400">月帳管費用: <span class="text-red-300">{{ Math.round(row.mAdminFee_Amt * 10000).toLocaleString() }} 元</span></p>
-                    <p class="text-[10px] text-slate-400">100元維護費: <span class="text-red-300">{{ row.mFixedFee > 0 ? '100 元' : '免收' }}</span></p>
+            <div class="grid grid-cols-2 gap-2 mb-3 text-[10px] text-slate-400">
+                <div>
+                    <p>月壽險: {{ Math.round(row.mCOI * 10000).toLocaleString() }} 元</p>
+                    <p>月帳管: {{ Math.round(row.mAdmin * 10000).toLocaleString() }} 元</p>
                 </div>
-                <div class="text-right space-y-1">
-                    <p class="text-[10px] text-slate-400">係數: <span class="coi-badge">{{ row.factor }}</span></p>
-                    <p class="text-[10px] text-slate-400">帳管費率: {{ (row.adminRate * 100).toFixed(3) }}%</p>
+                <div class="text-right">
+                    <p>維護費: {{ row.mFixed > 0 ? '100 元' : '免收' }}</p>
+                    <p>衝擊後淨值: <span class="text-yellow-500">${{ row.currentNav.toFixed(2) }}</span></p>
                 </div>
             </div>
 
@@ -96,7 +94,6 @@
 
 <script>
 const { createApp, ref, computed } = Vue;
-
 const COI_MAP = {
     male: { 15:0.25, 16:0.28, 17:0.32, 18:0.34, 19:0.36, 20:0.36, 21:0.37, 22:0.38, 23:0.39, 24:0.39, 25:0.41, 26:0.42, 27:0.43, 28:0.45, 29:0.47, 30:0.55, 31:0.58, 32:0.62, 33:0.67, 34:0.73, 35:0.81, 36:0.89, 37:0.97, 38:1.06, 39:1.16, 40:1.27, 41:1.39, 42:1.51, 43:1.64, 44:1.78, 45:2.01, 46:2.17, 47:2.34, 48:2.52, 49:2.71, 50:2.89, 51:3.10, 52:3.32, 53:3.56, 54:3.82, 55:4.22, 56:4.51, 57:4.84, 58:5.19, 59:5.57, 60:6.22, 61:6.67, 62:7.18, 63:7.74, 64:8.37, 65:9.39, 66:10.19, 67:11.12, 68:12.18, 69:13.36, 70:15.42, 71:16.86, 72:18.43, 73:20.14, 74:22.02, 75:23.90, 76:26.17, 77:28.66, 78:31.41, 79:34.40, 80:37.65, 81:41.15, 82:44.93, 83:49.04, 84:53.53, 85:58.46, 86:63.90, 87:69.89, 88:76.25, 89:82.96, 90:90.68, 91:99.60, 92:108.45, 93:118.10, 94:128.61, 95:140.07, 96:152.57, 97:166.19, 98:181.04, 99:197.23, 100:214.87, 101:233.56, 102:252.82, 103:273.28, 104:294.95, 105:317.80, 106:352.52, 107:390.26, 108:427.12, 109:465.49, 110:833.33 },
     female: { 15:0.11, 16:0.12, 17:0.13, 18:0.14, 19:0.15, 20:0.15, 21:0.16, 22:0.16, 23:0.17, 24:0.17, 25:0.20, 26:0.21, 27:0.22, 28:0.23, 29:0.24, 30:0.26, 31:0.28, 32:0.30, 33:0.32, 34:0.34, 35:0.37, 36:0.40, 37:0.43, 38:0.46, 39:0.50, 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 56:1.92, 57:2.06, 58:2.22, 59:2.41, 60:2.77, 61:3.00, 62:3.27, 63:3.57, 64:3.91, 65:4.67, 66:5.12, 67:5.66, 68:6.27, 69:6.97, 70:8.10, 71:9.00, 72:10.04, 73:11.21, 74:12.54, 75:13.61, 76:15.26, 77:17.12, 78:19.18, 79:21.47, 80:23.99, 81:26.76, 82:29.82, 83:33.22, 84:37.01, 85:41.28, 86:46.09, 87:51.51, 88:57.60, 89:64.40, 90:71.99, 91:80.42, 92:89.76, 93:100.11, 94:111.53, 95:124.14, 96:138.04, 97:153.31, 98:170.05, 99:188.36, 100:208.32, 101:229.99, 102:253.43, 103:278.66, 104:305.67, 105:334.39, 106:374.03, 107:415.61, 108:463.77, 109:516.22, 110:833.33 }
@@ -111,8 +108,11 @@ createApp({
         const formatUnit = (v) => v.toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
-            const shockedNav = nav.value * (1 + marketShock.value / 100);
-            let units = (principal.value * 10000 / fx.value) / shockedNav;
+            // 關鍵修正：初始單位數按「原始淨值」算，不隨衝擊改變
+            let units = (principal.value * 10000 / fx.value) / nav.value; 
+            // 衝擊後的淨值用於後續價值計算
+            const currentNav = nav.value * (1 + marketShock.value / 100);
+            
             let res = [];
             const isLarge = principal.value >= 1000;
 
@@ -121,41 +121,33 @@ createApp({
                 if (curAge > 110) break;
                 let factor = COI_MAP[gender.value][curAge] || COI_MAP[gender.value][110];
                 
-                // 模擬本月第一個月的各項數據用於顯示
-                let balTWD = (units * shockedNav * fx.value) / 10000;
+                let balTWD = (units * currentNav * fx.value) / 10000;
                 let nar = Math.max(0, faceAmount.value - balTWD);
                 let adminRate = (y < 3) ? (isLarge ? 0.00155 : 0.0016) : (y === 3 ? (isLarge ? 0.001 : 0.0012) : 0);
-                let mFixedFee_萬 = balTWD >= 300 ? 0 : 0.01;
+                let mFixed_萬 = balTWD >= 300 ? 0 : 0.01;
                 let mCOI_萬 = (nar * factor) / 10000;
-                let mAdminFee_Amt_萬 = (balTWD * adminRate);
+                let mAdmin_萬 = (balTWD * adminRate);
                 
-                let totalM_萬 = mCOI_萬 + mAdminFee_Amt_萬 + mFixedFee_萬;
-                let mUnitFee = (totalM_萬 * 10000 / fx.value) / shockedNav;
-                let mReinvest = (units * divPerUnit.value * (1 - withdrawRatio.value / 100)) / shockedNav;
+                let totalFee_萬 = mCOI_萬 + mAdmin_萬 + mFixed_萬;
+                let mUnitFee = (totalFee_萬 * 10000 / fx.value) / currentNav;
+                let mReinvest = (units * divPerUnit.value * (1 - withdrawRatio.value / 100)) / currentNav;
 
                 if (y % 5 === 0) {
                     res.push({
-                        year: y, age: curAge, balanceTWD: balTWD, balanceUSD: units * shockedNav,
+                        year: y, age: curAge, balanceTWD: balTWD, balanceUSD: units * currentNav,
                         units: units, finalUnits: units + mReinvest - mUnitFee, 
-                        nar: nar, fees: mCOI_萬, factor: factor,
-                        mAdminFee_Amt: mAdminFee_Amt_萬, mFixedFee: mFixedFee_萬 * 10000,
-                        adminRate: adminRate,
-                        mUnitFee: mUnitFee, mReinvest: mReinvest
+                        nar: nar, mCOI: mCOI_萬, mAdmin: mAdmin_萬, mFixed: mFixed_萬 * 10000,
+                        currentNav: currentNav, mUnitFee: mUnitFee, mReinvest: mReinvest
                     });
                 }
 
-                // 真實每月循環
                 for(let m = 0; m < 12; m++) {
-                    let cB = (units * shockedNav * fx.value) / 10000;
+                    let cB = (units * currentNav * fx.value) / 10000;
                     let cNar = Math.max(0, faceAmount.value - cB);
                     let cFixed = cB >= 300 ? 0 : 0.01;
                     let cTotal_萬 = (cNar * factor / 10000) + (cB * adminRate) + cFixed;
-                    
-                    let fU = (cTotal_萬 * 10000 / fx.value) / shockedNav;
-                    let rU = (units * divPerUnit.value * (1 - withdrawRatio.value / 100)) / shockedNav;
-                    
-                    units += (rU - fU);
-                    if (units <= 1e-6) { units = 0; break; }
+                    units += ((units * divPerUnit.value * (1 - withdrawRatio.value / 100)) / currentNav) - ((cTotal_萬 * 10000 / fx.value) / currentNav);
+                    if (units <= 0) { units = 0; break; }
                 }
                 if (units <= 0) break;
             }
@@ -164,7 +156,7 @@ createApp({
 
         const simulation = computed(() => runSim(false));
         const survivalYears = computed(() => runSim(true));
-        const currentBalanceUSD = computed(() => (principal.value * 10000 / fx.value));
+        const currentBalanceUSD = computed(() => (principal.value * 10000 / fx.value) * (1 + marketShock.value / 100));
 
         return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, marketShock, simulation, survivalYears, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit };
     }
