@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 最終校正版</title>
+    <title>元元致富精算 - 完整係數版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -43,7 +43,6 @@
             <div><label>單位配息 (USD)</label><input type="number" v-model.number="divPerUnit"></div>
             <div><label>配息領走 (%)</label><input type="number" v-model.number="withdrawRatio"></div>
         </div>
-        <div><label>淨值衝擊假設 (%)</label><input type="number" v-model.number="marketShock"></div>
     </div>
 
     <div class="space-y-3 mb-10">
@@ -58,16 +57,9 @@
                     <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balanceUSD) }}</p>
                 </div>
             </div>
-            <div class="pt-2 border-t border-slate-700/50 grid grid-cols-2 gap-4 text-[10px]">
-                <div class="text-slate-400">
-                    <p class="flex items-center gap-1">月壽險成本: {{ Math.round(row.coiFeeTWD || 0).toLocaleString() }} 元 <span class="coi-badge">月係數: {{ row.currentFactor }}</span></p>
-                    <p v-if="row.maintenanceFee > 0">行政費: 100 元</p>
-                    <p v-else class="text-slate-500 italic">免收行政費 (≧300萬)</p>
-                </div>
-                <div class="text-right text-slate-300">
-                    <p>月扣持分: {{ (row.monthlyUnitFee || 0).toFixed(3) }}</p>
-                    <p>配息回買: {{ (row.monthlyReinvest || 0).toFixed(3) }}</p>
-                </div>
+            <div class="pt-2 border-t border-slate-700/50 flex justify-between text-[10px] text-slate-400">
+                <span>月壽險成本: {{ Math.round(row.coiFeeTWD || 0).toLocaleString() }} 元 <span class="coi-badge ml-1">係數: {{ row.currentFactor }}</span></span>
+                <span>行政費: {{ row.maintenanceFee > 0 ? '100 元' : '免收' }}</span>
             </div>
         </div>
     </div>
@@ -76,68 +68,49 @@
 <script>
 const { createApp, ref, computed } = Vue;
 
-const COI_DATA = {
-    male: { 15:0.18, 20:0.25, 25:0.35, 30:0.48, 35:0.71, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.9, 80:37.65, 81:41.15, 82:44.93, 83:49.02, 84:53.46, 85:58.28, 90:90.41, 100:208.57, 110:550.0 },
-    female: { 15:0.08, 20:0.12, 25:0.18, 30:0.28, 35:0.39, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99, 81:26.75, 82:29.82, 83:33.22, 84:36.98, 85:41.13, 90:73.58, 100:190.55, 110:500.0 }
-};
-
-const getCoi = (g, a) => {
-    const table = COI_DATA[g] || COI_DATA.female;
-    const sortedAges = Object.keys(table).map(Number).sort((x, y) => x - y);
-    const targetAge = parseFloat(a) || 0;
-    if (targetAge <= sortedAges[0]) return table[sortedAges[0]];
-    if (targetAge >= sortedAges[sortedAges.length - 1]) return table[sortedAges[sortedAges.length - 1]];
-    let low = sortedAges[0], high = sortedAges[sortedAges.length - 1];
-    for (let i = 0; i < sortedAges.length; i++) {
-        if (sortedAges[i] <= targetAge) low = sortedAges[i];
-        if (sortedAges[i] >= targetAge) { high = sortedAges[i]; break; }
-    }
-    const ratio = (targetAge - low) / (high - low);
-    return table[low] + (table[high] - table[low]) * ratio;
+const COI_MAP = {
+    male: { 15:0.25, 16:0.28, 17:0.32, 18:0.34, 19:0.36, 20:0.36, 21:0.37, 22:0.38, 23:0.39, 24:0.39, 25:0.41, 26:0.42, 27:0.43, 28:0.45, 29:0.47, 30:0.55, 31:0.58, 32:0.62, 33:0.67, 34:0.73, 35:0.81, 36:0.89, 37:0.97, 38:1.06, 39:1.16, 40:1.27, 41:1.39, 42:1.51, 43:1.64, 44:1.78, 45:2.01, 46:2.17, 47:2.34, 48:2.52, 49:2.71, 50:2.89, 51:3.10, 52:3.32, 53:3.56, 54:3.82, 55:4.22, 56:4.51, 57:4.84, 58:5.19, 59:5.57, 60:6.22, 61:6.67, 62:7.18, 63:7.74, 64:8.37, 65:9.39, 66:10.19, 67:11.12, 68:12.18, 69:13.36, 70:15.42, 71:16.86, 72:18.43, 73:20.14, 74:22.02, 75:23.90, 76:26.17, 77:28.66, 78:31.41, 79:34.40, 80:37.65, 81:41.15, 82:44.93, 83:49.04, 84:53.53, 85:58.46, 86:63.90, 87:69.89, 88:76.25, 89:82.96, 90:90.68, 91:99.60, 92:108.45, 93:118.10, 94:128.61, 95:140.07, 96:152.57, 97:166.19, 98:181.04, 99:197.23, 100:214.87, 101:233.56, 102:252.82, 103:273.28, 104:294.95, 105:317.80, 106:352.52, 107:390.26, 108:427.12, 109:465.49, 110:833.33 },
+    female: { 15:0.11, 16:0.12, 17:0.13, 18:0.14, 19:0.15, 20:0.15, 21:0.16, 22:0.16, 23:0.17, 24:0.17, 25:0.20, 26:0.21, 27:0.22, 28:0.23, 29:0.24, 30:0.26, 31:0.28, 32:0.30, 33:0.32, 34:0.34, 35:0.37, 36:0.40, 37:0.43, 38:0.46, 39:0.50, 40:0.55, 41:0.59, 42:0.64, 43:0.69, 44:0.74, 45:0.85, 46:0.91, 47:0.98, 48:1.05, 49:1.13, 50:1.19, 51:1.27, 52:1.37, 53:1.46, 54:1.56, 55:1.80, 56:1.92, 57:2.06, 58:2.22, 59:2.41, 60:2.77, 61:3.00, 62:3.27, 63:3.57, 64:3.91, 65:4.67, 66:5.12, 67:5.66, 68:6.27, 69:6.97, 70:8.10, 71:9.00, 72:10.04, 73:11.21, 74:12.54, 75:13.61, 76:15.26, 77:17.12, 78:19.18, 79:21.47, 80:23.99, 81:26.76, 82:29.82, 83:33.22, 84:37.01, 85:41.28, 86:46.09, 87:51.51, 88:57.60, 89:64.40, 90:71.99, 91:80.42, 92:89.76, 93:100.11, 94:111.53, 95:124.14, 96:138.04, 97:153.31, 98:170.05, 99:188.36, 100:208.32, 101:229.99, 102:253.43, 103:278.66, 104:305.67, 105:334.39, 106:374.03, 107:415.61, 108:463.77, 109:516.22, 110:833.33 }
 };
 
 createApp({
     setup() {
-        const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100), marketShock = ref(0);
+        const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100);
 
         const smartFormat = (v) => (!v || v <= 0) ? '帳戶終止' : (v >= 10000 ? (v/10000).toFixed(2)+'萬' : Math.round(v).toLocaleString()+'元');
         const smartFormatUSD = (v) => Math.round(v || 0).toLocaleString();
         const formatUnit = (v) => (parseFloat(v) || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
-            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 32.5, nBase = parseFloat(nav.value) || 9;
+            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 1, nBase = parseFloat(nav.value) || 9;
             const startAge = parseInt(age.value) || 40, face = parseFloat(faceAmount.value) || 0;
             const div = parseFloat(divPerUnit.value) || 0, wRatio = parseFloat(withdrawRatio.value) || 0;
-
             if (p <= 0) return isFull ? startAge : [];
 
             let units = (p * 10000 / f) / nBase;
-            let currentNav = nBase * (1 + (parseFloat(marketShock.value) || 0) / 100);
             let res = [];
 
-            for (let y = 0; y <= 80; y++) {
+            for (let y = 0; y <= 95; y++) {
                 let curAge = startAge + y;
-                let mC = 0, mAdm = 0, mU = 0, mR = 0, cFact = getCoi(gender.value, curAge);
+                if (curAge > 110) break;
+                let cFact = COI_MAP[gender.value][curAge] || COI_MAP[gender.value][110];
+                let mC = 0, mAdm = 0;
 
                 for (let m = 0; m < 12; m++) {
-                    let bal = (units * currentNav * f) / 10000;
-                    let narTenThousand = Math.max(0, (face - bal));
-                    let mCOI = (narTenThousand * cFact) || 0; 
-                    let fRate = (y < 3) ? (p >= 1000 ? 0.00155 : 0.0016) : (y === 3 ? (p >= 1000 ? 0.001 : 0.0012) : 0);
-                    let mPct = (bal * fRate) || 0;
+                    let bal = (units * nBase * f) / 10000;
+                    let mCOI = Math.max(0, (face - bal)) * cFact;
                     let mAdminVal = (bal >= 300) ? 0 : 0.01;
-                    
-                    let mTotal = mCOI + mPct + mAdminVal;
-                    let mUnitFee = (mTotal * 10000 / f) / currentNav;
+                    let mTotal = mCOI + mAdminVal;
+                    let mUnitFee = (mTotal * 10000 / f) / nBase;
                     let reinvestUnits = (units * div * (1 - wRatio / 100)) / nBase;
                     
-                    mC = mCOI; mAdm = mAdminVal; mU = mUnitFee; mR = reinvestUnits;
+                    mC = mCOI; mAdm = mAdminVal;
                     units += (reinvestUnits - mUnitFee);
-                    if (units <= 1e-6) { units = 0; break; }
+                    if (units <= 0) { units = 0; break; }
                 }
 
                 if (y % 5 === 0 || units <= 0) {
-                    res.push({ age: curAge, year: y, balanceTWD: (units * currentNav * f) / 10000, balanceUSD: units * currentNav, units: units, coiFeeTWD: mC * 10000, maintenanceFee: mAdm, monthlyUnitFee: mU, monthlyReinvest: mR, currentFactor: cFact.toFixed(2) });
+                    res.push({ age: curAge, year: y, balanceTWD: (units * nBase * f) / 10000, balanceUSD: units * nBase, units: units, coiFeeTWD: mC * 10000, maintenanceFee: mAdm, currentFactor: cFact });
                 }
                 if (units <= 0) break;
             }
@@ -148,7 +121,7 @@ createApp({
         const finalAge = computed(() => runSim(true));
         const currentBalanceUSD = computed(() => simulation.value[0]?.balanceUSD || 0);
 
-        return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, marketShock, simulation, finalAge, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit };
+        return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, simulation, finalAge, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit };
     }
 }).mount('#app');
 </script>
