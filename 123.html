@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 完整係數版</title>
+    <title>元元致富精算 - 邏輯校正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -20,7 +20,7 @@
     <div class="res-box shadow-2xl">
         <p class="text-blue-200 text-xs text-center">預估保障可支撐至</p>
         <div class="text-6xl font-black my-1 text-white text-center">{{ finalAge }} <span class="text-2xl font-normal">歲</span></div>
-        <p class="text-sm text-blue-300 font-bold text-center">預估總資產：USD ${{ smartFormatUSD(currentBalanceUSD) }}</p>
+        <p class="text-sm text-blue-300 font-bold text-center">目前總資產：USD ${{ smartFormatUSD(currentBalanceUSD) }}</p>
     </div>
 
     <div class="input-card">
@@ -75,14 +75,14 @@ const COI_MAP = {
 
 createApp({
     setup() {
-        const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100);
+        const gender = ref('female'), age = ref(40), principal = ref(50), fx = ref(32), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100);
 
         const smartFormat = (v) => (!v || v <= 0) ? '帳戶終止' : (v >= 10000 ? (v/10000).toFixed(2)+'萬' : Math.round(v).toLocaleString()+'元');
         const smartFormatUSD = (v) => Math.round(v || 0).toLocaleString();
         const formatUnit = (v) => (parseFloat(v) || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
-            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 1, nBase = parseFloat(nav.value) || 9;
+            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 32, nBase = parseFloat(nav.value) || 9;
             const startAge = parseInt(age.value) || 40, face = parseFloat(faceAmount.value) || 0;
             const div = parseFloat(divPerUnit.value) || 0, wRatio = parseFloat(withdrawRatio.value) || 0;
             if (p <= 0) return isFull ? startAge : [];
@@ -97,16 +97,18 @@ createApp({
                 let mC = 0, mAdm = 0;
 
                 for (let m = 0; m < 12; m++) {
-                    let bal = (units * nBase * f) / 10000;
-                    let mCOI = Math.max(0, (face - bal)) * cFact;
-                    let mAdminVal = (bal >= 300) ? 0 : 0.01;
+                    // 關鍵邏輯：先算成本再算當下資產
+                    let currentBalTWD = (units * nBase * f) / 10000;
+                    let mCOI = Math.max(0, (face - currentBalTWD)) * cFact; 
+                    let mAdminVal = (currentBalTWD >= 300) ? 0 : 0.01;
+                    
                     let mTotal = mCOI + mAdminVal;
                     let mUnitFee = (mTotal * 10000 / f) / nBase;
                     let reinvestUnits = (units * div * (1 - wRatio / 100)) / nBase;
                     
                     mC = mCOI; mAdm = mAdminVal;
                     units += (reinvestUnits - mUnitFee);
-                    if (units <= 0) { units = 0; break; }
+                    if (units <= 1e-6) { units = 0; break; }
                 }
 
                 if (y % 5 === 0 || units <= 0) {
@@ -119,7 +121,7 @@ createApp({
 
         const simulation = computed(() => runSim(false));
         const finalAge = computed(() => runSim(true));
-        const currentBalanceUSD = computed(() => simulation.value[0]?.balanceUSD || 0);
+        const currentBalanceUSD = computed(() => (simulation.value.length > 0) ? simulation.value[0].balanceUSD : 0);
 
         return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, simulation, finalAge, currentBalanceUSD, smartFormat, smartFormatUSD, formatUnit };
     }
