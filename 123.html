@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 核心修復</title>
+    <title>元元致富精算 - 壽險成本校正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -55,12 +55,12 @@
                 </div>
                 <div class="text-right">
                     <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
-                    <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / (parseFloat(fx) || 1)) }}</p>
+                    <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balanceUSD) }}</p>
                 </div>
             </div>
             <div class="pt-2 border-t border-slate-700/50 grid grid-cols-2 gap-4 text-[10px]">
                 <div class="text-slate-400">
-                    <p class="flex items-center gap-1">月壽險成本: {{ Math.round(row.coiFee * 10000).toLocaleString() }} 元 <span class="coi-badge">月係數: {{ row.currentFactor }}</span></p>
+                    <p class="flex items-center gap-1">月壽險成本: {{ Math.round(row.coiFeeTWD).toLocaleString() }} 元 <span class="coi-badge">月係數: {{ row.currentFactor }}</span></p>
                     <p v-if="row.maintenanceFee > 0">行政費: 100 元</p>
                     <p v-else class="text-slate-500 italic">免收行政費 (≧300萬)</p>
                 </div>
@@ -83,33 +83,29 @@ const COI_DATA = {
 
 const getCoi = (g, a) => {
     const table = COI_DATA[g] || COI_DATA.female;
-    const sortedAges = Object.keys(table).map(Number).sort((x, y) => x - y); // 關鍵修復：數值排序
+    const sortedAges = Object.keys(table).map(Number).sort((x, y) => x - y);
     const targetAge = parseFloat(a) || 0;
-
     if (targetAge <= sortedAges[0]) return table[sortedAges[0]];
     if (targetAge >= sortedAges[sortedAges.length - 1]) return table[sortedAges[sortedAges.length - 1]];
-
     let low = sortedAges[0], high = sortedAges[sortedAges.length - 1];
     for (let i = 0; i < sortedAges.length; i++) {
         if (sortedAges[i] <= targetAge) low = sortedAges[i];
         if (sortedAges[i] >= targetAge) { high = sortedAges[i]; break; }
     }
-    
-    if (low === high) return table[low];
     const ratio = (targetAge - low) / (high - low);
     return table[low] + (table[high] - table[low]) * ratio;
 };
 
 createApp({
     setup() {
-        const gender = ref('female'), age = ref(40), principal = ref(50), fx = ref(32), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100), marketShock = ref(0);
+        const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), faceAmount = ref(1000), nav = ref(9), divPerUnit = ref(0.055), withdrawRatio = ref(100), marketShock = ref(0);
 
         const smartFormat = (v) => v <= 0 ? '帳戶終止' : (v >= 10000 ? (v/10000).toFixed(2)+'萬' : Math.round(v).toLocaleString()+'元');
         const smartFormatUSD = (v) => Math.round(v || 0).toLocaleString();
         const formatUnit = (v) => (parseFloat(v) || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
-            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 32, nBase = parseFloat(nav.value) || 9;
+            const p = parseFloat(principal.value) || 0, f = parseFloat(fx.value) || 32.5, nBase = parseFloat(nav.value) || 9;
             const startAge = parseInt(age.value) || 40, face = parseFloat(faceAmount.value) || 0;
             const div = parseFloat(divPerUnit.value) || 0, wRatio = parseFloat(withdrawRatio.value) || 0;
 
@@ -124,15 +120,16 @@ createApp({
                 let mC = 0, mAdm = 0, mU = 0, mR = 0, cFact = 0;
 
                 for (let m = 0; m < 12; m++) {
-                    let bal = (units * currentNav * f) / 10000;
+                    let bal = (units * currentNav * f) / 10000; // 帳戶價值(萬)
                     cFact = getCoi(gender.value, curAge);
                     
-                    let narTenThousand = Math.max(0, (face - bal));
-                    let mCOI = (narTenThousand * cFact) / 10000; // 月壽險成本直接使用月係數
+                    // 修正核心公式：(保額1000萬 - 資產) / 10000 * 係數
+                    let narTenThousand = Math.max(0, (face - bal)); 
+                    let mCOI = narTenThousand * cFact; 
                     
                     let fRate = (y < 3) ? (p >= 1000 ? 0.00155 : 0.0016) : (y === 3 ? (p >= 1000 ? 0.001 : 0.0012) : 0);
                     let mPct = (bal * fRate);
-                    let mAdminVal = (bal >= 300) ? 0 : 0.01;
+                    let mAdminVal = (bal >= 300) ? 0 : 0.01; // 100元 = 0.01萬
                     
                     let mTotal = mCOI + mPct + mAdminVal;
                     let mUnitFee = (mTotal * 10000 / f) / currentNav;
@@ -144,14 +141,14 @@ createApp({
                 }
 
                 if (y % 5 === 0 || units <= 0) {
-                    res.push({ age: curAge, year: y, balance: (units * currentNav * f) / 10000, units: units, coiFee: mC, maintenanceFee: mAdm, monthlyUnitFee: mU, monthlyReinvest: mR, currentFactor: cFact.toFixed(2) });
+                    res.push({ age: curAge, year: y, balance: (units * currentNav * f) / 10000, balanceUSD: units * currentNav, units: units, coiFeeTWD: mC * 10000, maintenanceFee: mAdm, monthlyUnitFee: mU, monthlyReinvest: mR, currentFactor: cFact.toFixed(2) });
                 }
                 if (units <= 0) break;
             }
             return isFull ? (res.length > 0 ? res[res.length-1].age : startAge) : res;
         };
 
-        return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, marketShock, simulation: computed(()=>runSim(false)), finalAge: computed(()=>runSim(true)), currentBalanceUSD: computed(() => { const r = runSim(false)[0]; return r ? (r.balance * 10000 / (parseFloat(fx.value) || 1)) : 0; }), smartFormat, smartFormatUSD, formatUnit };
+        return { gender, age, principal, fx, faceAmount, nav, divPerUnit, withdrawRatio, marketShock, simulation: computed(()=>runSim(false)), finalAge: computed(()=>runSim(true)), currentBalanceUSD: computed(() => { const r = runSim(false)[0]; return r ? r.balanceUSD : 0; }), smartFormat, smartFormatUSD, formatUnit };
     }
 }).mount('#app');
 </script>
