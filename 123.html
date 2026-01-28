@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富精算 - 月費率版</title>
+    <title>元元致富精算 - 公式校正版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
@@ -26,24 +26,24 @@
     <div class="input-card">
         <div class="grid grid-cols-2 gap-3 mb-3">
             <div><label>投保性別</label><select v-model="gender"><option value="male">男性</option><option value="female">女性</option></select></div>
-            <div><label>試算匯率</label><input type="number" v-model.number="fx"></div>
+            <div><label>試算匯率</label><input type="number" v-model="fx"></div>
         </div>
         <div class="grid grid-cols-2 gap-3">
-            <div><label>投入保費 (萬)</label><input type="number" v-model.number="principal"></div>
-            <div><label>目前年齡</label><input type="number" v-model.number="age"></div>
+            <div><label>投入保費 (萬)</label><input type="number" v-model="principal"></div>
+            <div><label>目前年齡</label><input type="number" v-model="age"></div>
         </div>
     </div>
 
     <div class="input-card">
         <div class="grid grid-cols-2 gap-3 mb-3">
-            <div><label>基本保額 (萬)</label><input type="number" v-model.number="faceAmount"></div>
-            <div><label>初始淨值 (USD)</label><input type="number" v-model.number="nav"></div>
+            <div><label>基本保額 (萬)</label><input type="number" v-model="faceAmount"></div>
+            <div><label>初始淨值 (USD)</label><input type="number" v-model="nav"></div>
         </div>
         <div class="grid grid-cols-2 gap-3 mb-3">
-            <div><label>單位配息 (USD)</label><input type="number" v-model.number="divPerUnit" step="0.001"></div>
-            <div><label>配息領走 (%)</label><input type="number" v-model.number="withdrawRatio"></div>
+            <div><label>單位配息 (USD)</label><input type="number" v-model="divPerUnit" step="0.001"></div>
+            <div><label>配息領走 (%)</label><input type="number" v-model="withdrawRatio"></div>
         </div>
-        <div><label>淨值衝擊假設 (%)</label><input type="number" v-model.number="marketShock"></div>
+        <div><label>淨值衝擊假設 (%)</label><input type="number" v-model="marketShock"></div>
     </div>
 
     <div class="space-y-3 mb-10">
@@ -55,7 +55,7 @@
                 </div>
                 <div class="text-right">
                     <p class="text-base font-black text-green-400">{{ smartFormat(row.balance * 10000) }}</p>
-                    <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / (fx || 1)) }}</p>
+                    <p class="text-[11px] text-white font-mono">USD ${{ smartFormatUSD(row.balance * 10000 / (parseFloat(fx) || 1)) }}</p>
                 </div>
             </div>
             <div class="pt-2 border-t border-slate-700/50 grid grid-cols-2 gap-4 text-[10px]">
@@ -64,9 +64,9 @@
                     <p v-if="row.maintenanceFee > 0">行政費: 100 元</p>
                     <p v-else class="text-slate-500 italic">免收行政費 (≧300萬)</p>
                 </div>
-                <div class="text-right">
-                    <p class="text-red-400 font-bold">月扣持分: {{ row.monthlyUnitFee.toFixed(3) }}</p>
-                    <p class="text-blue-400">配息回買: {{ row.monthlyReinvest.toFixed(3) }}</p>
+                <div class="text-right text-slate-300">
+                    <p>月扣持分: {{ (row.monthlyUnitFee || 0).toFixed(3) }}</p>
+                    <p>配息回買: {{ (row.monthlyReinvest || 0).toFixed(3) }}</p>
                 </div>
             </div>
         </div>
@@ -76,14 +76,13 @@
 <script>
 const { createApp, ref, computed } = Vue;
 
-// 這些數值現在被視為「每月費率」
 const COI_DATA = {
     male: { 15:0.18, 20:0.25, 25:0.35, 30:0.48, 35:0.71, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42, 75:23.9, 80:37.65, 81:41.15, 82:44.93, 83:49.02, 84:53.46, 85:58.28, 90:90.41, 100:208.57, 110:550.0 },
     female: { 15:0.08, 20:0.12, 25:0.18, 30:0.28, 35:0.39, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10, 75:13.61, 80:23.99, 81:26.75, 82:29.82, 83:33.22, 84:36.98, 85:41.13, 90:73.58, 100:190.55, 110:500.0 }
 };
 
 const getCoi = (g, a) => {
-    const t = COI_DATA[g];
+    const t = COI_DATA[g] || COI_DATA.female;
     const keys = Object.keys(t).map(Number).sort((a, b) => a - b);
     let v = parseFloat(a);
     if (v <= keys[0]) return t[keys[0]];
@@ -98,23 +97,31 @@ const getCoi = (g, a) => {
 
 createApp({
     setup() {
+        // 初始化數據
         const gender = ref('female'), age = ref(40), principal = ref(500), fx = ref(32.5), marketShock = ref(0), faceAmount = ref(1000), nav = ref(9.0), divPerUnit = ref(0.055), withdrawRatio = ref(100);
+
         const smartFormat = (v) => v <= 0 ? '帳戶終止' : (v >= 10000 ? (v/10000).toFixed(2)+'萬' : Math.round(v).toLocaleString()+'元');
         const smartFormatUSD = (v) => Math.round(v || 0).toLocaleString();
         const formatUnit = (v) => (parseFloat(v) || 0).toLocaleString(undefined, {maximumFractionDigits: 1});
 
         const runSim = (isFull) => {
+            // 強制數值轉換以防 NaN
             const p = parseFloat(principal.value) || 0;
             const f = parseFloat(fx.value) || 1;
-            const nBase = parseFloat(nav.value) || 1;
-            const startAge = parseInt(age.value) || 0;
+            const nBase = parseFloat(nav.value) || 9;
+            const startAge = parseInt(age.value) || 40;
+            const face = parseFloat(faceAmount.value) || 0;
+            const div = parseFloat(divPerUnit.value) || 0;
+            const wRatio = parseFloat(withdrawRatio.value) || 0;
+            const shock = parseFloat(marketShock.value) || 0;
+
             if (p <= 0) return isFull ? startAge : [];
 
             let currentUnits = (p * 10000 / f) / nBase;
-            let currentNav = nBase * (1 + (parseFloat(marketShock.value) || 0) / 100);
+            let currentNav = nBase * (1 + shock / 100);
             let res = [];
 
-            for (let y = 0; y <= 80; y++) {
+            for (let y = 0; y <= 75; y++) {
                 let curAge = startAge + y;
                 let mC = 0, mAdm = 0, mU = 0, mR = 0, cFact = 0;
 
@@ -122,8 +129,8 @@ createApp({
                     let bal = (currentUnits * currentNav * f) / 10000;
                     cFact = getCoi(gender.value, curAge);
                     
-                    // 核心公式：月壽險成本 = (淨危險保額 / 10000) * 月係數
-                    let narTenThousand = Math.max(0, (parseFloat(faceAmount.value) - bal));
+                    // 修正核心公式：月壽險成本 = (淨危險保額 / 10000) * 月係數
+                    let narTenThousand = Math.max(0, (face - bal));
                     let mCOI = (narTenThousand * cFact) / 10000; 
                     
                     let fRate = (y < 3) ? (p >= 1000 ? 0.00155 : 0.0016) : (y === 3 ? (p >= 1000 ? 0.001 : 0.0012) : 0);
@@ -132,11 +139,11 @@ createApp({
                     
                     let mTotal = mCOI + mPct + mAdminVal;
                     let mUnitFee = (mTotal * 10000 / f) / currentNav;
-                    let reinvestUnits = (currentUnits * (parseFloat(divPerUnit.value) || 0) * (1 - (parseFloat(withdrawRatio.value) || 0) / 100)) / nBase;
+                    let reinvestUnits = (currentUnits * div * (1 - wRatio / 100)) / nBase;
                     
                     mC = mCOI; mAdm = mAdminVal; mU = mUnitFee; mR = reinvestUnits;
                     currentUnits += (reinvestUnits - mUnitFee);
-                    if (currentUnits <= 0) { currentUnits = 0; break; }
+                    if (currentUnits <= 1e-6) { currentUnits = 0; break; }
                 }
 
                 if (y % 5 === 0) {
