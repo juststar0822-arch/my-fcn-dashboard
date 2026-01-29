@@ -247,7 +247,7 @@
                             data.symbol = tickerList[i];
                             this.stockData.push(data);
                         }
-                        await new Promise(r => setTimeout(r, 600));
+                        await new Promise(r => setTimeout(r, 1000));
                     }
 
                     if (this.stockData.length > 0) {
