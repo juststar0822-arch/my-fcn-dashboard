@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v5.4 (API版)</title>
+    <title>FCN專業報價系統 v5.8 (API版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -206,17 +206,16 @@
             },
             methods: {
                 getStockName(s) {
-                    const symbol = s.toUpperCase();
+                    const symbol = s.toUpperCase().replace('.T', '');
                     if (stockNames[symbol]) return stockNames[symbol];
-                    const clean = symbol.replace('.T', '');
-                    if (stockNames[clean]) return stockNames[clean];
                     return ''; 
                 },
                 async fetchStock(ticker) {
-                    let symbol = ticker.toUpperCase();
+                    let symbol = ticker.toUpperCase().replace('.T', '');
                     let exchangeParam = "";
-                    if (symbol.endsWith('.T')) {
-                        symbol = symbol.replace('.T', '');
+                    
+                    // 修改處：如果是日股模式，強制加上日本交易所參數
+                    if (this.form.market === 'JP') {
                         exchangeParam = "&mic=XTKS";
                     }
                     
@@ -225,7 +224,7 @@
                     try {
                         const res = await fetch(url);
                         const data = await res.json();
-                        if (data.status === "error") throw new Error(data.message);
+                        if (data.status === "error" || !data.values) throw new Error(data.message);
 
                         const values = data.values.reverse(); 
                         const prices = values.map(v => parseFloat(v.close));
@@ -245,8 +244,8 @@
                 async generate() {
                     this.isSyncing = true; this.isGenerated = false; this.stockData = [];
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
-                    if(this.form.market === 'JP') tickerList = tickerList.map(t => t.endsWith('.T') ? t : t + '.T');
                     
+                    // 在處理 tickerList 時不再強制加 .T，讓 fetchStock 內部決定 mic
                     for (let i = 0; i < tickerList.length; i++) {
                         this.progressText = `正在請求資料: ${tickerList[i]}...`;
                         const data = await this.fetchStock(tickerList[i]);
@@ -275,7 +274,6 @@
                     const strike = p * (this.form.strikeP / 100);
                     const ki = this.form.kiP > 0 ? p * (this.form.kiP / 100) : null;
                     
-                    // 動態計算 Y 軸：找出所有數據點的最大最小值，並留 15% 邊距
                     const allDataPoints = [...stock.history, ko, strike];
                     if(ki) allDataPoints.push(ki);
                     const rawMin = Math.min(...allDataPoints);
