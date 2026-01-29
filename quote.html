@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v5.4</title>
+    <title>FCN專業報價系統 v5.5 (Hybrid Data)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -55,7 +55,7 @@
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 mb-6 no-print fade-in">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Stability Terminal v5.4</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Stability Terminal v5.5</p>
             </div>
 
             <div class="space-y-4">
@@ -175,6 +175,9 @@
 
     <script>
         const { createApp } = Vue;
+        // ！！！請在這裡填入您的 Alpha Vantage API Key ！！！
+        const ALPHA_VANTAGE_KEY = 'QYFEWS9MBY0W3GDN';
+
         const stockNames = {
             'TSM':'台積電', 'NVDA':'輝達', 'AVGO':'博通', 'ASML':'艾司摩爾', 'AMD':'超微', 
             'MU':'美光', 'INTC':'英特爾', 'QCOM':'高通', 'AMAT':'應材', 'LRCX':'科林研發',
@@ -214,7 +217,54 @@
                     if (stockNames[withT]) return stockNames[withT];
                     return ''; 
                 },
+                // 修改後的混合抓取函數
                 async fetchStock(ticker) {
+                    // 如果是日股，直接走 Yahoo (Alpha Vantage 日股數據免費版支援較差)
+                    if (ticker.endsWith('.T')) return await this.fetchFromYahoo(ticker);
+
+                    // 美股優先嘗試 Alpha Vantage
+                    try {
+                        const avUrl = `https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${ticker}&outputsize=full&apikey=${ALPHA_VANTAGE_KEY}`;
+                        const res = await fetch(avUrl);
+                        const json = await res.json();
+                        
+                        // 檢查是否有數據 (Alpha Vantage 免費版若達上限會回傳 Note)
+                        if (json["Time Series (Daily)"]) {
+                            const timeSeries = json["Time Series (Daily)"];
+                            const dates = Object.keys(timeSeries).sort(); // 從舊到新
+                            const startDateStr = "2024-09-01";
+                            
+                            const validPrices = [];
+                            const validLabels = [];
+                            
+                            dates.forEach(date => {
+                                if (date >= startDateStr) {
+                                    validPrices.push(parseFloat(timeSeries[date]["4. close"]));
+                                    validLabels.push(date.replace(/-/g, '/'));
+                                }
+                            });
+
+                            if (validPrices.length > 0) {
+                                console.log(`${ticker} 來自 Alpha Vantage`);
+                                return { 
+                                    symbol: ticker, 
+                                    price: validPrices[validPrices.length - 1].toFixed(2), 
+                                    history: validPrices, 
+                                    labels: validLabels 
+                                };
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Alpha Vantage Error:", e);
+                    }
+
+                    // 如果 AV 失敗或沒數據，則回退到 Yahoo
+                    console.log(`${ticker} 切換至 Yahoo 備援`);
+                    return await this.fetchFromYahoo(ticker);
+                },
+
+                // 封裝原本的 Yahoo 抓取邏輯
+                async fetchFromYahoo(ticker) {
                     const cb = new Date().getTime();
                     const proxyUrl = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/'+ticker+'?range=2y&interval=1d&cb='+cb)}`;
                     try {
@@ -235,6 +285,7 @@
                         return { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
                     } catch (e) { return null; }
                 },
+
                 async generate() {
                     this.isSyncing = true; this.isGenerated = false; this.stockData = [];
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
@@ -247,7 +298,8 @@
                             data.symbol = tickerList[i];
                             this.stockData.push(data);
                         }
-                        await new Promise(r => setTimeout(r, 600));
+                        // 增加等待時間以符合 Alpha Vantage 頻率限制 (每分鐘 5 次)
+                        await new Promise(r => setTimeout(r, 12000)); 
                     }
 
                     if (this.stockData.length > 0) {
