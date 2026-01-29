@@ -52,10 +52,10 @@
         </div>
         <div class="box full">
             <label>預期表現 % (依序填入標的)</label>
-            <input type="text" id="pf" value="1.0, 50, 60" oninput="drawChart()">
+            <input type="text" id="pf" value="1, 50, 60" oninput="drawChart()">
         </div>
         <div class="box">
-            <label>保證紅利 (PA %)</label>
+            <label>保證紅利 (%)</label>
             <input type="number" id="rt" value="46.06" oninput="drawChart()">
         </div>
         <div class="box">
@@ -143,7 +143,7 @@
 
         if (worst < 0) {
             finalR = worst;
-            msg = "❌ 跌破履約價：轉換股票 (本金受損)";
+            msg = "❌ 跌破履約價：轉換股票 (表現最差之標的）";
             resDiv.className = 'res-box res-danger';
         } else if (worst > r) {
             finalR = worst;
