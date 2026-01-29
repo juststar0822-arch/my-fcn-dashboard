@@ -14,10 +14,12 @@
         body { background: #fafafa; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
         [v-cloak] { display: none; }
         
+        /* Premium UI */
         .glass-input { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 10px; transition: all 0.2s; font-weight: bold; }
         .glass-input:focus { border-color: #1e40af; outline: none; box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1); }
         .btn-premium { background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%); color: white; font-weight: 900; transition: all 0.3s; }
 
+        /* 截圖區容器 */
         .capture-box { width: 460px; margin: 0 auto; background: white; padding: 20px; }
         .page-container { width: 410px; border: 2px solid #000 !important; background: #fff; margin: 0 auto; overflow: hidden; position: relative; }
         
@@ -63,7 +65,12 @@
                     <input v-model="form.tickers" class="w-full glass-input text-center text-lg font-black uppercase" placeholder="NVDA,TSM,AMD">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label><select v-model="form.issuer" class="w-full glass-input text-sm appearance-none cursor-pointer"><option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option></select></div>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label>
+                        <select v-model="form.issuer" class="w-full glass-input text-sm appearance-none cursor-pointer">
+                            <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">報價日期</label><input v-model="form.date" type="date" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">天期 (月)</label><input v-model="form.tenor" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息 (月)</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
@@ -80,7 +87,9 @@
         </div>
 
         <div v-if="isGenerated" class="flex flex-col items-center gap-3 mb-10 no-print py-4 border-y border-slate-100">
-            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">{{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定隱藏面板' }}</button>
+            <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-8 py-2 rounded-full font-bold text-xs shadow-md">
+                {{ isLocked ? '🔓 顯示修改面板' : '🔒 鎖定隱藏面板' }}
+            </button>
             <div class="flex gap-3">
                 <button @click="capture('summary')" class="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖1 (摘要卡)</button>
                 <button @click="capture('detail')" class="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold shadow-lg text-xs">📸 下載 圖2 (詳細報價)</button>
@@ -165,22 +174,22 @@
         const stockNames = {
             'TSM':'台積電', 'NVDA':'輝達', 'AVGO':'博通', 'ASML':'艾司摩爾', 'AMD':'超微', 
             'MU':'美光', 'INTC':'英特爾', 'QCOM':'高通', 'AMAT':'應材', 'LRCX':'科林研發',
-            'ARM':'安謀', 'SMCI':'美超微', 'MRVL':'邁威爾', 'ADI':'亞德諾', 'TXN':'德州儀器',
+            'ARM':'安謀', 'SMCI':'美超超微', 'MRVL':'邁威爾', 'ADI':'亞德諾', 'TXN':'德州儀器',
             'AAPL':'蘋果', 'MSFT':'微軟', 'GOOGL':'谷歌', 'GOOG':'谷歌', 'AMZN':'亞馬遜', 
             'META':'臉書', 'TSLA':'特斯拉', 'NFLX':'網飛', 'ORCL':'甲骨文', 'IBM':'藍色巨人',
             'PLTR':'帕蘭提爾', 'CRM':'賽富時', 'PANW':'派拓網路', 'NOW':'服務現狀', 'SNOW':'雪花',
-            'DELL':'戴爾', 'VRT':'維締', 'ANET':'亞力斯塔', 'BRK.B':'波克夏', 'JPM':'小摩', 
-            'GS':'高盛', 'V':'威士', 'MA':'萬事達', 'LLY':'禮來', 'NVO':'諾和諾德', 
-            'PFE':'輝瑞', 'UNH':'聯合健康', 'COST':'好市多', 'WMT':'沃爾瑪', 'NKE':'耐吉', 
-            'MSTR':'微策', 'COIN':'比特幣基地', '8001.T':'伊藤忠商事', '8031.T':'三井物產', 
-            '8058.T':'三菱商事', '8053.T':'住友商事', '8002.T':'丸紅', '8035.T':'東京威力', 
-            '6857.T':'愛德萬', '6146.T':'Disco', '7735.T':'Screen', '6758.T':'索尼',
-            '6954.T':'發那科', '6981.T':'村田製作所', '6501.T':'日立', '6723.T':'瑞薩電子', 
-            '6920.T':'Lasertec', '4063.T':'信越化學', '5803.T':'藤倉電子', '6645.T':'歐姆龍',
-            '7203.T':'豐田汽車', '7267.T':'本田', '7011.T':'三菱重工', '7012.T':'川崎重工', 
-            '7013.T':'IHI重工', '9984.T':'軟銀集團', '8306.T':'三菱日聯', '8316.T':'三井住友', 
-            '8411.T':'瑞穗金融', '7974.T':'任天堂', '9020.T':'JR東日本', '9101.T':'日本郵船', 
-            '8697.T':'日本交易所', '4523.T':'衛材', '6367.T':'大金工業', '9613.T':'NTT數據'
+            'DELL':'戴爾', 'VRT':'維締', 'ANET':'亞力斯塔',
+            'BRK.B':'波克夏', 'JPM':'小摩', 'GS':'高盛', 'V':'威士', 'MA':'萬事達',
+            'LLY':'禮來', 'NVO':'諾和諾德', 'PFE':'輝瑞', 'UNH':'聯合健康',
+            'COST':'好市多', 'WMT':'沃爾瑪', 'NKE':'耐吉', 'MSTR':'微策', 'COIN':'比特幣基地','SNDK':'晟碟',
+            '8001.T':'伊藤忠商事', '8031.T':'三井物產', '8058.T':'三菱商事', '8053.T':'住友商事', '8002.T':'丸紅',
+            '8035.T':'東京威力', '6857.T':'愛德萬', '6146.T':'Disco', '7735.T':'Screen', '6758.T':'索尼',
+            '6954.T':'發那科', '6981.T':'村田製作所', '6501.T':'日立', '6723.T':'瑞薩電子', '6920.T':'Lasertec',
+            '4063.T':'信越化學', '5803.T':'藤倉電子', '6645.T':'歐姆龍',
+            '7203.T':'豐田汽車', '7267.T':'本田', '7011.T':'三菱重工', '7012.T':'川崎重工', '7013.T':'IHI重工',
+            '9984.T':'軟銀集團', '8306.T':'三菱日聯', '8316.T':'三井住友', '8411.T':'瑞穗金融',
+            '7974.T':'任天堂', '9020.T':'JR東日本', '9101.T':'日本郵船', '8697.T':'日本交易所',
+            '4523.T':'衛材', '6367.T':'大金工業', '9613.T':'NTT數據'
         };
 
         createApp({
@@ -203,26 +212,38 @@
                 },
                 async fetchStock(ticker) {
                     const cb = new Date().getTime();
-                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=2y&interval=1d&cb=${cb}`;
-                    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
-                    try {
-                        const res = await fetch(proxyUrl);
-                        const json = await res.json();
-                        const result = json.chart.result[0];
-                        const prices = result.indicators.quote[0].close;
-                        const timestamps = result.timestamp;
-                        const startDate = new Date('2024/09/01').getTime() / 1000;
-                        const validPrices = []; const validLabels = [];
-                        for(let i = 0; i < prices.length; i++) {
-                            if(prices[i] != null && timestamps[i] >= startDate) {
-                                validPrices.push(prices[i]);
-                                const d = new Date(timestamps[i] * 1000);
-                                validLabels.push(`${d.getMonth()+1}/${d.getDate()}`);
+                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1y&interval=1d&cb=${cb}`;
+                    
+                    // 多重代理備援清單
+                    const proxies = [
+                        (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+                        (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+                        (url) => `https://thingproxy.freeboard.io/fetch/${url}`
+                    ];
+
+                    for (let proxyFn of proxies) {
+                        try {
+                            const res = await fetch(proxyFn(targetUrl));
+                            if (!res.ok) throw new Error();
+                            const json = await res.json();
+                            const result = json.chart.result[0];
+                            const prices = result.indicators.quote[0].close;
+                            const timestamps = result.timestamp;
+                            const startDate = new Date('2024/09/01').getTime() / 1000;
+                            const validPrices = []; const validLabels = [];
+                            for(let i = 0; i < prices.length; i++) {
+                                if(prices[i] != null && timestamps[i] >= startDate) {
+                                    validPrices.push(prices[i]);
+                                    const d = new Date(timestamps[i] * 1000);
+                                    validLabels.push(`${d.getMonth()+1}/${d.getDate()}`);
+                                }
                             }
-                        }
-                        if (validPrices.length === 0) return null;
-                        return { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
-                    } catch (e) { return null; }
+                            if (validPrices.length > 0) {
+                                return { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
+                            }
+                        } catch (e) { continue; }
+                    }
+                    return null;
                 },
                 async generate() {
                     this.isSyncing = true; this.isGenerated = false; this.stockData = [];
@@ -241,10 +262,10 @@
                         this.$nextTick(() => {
                             setTimeout(() => {
                                 this.stockData.forEach((s, idx) => this.drawChart(idx, s));
-                            }, 600);
+                            }, 800);
                         });
                     } else {
-                        alert("無法讀取數據，請檢查代碼或網路。");
+                        alert("讀取失敗：請檢查代碼或網路。");
                     }
                     this.isSyncing = false;
                 },
@@ -287,7 +308,9 @@
                     const element = document.getElementById(type === 'summary' ? 'capture-summary' : 'capture-detail');
                     await new Promise(r => setTimeout(r, 1000));
                     try {
-                        const canvas = await html2canvas(element, { scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 440, windowWidth: 440 });
+                        const canvas = await html2canvas(element, { 
+                            scale: 3, useCORS: true, backgroundColor: '#ffffff', width: 440, windowWidth: 440, scrollY: -window.scrollY 
+                        });
                         const link = document.createElement('a');
                         link.download = `FCN-${type}-${this.form.date}.png`;
                         link.href = canvas.toDataURL('image/png');
