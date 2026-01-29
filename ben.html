@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ben專業走勢版</title>
+    <title>Ben銀坑 V7.0 - 專業結構版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
@@ -12,85 +12,114 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { background: #cbd5e1; font-family: 'Noto Sans TC', sans-serif; padding: 10px; }
         [v-cloak] { display: none; }
-        .ben-card { background: white; border-radius: 40px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 420px; margin: 0 auto; }
-        .ben-title { color: #1e3a8a; font-size: 30px; font-weight: 900; font-style: italic; }
-        .ben-input { background: #f1f5f9; border: none; border-radius: 18px; padding: 12px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; }
-        .ben-btn { background: #1e3a8a; color: white; border-radius: 20px; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; border: none; }
         
-        /* 報價單與表格 */
-        .capture-box { width: 420px; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; }
-        .page-container { border: 2px solid #000; background: #fff; }
-        .navy-cell { background: #1e3a8a; color: white; border: 1px solid #000; text-align: center; font-size: 12px; padding: 8px; font-weight: bold; }
-        .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 8px; }
-        .chart-wrap { width: 100%; height: 150px; margin-top: 10px; background: #fff; }
-        .ki-warning { color: white; background: #ef4444; font-size: 10px; font-weight: 900; padding: 2px 6px; border-radius: 4px; }
+        /* 控制面板樣式 (IMG_3422 風格) */
+        .ben-card { background: white; border-radius: 40px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 450px; margin: 0 auto; }
+        .ben-title { color: #1e3a8a; font-size: 32px; font-weight: 900; font-style: italic; text-align: center; }
+        .ben-input { background: #f1f5f9; border: none; border-radius: 20px; padding: 15px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; }
+        .ben-btn { background: #1e3a8a; color: white; border-radius: 25px; padding: 18px; width: 100%; font-size: 20px; font-weight: bold; cursor: pointer; }
+
+        /* 報價單樣式 (IMG_3426 風格復刻) */
+        .capture-box { width: 500px; margin: 0 auto; background: white; padding: 10px; }
+        .report-border { border: 2px solid #000; background: #fff; }
+        .main-header { font-size: 28px; font-weight: 900; text-align: center; border-bottom: 2px solid #000; padding: 10px; letter-spacing: 4px; }
+        .currency-tag { color: #ef4444; font-size: 12px; font-weight: bold; padding: 5px 10px; }
+        
+        .top-table { width: 100%; border-collapse: collapse; text-align: center; }
+        .top-table th { background: #fffbeb; border: 1px solid #000; font-size: 14px; padding: 8px; }
+        .top-table td { border: 1px solid #000; font-size: 16px; font-weight: 900; color: #1e40af; padding: 8px; }
+
+        .asset-header { background: #f59e0b; color: #000; font-weight: 900; padding: 5px 15px; border: 1px solid #000; font-size: 16px; }
+        .asset-row { display: flex; border: 1px solid #000; border-top: none; height: 180px; }
+        .asset-info-table { width: 140px; border-right: 1px solid #000; border-collapse: collapse; flex-shrink: 0; }
+        .asset-info-table td { border: 1px solid #000; height: 25%; font-size: 12px; font-weight: bold; text-align: center; }
+        .label-cell { background: #fff; width: 60px; }
+        .value-cell { background: #fff; font-size: 14px !important; }
+        .stock-name-cell { color: #1e40af; font-size: 13px !important; line-height: 1.2; padding: 4px; }
+        
+        .chart-container { flex-grow: 1; padding: 5px; position: relative; overflow: hidden; }
+        .ki-badge { background: #ef4444; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; position: absolute; top: 5px; left: 5px; z-index: 10; font-weight: 900; }
     </style>
 </head>
 <body>
     <div id="app" v-cloak>
-        <div v-if="!isLocked" class="ben-card text-center mb-6">
+        <div v-if="!isLocked" class="ben-card mb-6 no-print">
             <h1 class="ben-title">Ben銀坑 V7.0</h1>
-            <p class="text-blue-500 font-bold text-[10px] tracking-widest mb-4 uppercase">No KI/KO Structure</p>
+            <p class="text-blue-500 font-bold text-center text-xs tracking-widest mb-6">NO KI STRUCTURE</p>
 
-            <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
-                <button @click="form.market = 'US'" :class="['flex-1 py-2 rounded-lg font-bold', form.market==='US'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">US 美股</button>
-                <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold', form.market==='JP'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">JP 日股</button>
+            <div class="flex gap-2 mb-6 bg-slate-100 p-1 rounded-2xl">
+                <button @click="form.market = 'US'" :class="['flex-1 py-3 rounded-xl font-bold transition', form.market==='US'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">US 美股</button>
+                <button @click="form.market = 'JP'" :class="['flex-1 py-3 rounded-xl font-bold transition', form.market==='JP'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">JP 日股</button>
             </div>
 
-            <div class="space-y-3">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Issuer</label>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="text-xs font-bold text-slate-400 mb-1 block">發行機構</label>
                         <select v-model="form.issuer" class="ben-input">
                             <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
                         </select>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Strike %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
+                    <div><label class="text-xs font-bold text-slate-400 mb-1 block">履約價 (Strike) %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
                 </div>
-                <div><label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Tickers</label><input v-model="form.tickers" class="ben-input" placeholder="NVDA, TSM"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Expected Perf. %</label><input v-model="form.expected" class="ben-input"></div>
-                <div><label class="text-[10px] font-bold text-slate-400 block mb-1 uppercase">Coupon PA %</label><input v-model="form.coupon" type="number" class="ben-input"></div>
+                <div><label class="text-xs font-bold text-slate-400 mb-1 block">連結標的 (代碼用逗號分隔)</label><input v-model="form.tickers" class="ben-input"></div>
+                <div><label class="text-xs font-bold text-slate-400 mb-1 block">預期到期表現 (%, 逗號分隔)</label><input v-model="form.expected" class="ben-input"></div>
+                <div><label class="text-xs font-bold text-slate-400 mb-1 block">紅利率 (PA %)</label><input v-model="form.coupon" type="number" class="ben-input"></div>
                 
-                <button @click="generate" :disabled="isSyncing" class="ben-btn mt-2">
-                    {{ isSyncing ? '數據讀取中...' : '生成報價單' }}
+                <button @click="generate" :disabled="isSyncing" class="ben-btn mt-4">
+                    {{ isSyncing ? '讀取數據中...' : '生成報價單' }}
                 </button>
-                <p class="text-[10px] font-bold text-slate-500 mt-2 uppercase">Total Assets: USD / JPY Display</p>
+                <p class="text-[11px] font-bold text-slate-500 text-center mt-4 tracking-wider uppercase">Total Assets: USD / JPY Display</p>
             </div>
         </div>
 
-        <div v-if="isGenerated" class="max-w-md mx-auto">
-            <div class="flex gap-2 mb-4 no-print">
-                <button @click="capture" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-black shadow-lg">📸 下載報價單</button>
-                <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-5 rounded-xl">🔒</button>
+        <div v-if="isGenerated" class="max-w-xl mx-auto">
+            <div class="flex gap-3 mb-6 no-print">
+                <button @click="capture" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg">📸 下載專業報價單</button>
+                <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-6 rounded-2xl font-bold">🔒</button>
             </div>
 
             <div id="capture-area" class="capture-box">
-                <div class="page-container">
-                    <div class="p-4 text-center text-xl font-black border-b-2 border-black">Ben銀坑 V7.0 報價單</div>
-                    <table class="w-full">
-                        <tr>
-                            <td class="navy-cell" width="25%">發行機構</td><td class="white-cell">{{ form.issuer }}</td>
-                            <td class="navy-cell" width="25%">計價幣別</td><td class="white-cell">{{ form.market === 'JP' ? 'JPY' : 'USD' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="navy-cell">年化紅利</td><td class="white-cell text-blue-700">{{ form.coupon }}%</td>
-                            <td class="navy-cell">履約價</td><td class="white-cell text-red-600">{{ form.strikeP }}%</td>
-                        </tr>
+                <div class="report-border">
+                    <div class="main-header">Ben銀坑 報價單</div>
+                    <div class="flex justify-between items-end">
+                        <div class="currency-tag">幣別：{{ form.market === 'JP' ? 'JPY' : 'USD' }}</div>
+                        <div class="text-[9px] p-1 text-slate-400">◎僅供內部參考，以實際成交為準 ◎{{ currentYearMonth }}起走勢</div>
+                    </div>
+
+                    <table class="top-table">
+                        <thead>
+                            <tr>
+                                <th>日期</th><th>發行商</th><th>Strike</th><th>Coupon</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{{ todayDate }}</td><td>{{ form.issuer }}</td><td>{{ form.strikeP }}%</td><td>{{ form.coupon }}%</td>
+                            </tr>
+                        </tbody>
                     </table>
-                    
-                    <div v-for="(s, idx) in stockData" :key="s.symbol" class="p-4 border-b border-slate-100">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <div class="font-black text-xl leading-none uppercase">{{ s.symbol }}</div>
-                                <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Exp: {{ getExpValue(idx) }}%</div>
+
+                    <div v-for="(s, idx) in stockData" :key="s.symbol">
+                        <div class="asset-header">標的 {{ idx + 1 }} : {{ s.symbol.replace('.T','') }}</div>
+                        <div class="asset-row">
+                            <table class="asset-info-table">
+                                <tr>
+                                    <td colspan="2" class="stock-name-cell">{{ s.name || s.symbol }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">收盤價</td><td class="value-cell">{{ s.price }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Strike</td><td class="value-cell text-red-600">{{ s.strikeLevel }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="label-cell">Exp.</td><td class="value-cell">{{ getExpValue(idx) }}%</td>
+                                </tr>
+                            </table>
+                            <div class="chart-container">
+                                <div v-if="s.hasTouchedStrike" class="ki-badge">STRIKE TOUCHED</div>
+                                <canvas :id="'chart-' + idx"></canvas>
                             </div>
-                            <div class="text-right">
-                                <div class="text-[11px] font-bold text-slate-600">Price: {{ s.price }}</div>
-                                <div v-if="s.hasTouchedStrike" class="ki-warning mt-1 inline-block">STRIKE TOUCHED</div>
-                            </div>
-                        </div>
-                        <div class="chart-wrap">
-                            <canvas :id="'chart-' + idx"></canvas>
                         </div>
                     </div>
                 </div>
@@ -105,9 +134,11 @@
                 return {
                     isLocked: false, isGenerated: false, isSyncing: false,
                     issuerOptions: ['MS', 'JPM', 'BNP', 'UBS', 'NX', 'NO', 'CG', 'GS', 'BAR', 'CA', 'DBS'],
-                    form: { market: 'US', issuer: 'MS', tickers: 'NVDA, TSM', expected: '1.0, 50', coupon: 46.06, strikeP: 75 },
+                    form: { market: 'US', issuer: 'MS', tickers: 'AAPL, NVDA, TSLA', expected: '1.0, 50, 60', coupon: 46.06, strikeP: 75 },
                     stockData: [],
-                    strikeHistory: {}
+                    strikeHistory: {},
+                    todayDate: new Date().toLocaleDateString('zh-TW', {month:'2-digit', day:'2-digit'}),
+                    currentYearMonth: new Date().getFullYear() + '/' + (new Date().getMonth()+1).toString().padStart(2,'0')
                 }
             },
             methods: {
@@ -116,34 +147,30 @@
                     return arr[idx] ? arr[idx].trim() : '-';
                 },
                 async fetchStock(ticker) {
-                    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1y&interval=1d`;
-                    const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
-                    
+                    const proxy = `https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + ticker + '?range=1y&interval=1d')}`;
                     try {
                         const res = await fetch(proxy);
                         const json = await res.json();
-                        const result = json.chart.result[0];
-                        const prices = result.indicators.quote[0].close.filter(p => p != null);
-                        const currentPrice = prices[prices.length - 1];
-                        const strikeVal = currentPrice * (this.form.strikeP / 100);
+                        const meta = json.chart.result[0].meta;
+                        const prices = json.chart.result[0].indicators.quote[0].close.filter(p => p != null);
+                        const timestamps = json.chart.result[0].timestamp;
+                        const curPrice = prices[prices.length - 1];
+                        const strike = curPrice * (this.form.strikeP / 100);
                         
-                        if (prices.some(p => p <= strikeVal)) this.strikeHistory[ticker] = true;
+                        if (prices.some(p => p <= strike)) this.strikeHistory[ticker] = true;
 
                         return {
                             symbol: ticker,
-                            price: currentPrice.toFixed(2),
+                            name: ticker, // 這裡可手動優化中文對應
+                            price: curPrice.toFixed(2),
+                            strikeLevel: strike.toFixed(2),
                             history: prices,
-                            strikeLevel: strikeVal,
+                            labels: timestamps.map(ts => new Date(ts * 1000).toLocaleDateString()),
                             hasTouchedStrike: this.strikeHistory[ticker] || false
                         };
                     } catch (e) {
-                        // 失敗保底模擬數據
-                        const base = 150;
-                        return {
-                            symbol: ticker, price: base.toFixed(2),
-                            history: Array.from({length: 60}, () => base + (Math.random()-0.5)*30),
-                            strikeLevel: base * 0.75, hasTouchedStrike: false
-                        };
+                        const mock = 150;
+                        return { symbol: ticker, price: mock.toFixed(2), strikeLevel: (mock*0.75).toFixed(2), history: Array.from({length: 60}, () => mock + (Math.random()-0.5)*20), labels: [], hasTouchedStrike: false };
                     }
                 },
                 async generate() {
@@ -154,9 +181,8 @@
                     this.stockData = [];
                     for (let t of list) {
                         this.stockData.push(await this.fetchStock(t));
-                        await new Promise(r => setTimeout(r, 300));
+                        await new Promise(r => setTimeout(r, 400));
                     }
-                    
                     this.isGenerated = true;
                     this.isSyncing = false;
 
@@ -164,62 +190,34 @@
                         setTimeout(() => {
                             this.stockData.forEach((s, i) => {
                                 const ctx = document.getElementById('chart-' + i).getContext('2d');
-                                
-                                // 建立漸層
-                                const gradient = ctx.createLinearGradient(0, 0, 0, 150);
-                                gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
-                                gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
-
                                 new Chart(ctx, {
                                     type: 'line',
                                     data: {
-                                        labels: s.history.map((_, i) => i),
+                                        labels: s.labels,
                                         datasets: [
-                                            {
-                                                label: 'Price',
-                                                data: s.history,
-                                                borderColor: '#2563eb',
-                                                borderWidth: 2,
-                                                fill: true,
-                                                backgroundColor: gradient,
-                                                pointRadius: 0,
-                                                tension: 0.1
-                                            },
-                                            {
-                                                label: 'Strike',
-                                                data: Array(s.history.length).fill(s.strikeLevel),
-                                                borderColor: '#ef4444',
-                                                borderDash: [4, 4],
-                                                borderWidth: 1.5,
-                                                pointRadius: 0,
-                                                fill: false
-                                            }
+                                            { data: s.history, borderColor: '#3b82f6', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.1 },
+                                            { data: Array(s.history.length).fill(s.strikeLevel), borderColor: '#94a3b8', borderDash: [3, 3], borderWidth: 1, pointRadius: 0, fill: false }
                                         ]
                                     },
                                     options: {
-                                        responsive: true,
-                                        maintainAspectRatio: false,
+                                        responsive: true, maintainAspectRatio: false,
                                         plugins: { legend: { display: false } },
                                         scales: {
-                                            x: { display: false },
-                                            y: { 
-                                                position: 'right',
-                                                ticks: { font: { size: 9 }, color: '#94a3b8' },
-                                                grid: { color: '#f1f5f9' }
-                                            }
+                                            x: { ticks: { maxRotation: 45, minRotation: 45, font: { size: 8 } } },
+                                            y: { position: 'right', ticks: { font: { size: 9 } } }
                                         },
                                         animation: false
                                     }
                                 });
                             });
-                        }, 300);
+                        }, 500);
                     });
                 },
                 async capture() {
                     const el = document.getElementById('capture-area');
                     const canvas = await html2canvas(el, { scale: 3, useCORS: true });
                     const link = document.createElement('a');
-                    link.download = `BenV7-Report.png`;
+                    link.download = `Ben-Report-${this.form.issuer}.png`;
                     link.href = canvas.toDataURL();
                     link.click();
                 }
