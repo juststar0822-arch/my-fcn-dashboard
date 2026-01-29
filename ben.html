@@ -283,16 +283,16 @@
                             plugins: { legend: { display: false }, tooltip: { enabled: false } },
                             scales: { 
                                 x: { display: true, ticks: { font: { size: 7 }, autoSkip: true, maxTicksLimit: 8 }, grid: { display: false } }, 
-                                y: { 
-                                    position: 'right', 
-                                    beginAtZero: false, // 關鍵：不從0開始，根據數值自動縮放
-                                    grace: '10%',       // 關鍵：在頂部和底部留出 10% 的間距，避免線條貼邊
-                                    ticks: { 
-                                        font: { size: 9, weight: 'bold' },
-                                        callback: function(value) { return value.toLocaleString(); }
-                                    }, 
-                                    grid: { color: '#f1f5f9' } 
-                                } 
+                                    y: { 
+    position: 'right', 
+    beginAtZero: false, // 關鍵：不強制從 0 開始，會根據股價區間自動縮放
+    grace: '5%',        // 在頂部和底部留 5% 的間距，避免線條貼齊邊框
+    ticks: { 
+        font: { size: 9, weight: 'bold' },
+        callback: function(value) { return value.toLocaleString(); }
+    }, 
+    grid: { color: '#f1f5f9' } 
+}
                             }
                         }
                     });
