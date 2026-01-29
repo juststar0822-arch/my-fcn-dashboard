@@ -2,109 +2,101 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ben 結構型商品報價單</title>
+    <title>Ben 專業結構商品模擬器</title>
     <style>
-        :root {
-            --primary: #1a73e8;
-            --danger: #d93025;
-            --success: #188038;
-            --bg: #f8f9fa;
-        }
-        body { font-family: 'Segoe UI', Microsoft JhengHei, sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #3c4043; }
-        .card { max-width: 800px; margin: auto; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #1e3a8a, #3b82f6); color: white; padding: 30px; text-align: center; }
-        .header h1 { margin: 0; font-size: 24px; letter-spacing: 1px; }
-        .price-tag { background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px; margin-top: 10px; }
+        :root { --primary: #1a73e8; --danger: #d93025; --success: #188038; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .container { background: white; width: 100%; max-width: 900px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
+        .input-panel { padding: 20px; background: #e8f0fe; border-bottom: 2px solid #ddd; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .input-group { display: flex; flex-direction: column; }
+        label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
+        input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
         
-        .section { padding: 25px; border-bottom: 1px solid #eee; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .display-panel { padding: 30px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .ki-status { display: inline-block; padding: 5px 15px; border-radius: 5px; background: #eee; font-weight: bold; }
+        .is-ki { background: var(--danger); color: white; }
         
-        .stat-box { border: 1px solid #e0e0e0; border-radius: 8px; padding: 15px; text-align: center; }
-        .stat-label { font-size: 14px; color: #70757a; margin-bottom: 5px; }
-        .stat-value { font-size: 20px; font-weight: bold; color: var(--primary); }
-        .high-yield { color: var(--danger); font-size: 28px; }
-
-        .worst-of-container { display: flex; justify-content: space-around; margin-top: 15px; }
-        .stock-item { text-align: center; flex: 1; padding: 10px; border: 2px solid #f1f3f4; border-radius: 10px; margin: 0 5px; }
-        .stock-item.active { border-color: var(--primary); background: #e8f0fe; }
-
-        .scenario { margin-top: 20px; border-left: 4px solid var(--success); padding-left: 15px; margin-bottom: 20px; }
-        .scenario.risk { border-left-color: var(--danger); }
+        .result-card { display: flex; justify-content: space-around; margin-top: 20px; }
+        .currency-box { text-align: center; flex: 1; border: 2px solid #eee; margin: 0 10px; padding: 20px; border-radius: 12px; }
+        .val { font-size: 24px; font-weight: bold; color: var(--primary); margin: 10px 0; }
         
-        .ki-badge { background: var(--danger); color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
-        
-        .footer-note { font-size: 12px; color: #70757a; padding: 20px; background: #f1f3f4; }
-        .currency-toggle { text-align: right; font-weight: bold; color: #5f6368; margin-bottom: 10px; }
+        .worst-label { color: var(--danger); font-weight: bold; font-size: 14px; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="header">
-        <h1>Ben 選差型結構型商品 (Worst-of)</h1>
-        <div class="price-tag">專屬投資者：高收益收租計畫</div>
+<div class="container">
+    <div class="input-panel">
+        <div class="input-group"><label>本金 (USD)</label><input type="number" id="principal" value="100000"></div>
+        <div class="input-group"><label>美股標的 (Ticker)</label><input type="text" id="stockA" value="NVDA"></div>
+        <div class="input-group"><label>日股標的 (Ticker)</label><input type="text" id="stockB" value="Toyota"></div>
+        <div class="input-group"><label>年化紅利率 (%)</label><input type="number" id="rate" value="46.06"></div>
+        <div class="input-group"><label>USD/JPY 匯率</label><input type="number" id="fx" value="150"></div>
     </div>
 
-    <div class="section">
-        <div class="currency-toggle">資產計價：USD / JPY</div>
-        <div class="grid">
-            <div class="stat-box">
-                <div class="stat-label">年化紅利率 (PA)</div>
-                <div class="stat-value high-yield">46.06%</div>
-            </div>
-            <div class="stat-box">
-                <div class="stat-label">商品天期</div>
-                <div class="stat-value">1個月 (30天)</div>
-            </div>
+    <div class="display-panel">
+        <div class="header">
+            <h2>客製化報價：<span id="titleA">NVDA</span> + <span id="titleB">Toyota</span></h2>
+            <div id="ki_flag" class="ki-status">狀態：觀測中</div>
         </div>
-    </div>
 
-    <div class="section">
-        <h3 style="margin-top:0;">1. 連結標的 (即時監控)</h3>
-        <div class="worst-of-container">
-            <div class="stock-item active">
-                <div class="stat-label">美股標的 (NVDA)</div>
-                <div class="stat-value">$125.40</div>
-                <div style="font-size:12px; color:var(--success);">執行價：100.00</div>
+        <div class="result-card">
+            <div class="currency-box">
+                <div class="stat-label">預計領回 (USD)</div>
+                <div id="res_usd" class="val">$103,838</div>
+                <div class="worst-label" id="note_usd">✅ 到期還本</div>
             </div>
-            <div class="stock-item">
-                <div class="stat-label">日股標的 (7203.T)</div>
-                <div class="stat-value">¥3,250</div>
-                <div style="font-size:12px; color:var(--success);">執行價：100% Strike</div>
-            </div>
-        </div>
-        <p style="font-size: 13px; color: #5f6368; text-align: center; margin-top: 15px;">
-            註：結算時以兩者中「表現較差 (Worst)」的標的為準。
-        </p>
-    </div>
-
-    <div class="section">
-        <h3 style="margin-top:0;">2. 收益情境分析</h3>
-        
-        <div class="scenario">
-            <b style="color:var(--success);">✅ 情境一：看對方向 (雙標的高於執行價)</b>
-            <p>拿回全部本金，並領取一個月約 3.84% 的現金紅利。</p>
-            <div style="font-size: 14px; font-weight: bold;">
-                預計領回：$103,840 USD / ¥15,576,000 JPY
+            <div class="currency-box">
+                <div class="stat-label">預計領回 (JPY)</div>
+                <div id="res_jpy" class="val">¥15,575,700</div>
+                <div class="worst-label" id="note_jpy">✅ 到期還本</div>
             </div>
         </div>
 
-        <div class="scenario risk">
-            <b style="color:var(--danger);">❌ 情境二：看錯方向 (任一標的觸及 KI)</b>
-            <p>若任一標的曾觸及 KI 且到期低於執行價：</p>
-            <ul style="font-size: 14px; padding-left: 20px;">
-                <li><b>本金不歸還：</b> 依執行價換算，領回表現最差的股票。</li>
-                <li><b>無紅利：</b> 該筆交易不支付任何利息。</li>
-                <li><b>永久標記：</b> 系統將自動標記 <span class="ki-badge">已觸及 KI</span> 紀錄。</li>
-            </ul>
+        <div style="margin-top: 30px; padding: 15px; background: #fff4f4; border-radius: 8px;">
+            <h4 style="color: var(--danger); margin: 0;">⚠️ 風險警示 (看錯方向時)：</h4>
+            <p style="font-size: 14px;">若任一標的觸及 KI，本金將 <b>[不予歸還]</b>，亦 <b>[不發放紅利]</b>。系統將永久標記該資料，並以表現最差之標的進行實物交割。</p>
+            <button onclick="simulateCrash()">模擬看錯方向 (觸及 KI)</button>
+            <button onclick="resetSim()">重置正常狀態</button>
         </div>
-    </div>
-
-    <div class="footer-note">
-        重要提醒：結構型商品非一般存款，具有本金損失風險。若標的看錯方向，Ben (受益人) 需承擔接手實物股票之義務。資產總額隨 USD/JPY 匯率波動。
     </div>
 </div>
+
+<script>
+    function update() {
+        let p = parseFloat(document.getElementById('principal').value);
+        let r = parseFloat(document.getElementById('rate').value) / 100;
+        let fx = parseFloat(document.getElementById('fx').value);
+        let monthly = p * (1 + r/12);
+        
+        document.getElementById('titleA').innerText = document.getElementById('stockA').value;
+        document.getElementById('titleB').innerText = document.getElementById('stockB').value;
+        
+        document.getElementById('res_usd').innerText = '$' + monthly.toLocaleString(undefined, {maximumFractionDigits:0});
+        document.getElementById('res_jpy').innerText = '¥' + (monthly * fx).toLocaleString(undefined, {maximumFractionDigits:0});
+    }
+
+    function simulateCrash() {
+        document.getElementById('ki_flag').innerText = "已觸及 KI (永久標記)";
+        document.getElementById('ki_flag').className = "ki-status is-ki";
+        document.getElementById('res_usd').innerText = "接股票 (市值視股價而定)";
+        document.getElementById('res_jpy').innerText = "接股票 (市值視股價而定)";
+        document.getElementById('note_usd').innerText = "❌ 紅利已取消";
+        document.getElementById('note_jpy').innerText = "❌ 紅利已取消";
+    }
+
+    function resetSim() {
+        document.getElementById('ki_flag').innerText = "狀態：觀測中";
+        document.getElementById('ki_flag').className = "ki-status";
+        document.getElementById('note_usd').innerText = "✅ 到期還本";
+        document.getElementById('note_jpy').innerText = "✅ 到期還本";
+        update();
+    }
+
+    document.querySelectorAll('input').forEach(el => el.addEventListener('input', update));
+    update();
+</script>
 
 </body>
 </html>
