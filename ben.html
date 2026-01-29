@@ -3,210 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ben 結構型商品終端</title>
+    <title>Ben 終端 V7.0</title>
     <style>
-        :root {
-            --primary-blue: #1e3a8a;
-            --bg-gray: #f8fafc;
-            --border-color: #e2e8f0;
-            --text-main: #1e293b;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #e2e8f0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .app-container {
-            background: white;
-            width: 90%;
-            max-width: 400px;
-            border-radius: 40px;
-            padding: 30px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .header h1 {
-            font-size: 28px;
-            font-style: italic;
-            margin: 0;
-            color: var(--text-main);
-            font-weight: 900;
-        }
-        .header p {
-            font-size: 12px;
-            color: #3b82f6;
-            letter-spacing: 2px;
-            font-weight: bold;
-            margin: 5px 0;
-        }
-        /* 切換開關 */
-        .tab-switch {
-            display: flex;
-            background: #f1f5f9;
-            border-radius: 15px;
-            padding: 5px;
-            margin-bottom: 25px;
-        }
-        .tab-item {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #64748b;
-            transition: 0.3s;
-        }
-        .tab-item.active {
-            background: white;
-            color: #3b82f6;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        /* 輸入框樣式 */
-        .input-section {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        .full-width { grid-column: span 2; }
-        .field-group {
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 15px;
-        }
-        .field-group label {
-            font-size: 12px;
-            color: #64748b;
-            margin-bottom: 8px;
-            font-weight: bold;
-            text-align: center;
-        }
-        .field-group input {
-            background: white;
-            border: 1px solid var(--border-color);
-            border-radius: 15px;
-            padding: 15px;
-            font-size: 16px;
-            font-weight: bold;
-            color: var(--text-main);
-            text-align: center;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
-        /* 報價提示框 */
-        .quote-box {
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            border-radius: 15px;
-            padding: 15px;
-            margin: 20px 0;
-            min-height: 60px;
-        }
-        .quote-box h4 { margin: 0; font-size: 14px; color: #166534; }
-        .quote-box p { margin: 5px 0 0; font-size: 13px; color: #15803d; }
-        /* 按鈕 */
-        .btn-submit {
-            background: #1d4ed8;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 18px;
-            border-radius: 20px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-submit:hover { background: #1e40af; }
+        :root { --blue: #1e3a8a; --light-blue: #3b82f6; --success: #22c55e; --danger: #ef4444; }
+        body { font-family: -apple-system, sans-serif; background: #cbd5e1; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .app { background: white; width: 100%; max-width: 420px; border-radius: 40px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header h1 { font-style: italic; font-weight: 900; font-size: 32px; color: var(--blue); margin: 0; }
+        
+        .tabs { display: flex; background: #f1f5f9; border-radius: 15px; padding: 5px; margin-bottom: 25px; }
+        .tab { flex: 1; text-align: center; padding: 12px; border-radius: 12px; cursor: pointer; font-weight: bold; color: #64748b; transition: 0.3s; }
+        .tab.active { background: white; color: var(--light-blue); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .full { grid-column: span 2; }
+        .box { display: flex; flex-direction: column; }
+        label { font-size: 11px; font-weight: bold; color: #94a3b8; margin-bottom: 8px; text-align: center; text-transform: uppercase; }
+        input { border: 1px solid #e2e8f0; border-radius: 15px; padding: 15px; text-align: center; font-weight: bold; font-size: 16px; background: #f8fafc; }
+
+        .res-area { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px; padding: 25px; margin: 25px 0; display: none; text-align: center; }
+        .res-area.loss { background: #fff1f2; border-color: #fecaca; }
+        
+        .btn { background: var(--blue); color: white; border: none; width: 100%; padding: 20px; border-radius: 20px; font-size: 18px; font-weight: bold; cursor: pointer; }
+        .btn:hover { background: #1e40af; }
+        
+        .currency-label { font-size: 12px; color: #94a3b8; text-align: center; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="app-container">
+<div class="app">
     <div class="header">
-        <h1>Ben結構型商品報價</h1>
-        <p>STABILITY TERMINAL V6.0</p>
+        <h1><i>Ben</i>銀坑 V7.0</h1>
+        <p style="color:#3b82f6; font-size:11px; font-weight:bold; letter-spacing:3px; margin: 5px 0;">NO KI STRUCTURE</p>
     </div>
 
-    <div class="tab-switch">
-        <div class="tab-item active" onclick="switchMode('US')">US 美股</div>
-        <div class="tab-item" onclick="switchMode('JP')">JP 日股</div>
+    <div class="tabs">
+        <div id="tUS" class="tab active" onclick="setMode('US')">US 美股</div>
+        <div id="tJP" class="tab" onclick="setMode('JP')">JP 日股</div>
     </div>
 
-    <div class="input-section">
-        <div class="field-group full-width">
-            <label>連結標的的代碼 (逗號分隔)</label>
-            <input type="text" id="tickers" placeholder="e.g. AAPL, NVDA, TSLA">
+    <div class="input-grid">
+        <div class="box full">
+            <label>連結標的 (代碼用逗號分隔)</label>
+            <input type="text" id="tk" value="AAPL, NVDA, TSLA">
         </div>
-
-        <div class="field-group">
-            <label>天期 (月)</label>
-            <input type="number" id="tenor" value="6">
+        <div class="box full">
+            <label>預期到期表現 (%, 逗號分隔)</label>
+            <input type="text" id="pf" value="1.0, 50, 60">
         </div>
-        <div class="field-group">
-            <label>保證紅利息 (月 %)</label>
-            <input type="number" id="coupon" value="15">
+        <div class="box">
+            <label>紅利率 (PA %)</label>
+            <input type="number" id="rt" value="46.06">
         </div>
-
-        <div class="field-group">
-            <label>執行價 % (Strike)</label>
-            <input type="number" id="strike" value="75">
-        </div>
-        <div class="field-group">
-            <label>KI % (觸及價)</label>
-            <input type="number" id="ki" value="70">
+        <div class="box">
+            <label>履約價 (Strike %)</label>
+            <input type="number" id="st" value="100">
         </div>
     </div>
 
-    <div class="quote-box">
-        <h4 id="quote-title">報價摘要：</h4>
-        <p id="quote-detail">請輸入標的並點擊生成</p>
+    <div id="res" class="res-area">
+        <h3 id="res_msg" style="margin:0 0 10px 0; font-size: 16px;"></h3>
+        <div id="res_usd" style="font-size: 28px; font-weight: 900; color: var(--blue);"></div>
+        <div id="res_jpy" style="font-size: 16px; font-weight: bold; color: #64748b; margin-top: 5px;"></div>
     </div>
 
-    <button class="btn-submit" onclick="generate()">生成報價單</button>
+    <button class="btn" onclick="calc()">生成報價單</button>
+    <div class="currency-label">TOTAL ASSETS: USD / JPY DISPLAY</div>
 </div>
 
 <script>
-    let currentMode = 'US';
-
-    function switchMode(mode) {
-        currentMode = mode;
-        const tabs = document.querySelectorAll('.tab-item');
-        tabs[0].classList.toggle('active', mode === 'US');
-        tabs[1].classList.toggle('active', mode === 'JP');
-        
-        // 自動切換範例標的
-        if(mode === 'JP') {
-            document.getElementById('tickers').value = "7203.T, 9984.T";
-        } else {
-            document.getElementById('tickers').value = "AAPL, NVDA, TSLA";
-        }
+    let mode = 'US';
+    function setMode(m) {
+        mode = m;
+        document.getElementById('tUS').className = m==='US'?'tab active':'tab';
+        document.getElementById('tJP').className = m==='JP'?'tab active':'tab';
+        document.getElementById('tk').value = m==='US' ? "AAPL, NVDA, MSFT" : "7203.T, 9984.T, 6758.T";
     }
 
-    function generate() {
-        const tickers = document.getElementById('tickers').value;
-        const coupon = document.getElementById('coupon').value;
-        const tenor = document.getElementById('tenor').value;
-        const ki = document.getElementById('ki').value;
-
-        // 模擬抓取即時股價邏輯
-        const mockPrice = (Math.random() * 100 + 100).toFixed(2);
-        const currency = currentMode === 'US' ? 'USD' : 'JPY';
-
-        document.getElementById('quote-title').innerText = `報價成功：${tickers}`;
-        document.getElementById('quote-detail').innerHTML = `
-            年化紅利：<b>${(coupon * 12).toFixed(2)}%</b><br>
-            只要不跌破 <b>${ki}%</b>，每月穩拿紅利。<br>
-            若標的大漲超過紅利，Ben 可直接參與市場漲幅！
-        `;
+    function calc() {
+        const p = 100000;
+        const r = parseFloat(document.getElementById('rt').value) / 100;
+        const strike = parseFloat(document.getElementById('st').value) / 100;
+        const perfs = document.getElementById('pf').value.split(',').map(v => parseFloat(v)/100);
+        const worst = Math.min(...perfs);
+        const resDiv = document.getElementById('res');
         
-        alert(`報價單已生成！\n標的：${tickers}\n幣別：${currency}\n一個月紅利：${coupon}%`);
+        resDiv.style.display = 'block';
+        resDiv.classList.remove('loss');
+
+        let finalR = r / 12; // 一個月
+        let msg = "✅ 領取 46.06% 保證紅利";
+
+        if (worst < (strike - 1)) { // 到期低於履約價 (例如跌 1% 以下)
+            finalR = worst;
+            resDiv.classList.add('loss');
+            msg = "❌ 低於履約價：實物交割 (接股票)";
+        } else if (worst > (r/12)) {
+            finalR = worst;
+            msg = `🚀 超額獲利：參與漲幅 ${(worst*100).toFixed(2)}%`;
+        }
+
+        const usd = p * (1 + finalR);
+        const jpy = usd * 150; // 模擬匯率
+
+        document.getElementById('res_msg').innerText = msg;
+        document.getElementById('res_usd').innerText = `$ ${usd.toLocaleString(undefined, {maximumFractionDigits:0})} USD`;
+        document.getElementById('res_jpy').innerText = `¥ ${jpy.toLocaleString(undefined, {maximumFractionDigits:0})} JPY`;
     }
 </script>
 
