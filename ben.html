@@ -2,145 +2,213 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Ben 進化型紅利商品報價</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ben 結構型商品終端</title>
     <style>
-        :root { --primary: #1a73e8; --danger: #d93025; --success: #188038; --gold: #f2994a; }
-        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f8f9fa; padding: 20px; }
-        .card { max-width: 950px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
-        .top-nav { background: #202124; color: white; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
-        .input-group { display: flex; flex-direction: column; }
-        input { padding: 8px; border-radius: 4px; border: none; margin-top: 5px; }
-        
-        .main-content { padding: 30px; text-align: center; }
-        .badge { display: inline-block; padding: 10px 25px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; font-size: 18px; }
-        .badge-normal { background: #e8f0fe; color: var(--primary); }
-        .badge-ki { background: var(--danger); color: white; }
-        .badge-win { background: var(--gold); color: white; box-shadow: 0 0 15px rgba(242,153,74,0.5); }
-
-        .stock-row { display: flex; justify-content: center; gap: 15px; margin: 25px 0; flex-wrap: wrap; }
-        .stock-card { width: 150px; border: 2px solid #eee; padding: 15px; border-radius: 12px; }
-        .stock-card.worst { border-color: var(--danger); background: #fff5f5; position: relative; }
-        .stock-card.worst::after { content: "Worst"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
-
-        .asset-box { display: flex; justify-content: space-around; background: #f1f3f4; padding: 30px; border-radius: 12px; margin-top: 20px; }
-        .val { font-size: 36px; font-weight: bold; color: var(--primary); }
-        .note { color: var(--success); font-weight: bold; margin-top: 10px; }
-        
-        .btn-group { margin-top: 30px; }
-        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 0 5px; transition: 0.2s; }
-        button:hover { opacity: 0.9; transform: translateY(-2px); }
+        :root {
+            --primary-blue: #1e3a8a;
+            --bg-gray: #f8fafc;
+            --border-color: #e2e8f0;
+            --text-main: #1e293b;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #e2e8f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .app-container {
+            background: white;
+            width: 90%;
+            max-width: 400px;
+            border-radius: 40px;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        .header h1 {
+            font-size: 28px;
+            font-style: italic;
+            margin: 0;
+            color: var(--text-main);
+            font-weight: 900;
+        }
+        .header p {
+            font-size: 12px;
+            color: #3b82f6;
+            letter-spacing: 2px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        /* 切換開關 */
+        .tab-switch {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 15px;
+            padding: 5px;
+            margin-bottom: 25px;
+        }
+        .tab-item {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #64748b;
+            transition: 0.3s;
+        }
+        .tab-item.active {
+            background: white;
+            color: #3b82f6;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        /* 輸入框樣式 */
+        .input-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .full-width { grid-column: span 2; }
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 15px;
+        }
+        .field-group label {
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .field-group input {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-main);
+            text-align: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        /* 報價提示框 */
+        .quote-box {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 20px 0;
+            min-height: 60px;
+        }
+        .quote-box h4 { margin: 0; font-size: 14px; color: #166534; }
+        .quote-box p { margin: 5px 0 0; font-size: 13px; color: #15803d; }
+        /* 按鈕 */
+        .btn-submit {
+            background: #1d4ed8;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 18px;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-submit:hover { background: #1e40af; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="top-nav">
-        <div class="input-group"><label>本金 (USD)</label><input type="number" id="p" value="100000"></div>
-        <div class="input-group"><label>紅利率 (%)</label><input type="number" id="rate" value="46.06"></div>
-        <div class="input-group"><label>USD/JPY 匯率</label><input type="number" id="fx" value="150"></div>
-        <div class="input-group">
-            <label>標的數量</label>
-            <select id="count" onchange="createInputs()" style="padding:8px; border-radius:4px; margin-top:5px;">
-                <option value="2">2檔</option><option value="3">3檔</option>
-                <option value="4">4檔</option><option value="5" selected>5檔</option>
-            </select>
+<div class="app-container">
+    <div class="header">
+        <h1>Ben結構型商品報價</h1>
+        <p>STABILITY TERMINAL V6.0</p>
+    </div>
+
+    <div class="tab-switch">
+        <div class="tab-item active" onclick="switchMode('US')">US 美股</div>
+        <div class="tab-item" onclick="switchMode('JP')">JP 日股</div>
+    </div>
+
+    <div class="input-section">
+        <div class="field-group full-width">
+            <label>連結標的的代碼 (逗號分隔)</label>
+            <input type="text" id="tickers" placeholder="e.g. AAPL, NVDA, TSLA">
+        </div>
+
+        <div class="field-group">
+            <label>天期 (月)</label>
+            <input type="number" id="tenor" value="6">
+        </div>
+        <div class="field-group">
+            <label>保證紅利息 (月 %)</label>
+            <input type="number" id="coupon" value="15">
+        </div>
+
+        <div class="field-group">
+            <label>執行價 % (Strike)</label>
+            <input type="number" id="strike" value="75">
+        </div>
+        <div class="field-group">
+            <label>KI % (觸及價)</label>
+            <input type="number" id="ki" value="70">
         </div>
     </div>
 
-    <div id="inputs" style="padding: 15px; background: #3c4043; color: white; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
-
-    <div class="main-content">
-        <div id="status" class="badge badge-normal">狀態：觀測中</div>
-        
-        <div class="stock-row" id="stocks"></div>
-
-        <div class="asset-box">
-            <div class="currency">
-                <div>結算資產 (USD)</div>
-                <div id="res_usd" class="val">$0</div>
-                <div id="reason_usd" class="note">✅ 領取 46.06% 高額紅利</div>
-            </div>
-            <div class="currency">
-                <div>結算資產 (JPY)</div>
-                <div id="res_jpy" class="val">¥0</div>
-                <div id="reason_jpy" class="note">✅ 領取 46.06% 高額紅利</div>
-            </div>
-        </div>
-
-        <div class="btn-group">
-            <button onclick="setMarket(1)" style="background: #ddd;">溫和上漲 (漲 1%)</button>
-            <button onclick="setMarket(60)" style="background: var(--gold); color: white;">市場大漲 (漲 60%)</button>
-            <button onclick="setMarket(-30)" style="background: var(--danger); color: white;">觸及 KI (跌 30%)</button>
-        </div>
+    <div class="quote-box">
+        <h4 id="quote-title">報價摘要：</h4>
+        <p id="quote-detail">請輸入標的並點擊生成</p>
     </div>
+
+    <button class="btn-submit" onclick="generate()">生成報價單</button>
 </div>
 
 <script>
-    function createInputs() {
-        const count = document.getElementById('count').value;
-        const container = document.getElementById('inputs');
-        container.innerHTML = '';
-        for(let i=1; i<=count; i++) {
-            container.innerHTML += `
-                <div style="border:1px solid #666; padding:5px; border-radius:5px;">
-                    <input type="text" id="n${i}" value="標的 ${i}" style="width:70px; font-size:12px;">
-                    <input type="number" id="v${i}" value="1" style="width:50px;" oninput="calc()"> %
-                </div>`;
-        }
-        calc();
-    }
+    let currentMode = 'US';
 
-    function calc() {
-        const p = parseFloat(document.getElementById('p').value);
-        const r = parseFloat(document.getElementById('rate').value) / 100;
-        const fx = parseFloat(document.getElementById('fx').value);
-        const count = document.getElementById('count').value;
+    function switchMode(mode) {
+        currentMode = mode;
+        const tabs = document.querySelectorAll('.tab-item');
+        tabs[0].classList.toggle('active', mode === 'US');
+        tabs[1].classList.toggle('active', mode === 'JP');
         
-        let perfs = [];
-        for(let i=1; i<=count; i++) perfs.push(parseFloat(document.getElementById(`v${i}`).value) / 100);
+        // 自動切換範例標的
+        if(mode === 'JP') {
+            document.getElementById('tickers').value = "7203.T, 9984.T";
+        } else {
+            document.getElementById('tickers').value = "AAPL, NVDA, TSLA";
+        }
+    }
+
+    function generate() {
+        const tickers = document.getElementById('tickers').value;
+        const coupon = document.getElementById('coupon').value;
+        const tenor = document.getElementById('tenor').value;
+        const ki = document.getElementById('ki').value;
+
+        // 模擬抓取即時股價邏輯
+        const mockPrice = (Math.random() * 100 + 100).toFixed(2);
+        const currency = currentMode === 'US' ? 'USD' : 'JPY';
+
+        document.getElementById('quote-title').innerText = `報價成功：${tickers}`;
+        document.getElementById('quote-detail').innerHTML = `
+            年化紅利：<b>${(coupon * 12).toFixed(2)}%</b><br>
+            只要不跌破 <b>${ki}%</b>，每月穩拿紅利。<br>
+            若標的大漲超過紅利，Ben 可直接參與市場漲幅！
+        `;
         
-        const worst = Math.min(...perfs);
-        let finalReturn = r / 12; // 一個月
-        let status = "狀態：觀測中 (實拿紅利)";
-        let sClass = "badge-normal";
-        let note = `✅ 即使漲幅小，依然實拿 ${ (r*100).toFixed(2) }% 紅利`;
-
-        if (worst < -0.2) {
-            finalReturn = worst;
-            status = "已觸及 KI (永久標記)";
-            sClass = "badge-ki";
-            note = "❌ 看錯方向：紅利取消 / 轉換股票";
-        } else if (worst > (r/12)) {
-            finalReturn = worst;
-            status = "超越紅利：參與市場漲幅";
-            sClass = "badge-win";
-            note = `🚀 表現優異：直接獲取 ${(worst*100).toFixed(2)}% 漲幅`;
-        }
-
-        const total = p * (1 + finalReturn);
-        document.getElementById('res_usd').innerText = '$' + total.toLocaleString(undefined, {maximumFractionDigits:0});
-        document.getElementById('res_jpy').innerText = '¥' + (total * fx).toLocaleString(undefined, {maximumFractionDigits:0});
-        document.getElementById('status').innerText = status;
-        document.getElementById('status').className = "badge " + sClass;
-        document.getElementById('reason_usd').innerText = note;
-        document.getElementById('reason_jpy').innerText = note;
-
-        document.getElementById('stocks').innerHTML = perfs.map((v, i) => `
-            <div class="stock-card ${v == worst ? 'worst' : ''}">
-                <div style="font-size:12px; color:#666;">${document.getElementById(`n${i+1}`).value}</div>
-                <div style="font-size:20px; font-weight:bold; color:${v>=0?'var(--success)':'var(--danger)'}">${(v*100).toFixed(1)}%</div>
-            </div>
-        `).join('');
+        alert(`報價單已生成！\n標的：${tickers}\n幣別：${currency}\n一個月紅利：${coupon}%`);
     }
-
-    function setMarket(val) {
-        for(let i=1; i<=document.getElementById('count').value; i++) {
-            document.getElementById(`v${i}`).value = (val + (Math.random() * 5)).toFixed(1);
-        }
-        calc();
-    }
-
-    createInputs();
 </script>
+
 </body>
 </html>
