@@ -2,162 +2,120 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Ben FCN 專業報價系統 V11.0</title>
+    <title>Ben FCN 專業報價系統 V12.0</title>
     <style>
-        :root { --blue: #1e3a8a; --light-blue: #3b82f6; --success: #10b981; --danger: #ef4444; --text-gray: #94a3b8; }
+        :root { --blue: #1e3a8a; --light-blue: #3b82f6; --text-gray: #64748b; --border: #e2e8f0; }
         body { font-family: -apple-system, sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .app { background: white; width: 100%; max-width: 480px; border-radius: 40px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { font-style: italic; font-weight: 900; font-size: 28px; color: #1a2a4e; margin: 0; }
+        .app { background: white; width: 100%; max-width: 500px; border-radius: 30px; padding: 25px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
         
-        .tabs { display: flex; background: #f8fafc; border-radius: 12px; padding: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
-        .tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; color: #64748b; font-size: 14px; }
-        .tab.active { background: white; color: var(--light-blue); box-shadow: 0 2px 5px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; }
+        .header h1 { font-style: italic; font-weight: 900; font-size: 26px; color: #1a2a4e; margin: 0; }
 
-        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
         .full { grid-column: span 2; }
-        label { font-size: 11px; font-weight: bold; color: var(--text-gray); margin-bottom: 4px; display: block; text-align: left; padding-left: 10px; }
-        input { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 15px; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; background: #fff; color: #334155; }
+        label { font-size: 11px; font-weight: bold; color: var(--text-gray); margin-bottom: 5px; display: block; }
+        input { width: 100%; box-sizing: border-box; border: 1px solid var(--border); border-radius: 12px; padding: 12px; text-align: center; font-weight: bold; font-size: 14px; }
 
-        /* 圖表區 */
-        #chart-container { margin: 20px 0; background: #fff; border-radius: 20px; border: 1px solid #f1f5f9; padding: 20px; position: relative; box-shadow: inset 0 2px 10px rgba(0,0,0,0.02); }
-        canvas { width: 100%; height: 260px; }
+        /* 標的資訊與走勢圖卡片 */
+        .stock-card { border: 1px solid var(--border); border-radius: 15px; margin-bottom: 15px; overflow: hidden; }
+        .stock-info { background: #fbbf24; padding: 8px 15px; font-weight: bold; display: flex; justify-content: space-between; }
+        .stock-details { display: flex; padding: 10px; background: #fff; border-bottom: 1px solid #f1f5f9; }
+        .detail-item { flex: 1; text-align: center; border-right: 1px solid #eee; }
+        .detail-item:last-child { border-right: none; }
+        .detail-item div:first-child { font-size: 10px; color: #94a3b8; }
+        .detail-item div:last-child { font-size: 13px; font-weight: bold; }
 
-        .res-box { padding: 20px; border-radius: 20px; text-align: center; margin-top: 10px; display: none; }
-        .res-normal { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
-        .res-win { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
-        .res-danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
-
-        .btn { background: #1d4ed8; color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; }
-        .btn:hover { background: #1e40af; }
+        canvas { width: 100%; height: 160px; background: #fff; display: block; }
+        
+        .btn { background: #1d4ed8; color: white; border: none; width: 100%; padding: 18px; border-radius: 15px; font-size: 18px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
 <div class="app">
     <div class="header">
-        <h1><i>Ben</i> FCN專業報價系統</h1>
-        <p style="color:#3b82f6; font-size:10px; font-weight:bold; letter-spacing:2px; margin:5px 0;">STABILITY TERMINAL V11.0</p>
-    </div>
-
-    <div class="tabs">
-        <div id="tUS" class="tab active" onclick="setMode('US')">US 美股</div>
-        <div id="tJP" class="tab" onclick="setMode('JP')">JP 日股</div>
+        <h1>FCN專業報價系統</h1>
+        <p style="color:#3b82f6; font-size:10px; font-weight:bold; letter-spacing:2px; margin:5px 0;">STABILITY TERMINAL V12.0</p>
     </div>
 
     <div class="input-grid">
-        <div class="box full"><label>連結標的 (逗號分隔)</label><input type="text" id="tk" value="TSM, NVDA, ORCL, AMD"></div>
-        <div class="box full"><label>預期到期表現 (%)</label><input type="text" id="perfs" value="70, 50, 60, 5"></div>
+        <div class="box full"><label>連結標的 (如: 7011, 7013)</label><input type="text" id="tk" value="7011, 7013, 8697"></div>
         <div class="box"><label>商品天期 (月)</label><input type="number" id="tenor" value="6"></div>
-        <div class="box"><label>年化紅利率 (%)</label><input type="number" id="rate" value="46.06"></div>
         <div class="box"><label>履約價 (Strike %)</label><input type="number" id="st" value="75"></div>
-        <div class="box"><label>匯率 (USD/JPY)</label><input type="number" id="fx" value="150.5"></div>
+        <div class="box"><label>年化紅利率 (%)</label><input type="number" id="rate" value="11.25"></div>
+        <div class="box"><label>最新匯率 (USD/JPY)</label><input type="number" id="fx" value="150.5"></div>
     </div>
 
-    <div id="chart-container">
-        <canvas id="mainChart" width="400" height="260"></canvas>
-    </div>
+    <div id="stock-list"></div>
 
-    <div id="res" class="res-box">
-        <div id="res_msg" style="font-weight: bold; font-size: 14px; margin-bottom: 8px;"></div>
-        <div id="res_usd" style="font-size: 26px; font-weight: 900; color: var(--blue);"></div>
-        <div id="res_jpy" style="font-size: 14px; font-weight: bold; opacity: 0.8; margin-top: 5px;"></div>
-    </div>
-
-    <button class="btn" onclick="generate()">生成專業走勢圖</button>
+    <button class="btn" onclick="renderReport()">生成 FCN 專業報價單</button>
 </div>
 
 <script>
-    let mode = 'US';
-    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#a855f7'];
+    function renderReport() {
+        const container = document.getElementById('stock-list');
+        const tickers = document.getElementById('tk').value.split(',').map(s => s.trim());
+        const strike = parseFloat(document.getElementById('st').value);
+        const tenor = document.getElementById('tenor').value;
+        container.innerHTML = '';
 
-    function setMode(m) {
-        mode = m;
-        document.getElementById('tUS').className = m==='US'?'tab active':'tab';
-        document.getElementById('tJP').className = m==='JP'?'tab active':'tab';
-        document.getElementById('tk').value = m==='US' ? "TSM, NVDA, ORCL, AMD" : "7203.T, 9984.T, 6758.T, 8035.T";
+        tickers.forEach((name, idx) => {
+            // 模擬最新股價數據
+            const basePrice = (Math.random() * 3000 + 1000).toFixed(2);
+            const strikePrice = (basePrice * (strike/100)).toFixed(2);
+            
+            const card = document.createElement('div');
+            card.className = 'stock-card';
+            card.innerHTML = `
+                <div class="stock-info">標的 ${idx + 1}：${name}</div>
+                <div class="stock-details">
+                    <div class="detail-item"><div>最新收盤價</div><div>${basePrice}</div></div>
+                    <div class="detail-item"><div>期初價 (100%)</div><div>${basePrice}</div></div>
+                    <div class="detail-item"><div>履約價 (${strike}%)</div><div>${strikePrice}</div></div>
+                </div>
+                <canvas id="chart-${idx}"></canvas>
+            `;
+            container.appendChild(card);
+            drawStaticChart(`chart-${idx}`, strike);
+        });
     }
 
-    function generate() {
-        const canvas = document.getElementById('mainChart');
+    function drawStaticChart(canvasId, strikePct) {
+        const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
-        const tickers = document.getElementById('tk').value.split(',').map(s => s.trim());
-        const perfs = document.getElementById('perfs').value.split(',').map(v => parseFloat(v));
-        const strike = parseFloat(document.getElementById('st').value);
-        const tenor = parseInt(document.getElementById('tenor').value);
-        const rate = parseFloat(document.getElementById('rate').value);
-        const fx = parseFloat(document.getElementById('fx').value);
+        const w = canvas.width;
+        const h = canvas.height;
+        const zeroY = h * 0.4; // 100% 基準線位置
+        const strikeY = zeroY + (h * (100 - strikePct) / 100);
 
-        ctx.clearRect(0,0,canvas.width,canvas.height);
+        // 1. 畫基準線 (期初與履約)
+        ctx.setLineDash([5, 5]);
+        ctx.strokeStyle = '#94a3b8'; // 100% 線
+        ctx.beginPath(); ctx.moveTo(0, zeroY); ctx.lineTo(w, zeroY); ctx.stroke();
+        
+        ctx.strokeStyle = '#f59e0b'; // Strike 線
+        ctx.beginPath(); ctx.moveTo(0, strikeY); ctx.lineTo(w, strikeY); ctx.stroke();
+        ctx.setLineDash([]);
 
-        const padding = 40;
-        const chartWidth = canvas.width - padding * 2;
-        const chartHeight = canvas.height - padding * 2;
-        const zeroY = padding + chartHeight / 2; // 100% (期初價) 的位置
-
-        // 1. 繪製 X 與 Y 軸
-        ctx.strokeStyle = '#cbd5e1'; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(padding, padding); ctx.lineTo(padding, canvas.height - padding); ctx.stroke(); // Y軸
-        ctx.beginPath(); ctx.moveTo(padding, zeroY); ctx.lineTo(canvas.width - padding, zeroY); ctx.stroke(); // X軸 (100% 線)
-
-        // 2. 繪製座標標籤
-        ctx.fillStyle = '#64748b'; ctx.font = '10px Arial';
-        ctx.fillText("期末 (天期)", canvas.width - 55, zeroY + 15);
-        ctx.fillText("漲跌 %", 5, padding - 10);
-        ctx.fillText("100%", padding - 30, zeroY + 5);
-        ctx.fillText(`${strike}%`, padding - 30, zeroY + (100-strike));
-
-        // 3. 繪製各標的走勢
-        let worstPerf = Math.min(...perfs.slice(0, tickers.length));
-
-        tickers.slice(0, 5).forEach((name, idx) => {
-            const targetPerf = perfs[idx] || 0;
-            ctx.beginPath();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = colors[idx];
-            
-            ctx.moveTo(padding, zeroY);
-
-            const steps = 40; 
-            for(let i=1; i<=steps; i++) {
-                const x = padding + (chartWidth / steps) * i;
-                const trend = (targetPerf * (i/steps));
-                const noise = (Math.random() - 0.5) * 8; // 隨機震盪
-                const y = zeroY - (trend) + noise; // 這裡簡化 Y 軸座標轉換
-                ctx.lineTo(x, y);
-            }
-            ctx.stroke();
-            
-            // 標記標的名稱
-            ctx.fillStyle = colors[idx];
-            ctx.fillText(name, padding + chartWidth + 5, zeroY - targetPerf);
-        });
-
-        // 4. 結算邏輯
-        const resBox = document.getElementById('res');
-        resBox.style.display = 'block';
-        const p = 100000;
-        const totalBonus = (rate / 100 / 12) * tenor;
-        let finalGain = totalBonus;
-        let msg = `✅ 低風險報酬：標的高於履約價，實拿紅利`;
-        resBox.className = 'res-box res-normal';
-
-        if (worstPerf > (totalBonus * 100)) {
-            finalGain = worstPerf / 100;
-            msg = `🚀 參與市場大漲：漲幅超過紅利，直接領取 ${worstPerf}%`;
-            resBox.className = 'res-box res-win';
-        } else if (worstPerf < (strike - 100)) {
-            finalGain = worstPerf / 100;
-            msg = `❌ 跌破履約價：本金轉換為股票 (永久標記)`;
-            resBox.className = 'res-box res-danger';
+        // 2. 模擬波段走勢 (靜態)
+        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, zeroY + 20);
+        
+        let lastY = zeroY + 20;
+        for(let i=1; i<=100; i++) {
+            let x = (w / 100) * i;
+            let change = (Math.random() - 0.45) * 6; // 模擬帶有上漲趨勢的波動
+            lastY -= change;
+            ctx.lineTo(x, lastY);
         }
+        ctx.stroke();
 
-        const totalUsd = p * (1 + finalGain);
-        const totalJpy = totalUsd * fx;
-
-        document.getElementById('res_msg').innerText = msg;
-        document.getElementById('res_usd').innerText = `$ ${totalUsd.toLocaleString(undefined,{maximumFractionDigits:0})} USD`;
-        document.getElementById('res_jpy').innerText = `美元資產折算：¥ ${totalJpy.toLocaleString(undefined,{maximumFractionDigits:0})} JPY`;
+        // 3. 文字標記
+        ctx.fillStyle = '#64748b'; ctx.font = '12px Arial';
+        ctx.fillText("期初價", 5, zeroY - 5);
+        ctx.fillText("Strike", 5, strikeY - 5);
     }
 </script>
 </body>
