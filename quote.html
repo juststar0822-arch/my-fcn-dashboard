@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v5.4 (API版)</title>
+    <title>FCN專業報價系統 v5.4 (iTick API版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -48,11 +48,10 @@
 </head>
 <body class="p-4 md:p-10">
     <div id="app" v-cloak class="max-w-xl mx-auto">
-        
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 mb-6 no-print fade-in">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">API Terminal v5.4</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">iTick Terminal v5.4</p>
             </div>
 
             <div class="space-y-4">
@@ -127,7 +126,6 @@
                             <span>◎僅供內部參考，以實際成交為準 ◎2024/09起走勢</span>
                         </div>
                     </div>
-                    
                     <table class="detail-table mt-2">
                         <thead>
                             <tr class="bg-yellow-50 font-black">
@@ -141,7 +139,6 @@
                             </tr>
                         </tbody>
                     </table>
-
                     <div v-for="(stock, index) in stockData" :key="'item-'+stock.symbol">
                         <div class="orange-bar">標的 {{ index + 1 }} : {{ stock.symbol.replace('.T', '') }}</div>
                         <div class="row-container">
@@ -198,7 +195,7 @@
                 return {
                     isLocked: false, isCapturing: false, isGenerated: false, isSyncing: false,
                     progressText: '',
-                    // 整合進新 Key (iTick)
+                    // 更換為您的 iTick API Key
                     apiKey: 'd59be900afb246d2ada57492e5e08f0491cb0e0b533e4e6c89ea4ca2837b62a5',
                     issuerOptions: ['MS', 'JPM', 'BNP', 'UBS', 'NX', 'NO', 'CG', 'GS', 'BAR', 'CA', 'DBS'],
                     form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'MS', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL,AMD' },
@@ -208,27 +205,29 @@
             methods: {
                 getStockName(s) {
                     const symbol = s.toUpperCase().replace('.T', '');
-                    if (stockNames[symbol]) return stockNames[symbol];
-                    return ''; 
+                    return stockNames[symbol] || ''; 
                 },
                 async fetchStock(ticker) {
                     let symbol = ticker.toUpperCase().replace('.T', '');
-                    let exchangeParam = "";
                     
-                    if (this.form.market === 'JP') {
-                        exchangeParam = "&mic=XTKS";
-                    }
-                    
-                    const url = `https://api.twelvedata.com/time_series?symbol=${symbol}${exchangeParam}&interval=1day&start_date=2024-09-01&apikey=${this.apiKey}`;
+                    // iTick API 專用 Endpoint 與參數
+                    // 網址：https://api.itick.io/v1/ticker/historical
+                    const url = `https://api.itick.io/v1/ticker/historical?symbol=${symbol}&interval=1d&from=2024-09-01&token=${this.apiKey}`;
                     
                     try {
                         const res = await fetch(url);
                         const data = await res.json();
-                        if (data.status === "error" || !data.values) throw new Error(data.message);
+                        
+                        // iTick 成功回傳會在 data.results 中
+                        if (!data || !data.results || data.results.length === 0) {
+                            console.error(`標的 ${ticker} 無數據:`, data.message);
+                            return null;
+                        }
 
-                        const values = data.values.reverse(); 
-                        const prices = values.map(v => parseFloat(v.close));
-                        const labels = values.map(v => v.datetime.replace(/-/g, '/'));
+                        // iTick 欄位對應：c 為收盤價, t 為日期戳
+                        const values = data.results; 
+                        const prices = values.map(v => parseFloat(v.c));
+                        const labels = values.map(v => v.t.split(' ')[0].replace(/-/g, '/'));
                         
                         return { 
                             symbol: ticker, 
@@ -237,7 +236,7 @@
                             labels: labels 
                         };
                     } catch (e) { 
-                        console.error(e);
+                        console.error("API 請求錯誤:", e);
                         return null; 
                     }
                 },
@@ -246,10 +245,10 @@
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
                     
                     for (let i = 0; i < tickerList.length; i++) {
-                        this.progressText = `正在請求資料: ${tickerList[i]}...`;
+                        this.progressText = `iTick 正在連線: ${tickerList[i]}...`;
                         const data = await this.fetchStock(tickerList[i]);
                         if (data) this.stockData.push(data);
-                        await new Promise(r => setTimeout(r, 800)); // 避免頻率限制
+                        await new Promise(r => setTimeout(r, 600)); // 縮短延遲以配合新 API
                     }
 
                     if (this.stockData.length > 0) {
