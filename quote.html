@@ -218,19 +218,21 @@
                     const today = new Date().toISOString().split('T')[0];
                     const cacheKey = `fcn_cache_${ticker}_${today}`;
                     
-                    // 1. 檢查快存
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) return JSON.parse(cached);
 
+                    // 這裡改用 allorigins 並加上 JSON 解析逻辑
                     const cb = new Date().getTime();
                     const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=2y&interval=1d&cb=${cb}`;
-                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
                     try {
                         const res = await fetch(proxyUrl);
                         if (!res.ok) throw new Error('API封鎖或請求過快');
                         
-                        const json = await res.json();
+                        const data = await res.json();
+                        const json = JSON.parse(data.contents); // 修正點：allorigins 回傳的是物件，原始內容在 contents 裡
+                        
                         const result = json.chart.result[0];
                         const prices = result.indicators.quote[0].close;
                         const timestamps = result.timestamp;
@@ -246,8 +248,6 @@
                         }
                         
                         const stockObj = { symbol: ticker, price: validPrices[validPrices.length - 1].toFixed(2), history: validPrices, labels: validLabels };
-                        
-                        // 2. 存入快存
                         localStorage.setItem(cacheKey, JSON.stringify(stockObj));
                         return stockObj;
                     } catch (e) { 
@@ -266,9 +266,8 @@
                         if (data) {
                             this.stockData.push(data);
                         }
-                        // 如果沒有快存，增加延遲保護 IP
                         const isCached = localStorage.getItem(`fcn_cache_${tickerList[i]}_${new Date().toISOString().split('T')[0]}`);
-                        await new Promise(r => setTimeout(r, isCached ? 50 : 1000));
+                        await new Promise(r => setTimeout(r, isCached ? 50 : 800)); // 稍微調整延遲
                     }
 
                     if (this.stockData.length > 0) {
