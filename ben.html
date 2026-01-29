@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BenV7.0 - </title>
+    <title>Ben報價 V7.0 - NO KI STRUCTURE (帶走勢圖)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,20 +11,26 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
         body { background: #cbd5e1; font-family: 'Noto Sans TC', sans-serif; }
+        [v-cloak] { display: none; }
         .ben-card { background: white; border-radius: 40px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         .ben-title { color: #1e3a8a; font-size: 32px; font-weight: 900; font-style: italic; }
         .ben-subtitle { color: #3b82f6; font-size: 14px; letter-spacing: 2px; font-weight: bold; margin-bottom: 20px; text-transform: uppercase; }
-        .ben-input { background: #f1f5f9; border: none; border-radius: 20px; padding: 15px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; }
+        .ben-input { background: #f1f5f9; border: none; border-radius: 20px; padding: 15px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; appearance: none; }
         .ben-btn { background: #1e3a8a; color: white; border-radius: 25px; padding: 18px; width: 100%; font-size: 20px; font-weight: bold; transition: 0.3s; margin-top: 10px; }
         .ben-label { color: #94a3b8; font-size: 14px; font-weight: bold; margin-bottom: 8px; display: block; }
         
-        /* 報價單樣式 */
         .capture-box { width: 450px; margin: 0 auto; background: white; padding: 20px; border-radius: 20px; }
         .page-container { width: 410px; border: 2px solid #000; background: #fff; margin: 0 auto; overflow: hidden; }
         .summary-header { background: #fff; padding: 15px; text-align: center; border-bottom: 2px solid #000; font-size: 24px; font-weight: 900; }
         .summary-table { width: 100%; border-collapse: collapse; }
         .navy-cell { background: #1e3a8a; color: white; border: 1px solid #000; text-align: center; font-size: 12px; padding: 10px; font-weight: bold; }
         .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 10px; }
+
+        /* 圖表專用 */
+        .chart-container { position: relative; width: 100%; height: 150px; margin-top: 10px; }
+        .chart-legend { display: flex; justify-content: center; gap: 10px; font-size: 10px; color: #64748b; font-weight: bold; margin-top: 5px; }
+        .legend-item { display: flex; align-items: center; gap: 4px; }
+        .legend-line { width: 15px; height: 2px; }
     </style>
 </head>
 <body class="p-4">
@@ -39,6 +45,15 @@
             </div>
 
             <div class="space-y-5">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="ben-label">發行機構</label>
+                        <select v-model="form.issuer" class="ben-input">
+                            <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
+                        </select>
+                    </div>
+                    <div><label class="ben-label">履約價 %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
+                </div>
                 <div>
                     <label class="ben-label">連結標的 (代碼用逗號分隔)</label>
                     <input v-model="form.tickers" class="ben-input" placeholder="AAPL, NVDA, TSLA">
@@ -47,10 +62,7 @@
                     <label class="ben-label">預期到期表現 (%, 逗號分隔)</label>
                     <input v-model="form.expected" class="ben-input" placeholder="1.0, 50, 60">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="ben-label">紅利率 (PA %)</label><input v-model="form.coupon" type="number" class="ben-input"></div>
-                    <div><label class="ben-label">履約價 %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
-                </div>
+                <div><label class="ben-label">紅利率 (PA %)</label><input v-model="form.coupon" type="number" class="ben-input"></div>
                 
                 <button @click="generate" :disabled="isSyncing" class="ben-btn">
                     {{ isSyncing ? '數據讀取中...' : '生成報價單' }}
@@ -59,7 +71,7 @@
             </div>
         </div>
 
-        <div v-if="isGenerated" class="fade-in">
+        <div v-if="isGenerated">
             <div class="flex gap-3 mb-6 no-print">
                 <button @click="capture('summary')" class="flex-1 bg-emerald-600 text-white py-4 rounded-2xl font-black shadow-lg">📸 下載報價單圖片</button>
                 <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-6 rounded-2xl font-bold">🔒</button>
@@ -70,7 +82,7 @@
                     <div class="summary-header">Ben銀坑 V7.0 報價單</div>
                     <table class="summary-table">
                         <tr>
-                            <td class="navy-cell" width="25%">發行機構</td><td class="white-cell">MS</td>
+                            <td class="navy-cell" width="25%">發行機構</td><td class="white-cell">{{ form.issuer }}</td>
                             <td class="navy-cell" width="25%">計價幣別</td><td class="white-cell">{{ form.market === 'JP' ? 'JPY' : 'USD' }}</td>
                         </tr>
                         <tr>
@@ -81,14 +93,24 @@
                     
                     <div class="bg-slate-50 p-2 text-center text-[10px] font-black border-b border-black uppercase tracking-widest">Underlying Assets Status</div>
                     
-                    <div v-for="(s, idx) in stockData" :key="s.symbol" class="p-4 border-b border-slate-100 flex justify-between items-center">
-                        <div>
-                            <div class="font-black text-xl">{{ s.symbol }}</div>
-                            <div class="text-[10px] text-slate-400 font-bold">Exp. Performance: {{ getExpValue(idx) }}%</div>
+                    <div v-for="(s, idx) in stockData" :key="s.symbol" class="p-4 border-b border-slate-100">
+                        <div class="flex justify-between items-center mb-2">
+                            <div>
+                                <div class="font-black text-xl">{{ s.symbol }}</div>
+                                <div class="text-[10px] text-slate-400 font-bold">Exp. Performance: {{ getExpValue(idx) }}%</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs font-bold text-slate-500">Price: {{ s.price }}</div>
+                                <div v-if="s.hasTouchedStrike" class="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded mt-1 font-black">STRIKE TOUCHED</div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                            <div class="text-xs font-bold text-slate-500">Price: {{ s.price }}</div>
-                            <div v-if="s.hasTouchedStrike" class="text-[10px] bg-red-100 text-red-600 px-2 py-1 rounded mt-1 font-black">STRIKE TOUCHED</div>
+
+                        <div class="chart-container">
+                            <canvas :id="'chart-' + idx"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-line bg-blue-500"></span>目前收盤</div>
+                            <div class="legend-item"><span class="legend-line bg-red-500 border-dashed border-2"></span>履約價</div>
                         </div>
                     </div>
                 </div>
@@ -102,9 +124,17 @@
             data() {
                 return {
                     isLocked: false, isGenerated: false, isSyncing: false,
-                    form: { market: 'US', tickers: 'AAPL, NVDA, TSLA', expected: '1.0, 50, 60', coupon: 46.06, strikeP: 75 },
+                    issuerOptions: ['MS', 'JPM', 'BNP', 'UBS', 'NX', 'NO', 'CG', 'GS', 'BAR', 'CA', 'DBS'],
+                    form: { 
+                        market: 'US', 
+                        issuer: 'MS', 
+                        tickers: 'AAPL, NVDA, TSLA', 
+                        expected: '1.0, 50, 60', 
+                        coupon: 46.06, 
+                        strikeP: 75 
+                    },
                     stockData: [],
-                    strikeHistory: {} // 永久標記存儲
+                    strikeHistory: {} // 用於追蹤是否曾觸及履約價的永久標記
                 }
             },
             methods: {
@@ -114,11 +144,12 @@
                 },
                 async fetchStock(ticker) {
                     const cb = new Date().getTime();
-                    // 強化版多重代理抓取真實數據
+                    // 多重代理，確保數據抓取成功率
                     const proxies = [
                         u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
                         u => `https://corsproxy.io/?${encodeURIComponent(u)}`
                     ];
+                    // 獲取一年內的數據
                     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1y&interval=1d&cb=${cb}`;
                     
                     for (let pFn of proxies) {
@@ -126,45 +157,146 @@
                             const res = await fetch(pFn(url));
                             const json = await res.json();
                             const result = json.chart.result[0];
+
                             const prices = result.indicators.quote[0].close.filter(p => p != null);
+                            const timestamps = result.timestamp.filter((_, i) => result.indicators.quote[0].close[i] != null);
+                            
                             const currentPrice = prices[prices.length - 1];
                             const strikeLevel = currentPrice * (this.form.strikeP / 100);
-                            
-                            // 永久標記邏輯：檢查歷史是否低於履約價
-                            const hit = prices.some(p => p <= strikeLevel);
-                            if (hit) this.strikeHistory[ticker] = true;
+
+                            // 檢查歷史價格是否曾觸及履約價
+                            const hasTouched = prices.some(p => p <= strikeLevel);
+                            if (hasTouched) this.strikeHistory[ticker] = true;
+
+                            // 格式化日期標籤
+                            const labels = timestamps.map(ts => {
+                                const d = new Date(ts * 1000);
+                                return `${d.getMonth() + 1}/${d.getDate()}`; // MM/DD 格式
+                            });
 
                             return { 
                                 symbol: ticker, 
                                 price: currentPrice.toFixed(2), 
-                                hasTouchedStrike: this.strikeHistory[ticker] || false 
+                                hasTouchedStrike: this.strikeHistory[ticker] || false,
+                                history: prices,
+                                labels: labels,
+                                strikeLevel: strikeLevel.toFixed(2)
                             };
-                        } catch (e) { continue; }
+                        } catch (e) { console.error(`Error fetching ${ticker} with proxy ${pFn('URL')}:`, e); continue; }
                     }
+                    console.error(`所有代理均無法抓取 ${ticker} 的數據。`);
                     return null;
                 },
                 async generate() {
                     this.isSyncing = true;
                     this.stockData = [];
-                    let list = this.form.tickers.split(',').map(s => s.trim().toUpperCase());
+                    let list = this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t);
                     if (this.form.market === 'JP') list = list.map(t => t.endsWith('.T') ? t : t + '.T');
                     
                     for (let t of list) {
                         const data = await this.fetchStock(t);
-                        if (data) this.stockData.push(data);
-                        await new Promise(r => setTimeout(r, 300));
+                        if (data) {
+                            this.stockData.push(data);
+                            // 延遲一下，避免請求過於頻繁被 Yahoo 擋掉
+                            await new Promise(r => setTimeout(r, 400)); 
+                        }
                     }
                     this.isGenerated = true;
+
+                    // 在DOM更新後才繪製圖表
+                    this.$nextTick(() => {
+                        this.stockData.forEach((s, idx) => this.drawChart(idx, s));
+                    });
                     this.isSyncing = false;
+                },
+                drawChart(idx, stock) {
+                    const ctx = document.getElementById('chart-' + idx).getContext('2d');
+                    
+                    // 確保 Chart 實例不會重複創建
+                    if (this.charts && this.charts[idx]) {
+                        this.charts[idx].destroy();
+                    }
+
+                    const strikeLine = Array(stock.labels.length).fill(stock.strikeLevel);
+
+                    const newChart = new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: stock.labels,
+                            datasets: [
+                                {
+                                    label: '收盤價',
+                                    data: stock.history,
+                                    borderColor: '#3b82f6', // 藍色線
+                                    borderWidth: 1.5,
+                                    pointRadius: 0,
+                                    fill: false,
+                                    tension: 0.1
+                                },
+                                {
+                                    label: '履約價',
+                                    data: strikeLine,
+                                    borderColor: '#ef4444', // 紅色虛線
+                                    borderWidth: 1,
+                                    pointRadius: 0,
+                                    borderDash: [5, 5], // 虛線
+                                    fill: false
+                                }
+                            ]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: {
+                                    display: false // 隱藏Chart.js自帶的圖例，用自定義的
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    display: true,
+                                    ticks: {
+                                        maxTicksLimit: 7, // 限制X軸標籤數量，避免擁擠
+                                        font: { size: 9 }
+                                    }
+                                },
+                                y: {
+                                    display: true,
+                                    position: 'right', // Y軸在右側
+                                    ticks: {
+                                        font: { size: 9 }
+                                    }
+                                }
+                            },
+                            animation: false // 關閉動畫，提高截圖速度
+                        }
+                    });
+                    // 將 Chart 實例保存起來，以便後續銷毀
+                    if (!this.charts) this.charts = [];
+                    this.charts[idx] = newChart;
                 },
                 async capture(id) {
                     window.scrollTo(0,0);
+                    // 稍微延遲一下，確保圖表渲染完成
+                    await new Promise(r => setTimeout(r, 500)); 
                     const el = document.getElementById('capture-' + id);
-                    const canvas = await html2canvas(el, { scale: 3, useCORS: true });
+                    const canvas = await html2canvas(el, { scale: 3, useCORS: true, backgroundColor: "#ffffff" });
                     const link = document.createElement('a');
-                    link.download = `BenV7-Report.png`;
+                    link.download = `BenV7-Report-${this.form.issuer}.png`;
                     link.href = canvas.toDataURL('image/png');
                     link.click();
+                }
+            },
+            beforeUnmount() {
+                // 銷毀所有 Chart 實例，避免內存洩漏
+                if (this.charts) {
+                    this.charts.forEach(chart => {
+                        if (chart) chart.destroy();
+                    });
                 }
             }
         }).mount('#app');
