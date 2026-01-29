@@ -2,101 +2,146 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Ben 專業結構商品模擬器</title>
+    <title>Ben 高階參與型商品模擬器</title>
     <style>
-        :root { --primary: #1a73e8; --danger: #d93025; --success: #188038; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
-        .container { background: white; width: 100%; max-width: 900px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
-        .input-panel { padding: 20px; background: #e8f0fe; border-bottom: 2px solid #ddd; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        :root { --primary: #1a73e8; --danger: #d93025; --success: #188038; --gold: #f2994a; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
+        .input-panel { padding: 25px; background: #2c3e50; color: white; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         .input-group { display: flex; flex-direction: column; }
-        label { font-size: 12px; font-weight: bold; color: #555; margin-bottom: 5px; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 5px; }
+        input, select { padding: 10px; border-radius: 5px; border: none; margin-top: 5px; }
         
-        .display-panel { padding: 30px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .ki-status { display: inline-block; padding: 5px 15px; border-radius: 5px; background: #eee; font-weight: bold; }
-        .is-ki { background: var(--danger); color: white; }
+        .display-panel { padding: 40px; text-align: center; }
+        .status-badge { display: inline-block; padding: 8px 20px; border-radius: 30px; font-weight: bold; margin-bottom: 20px; }
+        .status-normal { background: #e8f0fe; color: var(--primary); }
+        .status-ki { background: var(--danger); color: white; }
+        .status-bonus { background: var(--gold); color: white; animation: pulse 2s infinite; }
+
+        .stock-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 30px 0; }
+        .stock-card { border: 2px solid #eee; padding: 15px; border-radius: 10px; transition: 0.3s; }
+        .stock-card.worst { border-color: var(--danger); background: #fff5f5; }
+        .stock-card.best { border-color: var(--success); background: #f0fdf4; }
+
+        .asset-row { display: flex; justify-content: space-around; background: #f9f9f9; padding: 30px; border-radius: 15px; }
+        .currency-item { flex: 1; }
+        .currency-item div:first-child { font-size: 14px; color: #666; }
+        .val { font-size: 32px; font-weight: bold; color: #1a73e8; margin: 10px 0; }
         
-        .result-card { display: flex; justify-content: space-around; margin-top: 20px; }
-        .currency-box { text-align: center; flex: 1; border: 2px solid #eee; margin: 0 10px; padding: 20px; border-radius: 12px; }
-        .val { font-size: 24px; font-weight: bold; color: var(--primary); margin: 10px 0; }
-        
-        .worst-label { color: var(--danger); font-weight: bold; font-size: 14px; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; margin: 5px; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="input-panel">
-        <div class="input-group"><label>本金 (USD)</label><input type="number" id="principal" value="100000"></div>
-        <div class="input-group"><label>美股標的 (Ticker)</label><input type="text" id="stockA" value="NVDA"></div>
-        <div class="input-group"><label>日股標的 (Ticker)</label><input type="text" id="stockB" value="Toyota"></div>
-        <div class="input-group"><label>年化紅利率 (%)</label><input type="number" id="rate" value="46.06"></div>
+        <div class="input-group"><label>投資本金 (USD)</label><input type="number" id="p" value="100000"></div>
+        <div class="input-group"><label>保底年化紅利 (%)</label><input type="number" id="coupon_rate" value="46.06"></div>
         <div class="input-group"><label>USD/JPY 匯率</label><input type="number" id="fx" value="150"></div>
+        <div class="input-group"><label>設定標的數量</label>
+            <select id="count" onchange="initStocks()">
+                <option value="2">2檔標的</option><option value="3">3檔標的</option>
+                <option value="4">4檔標的</option><option value="5">5檔標的</option>
+            </select>
+        </div>
     </div>
 
+    <div id="stock_inputs" class="input-panel" style="background: #34495e; border-top: 1px solid #5d6d7e;">
+        </div>
+
     <div class="display-panel">
-        <div class="header">
-            <h2>客製化報價：<span id="titleA">NVDA</span> + <span id="titleB">Toyota</span></h2>
-            <div id="ki_flag" class="ki-status">狀態：觀測中</div>
+        <div id="status" class="status-badge status-normal">狀態：觀測中 (利息累積中)</div>
+        
+        <div class="stock-grid" id="stock_display"></div>
+
+        <div class="asset-row">
+            <div class="currency-item">
+                <div>結算資產 (USD)</div>
+                <div id="res_usd" class="val">$0</div>
+                <div id="reason_usd" style="font-size: 14px; color: var(--success);">取得最高收益：紅利率</div>
+            </div>
+            <div class="currency-item" style="border-left: 1px solid #ddd;">
+                <div>結算資產 (JPY)</div>
+                <div id="res_jpy" class="val">¥0</div>
+                <div id="reason_jpy" style="font-size: 14px; color: var(--success);">取得最高收益：紅利率</div>
+            </div>
         </div>
 
-        <div class="result-card">
-            <div class="currency-box">
-                <div class="stat-label">預計領回 (USD)</div>
-                <div id="res_usd" class="val">$103,838</div>
-                <div class="worst-label" id="note_usd">✅ 到期還本</div>
-            </div>
-            <div class="currency-box">
-                <div class="stat-label">預計領回 (JPY)</div>
-                <div id="res_jpy" class="val">¥15,575,700</div>
-                <div class="worst-label" id="note_jpy">✅ 到期還本</div>
-            </div>
-        </div>
-
-        <div style="margin-top: 30px; padding: 15px; background: #fff4f4; border-radius: 8px;">
-            <h4 style="color: var(--danger); margin: 0;">⚠️ 風險警示 (看錯方向時)：</h4>
-            <p style="font-size: 14px;">若任一標的觸及 KI，本金將 <b>[不予歸還]</b>，亦 <b>[不發放紅利]</b>。系統將永久標記該資料，並以表現最差之標的進行實物交割。</p>
-            <button onclick="simulateCrash()">模擬看錯方向 (觸及 KI)</button>
-            <button onclick="resetSim()">重置正常狀態</button>
+        <div style="margin-top: 40px;">
+            <button onclick="simulate(0.05)" style="background: #eee;">模擬小幅波動</button>
+            <button onclick="simulate(0.70)" style="background: var(--gold); color: white;">模擬大漲 (參與漲幅)</button>
+            <button onclick="simulate(-0.35)" style="background: var(--danger); color: white;">模擬觸及 KI (看錯方向)</button>
         </div>
     </div>
 </div>
 
 <script>
-    function update() {
-        let p = parseFloat(document.getElementById('principal').value);
-        let r = parseFloat(document.getElementById('rate').value) / 100;
-        let fx = parseFloat(document.getElementById('fx').value);
-        let monthly = p * (1 + r/12);
+    function initStocks() {
+        const count = document.getElementById('count').value;
+        const container = document.getElementById('stock_inputs');
+        container.innerHTML = '';
+        for(let i=1; i<=count; i++) {
+            container.innerHTML += `
+                <div class="input-group">
+                    <label>標的 ${i} 漲跌幅 (%)</label>
+                    <input type="number" id="s${i}_perf" value="5" class="perf-input">
+                    <input type="text" id="s${i}_name" value="標的 ${i}">
+                </div>`;
+        }
+        document.querySelectorAll('.perf-input').forEach(el => el.addEventListener('input', calculate));
+        calculate();
+    }
+
+    function calculate() {
+        const p = parseFloat(document.getElementById('p').value);
+        const r = parseFloat(document.getElementById('coupon_rate').value) / 100 / 12; // 一個月
+        const fx = parseFloat(document.getElementById('fx').value);
+        const perfs = Array.from(document.querySelectorAll('.perf-input')).map(el => parseFloat(el.value)/100);
         
-        document.getElementById('titleA').innerText = document.getElementById('stockA').value;
-        document.getElementById('titleB').innerText = document.getElementById('stockB').value;
+        const worstPerf = Math.min(...perfs);
+        const bestPerf = Math.max(...perfs); // 這裡我們取表現好的來比較紅利
         
-        document.getElementById('res_usd').innerText = '$' + monthly.toLocaleString(undefined, {maximumFractionDigits:0});
-        document.getElementById('res_jpy').innerText = '¥' + (monthly * fx).toLocaleString(undefined, {maximumFractionDigits:0});
+        let finalRate = r;
+        let statusText = "狀態：觀測中 (領取紅利)";
+        let statusClass = "status-normal";
+        let reason = "取得最高收益：固定紅利";
+
+        if (worstPerf < -0.2) { // 假設 KI 是 80%
+            finalRate = worstPerf;
+            statusText = "已觸及 KI (永久標記)";
+            statusClass = "status-ki";
+            reason = "❌ 看錯方向：接股票 (本金不還/無紅利)";
+        } else if (worstPerf > (r)) { // 如果最差的漲幅都超過紅利率
+            finalRate = worstPerf;
+            statusText = "超額獲利：參與市場漲幅";
+            statusClass = "status-bonus";
+            reason = `🚀 漲幅 (${(worstPerf*100).toFixed(2)}%) 高於紅利`;
+        }
+
+        const totalUsd = p * (1 + finalRate);
+        document.getElementById('res_usd').innerText = '$' + totalUsd.toLocaleString(undefined, {maximumFractionDigits:0});
+        document.getElementById('res_jpy').innerText = '¥' + (totalUsd * fx).toLocaleString(undefined, {maximumFractionDigits:0});
+        document.getElementById('status').innerText = statusText;
+        document.getElementById('status').className = "status-badge " + statusClass;
+        document.getElementById('reason_usd').innerText = reason;
+        document.getElementById('reason_jpy').innerText = reason;
+        
+        // 更新卡片視覺
+        const display = document.getElementById('stock_display');
+        display.innerHTML = perfs.map((perf, i) => `
+            <div class="stock-card ${perf == worstPerf ? 'worst' : ''}">
+                <div style="font-size:12px;">${document.getElementById(`s${i+1}_name`).value}</div>
+                <div style="font-size:20px; font-weight:bold; color:${perf >= 0 ? 'var(--success)' : 'var(--danger)'}">${(perf*100).toFixed(2)}%</div>
+            </div>
+        `).join('');
     }
 
-    function simulateCrash() {
-        document.getElementById('ki_flag').innerText = "已觸及 KI (永久標記)";
-        document.getElementById('ki_flag').className = "ki-status is-ki";
-        document.getElementById('res_usd').innerText = "接股票 (市值視股價而定)";
-        document.getElementById('res_jpy').innerText = "接股票 (市值視股價而定)";
-        document.getElementById('note_usd').innerText = "❌ 紅利已取消";
-        document.getElementById('note_jpy').innerText = "❌ 紅利已取消";
+    function simulate(val) {
+        document.querySelectorAll('.perf-input').forEach(el => el.value = (val * 100 * (0.8 + Math.random()*0.4)).toFixed(2));
+        calculate();
     }
 
-    function resetSim() {
-        document.getElementById('ki_flag').innerText = "狀態：觀測中";
-        document.getElementById('ki_flag').className = "ki-status";
-        document.getElementById('note_usd').innerText = "✅ 到期還本";
-        document.getElementById('note_jpy').innerText = "✅ 到期還本";
-        update();
-    }
-
-    document.querySelectorAll('input').forEach(el => el.addEventListener('input', update));
-    update();
+    initStocks();
 </script>
-
 </body>
 </html>
