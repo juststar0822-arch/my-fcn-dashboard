@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ben 終端 V8.0 - </title>
+    <title>Ben 專業報價系統 V9.0</title>
     <style>
         :root { --blue: #1e3a8a; --light-blue: #3b82f6; --success: #10b981; --danger: #ef4444; --gold: #f59e0b; }
-        body { font-family: -apple-system, sans-serif; background: #f1f5f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
-        .app { background: white; width: 100%; max-width: 450px; border-radius: 35px; padding: 25px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; }
-        .header h1 { font-style: italic; font-weight: 900; font-size: 28px; color: var(--blue); margin: 0; }
+        body { font-family: -apple-system, sans-serif; background: #e2e8f0; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .app { background: white; width: 100%; max-width: 450px; border-radius: 40px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { font-style: italic; font-weight: 900; font-size: 30px; color: #1a2a4e; margin: 0; letter-spacing: 1px; }
         
         .tabs { display: flex; background: #f1f5f9; border-radius: 12px; padding: 4px; margin-bottom: 20px; }
         .tab { flex: 1; text-align: center; padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; color: #64748b; font-size: 14px; }
@@ -18,26 +18,27 @@
         .input-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .full { grid-column: span 2; }
         label { font-size: 11px; font-weight: bold; color: #94a3b8; margin-bottom: 5px; display: block; text-align: center; }
-        input { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; font-weight: bold; font-size: 15px; background: #f8fafc; }
+        input { width: 100%; box-sizing: border-box; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; text-align: center; font-weight: bold; font-size: 15px; background: #fff; }
 
-        #chart-container { margin: 20px 0; background: #fff; border-radius: 15px; border: 1px solid #f1f5f9; padding: 10px; }
-        canvas { width: 100%; height: 180px; }
+        /* 圖表區 */
+        #chart-container { margin: 20px 0; background: #fff; border-radius: 15px; border: 1px solid #f1f5f9; padding: 10px; position: relative; }
+        canvas { width: 100%; height: 220px; }
+        .chart-label { position: absolute; font-size: 10px; color: #94a3b8; }
 
-        .res-box { padding: 20px; border-radius: 20px; text-align: center; margin-bottom: 20px; display: none; }
-        .res-success { background: #ecfdf5; border: 1px solid #a7f3d0; }
-        .res-gold { background: #fffbeb; border: 1px solid #fde68a; }
-        .res-danger { background: #fef2f2; border: 1px solid #fecaca; }
+        .res-box { padding: 20px; border-radius: 20px; text-align: center; margin-top: 15px; display: none; }
+        .res-normal { background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .res-win { background: #fffbeb; border: 1px solid #fde68a; }
 
-        .btn { background: var(--blue); color: white; border: none; width: 100%; padding: 18px; border-radius: 18px; font-size: 17px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(30,58,138,0.3); }
+        .btn { background: #1d4ed8; color: white; border: none; width: 100%; padding: 18px; border-radius: 20px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .currency-hint { font-size: 11px; color: #94a3b8; text-align: center; margin-top: 15px; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="app">
     <div class="header">
-        <h1><i>Ben</i> 智能投顧終端</h1>
-        <p style="color:#3b82f6; font-size:10px; font-weight:bold; letter-spacing:2px;">REAL-TIME SIMULATOR V8.0</p>
+        <h1><i>Ben</i>專業報價系統</h1>
+        <p style="color:#3b82f6; font-size:10px; font-weight:bold; letter-spacing:2px; margin:5px 0;">STABILITY TERMINAL V9.0</p>
     </div>
 
     <div class="tabs">
@@ -47,34 +48,39 @@
 
     <div class="input-grid">
         <div class="box full">
-            <label>連結標的 (即時報價)</label>
-            <input type="text" id="tk" value="AAPL, NVDA, TSLA">
-        </div>
-        <div class="box full">
-            <label>預期表現 % (依序填入標的)</label>
-            <input type="text" id="pf" value="1, 50, 60" oninput="drawChart()">
+            <label>連結標的的代碼 (逗號分隔)</label>
+            <input type="text" id="tk" value="TSM, NVDA, ORCL, AMD">
         </div>
         <div class="box">
-            <label>保證紅利 (%)</label>
-            <input type="number" id="rt" value="46.06" oninput="drawChart()">
+            <label>天期 (月)</label>
+            <input type="number" id="tenor" value="6">
+        </div>
+        <div class="box">
+            <label>年化紅利率 (%)</label>
+            <input type="number" id="rate" value="12">
         </div>
         <div class="box">
             <label>履約價 (Strike %)</label>
-            <input type="number" id="st" value="100" oninput="drawChart()">
+            <input type="number" id="st" value="75">
+        </div>
+        <div class="box">
+            <label>預期表現 (%)</label>
+            <input type="number" id="perf" value="15" placeholder="例如：20">
         </div>
     </div>
 
     <div id="chart-container">
-        <canvas id="payoffChart"></canvas>
+        <canvas id="mainChart"></canvas>
     </div>
 
     <div id="res" class="res-box">
-        <div id="res_msg" style="font-weight: bold; font-size: 14px; margin-bottom: 8px;"></div>
-        <div id="res_usd" style="font-size: 26px; font-weight: 900; color: var(--blue);"></div>
-        <div id="res_jpy" style="font-size: 14px; font-weight: bold; color: #64748b;"></div>
+        <div id="res_msg" style="font-weight: bold; font-size: 14px; margin-bottom: 5px; color: #166534;"></div>
+        <div id="res_money" style="font-size: 24px; font-weight: 900; color: var(--blue);"></div>
+        <div id="res_jpy" style="font-size: 13px; color: #64748b; margin-top: 4px;"></div>
     </div>
 
-    <button class="btn" onclick="calc()">生成即時報價單</button>
+    <button class="btn" onclick="simulate()">生成報價單</button>
+    <div class="currency-hint">總資產換算顯示：USD / JPY</div>
 </div>
 
 <script>
@@ -83,85 +89,71 @@
         mode = m;
         document.getElementById('tUS').className = m==='US'?'tab active':'tab';
         document.getElementById('tJP').className = m==='JP'?'tab active':'tab';
-        document.getElementById('tk').value = m==='US' ? "AAPL, NVDA, TSLA" : "7203.T, 9984.T, 6758.T";
-        drawChart();
+        document.getElementById('tk').value = m==='US' ? "TSM, NVDA, ORCL, AMD" : "7203.T, 9984.T, 6758.T";
+        drawStatic();
     }
 
-    function drawChart() {
-        const canvas = document.getElementById('payoffChart');
+    function drawStatic() {
+        const canvas = document.getElementById('mainChart');
         const ctx = canvas.getContext('2d');
-        const r = parseFloat(document.getElementById('rt').value) / 100 / 12; // 一個月紅利
-        const perfs = document.getElementById('pf').value.split(',').map(v => parseFloat(v)/100);
-        const worst = Math.min(...perfs);
-        
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 坐標軸繪製
-        ctx.strokeStyle = '#e2e8f0';
-        ctx.beginPath(); ctx.moveTo(20, 150); ctx.lineTo(280, 150); ctx.stroke(); // X軸
-        ctx.beginPath(); ctx.moveTo(50, 20); ctx.lineTo(50, 170); ctx.stroke(); // Y軸
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        ctx.strokeStyle = '#e2e8f0'; ctx.setLineDash([5, 5]);
+        ctx.beginPath(); ctx.moveTo(0, 110); ctx.lineTo(300, 110); ctx.stroke(); // 100% 線
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#94a3b8'; ctx.font = '10px Arial';
+        ctx.fillText("期初價 (100%)", 5, 105);
+    }
 
-        // 繪製收益曲線
-        ctx.lineWidth = 4;
+    function simulate() {
+        const canvas = document.getElementById('mainChart');
+        const ctx = canvas.getContext('2d');
+        const tenor = parseInt(document.getElementById('tenor').value);
+        const rate = parseFloat(document.getElementById('rate').value) / 100;
+        const strike = parseFloat(document.getElementById('st').value);
+        const perf = parseFloat(document.getElementById('perf').value);
+        
+        drawStatic();
+        
+        // 模擬隨機走勢
         ctx.beginPath();
-        ctx.strokeStyle = '#3b82f6';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = perf >= 0 ? '#10b981' : '#ef4444';
+        let currentY = 110;
+        ctx.moveTo(0, currentY);
         
-        // 下跌段 (低於履約價)
-        ctx.moveTo(10, 170);
-        ctx.lineTo(50, 130); 
-        
-        // 紅利段 (履約價到紅利率點)
-        const bonusY = 130 - (r * 100);
-        const bonusX = 50 + (r * 100 * 2); 
-        ctx.strokeStyle = '#10b981';
-        ctx.lineTo(bonusX, bonusY);
-        
-        // 參與漲幅段
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineTo(280, 20);
+        for(let i=1; i<=20; i++) {
+            let targetY = 110 - (perf * 1.1) * (i/20);
+            let jitter = (Math.random() - 0.5) * 15;
+            ctx.lineTo(i * 15, targetY + jitter);
+        }
         ctx.stroke();
 
-        // 標記當前位置
-        const currentX = 50 + (worst * 100 * 2);
-        ctx.fillStyle = 'red';
-        ctx.beginPath();
-        ctx.arc(Math.min(Math.max(currentX, 10), 270), 130 - (worst * 100), 5, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    function calc() {
+        // 顯示結果邏輯
+        const resBox = document.getElementById('res');
+        resBox.style.display = 'block';
         const p = 100000;
-        const r = parseFloat(document.getElementById('rt').value) / 100 / 12;
-        const perfs = document.getElementById('pf').value.split(',').map(v => parseFloat(v)/100);
-        const worst = Math.min(...perfs);
-        const resDiv = document.getElementById('res');
-        
-        resDiv.style.display = 'block';
-        let finalR = r;
-        let msg = "✅ 滿足履約條件：實拿保證紅利";
-        resDiv.className = 'res-box res-success';
+        let finalReturn = (rate / 12) * tenor; // 這段時間累積的紅利
+        let msg = `✅ 高於履約價：實拿 ${ (rate*100).toFixed(2) }% 年化紅利`;
+        resBox.className = 'res-box res-normal';
 
-        if (worst < 0) {
-            finalR = worst;
-            msg = "❌ 跌破履約價：轉換股票 (表現最差之標的）";
-            resDiv.className = 'res-box res-danger';
-        } else if (worst > r) {
-            finalR = worst;
-            msg = "🚀 突破紅利：全額參與市場漲幅";
-            resDiv.className = 'res-box res-gold';
+        if (perf > (rate * 100)) {
+            finalReturn = perf / 100;
+            msg = `🚀 漲幅突破：參與市場漲幅 ${(perf).toFixed(2)}%`;
+            resBox.className = 'res-box res-win';
+        } else if (perf < (strike - 100)) {
+            finalReturn = perf / 100;
+            msg = `❌ 低於履約價：以 Strike 承接股票`;
+            resBox.className = 'res-box res-danger';
         }
 
-        const usd = p * (1 + finalR);
-        const jpy = usd * 151.2; // 模擬當前匯率
-
+        const usd = p * (1 + finalReturn);
+        const jpy = usd * 150;
         document.getElementById('res_msg').innerText = msg;
-        document.getElementById('res_usd').innerText = `$ ${usd.toLocaleString(undefined, {maximumFractionDigits:0})} USD`;
-        document.getElementById('res_jpy').innerText = `換算總資產：¥ ${jpy.toLocaleString(undefined, {maximumFractionDigits:0})} JPY`;
-        drawChart();
+        document.getElementById('res_money').innerText = `$ ${usd.toLocaleString(undefined,{maximumFractionDigits:0})} USD`;
+        document.getElementById('res_jpy').innerText = `換算資產：¥ ${jpy.toLocaleString(undefined,{maximumFractionDigits:0})} JPY`;
     }
-    
-    window.onload = () => { drawChart(); };
-</script>
 
+    window.onload = drawStatic;
+</script>
 </body>
 </html>
