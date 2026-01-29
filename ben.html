@@ -2,146 +2,145 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Ben 高階參與型商品模擬器</title>
+    <title>Ben 進化型紅利商品報價</title>
     <style>
         :root { --primary: #1a73e8; --danger: #d93025; --success: #188038; --gold: #f2994a; }
-        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f6; padding: 20px; color: #333; }
-        .container { max-width: 1000px; margin: auto; background: white; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); overflow: hidden; }
-        .input-panel { padding: 25px; background: #2c3e50; color: white; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
+        body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; background: #f8f9fa; padding: 20px; }
+        .card { max-width: 950px; margin: auto; background: white; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; }
+        .top-nav { background: #202124; color: white; padding: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
         .input-group { display: flex; flex-direction: column; }
-        input, select { padding: 10px; border-radius: 5px; border: none; margin-top: 5px; }
+        input { padding: 8px; border-radius: 4px; border: none; margin-top: 5px; }
         
-        .display-panel { padding: 40px; text-align: center; }
-        .status-badge { display: inline-block; padding: 8px 20px; border-radius: 30px; font-weight: bold; margin-bottom: 20px; }
-        .status-normal { background: #e8f0fe; color: var(--primary); }
-        .status-ki { background: var(--danger); color: white; }
-        .status-bonus { background: var(--gold); color: white; animation: pulse 2s infinite; }
+        .main-content { padding: 30px; text-align: center; }
+        .badge { display: inline-block; padding: 10px 25px; border-radius: 50px; font-weight: bold; margin-bottom: 25px; font-size: 18px; }
+        .badge-normal { background: #e8f0fe; color: var(--primary); }
+        .badge-ki { background: var(--danger); color: white; }
+        .badge-win { background: var(--gold); color: white; box-shadow: 0 0 15px rgba(242,153,74,0.5); }
 
-        .stock-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 30px 0; }
-        .stock-card { border: 2px solid #eee; padding: 15px; border-radius: 10px; transition: 0.3s; }
-        .stock-card.worst { border-color: var(--danger); background: #fff5f5; }
-        .stock-card.best { border-color: var(--success); background: #f0fdf4; }
+        .stock-row { display: flex; justify-content: center; gap: 15px; margin: 25px 0; flex-wrap: wrap; }
+        .stock-card { width: 150px; border: 2px solid #eee; padding: 15px; border-radius: 12px; }
+        .stock-card.worst { border-color: var(--danger); background: #fff5f5; position: relative; }
+        .stock-card.worst::after { content: "Worst"; position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
 
-        .asset-row { display: flex; justify-content: space-around; background: #f9f9f9; padding: 30px; border-radius: 15px; }
-        .currency-item { flex: 1; }
-        .currency-item div:first-child { font-size: 14px; color: #666; }
-        .val { font-size: 32px; font-weight: bold; color: #1a73e8; margin: 10px 0; }
+        .asset-box { display: flex; justify-content: space-around; background: #f1f3f4; padding: 30px; border-radius: 12px; margin-top: 20px; }
+        .val { font-size: 36px; font-weight: bold; color: var(--primary); }
+        .note { color: var(--success); font-weight: bold; margin-top: 10px; }
         
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        button { padding: 10px 20px; cursor: pointer; border: none; border-radius: 5px; font-weight: bold; margin: 5px; }
+        .btn-group { margin-top: 30px; }
+        button { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin: 0 5px; transition: 0.2s; }
+        button:hover { opacity: 0.9; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="input-panel">
-        <div class="input-group"><label>投資本金 (USD)</label><input type="number" id="p" value="100000"></div>
-        <div class="input-group"><label>保底年化紅利 (%)</label><input type="number" id="coupon_rate" value="46.06"></div>
+<div class="card">
+    <div class="top-nav">
+        <div class="input-group"><label>本金 (USD)</label><input type="number" id="p" value="100000"></div>
+        <div class="input-group"><label>紅利率 (%)</label><input type="number" id="rate" value="46.06"></div>
         <div class="input-group"><label>USD/JPY 匯率</label><input type="number" id="fx" value="150"></div>
-        <div class="input-group"><label>設定標的數量</label>
-            <select id="count" onchange="initStocks()">
-                <option value="2">2檔標的</option><option value="3">3檔標的</option>
-                <option value="4">4檔標的</option><option value="5">5檔標的</option>
+        <div class="input-group">
+            <label>標的數量</label>
+            <select id="count" onchange="createInputs()" style="padding:8px; border-radius:4px; margin-top:5px;">
+                <option value="2">2檔</option><option value="3">3檔</option>
+                <option value="4">4檔</option><option value="5" selected>5檔</option>
             </select>
         </div>
     </div>
 
-    <div id="stock_inputs" class="input-panel" style="background: #34495e; border-top: 1px solid #5d6d7e;">
-        </div>
+    <div id="inputs" style="padding: 15px; background: #3c4043; color: white; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;"></div>
 
-    <div class="display-panel">
-        <div id="status" class="status-badge status-normal">狀態：觀測中 (利息累積中)</div>
+    <div class="main-content">
+        <div id="status" class="badge badge-normal">狀態：觀測中</div>
         
-        <div class="stock-grid" id="stock_display"></div>
+        <div class="stock-row" id="stocks"></div>
 
-        <div class="asset-row">
-            <div class="currency-item">
+        <div class="asset-box">
+            <div class="currency">
                 <div>結算資產 (USD)</div>
                 <div id="res_usd" class="val">$0</div>
-                <div id="reason_usd" style="font-size: 14px; color: var(--success);">取得最高收益：紅利率</div>
+                <div id="reason_usd" class="note">✅ 領取 46.06% 高額紅利</div>
             </div>
-            <div class="currency-item" style="border-left: 1px solid #ddd;">
+            <div class="currency">
                 <div>結算資產 (JPY)</div>
                 <div id="res_jpy" class="val">¥0</div>
-                <div id="reason_jpy" style="font-size: 14px; color: var(--success);">取得最高收益：紅利率</div>
+                <div id="reason_jpy" class="note">✅ 領取 46.06% 高額紅利</div>
             </div>
         </div>
 
-        <div style="margin-top: 40px;">
-            <button onclick="simulate(0.05)" style="background: #eee;">模擬小幅波動</button>
-            <button onclick="simulate(0.70)" style="background: var(--gold); color: white;">模擬大漲 (參與漲幅)</button>
-            <button onclick="simulate(-0.35)" style="background: var(--danger); color: white;">模擬觸及 KI (看錯方向)</button>
+        <div class="btn-group">
+            <button onclick="setMarket(1)" style="background: #ddd;">溫和上漲 (漲 1%)</button>
+            <button onclick="setMarket(60)" style="background: var(--gold); color: white;">市場大漲 (漲 60%)</button>
+            <button onclick="setMarket(-30)" style="background: var(--danger); color: white;">觸及 KI (跌 30%)</button>
         </div>
     </div>
 </div>
 
 <script>
-    function initStocks() {
+    function createInputs() {
         const count = document.getElementById('count').value;
-        const container = document.getElementById('stock_inputs');
+        const container = document.getElementById('inputs');
         container.innerHTML = '';
         for(let i=1; i<=count; i++) {
             container.innerHTML += `
-                <div class="input-group">
-                    <label>標的 ${i} 漲跌幅 (%)</label>
-                    <input type="number" id="s${i}_perf" value="5" class="perf-input">
-                    <input type="text" id="s${i}_name" value="標的 ${i}">
+                <div style="border:1px solid #666; padding:5px; border-radius:5px;">
+                    <input type="text" id="n${i}" value="標的 ${i}" style="width:70px; font-size:12px;">
+                    <input type="number" id="v${i}" value="1" style="width:50px;" oninput="calc()"> %
                 </div>`;
         }
-        document.querySelectorAll('.perf-input').forEach(el => el.addEventListener('input', calculate));
-        calculate();
+        calc();
     }
 
-    function calculate() {
+    function calc() {
         const p = parseFloat(document.getElementById('p').value);
-        const r = parseFloat(document.getElementById('coupon_rate').value) / 100 / 12; // 一個月
+        const r = parseFloat(document.getElementById('rate').value) / 100;
         const fx = parseFloat(document.getElementById('fx').value);
-        const perfs = Array.from(document.querySelectorAll('.perf-input')).map(el => parseFloat(el.value)/100);
+        const count = document.getElementById('count').value;
         
-        const worstPerf = Math.min(...perfs);
-        const bestPerf = Math.max(...perfs); // 這裡我們取表現好的來比較紅利
+        let perfs = [];
+        for(let i=1; i<=count; i++) perfs.push(parseFloat(document.getElementById(`v${i}`).value) / 100);
         
-        let finalRate = r;
-        let statusText = "狀態：觀測中 (領取紅利)";
-        let statusClass = "status-normal";
-        let reason = "取得最高收益：固定紅利";
+        const worst = Math.min(...perfs);
+        let finalReturn = r / 12; // 一個月
+        let status = "狀態：觀測中 (實拿紅利)";
+        let sClass = "badge-normal";
+        let note = `✅ 即使漲幅小，依然實拿 ${ (r*100).toFixed(2) }% 紅利`;
 
-        if (worstPerf < -0.2) { // 假設 KI 是 80%
-            finalRate = worstPerf;
-            statusText = "已觸及 KI (永久標記)";
-            statusClass = "status-ki";
-            reason = "❌ 看錯方向：接股票 (本金不還/無紅利)";
-        } else if (worstPerf > (r)) { // 如果最差的漲幅都超過紅利率
-            finalRate = worstPerf;
-            statusText = "超額獲利：參與市場漲幅";
-            statusClass = "status-bonus";
-            reason = `🚀 漲幅 (${(worstPerf*100).toFixed(2)}%) 高於紅利`;
+        if (worst < -0.2) {
+            finalReturn = worst;
+            status = "已觸及 KI (永久標記)";
+            sClass = "badge-ki";
+            note = "❌ 看錯方向：紅利取消 / 轉換股票";
+        } else if (worst > (r/12)) {
+            finalReturn = worst;
+            status = "超越紅利：參與市場漲幅";
+            sClass = "badge-win";
+            note = `🚀 表現優異：直接獲取 ${(worst*100).toFixed(2)}% 漲幅`;
         }
 
-        const totalUsd = p * (1 + finalRate);
-        document.getElementById('res_usd').innerText = '$' + totalUsd.toLocaleString(undefined, {maximumFractionDigits:0});
-        document.getElementById('res_jpy').innerText = '¥' + (totalUsd * fx).toLocaleString(undefined, {maximumFractionDigits:0});
-        document.getElementById('status').innerText = statusText;
-        document.getElementById('status').className = "status-badge " + statusClass;
-        document.getElementById('reason_usd').innerText = reason;
-        document.getElementById('reason_jpy').innerText = reason;
-        
-        // 更新卡片視覺
-        const display = document.getElementById('stock_display');
-        display.innerHTML = perfs.map((perf, i) => `
-            <div class="stock-card ${perf == worstPerf ? 'worst' : ''}">
-                <div style="font-size:12px;">${document.getElementById(`s${i+1}_name`).value}</div>
-                <div style="font-size:20px; font-weight:bold; color:${perf >= 0 ? 'var(--success)' : 'var(--danger)'}">${(perf*100).toFixed(2)}%</div>
+        const total = p * (1 + finalReturn);
+        document.getElementById('res_usd').innerText = '$' + total.toLocaleString(undefined, {maximumFractionDigits:0});
+        document.getElementById('res_jpy').innerText = '¥' + (total * fx).toLocaleString(undefined, {maximumFractionDigits:0});
+        document.getElementById('status').innerText = status;
+        document.getElementById('status').className = "badge " + sClass;
+        document.getElementById('reason_usd').innerText = note;
+        document.getElementById('reason_jpy').innerText = note;
+
+        document.getElementById('stocks').innerHTML = perfs.map((v, i) => `
+            <div class="stock-card ${v == worst ? 'worst' : ''}">
+                <div style="font-size:12px; color:#666;">${document.getElementById(`n${i+1}`).value}</div>
+                <div style="font-size:20px; font-weight:bold; color:${v>=0?'var(--success)':'var(--danger)'}">${(v*100).toFixed(1)}%</div>
             </div>
         `).join('');
     }
 
-    function simulate(val) {
-        document.querySelectorAll('.perf-input').forEach(el => el.value = (val * 100 * (0.8 + Math.random()*0.4)).toFixed(2));
-        calculate();
+    function setMarket(val) {
+        for(let i=1; i<=document.getElementById('count').value; i++) {
+            document.getElementById(`v${i}`).value = (val + (Math.random() * 5)).toFixed(1);
+        }
+        calc();
     }
 
-    initStocks();
+    createInputs();
 </script>
 </body>
 </html>
