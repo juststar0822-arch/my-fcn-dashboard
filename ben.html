@@ -151,7 +151,7 @@
                     </table>
 
                     <div v-for="(stock, index) in stockData" :key="'item-'+stock.symbol">
-                        <div class="orange-bar">標標的 {{ index + 1 }} : {{ stock.symbol.replace('.T', '') }} - {{ getStockName(stock.symbol) }}</div>
+                        <div class="orange-bar">標的 {{ index + 1 }} : {{ stock.symbol.replace('.T', '') }} - {{ getStockName(stock.symbol) }}</div>
                         <div class="row-container">
                             <div class="data-side">
                                 <table class="detail-table w-full h-full border-none">
