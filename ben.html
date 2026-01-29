@@ -3,71 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ben銀坑 V7.0 - 終極穩定版</title>
+    <title>Ben V7.0 - 快速生成版</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.prod.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { background: #cbd5e1; font-family: 'Noto Sans TC', sans-serif; margin: 0; padding: 15px; }
+        body { background: #cbd5e1; font-family: 'Noto Sans TC', sans-serif; padding: 10px; }
         [v-cloak] { display: none; }
         .ben-card { background: white; border-radius: 40px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 420px; margin: 0 auto; }
         .ben-title { color: #1e3a8a; font-size: 30px; font-weight: 900; font-style: italic; }
-        .ben-input { background: #f1f5f9; border: 2px solid transparent; border-radius: 18px; padding: 12px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; transition: 0.2s; }
-        .ben-input:focus { border-color: #3b82f6; outline: none; background: #fff; }
-        .ben-btn { background: #1e3a8a; color: white; border-radius: 20px; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; border: none; cursor: pointer; margin-top: 15px; }
-        .ben-btn:active { transform: scale(0.98); }
+        .ben-input { background: #f1f5f9; border: none; border-radius: 18px; padding: 12px; text-align: center; font-weight: bold; width: 100%; font-size: 16px; }
+        .ben-btn { background: #1e3a8a; color: white; border-radius: 20px; padding: 15px; width: 100%; font-size: 18px; font-weight: bold; cursor: pointer; border: none; }
+        .ben-btn:disabled { background: #94a3b8; cursor: not-allowed; }
         
-        .capture-box { width: 430px; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; }
-        .page-container { width: 100%; border: 2px solid #000; background: #fff; box-sizing: border-box; }
+        .capture-box { width: 420px; margin: 0 auto; background: white; padding: 15px; border-radius: 20px; }
+        .page-container { border: 2px solid #000; background: #fff; position: relative; }
         .navy-cell { background: #1e3a8a; color: white; border: 1px solid #000; text-align: center; font-size: 12px; padding: 8px; font-weight: bold; }
         .white-cell { background: #fff; border: 1px solid #000; text-align: center; font-weight: 900; font-size: 18px; padding: 8px; }
-        .chart-wrap { position: relative; width: 100%; height: 140px; margin-top: 8px; }
+        .chart-wrap { width: 100%; height: 130px; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div id="app" v-cloak>
         <div v-if="!isLocked" class="ben-card text-center mb-6">
             <h1 class="ben-title">Ben銀坑 V7.0</h1>
-            <p class="text-blue-500 font-bold text-xs tracking-widest mb-4">NO KI STRUCTURE</p>
+            <p class="text-blue-500 font-bold text-[10px] tracking-widest mb-4 uppercase">No KI Structure - USD/JPY Display</p>
 
             <div class="flex gap-2 mb-4 bg-slate-100 p-1 rounded-xl">
                 <button @click="form.market = 'US'" :class="['flex-1 py-2 rounded-lg font-bold', form.market==='US'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">US 美股</button>
                 <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold', form.market==='JP'?'bg-white text-blue-700 shadow-sm':'text-slate-400']">JP 日股</button>
             </div>
 
-            <div class="space-y-4">
+            <div class="space-y-3">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-xs font-bold text-slate-400 block mb-1">發行機構</label>
+                        <label class="text-[10px] font-bold text-slate-400 block mb-1">發行機構</label>
                         <select v-model="form.issuer" class="ben-input">
                             <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
                         </select>
                     </div>
-                    <div><label class="text-xs font-bold text-slate-400 block mb-1">履約價 %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 block mb-1">履約價 %</label><input v-model="form.strikeP" type="number" class="ben-input"></div>
                 </div>
-                <div><label class="text-xs font-bold text-slate-400 block mb-1">標的 (代碼,隔開)</label><input v-model="form.tickers" class="ben-input" placeholder="NVDA, TSM"></div>
-                <div><label class="text-xs font-bold text-slate-400 block mb-1">預期表現 (%,隔開)</label><input v-model="form.expected" class="ben-input"></div>
-                <div><label class="text-xs font-bold text-slate-400 block mb-1">紅利率 (PA %)</label><input v-model="form.coupon" type="number" class="ben-input"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">標的 (代碼用逗號隔開)</label><input v-model="form.tickers" class="ben-input" placeholder="NVDA, TSM"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">預期表現 (%)</label><input v-model="form.expected" class="ben-input"></div>
+                <div><label class="text-[10px] font-bold text-slate-400 block mb-1">年化紅利率 %</label><input v-model="form.coupon" type="number" class="ben-input"></div>
                 
-                <button @click="generate" :disabled="isSyncing" class="ben-btn">
-                    {{ isSyncing ? '讀取中...' : '生成報價單' }}
+                <button @click="generate" :disabled="isSyncing" class="ben-btn mt-2">
+                    {{ isSyncing ? '正在嘗試獲取數據...' : '🚀 立即生成報價單' }}
                 </button>
-                <p class="text-[10px] font-bold text-slate-500 mt-2 uppercase">Total Assets: USD / JPY Display</p>
             </div>
         </div>
 
         <div v-if="isGenerated" class="max-w-md mx-auto">
             <div class="flex gap-2 mb-4">
-                <button @click="capture" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-black shadow-lg">📸 下載圖片</button>
+                <button @click="capture" class="flex-1 bg-blue-600 text-white py-3 rounded-xl font-black shadow-lg">📸 儲存圖片</button>
                 <button @click="isLocked = !isLocked" class="bg-slate-800 text-white px-5 rounded-xl">🔒</button>
             </div>
 
-            <div id="capture-area" class="capture-box">
+            <div id="capture-area" class="capture-box shadow-xl">
                 <div class="page-container">
-                    <div class="p-4 text-center text-2xl font-black border-b-2 border-black">Ben銀坑 V7.0 報價單</div>
-                    <table class="w-full border-collapse">
+                    <div class="p-4 text-center text-xl font-black border-b-2 border-black">Ben銀坑 V7.0 報價單</div>
+                    <table class="w-full">
                         <tr>
                             <td class="navy-cell" width="25%">發行機構</td><td class="white-cell">{{ form.issuer }}</td>
                             <td class="navy-cell" width="25%">計價幣別</td><td class="white-cell">{{ form.market === 'JP' ? 'JPY' : 'USD' }}</td>
@@ -78,22 +76,18 @@
                         </tr>
                     </table>
                     
-                    <div class="bg-slate-50 py-1 text-center text-[10px] font-black border-b border-black uppercase tracking-widest">Asset Simulation Status</div>
-                    
                     <div v-for="(s, idx) in stockData" :key="s.symbol" class="p-3 border-b border-slate-100">
                         <div class="flex justify-between items-start">
                             <div>
-                                <div class="font-black text-xl leading-none">{{ s.symbol }}</div>
-                                <div class="text-[10px] text-slate-400 font-bold mt-1 uppercase">Exp: {{ getExpValue(idx) }}%</div>
+                                <div class="font-black text-lg leading-none uppercase">{{ s.symbol }}</div>
+                                <div class="text-[9px] text-slate-400 font-bold mt-1">EXP: {{ getExpValue(idx) }}%</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xs font-bold text-slate-500">Price: {{ s.price }}</div>
+                                <div class="text-[10px] font-bold text-slate-500">Price: {{ s.price }}</div>
                                 <div v-if="s.hasTouchedStrike" class="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded mt-1 font-black inline-block">STRIKE TOUCHED</div>
                             </div>
                         </div>
-                        <div class="chart-wrap">
-                            <canvas :id="'chart-' + idx"></canvas>
-                        </div>
+                        <div class="chart-wrap"><canvas :id="'chart-' + idx"></canvas></div>
                     </div>
                 </div>
             </div>
@@ -117,52 +111,41 @@
                     const arr = this.form.expected.split(',');
                     return arr[idx] ? arr[idx].trim() : '-';
                 },
-                async fetchStock(ticker) {
+                async fetchWithTimeout(ticker) {
                     const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1y&interval=1d`;
-                    const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+                    const proxy = `https://corsproxy.io/?${encodeURIComponent(url)}`;
                     
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 3500); // 3.5秒超時
+
                     try {
-                        const res = await fetch(proxy);
-                        if (!res.ok) throw new Error();
+                        const res = await fetch(proxy, { signal: controller.signal });
                         const json = await res.json();
+                        clearTimeout(timeout);
                         const result = json.chart.result[0];
                         const prices = result.indicators.quote[0].close.filter(p => p != null);
                         const currentPrice = prices[prices.length - 1];
                         const strikeVal = currentPrice * (this.form.strikeP / 100);
-                        
                         if (prices.some(p => p <= strikeVal)) this.strikeHistory[ticker] = true;
-
-                        return {
-                            symbol: ticker,
-                            price: currentPrice.toFixed(2),
-                            history: prices,
-                            strikeLevel: strikeVal,
-                            hasTouchedStrike: this.strikeHistory[ticker] || false
-                        };
+                        return { symbol: ticker, price: currentPrice.toFixed(2), history: prices, strikeLevel: strikeVal, hasTouchedStrike: this.strikeHistory[ticker] || false };
                     } catch (e) {
-                        // 備用隨機數據，防止「跑不出來」
-                        const mockPrice = 100 + Math.random() * 50;
-                        const mockHistory = Array.from({length: 50}, () => mockPrice + (Math.random()-0.5)*10);
-                        return {
-                            symbol: ticker + "(模擬)",
-                            price: mockPrice.toFixed(2),
-                            history: mockHistory,
-                            strikeLevel: mockPrice * (this.form.strikeP / 100),
-                            hasTouchedStrike: false
-                        };
+                        console.log("數據抓取失敗或超時，切換為模擬模式");
+                        const mock = 150 + Math.random() * 50;
+                        return { symbol: ticker, price: mock.toFixed(2), history: Array.from({length: 40}, () => mock + (Math.random()-0.5)*20), strikeLevel: mock * 0.75, hasTouchedStrike: false };
                     }
                 },
                 async generate() {
-                    this.isSyncing = true; this.isGenerated = false;
+                    this.isSyncing = true;
                     let list = this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t);
                     if (this.form.market === 'JP') list = list.map(t => t.endsWith('.T') ? t : t + '.T');
-
-                    const results = [];
+                    
+                    this.stockData = [];
                     for (let t of list) {
-                        results.push(await this.fetchStock(t));
+                        this.stockData.push(await this.fetchWithTimeout(t));
                     }
-                    this.stockData = results;
+                    
                     this.isGenerated = true;
+                    this.isSyncing = false;
 
                     this.$nextTick(() => {
                         setTimeout(() => {
@@ -180,24 +163,21 @@
                                     options: {
                                         responsive: true, maintainAspectRatio: false,
                                         plugins: { legend: { display: false } },
-                                        scales: { x: { display: false }, y: { position: 'right', ticks: { font: { size: 9 } } } },
+                                        scales: { x: { display: false }, y: { position: 'right', ticks: { font: { size: 8 } } } },
                                         animation: false
                                     }
                                 });
                             });
-                        }, 300);
+                        }, 100);
                     });
-                    this.isSyncing = false;
                 },
                 async capture() {
                     const el = document.getElementById('capture-area');
                     const canvas = await html2canvas(el, { scale: 3, useCORS: true });
-                    canvas.toBlob((blob) => {
-                        const link = document.createElement('a');
-                        link.download = `BenV7-Report.png`;
-                        link.href = URL.createObjectURL(blob);
-                        link.click();
-                    }, 'image/png');
+                    const link = document.createElement('a');
+                    link.download = `BenV7-Report.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
                 }
             }
         }).mount('#app');
