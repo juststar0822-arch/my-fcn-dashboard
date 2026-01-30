@@ -284,25 +284,27 @@ const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?p
                             animation: false, responsive: true, maintainAspectRatio: false,
                             plugins: { legend: { display: false }, tooltip: { enabled: false } },
                             scales: { 
+                                scales: { 
                                 x: { 
-    display: true,
-    // 雖然沒有時間插件，但可以透過 ticks 設定來優化
-    ticks: { 
-        font: { size: 7 }, 
-        autoSkip: true, 
-        maxTicksLimit: 8 
-    }, 
-    grid: { display: false } 
-}
-                                    y: { 
-    position: 'right', 
-    beginAtZero: false, // 關鍵：不強制從 0 開始，會根據股價區間自動縮放
-    ticks: { 
-        font: { size: 9, weight: 'bold' },
-        callback: function(value) { return value.toLocaleString(); }
-    }, 
-    grid: { color: '#f1f5f9' } 
-}
+                                    display: true,
+                                    ticks: { 
+                                        font: { size: 7 }, 
+                                        autoSkip: true, 
+                                        maxTicksLimit: 8 
+                                    }, 
+                                    grid: { display: false } 
+                                },
+                                y: { 
+                                    position: 'right', 
+                                    beginAtZero: false,
+                                    // 移除了 grace，讓波動撐滿 Y 軸，視覺效果更明顯
+                                    ticks: { 
+                                        font: { size: 9, weight: 'bold' },
+                                        callback: function(value) { return value.toLocaleString(); }
+                                    }, 
+                                    grid: { color: '#f1f5f9' } 
+                                } 
+                            }
                             }
                         }
                     });
