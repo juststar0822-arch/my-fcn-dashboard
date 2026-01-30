@@ -216,7 +216,9 @@
                 },
                 async fetchStock(ticker) {
                     const cb = new Date().getTime();
-                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=1y&interval=1d&cb=${cb}`;
+                    // 設定起始時間為 2025/02/01 的 Unix Timestamp (1738368000)
+const startTime = 1738368000; 
+const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?period1=${startTime}&period2=9999999999&interval=1d&cb=${cb}`;
                     const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
 
                     try {
