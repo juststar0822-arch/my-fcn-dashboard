@@ -161,7 +161,7 @@
                         <span class="text-slate-700">- NT$ {{ formatNum(adminFeeTWD, 0) }}</span>
                     </div>
                     <div class="flex justify-between text-slate-500">
-                        <span>壽險成本 (COI - {{ form.type==='annuity'?'年金險': form.age+'歲 ('+(insuranceRatio*100).toFixed(0)+'%)' }})</span>
+                        <span>壽險成本 (COI - {{ form.type==='annuity'?'年金險': form.age+'歲 (槓桿:'+((insuranceRatio-1)*100).toFixed(0)+'%)' }})</span>
                         <span :class="form.type==='annuity'?'text-emerald-600':'text-slate-700'">
                             {{ form.type==='annuity' ? 'NT$ 0 (免收)' : '- NT$ ' + formatNum(coiFeeTWD, 0) }}
                         </span>
@@ -211,7 +211,6 @@
                 }
             },
             computed: {
-                // 保價係數計算
                 insuranceRatio() {
                     const age = this.form.age;
                     if (age >= 15 && age <= 30) return 1.9;
@@ -244,8 +243,9 @@
                     if (this.form.type === 'annuity') return 0;
                     const rates = COI_TABLE[this.form.gender];
                     const ageKey = Object.keys(rates).reverse().find(k => k <= this.form.age) || 15;
-                    // 新公式：投入總額(萬) * 保價係數 * 費率
-                    return Math.round(this.form.amountTWD * this.insuranceRatio * rates[ageKey]);
+                    // 修正公式：(投入總額 * 報價係數) - 投入總額 -> 簡化為：投入總額 * (報價係數 - 1)
+                    const netAmountAtRisk = this.form.amountTWD * (this.insuranceRatio - 1);
+                    return Math.round(netAmountAtRisk * rates[ageKey]);
                 },
                 maintenanceFeeTWD() { return this.form.amountTWD >= 300 ? 0 : 100; },
                 totalFeesTWD() { return this.adminFeeTWD + this.coiFeeTWD + this.maintenanceFeeTWD; },
@@ -261,11 +261,7 @@
                 }
             },
             methods: {
-                getTargetName(t) {
-                    if(t === 'yuanta') return '財富雙享';
-                    if(t === 'allianz') return '安聯收益';
-                    return '自定義';
-                },
+                formatNum(n, d = 0) { return parseFloat(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); },
                 calcUnits(type, amt, nav) {
                     if (amt <= 0) return 0;
                     if (type === 'yuanta') return (amt * 10000) / 10;
@@ -281,7 +277,6 @@
                         return units * upUSD * this.rates.USD;
                     }
                 },
-                formatNum(n, d = 0) { return parseFloat(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); },
                 async initData() {
                     this.isSyncing = true;
                     try {
@@ -290,15 +285,6 @@
                         const rateJson = await rateRes.json();
                         const nr = rateJson.chart.result[0].meta.regularMarketPrice;
                         if(nr) this.rates.USD = parseFloat(nr.toFixed(3));
-
-                        const allianzRes = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/0P0000X12R.HK?range=1d&interval=1d&cb='+cb)}`);
-                        const allianzJson = await allianzRes.json();
-                        const navA = allianzJson.chart.result[0].meta.regularMarketPrice;
-                        if(navA) {
-                            const val = parseFloat(navA.toFixed(4));
-                            if(this.targetA === 'allianz') this.form.nav_A = val;
-                            if(this.targetB === 'allianz') this.form.nav_B = val;
-                        }
                     } catch (e) { console.error('Market sync failed'); }
                     this.isSyncing = false;
                 }
