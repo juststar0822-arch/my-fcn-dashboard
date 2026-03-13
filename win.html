@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器 (基金新增版)</title>
+    <title>榮譽榜生成器 (完整更新版)</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -214,6 +214,9 @@
                         <option value="FCN">FCN</option>
                         <option value="U6">元元致富 U6</option>
                         <option value="U5">元元致富 U5</option>
+                        <option value="T6">元元致富 T6</option>
+                        <option value="T5">元元致富 T5</option>
+                        <option value="INS">保險</option>
                         <option value="BOND">海外債</option>
                         <option value="fund">基金</option>
                     </select>
@@ -364,7 +367,8 @@
                 { name: '王淑濱', title: '業務經理' }, { name: '賴美華', title: '業務經理' },
                 { name: '王淑卿', title: '業務協理' }, { name: '丁心梅', title: '業務高專' },
                 { name: '王鵬飛', title: '業務經理' }, { name: '羅金蘭', title: '業務經理' },
-                { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' }
+                { name: '陳翰泰', title: '業務員' }, { name: '曾詩涵', title: '業務高專' },
+                { name: '曾沛涵', title: '業務高專' }
             ];
 
             const currentRep = computed(() => repList[repIndex.value]);
@@ -374,21 +378,22 @@
             });
 
             const updateExRate = () => { form.exRate = liveRates[form.currency] || 1; };
-            const isFixedBP = computed(() => ['U6', 'U5'].includes(form.productType));
+            const isFixedBP = computed(() => ['U6', 'U5', 'T6', 'T5'].includes(form.productType));
             const handleProductChange = () => {
-                if(['U6', 'U5'].includes(form.productType)) form.bp = 600;
+                if(['U6', 'U5', 'T6', 'T5'].includes(form.productType)) form.bp = 600;
                 else if(form.productType === 'FCN') form.bp = 50; 
-                else if(form.productType === 'fund') form.bp = 100; // 基金預設 BP 參考，可自行修改
+                else if(form.productType === 'fund') form.bp = 100;
+                else if(form.productType === 'INS') form.bp = 100; // 保險預設 100 bp 可自填
             };
 
             const calculatedRevenue = computed(() => Math.round(form.amount * form.exRate * (form.bp / 10000)));
             const calculatedBonus = computed(() => {
                 let rate = 0;
-                // 設定各產品獎金率
                 if(form.productType === 'FCN') rate = 30;
-                else if(form.productType === 'fund') rate = 30; // 基金獎金率 0.3
-                else if(['U6', 'U5'].includes(form.productType)) rate = 38;
+                else if(form.productType === 'fund') rate = 30; 
+                else if(['U6', 'U5', 'T6', 'T5'].includes(form.productType)) rate = 38;
                 else if(form.productType === 'BOND') rate = 25;
+                else if(form.productType === 'INS') rate = 38; // 保險獎金率 0.38
                 return Math.round(calculatedRevenue.value * (rate / 100));
             });
 
@@ -406,7 +411,11 @@
             const finalProductList = computed(() => {
                 if (cart.value.length === 0) return ['FCN'];
                 const types = [...new Set(cart.value.map(i => i.productType))];
-                const map = { 'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 'BOND': '海外債', 'fund': '基金' };
+                const map = { 
+                    'FCN': 'FCN', 'U6': '元元致富U6', 'U5': '元元致富U5', 
+                    'T6': '元元致富T6', 'T5': '元元致富T5', 
+                    'INS': '保險', 'BOND': '海外債', 'fund': '基金' 
+                };
                 return types.map(t => map[t]);
             });
 
