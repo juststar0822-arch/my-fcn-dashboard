@@ -217,29 +217,27 @@
                 async fetchStock(ticker) {
                     const today = new Date().toISOString().split('T')[0];
                     const cacheKey = `fcn_cache_${ticker}_${today}`;
-                    
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) return JSON.parse(cached);
 
-                    // 使用優化後的 query2 接口與 allorigins Proxy
-                    const targetUrl = `https://query2.finance.yahoo.com/v8/finance/chart/${ticker}?range=2y&interval=1d`;
-                    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+                    // 優化後的 Proxy 請求路徑，加入 disableCache 避免獲取錯誤快取
+                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?range=2y&interval=1d`;
+                    const proxyUrl = `https://api.allorigins.win/get?disableCache=true&url=${encodeURIComponent(targetUrl)}`;
 
                     try {
                         const res = await fetch(proxyUrl);
-                        if (!res.ok) throw new Error('Proxy 請求失敗');
+                        if (!res.ok) throw new Error('Proxy Server No Response');
                         
                         const data = await res.json();
-                        if (!data.contents) throw new Error('查無內容');
+                        if (!data.contents) throw new Error('Empty Contents');
                         
                         const json = JSON.parse(data.contents);
-                        if (!json.chart || !json.chart.result) throw new Error('Yahoo 接口回傳異常');
+                        if (!json.chart || !json.chart.result) throw new Error('Yahoo API Error');
 
                         const result = json.chart.result[0];
                         const prices = result.indicators.quote[0].close;
                         const timestamps = result.timestamp;
                         
-                        // 設定起始顯示時間（2024/09/01）
                         const startDate = new Date('2024/09/01').getTime() / 1000;
                         const validPrices = []; 
                         const validLabels = [];
@@ -252,7 +250,7 @@
                             }
                         }
 
-                        if (validPrices.length === 0) throw new Error('無有效數據');
+                        if (validPrices.length === 0) throw new Error('No Valid Data');
                         
                         const stockObj = { 
                             symbol: ticker, 
@@ -264,7 +262,7 @@
                         localStorage.setItem(cacheKey, JSON.stringify(stockObj));
                         return stockObj;
                     } catch (e) { 
-                        console.error(`讀取 ${ticker} 失敗:`, e);
+                        console.error(`Read ${ticker} Failed:`, e);
                         return null; 
                     }
                 },
@@ -279,7 +277,6 @@
                         if (data) {
                             this.stockData.push(data);
                         }
-                        // 稍微延遲避免頻繁請求被封
                         await new Promise(r => setTimeout(r, 600)); 
                     }
 
