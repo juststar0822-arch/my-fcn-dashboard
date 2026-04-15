@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>元元致富 - 專業配置精算 v9.9.1</title>
+    <title>元元致富 - 專業配置精算 v9.9.2</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -23,6 +23,7 @@
         [v-cloak] { display: none; }
         .tag-blue { background: #eff6ff; color: #1e40af; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
         .tag-green { background: #ecfdf5; color: #065f46; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 900; }
+        .currency-toggle { font-size: 9px; padding: 2px 6px; border-radius: 6px; cursor: pointer; font-weight: 900; }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -30,7 +31,7 @@
         
         <div class="text-center mb-6">
             <h1 class="text-2xl font-black text-slate-800 tracking-tighter italic uppercase leading-none">元元致富 <span class="text-blue-600 font-bold">精算終端</span></h1>
-            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">MDTWD0002 & Allianz v9.9.1</p>
+            <p class="text-[10px] font-bold text-slate-400 mt-1 tracking-widest uppercase text-center text-xs">MDTWD0002 & Allianz v9.9.2</p>
         </div>
 
         <div class="flex bg-white p-1 rounded-2xl shadow-sm border border-slate-100 mb-4">
@@ -57,7 +58,6 @@
                         <option value="custom">自定義標的 (美金)</option>
                     </select>
                     <input v-if="isPortfolio" type="range" min="0" max="100" v-model.number="allocationA" class="slider mb-4">
-                    
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-slate-500 uppercase">淨值 (NAV)</label>
@@ -85,7 +85,6 @@
                         <option value="allianz">安聯收益成長-AM (美金)</option>
                         <option value="custom">自定義標的 (美金)</option>
                     </select>
-                    
                     <div class="grid grid-cols-2 gap-3">
                         <div>
                             <label class="text-[9px] font-bold text-slate-500 uppercase">淨值 (NAV)</label>
@@ -103,16 +102,22 @@
                 </div>
             </div>
 
-            <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100">
-                <div class="flex justify-between items-center mb-1 px-1">
-                    <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 領現 / {{ 100 - cashPayoutRatio }}% 滾入</label>
-                    <i class="fa-solid fa-piggy-bank text-orange-400"></i>
-                </div>
-                <input type="range" min="0" max="100" step="5" v-model.number="cashPayoutRatio" class="slider payout-slider">
-            </div>
-
             <div class="grid grid-cols-2 gap-4">
-                <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase">投入總額 (萬台幣)</label><input type="number" v-model.number="form.amountTWD" class="input-box"></div>
+                <div class="col-span-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-[9px] font-black text-slate-500 uppercase">投入總額</label>
+                        <div class="flex gap-1">
+                            <span @click="form.inputCurrency = 'TWD'" :class="form.inputCurrency === 'TWD' ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-400'" class="currency-toggle">TWD</span>
+                            <span @click="form.inputCurrency = 'USD'" :class="form.inputCurrency === 'USD' ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-400'" class="currency-toggle">USD</span>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <input type="number" v-model.number="form.inputValue" class="input-box pr-8">
+                        <span class="absolute right-3 top-3 text-[10px] font-black text-slate-400 uppercase italic">
+                            {{ form.inputCurrency === 'TWD' ? '萬' : '$' }}
+                        </span>
+                    </div>
+                </div>
                 <div class="col-span-1"><label class="text-[10px] font-black text-slate-500 mb-1 uppercase">保單年度</label>
                     <select v-model.number="form.year" class="input-box text-sm">
                         <option :value="1">1-3 年</option><option :value="4">第 4 年</option><option :value="5">5 年起</option>
@@ -127,9 +132,17 @@
                 <div><label class="text-[10px] font-black text-slate-500 mb-1 uppercase text-center">年齡</label><input type="number" v-model.number="form.age" class="input-box"></div>
             </div>
             
+            <div class="bg-orange-50 p-4 rounded-2xl border border-orange-100">
+                <div class="flex justify-between items-center mb-1 px-1">
+                    <label class="text-[10px] font-black text-orange-800 uppercase">撥回分配：{{ cashPayoutRatio }}% 領現 / {{ 100 - cashPayoutRatio }}% 滾入</label>
+                    <i class="fa-solid fa-piggy-bank text-orange-400"></i>
+                </div>
+                <input type="range" min="0" max="100" step="5" v-model.number="cashPayoutRatio" class="slider payout-slider">
+            </div>
+
             <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 border-t pt-4 px-1">
-                <span>美金匯率: <b>{{ rates.USD }}</b></span>
-                <span @click="initData" class="cursor-pointer text-blue-600 font-black italic"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin':isSyncing}"></i>SYNC MARKET DATA</span>
+                <span>即時美金匯率: <b>{{ rates.USD }}</b></span>
+                <span @click="initData" class="cursor-pointer text-blue-600 font-black italic"><i class="fa-solid fa-rotate mr-1" :class="{'animate-spin':isSyncing}"></i>SYNC</span>
             </div>
         </div>
 
@@ -151,41 +164,20 @@
         <div class="bank-card p-6 text-[11px] font-bold text-slate-500 mb-10 shadow-sm">
             <h3 class="text-slate-800 mb-4 border-b pb-2 uppercase flex justify-between font-black italic">
                 <span>Actuarial Summary</span>
-                <span class="text-blue-600">v9.9.1</span>
+                <span class="text-blue-600">v9.9.2</span>
             </h3>
             <div class="space-y-4">
                 <div class="flex justify-between items-center text-slate-800 font-black text-xs"><span>每月撥回總額 (約當台幣)</span><span>NT$ {{ formatNum(grossPayoutTWD, 0) }}</span></div>
-                
                 <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2.5">
                     <p class="text-[9px] font-black text-red-500 uppercase tracking-widest">● 保單規費扣除明細</p>
-                    <div class="flex justify-between text-slate-500">
-                        <span>保單行政費 ({{ adminRate }}%)</span>
-                        <span class="text-slate-700">- NT$ {{ formatNum(adminFeeTWD, 0) }}</span>
-                    </div>
-                    <div class="flex justify-between text-slate-500">
-                        <span>壽險成本 (COI)</span>
-                        <span :class="form.type==='annuity'?'text-emerald-600':'text-slate-700'">
-                            {{ form.type==='annuity' ? 'NT$ 0 (免收)' : '- NT$ ' + formatNum(coiFeeTWD, 0) }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between text-slate-500">
-                        <span>保單維護費</span>
-                        <span :class="form.amountTWD >= 300 ? 'text-emerald-600':'text-slate-700'">
-                            {{ form.amountTWD >= 300 ? 'NT$ 0 (滿額優惠)' : '- NT$ 100' }}
-                        </span>
-                    </div>
-                    <div class="flex justify-between border-t border-slate-200 pt-2 mt-1 font-black text-red-600">
-                        <span>總保單規費合計</span>
-                        <span>- NT$ {{ formatNum(totalFeesTWD, 0) }}</span>
-                    </div>
+                    <div class="flex justify-between text-slate-500"><span>保單行政費 ({{ adminRate }}%)</span><span class="text-slate-700">- NT$ {{ formatNum(adminFeeTWD, 0) }}</span></div>
+                    <div class="flex justify-between text-slate-500"><span>壽險成本 (COI)</span><span :class="form.type==='annuity'?'text-emerald-600':'text-slate-700'">{{ form.type==='annuity' ? 'NT$ 0' : '- NT$ ' + formatNum(coiFeeTWD, 0) }}</span></div>
+                    <div class="flex justify-between text-slate-500"><span>保單維護費</span><span :class="form.amountTWD >= 300 ? 'text-emerald-600':'text-slate-700'">{{ form.amountTWD >= 300 ? 'NT$ 0' : '- NT$ 100' }}</span></div>
+                    <div class="flex justify-between border-t border-slate-200 pt-2 mt-1 font-black text-red-600"><span>總保單規費合計</span><span>- NT$ {{ formatNum(totalFeesTWD, 0) }}</span></div>
                 </div>
-
-                <div class="pt-2 border-t space-y-2">
-                    <div class="flex justify-between items-center text-slate-800 font-black"><span>預估可分配淨收益</span><span>NT$ {{ formatNum(totalNetAvailable, 0) }}</span></div>
-                    <div class="flex justify-between items-center bg-blue-50/50 p-2.5 rounded-lg">
-                        <span class="text-blue-700 font-black">現金領取 ({{ cashPayoutRatio }}%)</span>
-                        <span class="text-blue-800 font-black">NT$ {{ formatNum(netCashInHand, 0) }}</span>
-                    </div>
+                <div class="pt-2 border-t space-y-2 text-slate-800">
+                    <div class="flex justify-between items-center font-black"><span>預估可分配淨收益</span><span>NT$ {{ formatNum(totalNetAvailable, 0) }}</span></div>
+                    <div class="text-[9px] text-slate-400 italic text-right">※ 以上數據以台幣為基準換算</div>
                 </div>
             </div>
         </div>
@@ -193,7 +185,6 @@
 
     <script>
         const { createApp } = Vue;
-
         const COI_TABLE = {
             male: { 15:0.25, 20:0.36, 25:0.41, 30:0.55, 35:0.81, 40:1.27, 45:2.01, 50:2.89, 55:4.22, 60:6.22, 65:9.39, 70:15.42 },
             female: { 15:0.11, 20:0.15, 25:0.20, 30:0.26, 35:0.37, 40:0.55, 45:0.85, 50:1.19, 55:1.80, 60:2.77, 65:4.67, 70:8.10 }
@@ -204,81 +195,84 @@
                 return {
                     isPortfolio: false, isSyncing: false,
                     targetA: 'yuanta', targetB: 'allianz', allocationA: 100, cashPayoutRatio: 100,
-                    rates: { USD: 32.50 }, // 預設值，initData 會更新
+                    rates: { USD: 32.5 },
                     form: {
-                        type: 'life', gender: 'male', age: 40, amountTWD: 300, year: 1,
+                        inputCurrency: 'TWD', inputValue: 300, // 預設 300 萬台幣
+                        type: 'life', gender: 'male', age: 40, year: 1,
                         nav_A: 10.0, payout_A_usd: 0.0550, bonus_A: true,
                         nav_B: 8.5, payout_B_usd: 0.0550, bonus_B: true,
                     }
                 }
             },
             computed: {
+                // 將輸入數值統一轉換為「台幣萬」基準，利於費用與規費計算
+                formAmountTWD() {
+                    if (this.form.inputCurrency === 'TWD') return this.form.inputValue;
+                    // 美金投入轉換為台幣萬：(美金金額 * 匯率) / 10000
+                    return (this.form.inputValue * this.rates.USD) / 10000;
+                },
+                // 保單內部的台幣總額 (用於 COI)
+                form.amountTWD() { return this.formAmountTWD; }, 
+
                 insuranceRatio() {
                     const age = this.form.age;
-                    if (age <= 30) return 1.9;
-                    if (age <= 40) return 1.6;
-                    if (age <= 50) return 1.4;
-                    if (age <= 60) return 1.2;
-                    if (age <= 70) return 1.1;
-                    return 1.02;
+                    if (age <= 30) return 1.9; if (age <= 40) return 1.6; if (age <= 50) return 1.4;
+                    if (age <= 60) return 1.2; if (age <= 70) return 1.1; return 1.02;
                 },
                 unitsA() {
                     const weight = this.isPortfolio ? (this.allocationA / 100) : 1;
-                    return this.calcUnits(this.targetA, this.form.amountTWD * weight, this.form.nav_A);
+                    return this.calcUnits(this.targetA, this.formAmountTWD * weight, this.form.nav_A);
                 },
                 unitsB() {
                     if (!this.isPortfolio) return 0;
                     const weight = (100 - this.allocationA) / 100;
-                    return this.calcUnits(this.targetB, this.form.amountTWD * weight, this.form.nav_B);
+                    return this.calcUnits(this.targetB, this.formAmountTWD * weight, this.form.nav_B);
                 },
                 payoutA() { return this.calcPayout(this.targetA, this.unitsA, this.form.nav_A, this.form.bonus_A, this.form.payout_A_usd); },
                 payoutB() { return this.calcPayout(this.targetB, this.unitsB, this.form.nav_B, this.form.bonus_B, this.form.payout_B_usd); },
                 grossPayoutTWD() { return Math.round(this.payoutA + this.payoutB); },
                 adminRate() {
                     if (this.form.year >= 5) return 0;
-                    if (this.form.year === 4) return this.form.amountTWD >= 1000 ? 0.1 : 0.12;
-                    return this.form.amountTWD >= 1000 ? 0.155 : 0.16;
+                    if (this.form.year === 4) return this.formAmountTWD >= 1000 ? 0.1 : 0.12;
+                    return this.formAmountTWD >= 1000 ? 0.155 : 0.16;
                 },
-                adminFeeTWD() { return Math.round((this.form.amountTWD * 10000) * (this.adminRate / 100)); },
+                adminFeeTWD() { return Math.round((this.formAmountTWD * 10000) * (this.adminRate / 100)); },
                 coiFeeTWD() {
                     if (this.form.type === 'annuity') return 0;
                     const rates = COI_TABLE[this.form.gender];
                     const ageKey = Object.keys(rates).reverse().find(k => k <= this.form.age) || 15;
-                    const netAmountAtRisk = this.form.amountTWD * (this.insuranceRatio - 1);
+                    const netAmountAtRisk = this.formAmountTWD * (this.insuranceRatio - 1);
                     return Math.round(netAmountAtRisk * rates[ageKey]);
                 },
-                totalFeesTWD() { return this.adminFeeTWD + this.coiFeeTWD + (this.form.amountTWD >= 300 ? 0 : 100); },
+                totalFeesTWD() { return this.adminFeeTWD + this.coiFeeTWD + (this.formAmountTWD >= 300 ? 0 : 100); },
                 totalNetAvailable() { return Math.max(0, this.grossPayoutTWD - this.totalFeesTWD); },
                 netCashInHand() { return Math.round(this.totalNetAvailable * (this.cashPayoutRatio / 100)); },
                 actualReinvest() { return Math.round(this.totalNetAvailable * (1 - (this.cashPayoutRatio / 100))); },
                 annualRate() {
-                    if (!this.form.amountTWD) return 0;
-                    return ((this.grossPayoutTWD * 12) / (this.form.amountTWD * 10000) * 100).toFixed(2);
+                    if (!this.formAmountTWD) return 0;
+                    return ((this.grossPayoutTWD * 12) / (this.formAmountTWD * 10000) * 100).toFixed(2);
                 }
             },
             methods: {
                 formatNum(n, d = 0) { return parseFloat(n).toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d }); },
-                calcUnits(type, amt, nav) {
-                    if (amt <= 0) return 0;
+                calcUnits(type, amtTWD, nav) {
+                    if (amtTWD <= 0) return 0;
                     if (type === 'yuanta') {
-                        return (amt * 10000) / 10; // 台幣基準發行價
+                        return (amtTWD * 10000) / 10;
                     } else {
-                        // 美金標的：先換算美金投入額，再除以淨值
-                        const amtUSD = (amt * 10000) / this.rates.USD;
+                        const amtUSD = (amtTWD * 10000) / this.rates.USD;
                         const currentNav = nav || (type === 'yuanta_usd' ? 10 : 8.56);
                         return amtUSD / currentNav;
                     }
                 },
                 calcPayout(type, units, nav, bonus, upUSD) {
                     if (units <= 0) return 0;
-                    // 財富系列階梯邏輯 (雙享/雙利通用)
                     if (type.includes('yuanta')) {
                         let rate = nav >= 8.0 ? 0.045 : 0;
                         if (bonus) rate += 0.05;
                         const payoutBase = units * rate;
                         return type === 'yuanta_usd' ? payoutBase * this.rates.USD : payoutBase;
                     } else {
-                        // 安聯或其他美金標的
                         return units * upUSD * this.rates.USD;
                     }
                 },
