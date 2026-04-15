@@ -219,7 +219,7 @@
                     }
 
                     // 請求參數：1day間隔, 抓取200筆(約9個月)
-                    const url = `https://api.twelvedata.com/time_series?symbol=${apiTicker}&interval=1day&outputsize=200&apikey=${apiKey}`;
+                    const url = `https://api.twelvedata.com/time_series?symbol=${apiTicker}&interval=1day&outputsize=250&apikey=${apiKey}`;
 
                     try {
                         const res = await fetch(url);
