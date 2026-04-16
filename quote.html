@@ -9,7 +9,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <style>
-        /* 保留你原有的 CSS 樣式 */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
         * { box-sizing: border-box; }
         body { background: #fafafa; font-family: 'Inter', "Microsoft JhengHei", sans-serif; color: #1e293b; }
@@ -36,6 +35,7 @@
         .legend-solid { width: 12px; height: 2px; background: #3b82f6; }
         .fade-in { animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @media print { .no-print { display: none; } }
     </style>
 </head>
 <body class="p-4 md:p-10">
@@ -170,11 +170,10 @@
             'AAPL':'蘋果', 'MSFT':'微軟', 'GOOGL':'谷歌', 'GOOG':'谷歌', 'AMZN':'亞馬遜', 
             'META':'臉書', 'TSLA':'特斯拉', 'NFLX':'網飛', 'ORCL':'甲骨文', 'IBM':'藍色巨人',
             'PLTR':'帕蘭提爾', 'CRM':'賽富時', 'PANW':'派拓網路', 'NOW':'服務現狀', 'SNOW':'雪花',
-            'DELL':'戴爾', 'VRT':'維締', 'ANET':'亞力斯塔','LITE':'魯門特姆控股','QQQ':'納斯達克100指數ETF','SOXX':'ishares半導體ETF','SPY':'標普500指數ETF',
+            'DELL':'戴爾', 'VRT':'維締', 'ANET':'亞力斯塔','LITE':'魯門特姆控股','QQQ':'納指100 ETF','SOXX':'半導體 ETF','SPY':'標普500 ETF',
             'BRK.B':'波克夏', 'JPM':'小摩', 'GS':'高盛', 'V':'威士', 'MA':'萬事達',
             'LLY':'禮來', 'NVO':'諾和諾德', 'PFE':'輝瑞', 'UNH':'聯合健康',
-            'COST':'好市多', 'WMT':'沃爾瑪', 'NKE':'耐吉', 'MSTR':'微策', 'COIN':'比特幣基地','SNDK':'晟碟',
-            // 日股對照 (API支援 8035:JP 格式)
+            'COST':'好市多', 'WMT':'沃爾瑪', 'NKE':'耐吉', 'MSTR':'微策', 'COIN':'比特幣基地',
             '8001:JP':'伊藤忠商事', '8031:JP':'三井物產', '8058:JP':'三菱商事', '8053:JP':'住友商事', '8002:JP':'丸紅',
             '8035:JP':'東京威力', '6857:JP':'愛德萬', '6146:JP':'Disco', '7735:JP':'Screen', '6758:JP':'索尼',
             '6954:JP':'發那科', '6981:JP':'村田製作所', '6501:JP':'日立', '6723:JP':'瑞薩電子', '6920:JP':'Lasertec',
@@ -191,14 +190,14 @@
                     progressText: '',
                     issuerOptions: ['MS', 'JPM', 'SG','BNP', 'UBS', 'NX', 'NO', 'CG', 'GS', 'BAR', 'CA', 'DBS'],
                     form: { market: 'US', date: new Date().toISOString().split('T')[0], issuer: 'MS', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: 'TSM,NVDA,ORCL,AMD' },
-                    stockData: []
+                    stockData: [],
+                    charts: []
                 }
             },
             methods: {
                 getStockName(s) {
                     const symbol = s.toUpperCase();
                     if (stockNames[symbol]) return stockNames[symbol];
-                    // 容錯處理：如果輸入是 8035.T 也能找到 8035:JP
                     const alt = symbol.replace('.T', ':JP');
                     return stockNames[alt] || ''; 
                 },
@@ -210,7 +209,6 @@
                     const cached = localStorage.getItem(cacheKey);
                     if (cached) return JSON.parse(cached);
 
-                    // 轉換代碼為 Twelve Data 格式
                     let apiTicker = ticker;
                     if (ticker.endsWith('.T')) {
                         apiTicker = ticker.replace('.T', ':JP');
@@ -218,19 +216,13 @@
                         apiTicker = ticker + ':JP';
                     }
 
-                    // 請求參數：1day間隔, 抓取200筆(約9個月)
                     const url = `https://api.twelvedata.com/time_series?symbol=${apiTicker}&interval=1day&outputsize=250&apikey=${apiKey}`;
 
                     try {
                         const res = await fetch(url);
                         const data = await res.json();
-                        
-                        if (data.status !== 'ok') {
-                            console.error(`TwelveData Error:`, data.message);
-                            return null;
-                        }
+                        if (data.status !== 'ok') return null;
 
-                        // 反轉資料 (TD 回傳是新到舊)
                         const values = data.values.reverse();
                         const validPrices = values.map(v => parseFloat(v.close));
                         const validLabels = values.map(v => v.datetime.replace(/-/g, '/'));
@@ -244,28 +236,22 @@
                         
                         localStorage.setItem(cacheKey, JSON.stringify(stockObj));
                         return stockObj;
-                    } catch (e) { 
-                        console.error(`API Request Failed:`, e);
-                        return null; 
-                    }
+                    } catch (e) { return null; }
                 },
                 async generate() {
                     this.isSyncing = true; this.isGenerated = false; this.stockData = [];
+                    // 清除舊圖表實例
+                    this.charts.forEach(chart => chart.destroy());
+                    this.charts = [];
+
                     let tickerList = [...new Set(this.form.tickers.split(',').map(s => s.trim().toUpperCase()).filter(t => t))];
 
                     for (let i = 0; i < tickerList.length; i++) {
                         const rawTicker = tickerList[i];
                         this.progressText = `正在獲取 ${rawTicker} 數據 (${i+1}/${tickerList.length})...`;
-                        
                         const data = await this.fetchStock(rawTicker);
-                        if (data) {
-                            this.stockData.push(data);
-                        }
-
-                        // 免費版頻率限制每分鐘8次，加入 1.5 秒延遲確保穩定
-                        if (i < tickerList.length - 1) {
-                            await new Promise(r => setTimeout(r, 1500)); 
-                        }
+                        if (data) this.stockData.push(data);
+                        if (i < tickerList.length - 1) await new Promise(r => setTimeout(r, 1500)); 
                     }
 
                     if (this.stockData.length > 0) {
@@ -293,7 +279,7 @@
                     const minP = Math.min(...allP); 
                     const maxP = Math.max(...allP);
 
-                    new Chart(ctx, {
+                    const newChart = new Chart(ctx, {
                         type: 'line',
                         data: {
                             labels: stock.labels,
@@ -314,6 +300,7 @@
                             }
                         }
                     });
+                    this.charts.push(newChart);
                 },
                 async capture(type) {
                     this.isCapturing = true;
