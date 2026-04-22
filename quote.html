@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FCN專業報價系統 v7.3 - KI類型優化版</title>
+    <title>FCN專業報價系統 v7.2 - 自動對接版</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -43,7 +43,7 @@
         <div v-if="!isLocked" class="bg-white rounded-[2rem] p-8 shadow-2xl border border-slate-100 mb-6 no-print fade-in">
             <div class="text-center mb-6">
                 <h1 class="text-3xl font-black italic text-slate-800 tracking-tighter uppercase leading-none">FCN專業報價系統</h1>
-                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Yahoo Finance API Engine v7.3</p>
+                <p class="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-2 text-center">Yahoo Finance API Engine v7.2</p>
             </div>
 
             <div class="space-y-4">
@@ -52,11 +52,12 @@
                     <button @click="form.market = 'JP'" :class="['flex-1 py-2 rounded-lg font-bold text-xs transition', form.market==='JP'?'bg-white shadow-sm text-blue-600':'text-slate-400']">JP 日股</button>
                 </div>
                 <div>
-                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1 uppercase tracking-widest text-center">連結標的代碼 (逗號隔開)</label>
+                    <label class="block text-[10px] font-black text-slate-500 mb-1 px-1 uppercase tracking-widest text-center">連結標的代碼 (逗號隔開數字即可)</label>
                     <input v-model="form.tickers" class="w-full glass-input text-center text-lg font-black uppercase" placeholder="7203, 8035, 9984">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label>
+                    <div>
+                        <label class="text-[10px] font-black text-slate-500 mb-1">發行機構</label>
                         <select v-model="form.issuer" class="w-full glass-input text-sm appearance-none cursor-pointer">
                             <option v-for="opt in issuerOptions" :key="opt" :value="opt">{{ opt }}</option>
                         </select>
@@ -67,12 +68,6 @@
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KO %</label><input v-model="form.koP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">Strike %</label><input v-model="form.strikeP" type="number" class="w-full glass-input text-sm"></div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">KI % (無填0)</label><input v-model="form.kiP" type="number" class="w-full glass-input text-sm"></div>
-                    <div><label class="text-[10px] font-black text-slate-500 mb-1">KI 觀察類型</label>
-                        <select v-model="form.kiType" class="w-full glass-input text-sm appearance-none cursor-pointer">
-                            <option value="AKI">AKI (每日)</option>
-                            <option value="EKI">EKI (到期)</option>
-                        </select>
-                    </div>
                     <div><label class="text-[10px] font-black text-slate-500 mb-1">保證領息 (月)</label><input v-model="form.guarantee" type="number" class="w-full glass-input text-sm"></div>
                 </div>
                 <button @click="generate" :disabled="isSyncing" class="w-full btn-premium py-4 rounded-2xl shadow-lg flex items-center justify-center gap-3">
@@ -101,10 +96,7 @@
                         <tr><td class="navy-cell" width="22%">發行機構</td><td class="white-cell" width="28%">{{ form.issuer }}</td><td class="navy-cell" width="25%">提前出場價<br>(KO)</td><td class="white-cell" width="25%">{{ form.koP }}%</td></tr>
                         <tr><td class="navy-cell">計價幣別</td><td class="white-cell">{{ form.market === 'JP' ? 'JPY' : 'USD' }}</td><td class="navy-cell" rowspan="2">履約價<br>(Strike)</td><td class="white-cell text-2xl" rowspan="2">{{ form.strikeP }}%</td></tr>
                         <tr><td class="navy-cell">交易類型</td><td class="white-cell">FCN</td></tr>
-                        <tr><td class="navy-cell">天期(月)</td><td class="white-cell">{{ form.tenor }}</td><td class="navy-cell" rowspan="2">觸及生效價<br>(KI)</td><td class="white-cell text-2xl" :class="{'text-red-500': form.kiP > 0}" rowspan="2">
-                            {{ form.kiP == 0 ? '-' : form.kiP + '%' }}
-                            <div v-if="form.kiP > 0" class="text-[9px] text-gray-400 font-normal">({{ form.kiType }})</div>
-                        </td></tr>
+                        <tr><td class="navy-cell">天期(月)</td><td class="white-cell">{{ form.tenor }}</td><td class="navy-cell" rowspan="2">觸及生效價<br>(KI)</td><td class="white-cell text-2xl" :class="{'text-red-500': form.kiP > 0}" rowspan="2">{{ form.kiP == 0 ? '-' : form.kiP + '%' }}</td></tr>
                         <tr><td class="navy-cell text-orange-400 font-bold">保證領息</td><td class="white-cell text-orange-500 font-black">{{ form.guarantee }}</td></tr>
                         <tr><td class="navy-cell">年化報酬</td><td class="white-cell text-blue-700 font-black text-2xl" colspan="3">{{ form.coupon }}%</td></tr>
                     </table>
@@ -130,7 +122,7 @@
                     <table class="detail-table mt-2">
                         <thead>
                             <tr class="bg-yellow-50 font-black">
-                                <th width="15%">日期</th><th width="10%">月</th><th width="15%">KO</th><th width="15%">Strike</th><th width="25%">KI ({{ form.kiType }})</th><th width="20%">Coupon</th>
+                                <th width="18%">日期</th><th width="10%">月</th><th width="18%">KO</th><th width="18%">Strike</th><th width="18%">KI</th><th width="18%">Coupon</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -172,10 +164,13 @@
     <script>
         const { createApp } = Vue;
         
+        // 完整的標的中文清單
         const stockNames = {
+            // 台美股
             'TSM':'台積電', 'NVDA':'輝達', 'AVGO':'博通', 'ASML':'艾司摩爾', 'AMD':'超微', 
             'MU':'美光', 'AAPL':'蘋果', 'MSFT':'微軟', 'GOOGL':'谷歌', 'AMZN':'亞馬遜', 
             'META':'臉書', 'TSLA':'特斯拉', 'COST':'好市多', 'VRT':'維締', 'BRK.B':'波克夏',
+            // 日股核心 (支援格式: 7203:JP 或 7203)
             '8001:JP':'伊藤忠', '8031:JP':'三井物產', '8058:JP':'三菱商事', '8053:JP':'住友商事', '8002:JP':'丸紅',
             '8035:JP':'東京威力', '6857:JP':'愛德萬', '6146:JP':'Disco', '7735:JP':'Screen', '6758:JP':'索尼',
             '6954:JP':'發那科', '6981:JP':'村田製作', '6501:JP':'日立', '6723:JP':'瑞薩', '6920:JP':'Lasertec',
@@ -193,7 +188,7 @@
                 return {
                     isLocked: false, isGenerated: false, isSyncing: false, progressText: '',
                     issuerOptions: ['MS', 'JPM', 'SG','BNP', 'UBS', 'GS', 'CA', 'DBS','CS'],
-                    form: { market: 'JP', date: new Date().toISOString().split('T')[0], issuer: 'MS', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, kiType: 'AKI', tickers: '7203, 8035, 9984' },
+                    form: { market: 'JP', date: new Date().toISOString().split('T')[0], issuer: 'MS', tenor: 6, guarantee: 1, coupon: 12, koP: 100, strikeP: 75, kiP: 55, tickers: '7203, 8035, 9984' },
                     stockData: [], charts: []
                 }
             },
@@ -201,8 +196,11 @@
                 getStockName(s) {
                     if(!s) return '';
                     const raw = s.toUpperCase().trim();
+                    // 1. 去掉 .T 後比對 (例如 7203.T -> 7203)
                     const pure = raw.replace('.T', '');
+                    // 2. 轉成 :JP 後比對 (例如 7203.T -> 7203:JP)
                     const jp = pure + ':JP';
+                    
                     return stockNames[jp] || stockNames[pure] || stockNames[raw] || raw;
                 },
                 async fetchStock(ticker) {
@@ -212,6 +210,7 @@
                     if (cached) return JSON.parse(cached);
 
                     let apiTicker = ticker.toUpperCase().trim();
+                    // 如果是日股模式且沒有點，幫他補上 .T
                     if (this.form.market === 'JP' && !apiTicker.includes('.')) {
                         apiTicker += '.T';
                     }
@@ -220,6 +219,7 @@
 
                     try {
                         const res = await fetch(url);
+                        if (!res.ok) throw new Error();
                         const data = await res.json();
                         const result = data.chart.result[0];
                         const quote = result.indicators.quote[0].close;
@@ -244,6 +244,7 @@
                         localStorage.setItem(cacheKey, JSON.stringify(stockObj));
                         return stockObj;
                     } catch (e) { 
+                        console.error(apiTicker + " 抓取失敗");
                         return null; 
                     }
                 },
@@ -285,13 +286,7 @@
                                 { data: stock.history, borderColor: '#3b82f6', borderWidth: 1.5, pointRadius: 0, fill: false },
                                 { data: Array(stock.history.length).fill(ko), borderColor: '#f97316', borderWidth: 1, pointRadius: 0, borderDash: [3, 3] },
                                 { data: Array(stock.history.length).fill(strike), borderColor: '#94a3b8', borderWidth: 1, pointRadius: 0, borderDash: [3, 3] },
-                                ...(ki ? [{ 
-                                    data: Array(stock.history.length).fill(ki), 
-                                    borderColor: '#fbbf24', 
-                                    borderWidth: 1, 
-                                    pointRadius: 0, 
-                                    borderDash: this.form.kiType === 'EKI' ? [8, 4] : [4, 2] // EKI 線條更虛
-                                }] : [])
+                                ...(ki ? [{ data: Array(stock.history.length).fill(ki), borderColor: '#fbbf24', borderWidth: 1, pointRadius: 0, borderDash: [5, 2] }] : [])
                             ]
                         },
                         options: {
