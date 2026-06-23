@@ -208,18 +208,26 @@
                         apiTicker += '.T';
                     }
 
-                    // 增加 range 到 1y 確保數據點充足
-                    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent('https://query1.finance.yahoo.com/v8/finance/chart/' + apiTicker + '?interval=1d&range=1y')}`;
+                    const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${apiTicker}?interval=1d&range=1y`;
+                    const url = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
 
                     try {
                         const res = await fetch(url);
+                        
+                        if (!res.ok) {
+                            throw new Error(`HTTP 狀態碼錯誤: ${res.status}`);
+                        }
+
                         const data = await res.json();
+                        
+                        if (!data.chart || !data.chart.result || data.chart.result.length === 0) {
+                            throw new Error("Yahoo 回傳的 JSON 缺乏預期數據");
+                        }
+
                         const result = data.chart.result[0];
                         const quote = result.indicators.quote[0].close;
-                        const adjClose = result.indicators.adjclose ? result.indicators.adjclose[0].adjclose : quote;
                         const timestamps = result.timestamp;
                         
-                        // 過濾無效數據
                         const validPrices = [];
                         const validLabels = [];
                         timestamps.forEach((ts, i) => {
@@ -230,15 +238,11 @@
                             }
                         });
 
-                        if (validPrices.length === 0) return null;
+                        if (validPrices.length === 0) throw new Error("無效的價格數據歷史");
 
-                        // 修正收盤價邏輯：
-                        // 如果最後一筆數據對應的是「今天」，且現在是交易時間，則最後一筆是盤中價。
-                        // 我們取最後一筆完成的收盤價。
                         const meta = result.meta;
                         let finalPrice = meta.regularMarketPrice || validPrices[validPrices.length - 1];
                         
-                        // 若 meta 價格與序列最後一筆差異過大，以序列最後一筆為主
                         if(Math.abs(finalPrice - validPrices[validPrices.length - 1]) / finalPrice > 0.05) {
                             finalPrice = validPrices[validPrices.length - 1];
                         }
@@ -251,8 +255,9 @@
                         };
                         localStorage.setItem(cacheKey, JSON.stringify(stockObj));
                         return stockObj;
+                        
                     } catch (e) { 
-                        console.error(apiTicker + " 抓取失敗");
+                        console.error(`[抓取失敗] ${apiTicker}:`, e.message);
                         return null; 
                     }
                 },
@@ -275,6 +280,8 @@
                                 this.stockData.forEach((s, idx) => this.drawChart(idx, s));
                             }, 500);
                         });
+                    } else {
+                        alert("資料抓取全數失敗，請按 F12 查看 Console 了解具體代理伺服器錯誤。");
                     }
                     this.isSyncing = false;
                 },
