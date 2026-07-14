@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.AutoMerge</title>
+    <title>上新莊分行 - FCN 管理系統 v58.AutoMerge.Fixed</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -115,7 +115,7 @@
             <div class="fcn-card border-4 border-dashed border-indigo-200 bg-indigo-50/20">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-lg font-black text-indigo-900 italic">⚡️ 雙檔智慧比對整合器 (自動帶入標的與期初價)</h2>
-                    <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">零人工填寫</span>
+                    <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">已修復顯示問題</span>
                 </div>
                 <p class="text-xs text-slate-500 mb-4">請依序上傳兩個檔案，系統將透過「商品編碼」進行高速自動比對，並為每一筆合約完美帶入最多 5 個標的名稱及期初成交價格。</p>
                 
@@ -174,7 +174,7 @@
                             <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }} · 金額: {{ formatNum(item.amount) }}萬</span>
                         </div>
                         
-                        <!-- 掛鉤標的多欄位設定 (自動填入後，可手動增刪修改) -->
+                        <!-- 掛鉤標的多欄位設定 (已修復，標的代號和期初成交價會直接出現在輸入框中) -->
                         <div class="space-y-2">
                             <span class="text-xs font-black text-gray-400 uppercase tracking-widest">已自動帶入的連結標的與期初價明細 (最多5檔)</span>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -243,7 +243,12 @@
             <!-- 本地暫存與匯出控制 -->
             <div class="fcn-card">
                 <div class="flex justify-between items-center mb-4 flex-wrap gap-2">
-                    <h3 class="font-black text-slate-800">目前資料（{{ inventory.length }} 筆）<span v-if="dirty" class="text-red-500 text-xs ml-1 align-middle animate-pulse">● 尚未儲存</span></h3>
+                    <div class="space-y-1">
+                        <h3 class="font-black text-slate-800">目前資料（{{ inventory.length }} 筆）<span v-if="dirty" class="text-red-500 text-xs ml-1 align-middle animate-pulse">● 尚未儲存</span></h3>
+                        <button v-if="inventory.length > 0" @click="clearAllInventory" class="bg-red-50 text-red-600 hover:bg-red-100 text-xs px-3 py-1.5 rounded-lg font-bold border border-red-200 transition">
+                            <i class="fa-solid fa-trash mr-1"></i> 一鍵清空目前所有 41 筆舊資料
+                        </button>
+                    </div>
                     <div class="flex gap-2 items-center flex-wrap">
                         <button @click="exportExcel" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-black text-sm hover:bg-emerald-700 transition">📊 匯出 Excel</button>
                         <button @click="downloadCSV" class="bg-slate-600 text-white px-4 py-2 rounded-xl font-black text-sm hover:bg-slate-700 transition">⬇️ 下載備份</button>
@@ -267,7 +272,7 @@
                             <button @click="deleteEntry(idx)" class="text-red-500 text-sm font-black hover:underline">刪除</button>
                         </div>
                     </div>
-                    <div v-if="inventory.length===0" class="text-center text-gray-300 py-8 font-bold italic text-xs uppercase">No Data</div>
+                    <div v-if="inventory.length===0" class="text-center text-gray-300 py-8 font-bold italic text-xs uppercase">No Data（資料庫為空）</div>
                 </div>
             </div>
         </div>
@@ -472,12 +477,12 @@ createApp({
             inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
             lastUpdated: '',
             
-            // 雙檔整合暫存區
+            // 雙檔整合暫存
             clientFileName: '',
             termsFileName: '',
-            rawClients: [], // 暫存第一個檔解析後的客戶資訊
-            rawTerms: [],   // 暫存第二個檔解析後的交易條件對照
-            stagingList: [] // 比對合併完成，待確認導入的清單
+            rawClients: [], 
+            rawTerms: [],   
+            stagingList: [] 
         }
     },
     computed: {
@@ -586,7 +591,15 @@ createApp({
             }
         },
 
-        // STEP 1: 解析第一張「客戶庫存 Excel」
+        // 一鍵快速清空目前的 41 筆舊暫存資料 (免 GitHub 權限直接本地改)
+        clearAllInventory() {
+            if (confirm('⚠️ 警告：確定要清空目前清單中所有的舊資料嗎？\n此動作在您點選右上方「儲存到 GitHub」後才會正式同步。')) {
+                this.inventory = [];
+                this.dirty = true;
+            }
+        },
+
+        // STEP 1: 解析客戶庫存 Excel
         handleClientInventoryUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -661,7 +674,7 @@ createApp({
             reader.readAsBinaryString(file);
         },
 
-        // STEP 2: 解析第二張「交易條件對照表 Excel」（最多支援5個標的）
+        // STEP 2: 解析對照表 (連結標的與觸價成交價)
         handleTermsMatchUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -686,18 +699,15 @@ createApp({
                         const isin = String(getVal(row, ['ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
                         if (!isin || isin === 'UNDEFINED') return null;
 
-                        // 提取 1 至 5 檔掛鉤個股及對應的期初價格（觸價價格）
                         const stocks = [];
                         for (let i = 1; i <= 5; i++) {
                             let stockCode = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`, `s${i}_code`])).trim();
                             let priceRaw = getVal(row, [`觸價價格${i}`, `觸發價格${i}`, `履約價格${i}`, `期初價格${i}`, `s${i}_init`]);
                             
-                            // 修正欄位找不到時的相容備選（有些表直接叫 觸價價格 / 履約價格）
                             if (!priceRaw && i === 1) priceRaw = getVal(row, ['觸價價格', '履約價格', '觸發價格']);
 
                             if (stockCode && stockCode !== 'undefined' && stockCode !== '') {
                                 stockCode = stockCode.toUpperCase();
-                                // 如果純數字4碼自動補日股後綴
                                 if (/^\d{4}$/.test(stockCode)) stockCode += '.T';
                                 
                                 stocks.push({
@@ -720,7 +730,7 @@ createApp({
             reader.readAsBinaryString(file);
         },
 
-        // 自動進行 VLOOKUP 交叉智能整合
+        // 執行交叉智能合併比對 (已修復！徹底將資料填充進 v-model 輸入框)
         runAutoMatch() {
             if (!this.rawClients.length || !this.rawTerms.length) {
                 alert('請確認兩個 Excel 檔案都已成功載入！');
@@ -729,16 +739,20 @@ createApp({
 
             let matchedCount = 0;
             const mergedList = this.rawClients.map(clientRow => {
-                // 以 SN 比對 ISIN Code
                 const termMatch = this.rawTerms.find(termRow => termRow.isin === clientRow.sn);
                 
                 let matchedStocks = [];
                 if (termMatch && termMatch.stocks.length > 0) {
-                    // 深度拷貝標的資料
-                    matchedStocks = termMatch.stocks.map(st => ({ ...st }));
+                    // 關鍵修正：將對照表找到的標的代碼與數值，直接複製進 stocks 陣列
+                    matchedStocks = termMatch.stocks.map(st => ({
+                        code: st.code,
+                        init: st.init,
+                        current: null,
+                        history: null
+                    }));
                     matchedCount++;
                 } else {
-                    // 若比對不成功，預設給 3 個空的空白框，方便理專手動對帳補上
+                    // 沒對齊到時的預設留白
                     matchedStocks = [
                         { code: '', init: null, current: null, history: null },
                         { code: '', init: null, current: null, history: null },
@@ -753,7 +767,7 @@ createApp({
             });
 
             this.stagingList = mergedList;
-            alert(`🎉 智能比對完成！\n成功將 ${matchedCount} 筆合約與掛鉤標的自動對接整合！請在下方預覽確認。`);
+            alert(`🎉 智能比對完成！\n成功將 ${matchedCount} 筆合約的 FCN 連結標的與期初價格直接帶入輸入框！請在下方進行確認與補件。`);
         },
 
         // 確認匯入正式庫存
@@ -767,18 +781,16 @@ createApp({
                 }
             }
 
-            // 清理空白標的、合併寫入
             this.stagingList.forEach(item => {
                 const validStocks = item.stocks.filter(st => st.code && st.code.trim() !== '');
                 validStocks.forEach(st => {
                     st.code = st.code.toUpperCase().trim();
-                    st.current = st.init; // 初始化現價等於期初價
+                    st.current = st.init; 
                 });
                 item.stocks = validStocks;
                 this.inventory.push(item);
             });
 
-            // 清空暫存並標記未儲存
             this.stagingList = [];
             this.rawClients = [];
             this.rawTerms = [];
@@ -973,7 +985,6 @@ createApp({
                     complete: (results) => {
                         this.inventory = results.data.map(row => {
                             const stocks = [];
-                            // 支援最多 5 檔
                             for (let i=1; i<=5; i++) {
                                 if (row[`s${i}_code`]) stocks.push({
                                     code: String(row[`s${i}_code`]).trim().toUpperCase(),
