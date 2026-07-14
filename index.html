@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.FullyAutomated</title>
+    <title>上新莊分行 - FCN 管理系統 v58.FullyAutomated.Fixed</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -127,7 +127,7 @@
                         <label for="clientInventoryFile" class="cursor-pointer block pt-2">
                             <i class="fa-solid fa-users text-blue-600 text-2xl mb-1 block"></i>
                             <span class="font-black text-sm block text-slate-700">上傳「客戶庫存表」</span>
-                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、商品編碼等基本資料）' }}</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、SN等基本資料）' }}</span>
                         </label>
                     </div>
 
@@ -155,7 +155,7 @@
                 </div>
             </div>
 
-            <!-- 補登與對帳確認預覽工作區 (已完美算好並填入 Value 中) -->
+            <!-- 補登與對帳確認預覽工作區 -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-emerald-300 bg-emerald-50/20">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-lg font-black text-emerald-800">✅ 雙檔智慧反推完成！部位核對清單（共 {{ stagingList.length }} 筆）</h3>
@@ -183,7 +183,7 @@
                             <span>KI 門檻: <b class="text-slate-800">{{ item.kiP }}%</b></span>
                         </div>
                         
-                        <!-- 手動Key入期初成交價區域 -->
+                        <!-- 掛鉤標的明細 -->
                         <div class="space-y-2">
                             <div class="flex justify-between items-center">
                                 <span class="text-xs font-black text-slate-400 uppercase tracking-widest">掛鉤標的個股明細與「已自動反推」的期初成交價</span>
@@ -194,7 +194,7 @@
                                     <div class="w-1/2">
                                         <label class="block text-[10px] text-gray-400 font-bold">標的代號</label>
                                         <span v-if="!item.isUnmatched" class="font-black text-blue-600 uppercase text-xs block pt-2">{{ st.code }}</span>
-                                        <input v-else v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
+                                        <input v-if="item.isUnmatched" v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
                                     </div>
                                     <div class="flex-1">
                                         <label class="block text-[10px] text-emerald-600 font-bold">➔ 算好免填（亦可點選微調修改）</label>
@@ -629,13 +629,11 @@ createApp({
                         const strikeP = parseFloat(getVal(row, ['Strike(%)', '履約價(%)', 'PUT(%)', 'PUT'])) || 100;
                         const kiP = parseFloat(getVal(row, ['KI(%)', 'KI價(%)', 'KI'])) || 60;
 
-                        // 同時提取連結個股與對應的 KO 觸發價格
                         const stockConfigs = [];
                         for (let i = 1; i <= 5; i++) {
                             let code = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`])).trim();
                             let koPrice = parseFloat(getVal(row, [`KO價${i}`, `KO價_${i}`, `觸價價格${i}`, `觸發價格${i}`]));
                             
-                            // 第一檔標的的相容備選欄位名
                             if (!koPrice && i === 1) koPrice = parseFloat(getVal(row, ['觸價價格', '履約價格', '觸發價格', 'KO價']));
 
                             if (code && code !== 'undefined' && code !== '') {
@@ -659,7 +657,7 @@ createApp({
             reader.readAsBinaryString(file);
         },
 
-        // 交叉整合比對 ➔ 自動利用 (KO價 / KO%) 逆向反推「期初價」，全面免手 Key！
+        // 交叉整合比對
         runAutoMatch() {
             if (!this.rawClients.length) {
                 alert('請先上傳第一步「客戶庫存表」Excel 檔案！');
@@ -684,16 +682,14 @@ createApp({
                     strikeP = termMatch.strikeP;
                     kiP = termMatch.kiP;
                     
-                    // 智慧核心：從標的與其觸發價(koPrice)反推期初成交價 (init = koPrice / (koP / 100))
                     finalizedStocks = termMatch.stockConfigs.map(st => {
                         let calculatedInit = null;
                         if (st.koPrice && koP > 0) {
-                            // 計算反推期初價，四捨五入保留到小數點後 4 位確保美股與日股精算精準度
                             calculatedInit = Math.round((st.koPrice / (koP / 100)) * 10000) / 10000;
                         }
                         return {
                             code: st.code,
-                            init: calculatedInit, // 自動計算並完全塞入欄位 Value
+                            init: calculatedInit, 
                             current: null,
                             history: null
                         };
@@ -718,7 +714,7 @@ createApp({
             });
 
             this.stagingList = mergedList;
-            alert(`🎉 智能反推對接完畢！\n完美配對數：${matchedCount} 筆合約。\n總處理數：${mergedList.length} 筆客戶。\n\n系統已自動完成所有標的的「期初價逆向反推」，請滑動至下方預覽與核對數據！`);
+            alert(`🎉 智能反推對接完畢！\n完美配對數：${matchedCount} 筆合約。\n總處理數：${mergedList.length} 筆客戶。\n\n系統已自動完成所有標道的「期初價逆向反推」，請滑動至下方預覽與核對數據！`);
         },
 
         // 正式匯入系統庫存
