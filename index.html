@@ -558,7 +558,7 @@ async saveAllToGithub() {
 if (!this.githubToken) { alert('請先貼上 GitHub Token'); return; }
 this.isUploading = true;
 try {
-const owner = 'hpisokplay', repo = 'fcn-dashboard', path = 'data.csv';
+const owner = 'juststar0822', repo = 'fcn-dashboard', path = 'data.csv';
 localStorage.setItem('fcn_token', this.githubToken);
 const csv = this.inventoryToCSV();
 const content = btoa(unescape(encodeURIComponent(csv)));
