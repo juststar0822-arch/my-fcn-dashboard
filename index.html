@@ -111,13 +111,13 @@
         <!-- 資料輸入/編輯 -->
         <div v-if="view === 'entry'" class="space-y-4 fade-in text-slate-800 text-left">
             
-            <!-- Excel 批次導入控制區 -->
+            <!-- Excel 批次導入控制區 (已完美對應分行欄位) -->
             <div class="fcn-card border-2 border-dashed border-blue-200 bg-blue-50/30">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-lg font-black text-slate-800 italic">📊 快速導入：上傳客戶庫存 Excel</h2>
-                    <span class="text-xs text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-bold">免手手 Key</span>
+                    <span class="text-xs text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-bold">已支援「姓名/商品編碼」格式</span>
                 </div>
-                <p class="text-xs text-gray-400 mb-4">支援拖放或選擇含有客戶資料的 `.xlsx` 或 `.xls` 檔案。匯入後可直接在網頁上「補登期初價」再存檔。</p>
+                <p class="text-xs text-gray-400 mb-4">系統已針對您的分行庫存表進行欄位對接。上傳後，請在下方「待補登期初價」區塊填寫期初成交價格。</p>
                 <div class="relative border border-slate-200 rounded-2xl p-6 bg-white text-center cursor-pointer hover:bg-slate-50 transition">
                     <input type="file" id="excelImportFile" @change="handleExcelImport" accept=".xlsx, .xls" class="hidden">
                     <label for="excelImportFile" class="cursor-pointer block font-bold text-slate-600">
@@ -130,7 +130,7 @@
             <!-- 待補登期初價表格 (當 stagingList 有資料時顯示) -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-black text-amber-800">✍️ 待補登期初價（共 {{ stagingList.length }} 筆）</h3>
+                    <h3 class="text-lg font-black text-amber-800">✍️ 待補登期初成交價（共 {{ stagingList.length }} 筆）</h3>
                     <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">清空暫存</button>
                 </div>
                 
@@ -139,7 +139,7 @@
                         <div class="flex justify-between items-start mb-3 pb-2 border-b border-gray-100">
                             <div>
                                 <span class="font-black text-slate-800 text-lg">{{ item.client }}</span>
-                                <span class="text-xs text-gray-400 font-mono ml-2">SN: {{ item.sn }}</span>
+                                <span class="text-xs text-gray-400 font-mono ml-2">商品編碼(SN): {{ item.sn }}</span>
                             </div>
                             <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }}</span>
                         </div>
@@ -147,9 +147,9 @@
                         <!-- 填寫期初價輸入區 -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
                             <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                <span class="text-[10px] font-black text-blue-500 block uppercase mb-1">{{ st.code }} ({{ getStockName(st.code) }})</span>
+                                <span class="text-[10px] font-black text-blue-500 block uppercase mb-1">標的: {{ st.code }}</span>
                                 <label class="block">
-                                    <span class="text-[9px] text-gray-400 font-bold">期初價:</span>
+                                    <span class="text-[9px] text-gray-400 font-bold">期初成交價:</span>
                                     <input type="number" step="0.01" v-model.number="st.init" placeholder="請輸入期初價" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-bold text-sm outline-none focus:border-blue-500">
                                 </label>
                             </div>
@@ -430,7 +430,7 @@ createApp({
             selectedFile: null, fileName: '', isUploading: false,
             inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
             lastUpdated: '',
-            stagingList: [] // 新增: 暫放從 Excel 匯入、尚未補足期初價的部位清單
+            stagingList: [] 
         }
     },
     computed: {
@@ -538,7 +538,7 @@ createApp({
                 stock.code += '.T';
             }
         },
-        // Excel 檔案拖曳 / 選擇解析處理
+        // 針對分行客製化開發：Excel 欄位解析器
         handleExcelImport(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -557,7 +557,7 @@ createApp({
                         return;
                     }
                     
-                    // 偵測並讀取欄位 mapping 對照表
+                    // 多元對齊關鍵字比對輔助函數
                     const getVal = (row, keys) => {
                         for (let k of keys) {
                             if (row[k] !== undefined && row[k] !== null) return row[k];
@@ -565,54 +565,74 @@ createApp({
                         return '';
                     };
                     
+                    // 日期轉換處理
                     const formatExcelDate = (val) => {
                         if (!val) return '';
                         if (val instanceof Date) {
-                            return val.toISOString().split('T')[0];
+                            // 修正 JS Date 轉換時區問題
+                            const y = val.getFullYear();
+                            const m = String(val.getMonth() + 1).padStart(2, '0');
+                            const d = String(val.getDate()).padStart(2, '0');
+                            return `${y}-${m}-${d}`;
                         }
+                        // 純字串格式處理 (2026/06/30 或 2026-06-30)
                         return String(val).replace(/\//g, '-').trim();
                     };
 
                     const parsedList = json.map(row => {
-                        const client = String(getVal(row, ['客戶', 'client'])).trim();
-                        const sn = String(getVal(row, ['SN', 'sn'])).trim();
-                        if (!client || !sn) return null; // 排除空白列
+                        // 1. 客戶欄位對接姓名 (E欄)
+                        const client = String(getVal(row, ['姓名', '客戶', 'client'])).trim();
+                        // 2. SN欄位對接商品編碼 (F欄)
+                        const sn = String(getVal(row, ['商品編碼', 'ISIN', 'SN', 'sn'])).trim();
                         
-                        // 掛鉤標的提取，最多4檔，標的名稱轉換防呆
-                        const stocks = [];
-                        for (let i = 1; i <= 4; i++) {
-                            let code = getVal(row, [`標的${i}`, `s${i}_code`, `s${i}`]);
-                            if (code) {
-                                code = String(code).trim().toUpperCase();
-                                if (/^\d{4}$/.test(code)) code += '.T'; // 純數字補日股後綴
-                                stocks.push({
-                                    code: code,
-                                    init: null, // 未知期初成交價，待使用者補登
-                                    current: null,
-                                    history: null
-                                });
-                            }
+                        if (!client || client === 'undefined' || !sn || sn === 'undefined') return null; 
+                        
+                        // 3. 業務員欄位 (Q欄：自動剔除前面的工號，如 "0005935-吳坤達" 轉換為 "吳坤達")
+                        let salesRaw = String(getVal(row, ['營業員', '業務員', 'sales'])).trim();
+                        let sales = '吳坤達'; 
+                        if (salesRaw && salesRaw !== 'undefined') {
+                            const match = salesRaw.match(/[^\d\s\-]+/);
+                            if (match) sales = match[0];
                         }
+
+                        // 4. 掛鉤標的提取 (G欄：ISIN 即為標的識別)
+                        const stocks = [];
+                        let isinCode = String(getVal(row, ['ISIN', '商品編碼'])).trim().toUpperCase();
+                        if (isinCode && isinCode !== 'UNDEFINED') {
+                            stocks.push({
+                                code: isinCode,
+                                init: null, // 未知期初成交價，待使用者補登
+                                current: null,
+                                history: null
+                            });
+                        }
+
+                        // 5. 處理 KO, KI, PUT 比例 (防呆，若為 "NA" 則代入預設安全邊界)
+                        const parsePct = (val, def) => {
+                            if (val === undefined || val === null || String(val).toUpperCase() === 'NA') return def;
+                            const num = parseFloat(val);
+                            return isNaN(num) ? def : num;
+                        };
 
                         return {
                             client,
                             sn,
-                            sales: String(getVal(row, ['業務員', 'sales', '業務'])).trim() || '吳坤達',
-                            currency: String(getVal(row, ['幣別', 'currency', '幣別(USD/JPY)'])).trim().toUpperCase() || 'USD',
-                            coupon: parseFloat(getVal(row, ['票息(%)', 'coupon', '票息'])) || null,
-                            amount: parseFloat(getVal(row, ['庫存金額(萬)', 'amount', '庫存金額'])) || null,
-                            koP: parseFloat(getVal(row, ['KO(%)', 'koP', 'KO'])) || 105,
-                            kiP: parseFloat(getVal(row, ['KI(%)', 'kiP', 'KI'])) || 60,
-                            strikeP: parseFloat(getVal(row, ['PUT(%)', 'strikeP', 'strike', 'PUT'])) || 100,
-                            koStart: formatExcelDate(getVal(row, ['觀察起日', 'koStart', '觀察日'])),
-                            date: formatExcelDate(getVal(row, ['下單日', 'date', '下單日期'])),
-                            expiry: formatExcelDate(getVal(row, ['到期日', 'expiry', '到期日期'])),
+                            sales,
+                            currency: String(getVal(row, ['計價幣別', '幣別', 'currency'])).trim().toUpperCase() || 'USD',
+                            coupon: parseFloat(getVal(row, ['配息年率(%)', '配息率', 'coupon'])) || null,
+                            amount: parseFloat(getVal(row, ['庫存金額', '金額', 'amount'])) || null,
+                            koP: parsePct(getVal(row, ['KO價(%)', 'KO(%)']), 105),
+                            kiP: parsePct(getVal(row, ['KI價(%)', 'KI(%)']), 60),
+                            strikeP: parsePct(getVal(row, ['履約價(%)', 'PUT(%)']), 100),
+                            koStart: formatExcelDate(getVal(row, ['下單日', '觀察日'])), // 觀察起日若沒有則對應下單日
+                            date: formatExcelDate(getVal(row, ['下單日', '下單日期'])),
+                            expiry: formatExcelDate(getVal(row, ['到期日', '到期日期'])),
                             stocks
                         };
                     }).filter(item => item !== null);
 
                     if (parsedList.length === 0) {
-                        alert('未能成功比對出有效的客戶名稱與 SN 欄位，請檢查 Excel 資料。');
+                        alert('未能成功比對出「姓名」與「商品編碼」欄位，請確認 Excel 表頭是否有這些欄位！');
                         return;
                     }
                     
@@ -624,11 +644,9 @@ createApp({
             };
             reader.readAsBinaryString(file);
         },
-        // 確認並正式匯入部位
         commitStaging() {
             if (this.stagingList.length === 0) return;
             
-            // 檢查是否至少有一筆填寫，不阻擋全部，但未填寫期初價的給予提示
             const unFilled = this.stagingList.filter(item => item.stocks.some(st => st.init === null || st.init === undefined || st.init <= 0));
             if (unFilled.length > 0) {
                 if (!confirm(`還有 ${unFilled.length} 筆資料的標的期初成交價未完全補登 (將暫時設為 0)。確定要繼續匯入嗎？`)) {
@@ -636,9 +654,7 @@ createApp({
                 }
             }
 
-            // 正式合併到 inventory 中
             this.stagingList.forEach(item => {
-                // 將 current 初始化為與 init 相同
                 item.stocks.forEach(st => {
                     if (st.init > 0) {
                         st.current = st.init;
@@ -650,7 +666,7 @@ createApp({
             this.stagingList = [];
             this.dirty = true;
             alert('部位匯入成功！已啟動最新報價與歷史數據同步...');
-            this.fetchRealPrices(); // 自動更新最新價與抓取歷史
+            this.fetchRealPrices(); 
         },
         login() { 
             if (this.inputPass === this.password) { 
