@@ -576,7 +576,7 @@ else { const e = await pr.json().catch(() => ({})); alert('儲存失敗：' + (e
 async uploadToGithub() {
 this.isUploading = true;
 try {
-const owner='juststar0822', repo='my-fcn-dashboard', path='data.csv';
+const owner='juststar0822', repo='fcn-update', path='data.csv';
 const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {headers:{'Authorization':`token ${this.githubToken}`}});
 const fd = await res.json();
 const r = new FileReader();
