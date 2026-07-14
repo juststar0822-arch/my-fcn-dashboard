@@ -110,8 +110,63 @@
 
         <!-- 資料輸入/編輯 -->
         <div v-if="view === 'entry'" class="space-y-4 fade-in text-slate-800 text-left">
+            
+            <!-- Excel 批次導入控制區 -->
+            <div class="fcn-card border-2 border-dashed border-blue-200 bg-blue-50/30">
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="text-lg font-black text-slate-800 italic">📊 快速導入：上傳客戶庫存 Excel</h2>
+                    <span class="text-xs text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-bold">免手手 Key</span>
+                </div>
+                <p class="text-xs text-gray-400 mb-4">支援拖放或選擇含有客戶資料的 `.xlsx` 或 `.xls` 檔案。匯入後可直接在網頁上「補登期初價」再存檔。</p>
+                <div class="relative border border-slate-200 rounded-2xl p-6 bg-white text-center cursor-pointer hover:bg-slate-50 transition">
+                    <input type="file" id="excelImportFile" @change="handleExcelImport" accept=".xlsx, .xls" class="hidden">
+                    <label for="excelImportFile" class="cursor-pointer block font-bold text-slate-600">
+                        <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-2 block"></i>
+                        選擇或拖曳客戶庫存 Excel 檔案
+                    </label>
+                </div>
+            </div>
+
+            <!-- 待補登期初價表格 (當 stagingList 有資料時顯示) -->
+            <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-black text-amber-800">✍️ 待補登期初價（共 {{ stagingList.length }} 筆）</h3>
+                    <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">清空暫存</button>
+                </div>
+                
+                <div class="space-y-4 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin">
+                    <div v-for="(item, sIdx) in stagingList" :key="sIdx" class="bg-white border border-gray-200 p-4 rounded-2xl shadow-sm">
+                        <div class="flex justify-between items-start mb-3 pb-2 border-b border-gray-100">
+                            <div>
+                                <span class="font-black text-slate-800 text-lg">{{ item.client }}</span>
+                                <span class="text-xs text-gray-400 font-mono ml-2">SN: {{ item.sn }}</span>
+                            </div>
+                            <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }}</span>
+                        </div>
+                        
+                        <!-- 填寫期初價輸入區 -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                            <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                <span class="text-[10px] font-black text-blue-500 block uppercase mb-1">{{ st.code }} ({{ getStockName(st.code) }})</span>
+                                <label class="block">
+                                    <span class="text-[9px] text-gray-400 font-bold">期初價:</span>
+                                    <input type="number" step="0.01" v-model.number="st.init" placeholder="請輸入期初價" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-bold text-sm outline-none focus:border-blue-500">
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 flex gap-3">
+                    <button @click="commitStaging" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white p-3.5 rounded-2xl font-black text-center shadow-lg transition">
+                        確認並匯入系統部位
+                    </button>
+                </div>
+            </div>
+
+            <!-- 手動單筆新增/編輯部位 -->
             <div class="fcn-card">
-                <h2 class="text-xl font-black italic mb-4">{{ editIndex===null ? '➕ 新增部位' : '✏️ 編輯部位' }}</h2>
+                <h2 class="text-xl font-black italic mb-4">{{ editIndex===null ? '➕ 手動新增部位' : '✏️ 編輯部位' }}</h2>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <label class="block font-bold text-gray-500">客戶<input v-model="form.client" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
                     <label class="block font-bold text-gray-500">SN<input v-model="form.sn" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
@@ -172,7 +227,7 @@
                     </div>
                     <div v-if="inventory.length===0" class="text-center text-gray-300 py-8 font-bold italic text-xs uppercase">No Data</div>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-4 leading-relaxed">＊ 新增/編輯/刪除後，要按上面「儲存到 GitHub」才會永久保存。第一次使用請貼上 GitHub Token（會加密儲存在此瀏覽器）。</p>
+                <p class="text-[11px] text-gray-400 mt-4 leading-relaxed">＊ 新增/編輯/刪除後，要按上面「儲存到 GitHub」才會永久保存。第一次使用請貼上 GitHub Token（會儲存在此瀏覽器本地）。</p>
             </div>
         </div>
 
@@ -215,13 +270,11 @@ const stockNames = {
     'NFLX':'網飛','BRK.B':'波克夏'
 };
 
-// 全域共享工具函數 (解決重複程式碼問題)
 const FcnUtils = {
     parseDate(str) {
         if (!str) return new Date();
         return new Date(String(str).replace(/-/g, '/').trim());
     },
-    // 安全時間戳：強制歸零基準日，並往前回推 12 小時確保交易所時區不漏接首日
     getSafeStartTs(dateObj) {
         const d = new Date(dateObj.getTime());
         d.setHours(0,0,0,0);
@@ -265,7 +318,6 @@ const FcnUtils = {
     calcMonthly(i) { 
         const amount = i.amount || 0;
         const rawMonthly = (amount * 10000 * (i.coupon / 100)) / 12;
-        // JPY 沒有分幣，無條件捨去；USD 保留小數點後 2 位
         return i.currency === 'JPY' ? Math.floor(rawMonthly) : parseFloat(rawMonthly.toFixed(2));
     }
 };
@@ -289,9 +341,7 @@ const ClientCard = {
         </div>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
             <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag" :class="getStockClass(item, s)">
-                <!-- 觸及KI 標籤 -->
                 <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ 觸及KI</div>
-                <!-- 曾經KO 標籤 -->
                 <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ 曾達KO</div>
                 <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                 <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
@@ -379,7 +429,8 @@ createApp({
             githubToken: localStorage.getItem('fcn_token') || '',
             selectedFile: null, fileName: '', isUploading: false,
             inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
-            lastUpdated: ''
+            lastUpdated: '',
+            stagingList: [] // 新增: 暫放從 Excel 匯入、尚未補足期初價的部位清單
         }
     },
     computed: {
@@ -479,14 +530,127 @@ createApp({
     },
     methods: {
         formatNum: FcnUtils.formatNum,
-        // 資料防呆自動轉換：大寫與自動補全日股後綴 .T
+        getStockName(c) { return stockNames[c] || c; },
         formatStockInput(stock) {
             if (!stock.code) return;
             stock.code = stock.code.toUpperCase().trim();
-            // 如果輸入純數字（例如 7974），且長度為 4 位，自動加上 .T
             if (/^\d{4}$/.test(stock.code)) {
                 stock.code += '.T';
             }
+        },
+        // Excel 檔案拖曳 / 選擇解析處理
+        handleExcelImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = evt.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet);
+                    
+                    if (json.length === 0) {
+                        alert('Excel 檔案內沒有資料。');
+                        return;
+                    }
+                    
+                    // 偵測並讀取欄位 mapping 對照表
+                    const getVal = (row, keys) => {
+                        for (let k of keys) {
+                            if (row[k] !== undefined && row[k] !== null) return row[k];
+                        }
+                        return '';
+                    };
+                    
+                    const formatExcelDate = (val) => {
+                        if (!val) return '';
+                        if (val instanceof Date) {
+                            return val.toISOString().split('T')[0];
+                        }
+                        return String(val).replace(/\//g, '-').trim();
+                    };
+
+                    const parsedList = json.map(row => {
+                        const client = String(getVal(row, ['客戶', 'client'])).trim();
+                        const sn = String(getVal(row, ['SN', 'sn'])).trim();
+                        if (!client || !sn) return null; // 排除空白列
+                        
+                        // 掛鉤標的提取，最多4檔，標的名稱轉換防呆
+                        const stocks = [];
+                        for (let i = 1; i <= 4; i++) {
+                            let code = getVal(row, [`標的${i}`, `s${i}_code`, `s${i}`]);
+                            if (code) {
+                                code = String(code).trim().toUpperCase();
+                                if (/^\d{4}$/.test(code)) code += '.T'; // 純數字補日股後綴
+                                stocks.push({
+                                    code: code,
+                                    init: null, // 未知期初成交價，待使用者補登
+                                    current: null,
+                                    history: null
+                                });
+                            }
+                        }
+
+                        return {
+                            client,
+                            sn,
+                            sales: String(getVal(row, ['業務員', 'sales', '業務'])).trim() || '吳坤達',
+                            currency: String(getVal(row, ['幣別', 'currency', '幣別(USD/JPY)'])).trim().toUpperCase() || 'USD',
+                            coupon: parseFloat(getVal(row, ['票息(%)', 'coupon', '票息'])) || null,
+                            amount: parseFloat(getVal(row, ['庫存金額(萬)', 'amount', '庫存金額'])) || null,
+                            koP: parseFloat(getVal(row, ['KO(%)', 'koP', 'KO'])) || 105,
+                            kiP: parseFloat(getVal(row, ['KI(%)', 'kiP', 'KI'])) || 60,
+                            strikeP: parseFloat(getVal(row, ['PUT(%)', 'strikeP', 'strike', 'PUT'])) || 100,
+                            koStart: formatExcelDate(getVal(row, ['觀察起日', 'koStart', '觀察日'])),
+                            date: formatExcelDate(getVal(row, ['下單日', 'date', '下單日期'])),
+                            expiry: formatExcelDate(getVal(row, ['到期日', 'expiry', '到期日期'])),
+                            stocks
+                        };
+                    }).filter(item => item !== null);
+
+                    if (parsedList.length === 0) {
+                        alert('未能成功比對出有效的客戶名稱與 SN 欄位，請檢查 Excel 資料。');
+                        return;
+                    }
+                    
+                    this.stagingList = parsedList;
+                    alert(`Excel 成功載入 ${parsedList.length} 筆客戶資料！請在下方「待補登期初價」區塊填入價格後匯入部位。`);
+                } catch (err) {
+                    alert('Excel 檔案解析錯誤：' + err.message);
+                }
+            };
+            reader.readAsBinaryString(file);
+        },
+        // 確認並正式匯入部位
+        commitStaging() {
+            if (this.stagingList.length === 0) return;
+            
+            // 檢查是否至少有一筆填寫，不阻擋全部，但未填寫期初價的給予提示
+            const unFilled = this.stagingList.filter(item => item.stocks.some(st => st.init === null || st.init === undefined || st.init <= 0));
+            if (unFilled.length > 0) {
+                if (!confirm(`還有 ${unFilled.length} 筆資料的標的期初成交價未完全補登 (將暫時設為 0)。確定要繼續匯入嗎？`)) {
+                    return;
+                }
+            }
+
+            // 正式合併到 inventory 中
+            this.stagingList.forEach(item => {
+                // 將 current 初始化為與 init 相同
+                item.stocks.forEach(st => {
+                    if (st.init > 0) {
+                        st.current = st.init;
+                    }
+                });
+                this.inventory.push(item);
+            });
+
+            this.stagingList = [];
+            this.dirty = true;
+            alert('部位匯入成功！已啟動最新報價與歷史數據同步...');
+            this.fetchRealPrices(); // 自動更新最新價與抓取歷史
         },
         login() { 
             if (this.inputPass === this.password) { 
@@ -557,7 +721,7 @@ createApp({
         },
         downloadCSV() {
             if (!this.inventory.length) { alert('目前沒有資料'); return; }
-            const csv = '\uFEFF' + this.inventoryToCSV(); // 補上 UTF-8 BOM 防止 Excel 亂碼
+            const csv = '\uFEFF' + this.inventoryToCSV(); 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
