@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v5.RobustMerge.Fixed</title>
+    <title>上新莊分行 - FCN 管理系統 v58.RobustMerge.FinalFixed</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -194,7 +194,7 @@
                                     <div class="w-1/2">
                                         <label class="block text-[10px] text-gray-400 font-bold">標的代號</label>
                                         <span v-if="!item.isUnmatched" class="font-black text-blue-600 uppercase text-xs block pt-2">{{ st.code }}</span>
-                                        <input v-else v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
+                                        <input v-else_unmatched v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
                                     </div>
                                     <div class="flex-1">
                                         <label class="block text-[10px] text-indigo-600 font-bold">➔ 手動輸入期初價</label>
@@ -741,7 +741,7 @@ createApp({
         checkAdminPass() { if (this.adminPassInput === this.adminPass) this.view = 'admin_panel'; else alert('ERR'); },
         handleFileUpload(e) { const f = e.target.files[0]; if(f){ this.selectedFile=f; this.fileName=f.name; } },
         resetForm() {
-            this.form = { client:'', sn:'', sales:'', currency:'USD', coupon:null, koP:105, kiP:60, strikeP:100, koStart:'', date:'', expiry:'', amount:null, stocks:[{code:'',init:null}] };
+            this.form = { client:'', sn:'', sales:'', currency:'USD', coupon:null, koP:105, kiP:60, strikeP:100, koStart:'', date:'', expiry:'', amount:null, stocks:[{code:'',init:null}] },
             this.editIndex = null;
         },
         submitEntry() {
