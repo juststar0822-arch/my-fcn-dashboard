@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.AutoMerge.Fixed</title>
+    <title>上新莊分行 - FCN 管理系統 v58.AutoConditions</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -33,18 +33,6 @@
 </head>
 <body class="p-4 md:p-10">
 <div id="app" v-cloak class="max-w-4xl mx-auto">
-    <!-- 登入模組 -->
-    <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
-        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
-            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6">
-                <i class="fa-solid fa-lock text-2xl"></i>
-            </div>
-            <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
-            <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
-            <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg hover:bg-slate-800 transition">LOGIN</button>
-        </div>
-    </div>
-
     <template v-if="isLoggedIn">
         <!-- 導航列 -->
         <div class="nav-header sticky top-4 z-[1000] scrollbar-hide text-slate-800">
@@ -59,65 +47,16 @@
             </div>
         </div>
 
-        <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
-            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500"></i> FCN Iron-Shield System</span>
-            <span v-if="lastUpdated">Refreshed: {{ lastUpdated }}</span>
-        </div>
-
-        <!-- 預警中心 -->
-        <div v-if="view === 'alerts'" class="space-y-4 fade-in">
-            <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
-                <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
-                <button @click="alertTab = 'obs'" :class="['risk-tab', alertTab === 'obs' ? 'active' : '']">即將觀察({{observationList.length}})</button>
-                <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">曾經KO({{partKOList.length}})</button>
-                <button @click="alertTab = 'nko'" :class="['risk-tab', alertTab === 'nko' ? 'active' : '']">即將KO({{nearKOList.length}})</button>
-                <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期({{expiringList.length}})</button>
-                <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
-            </div>
-            <div class="space-y-4">
-                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client"></client-card>
-                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs tracking-widest">No Matches Found</div>
-            </div>
-        </div>
-
-        <!-- 資產管理 -->
-        <div v-if="view === 'branch'" class="space-y-4 fade-in">
-            <h2 class="text-xl font-black px-2 italic uppercase text-slate-800 text-left tracking-tighter">Portfolio Summary</h2>
-            <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
-                <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase text-white font-black">
-                    <span>Portfolio size</span><span>{{ curr==='JPY'?countJPY:countUSD }}筆</span>
-                </div>
-                <div class="text-5xl font-black italic font-mono tracking-tighter text-white">
-                    {{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} 
-                    <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- 按客戶 -->
-        <div v-if="view === 'client'" class="space-y-4 fade-in">
-            <input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6">
-            <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card>
-        </div>
-
-        <!-- 按業務員 -->
-        <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left">
-            <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono">
-                <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
-            </select>
-            <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card>
-        </div>
-
         <!-- 資料輸入/編輯 -->
         <div v-if="view === 'entry'" class="space-y-4 fade-in text-slate-800 text-left">
             
-            <!-- 雙檔智能比對與自動整合導入面板 -->
+            <!-- 雙檔條件智慧整合面板 -->
             <div class="fcn-card border-4 border-dashed border-indigo-200 bg-indigo-50/20">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-black text-indigo-900 italic">⚡️ 雙檔智慧比對整合器 (自動帶入標的與期初價)</h2>
-                    <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">已修復顯示問題</span>
+                    <h2 class="text-lg font-black text-indigo-900 italic">⚡️ 雙檔條件比對器 (自動帶入標的、KO、履約、KI條件)</h2>
+                    <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">手動填期初價</span>
                 </div>
-                <p class="text-xs text-slate-500 mb-4">請依序上傳兩個檔案，系統將透過「商品編碼」進行高速自動比對，並為每一筆合約完美帶入最多 5 個標的名稱及期初成交價格。</p>
+                <p class="text-xs text-slate-500 mb-4">比對後系統會自動對接標的名稱與合約條件比例（最多5檔），期初成交價留空供您手動對帳Key入。</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- 第一步：上傳客戶庫存 -->
@@ -127,7 +66,7 @@
                         <label for="clientInventoryFile" class="cursor-pointer block pt-2">
                             <i class="fa-solid fa-users text-blue-600 text-2xl mb-1 block"></i>
                             <span class="font-black text-sm block text-slate-700">上傳「客戶庫存表」</span>
-                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、SN等基本資料）' }}</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、商品編碼等基本資料）' }}</span>
                         </label>
                     </div>
 
@@ -138,62 +77,64 @@
                         <label for="termsMatchFile" :class="['cursor-pointer block pt-2', !rawClients.length ? 'opacity-40 cursor-not-allowed' : '']">
                             <i class="fa-solid fa-chart-line text-indigo-600 text-2xl mb-1 block"></i>
                             <span class="font-black text-sm block text-slate-700">上傳「交易條件對照表」</span>
-                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ termsFileName || '（含ISIN、連結標的與期初價）' }}</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ termsFileName || '（含商品代碼、連結標的、KO/Strike/KI %）' }}</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- 比對狀態與結果預覽提示 -->
+                <!-- 比對整合觸發鈕 -->
                 <div v-if="rawClients.length > 0 || rawTerms.length > 0" class="mt-4 bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
                     <div class="space-y-1 font-bold text-slate-600">
-                        <p>🔹 客戶庫存暫存數：<span class="text-blue-600">{{ rawClients.length }} 筆</span></p>
-                        <p>🔹 標的條件暫存數：<span class="text-indigo-600">{{ rawTerms.length }} 筆</span></p>
+                        <p>🔹 客戶庫存表基本資料：<span class="text-blue-600">{{ rawClients.length }} 筆</span></p>
+                        <p>🔹 交易條件規格資料：<span class="text-indigo-600">{{ rawTerms.length }} 筆</span></p>
                     </div>
                     <button v-if="rawClients.length > 0 && rawTerms.length > 0" @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-2.5 rounded-xl shadow-md transition">
-                        🚀 開始進行智能比對
+                        🚀 開始進行條件整合比對
                     </button>
                 </div>
             </div>
 
-            <!-- 待確認與微調期初價表格 (自動對比成功後，會先呈現在這，供理專做最後確認) -->
+            <!-- 補登期初價預覽工作區 -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-black text-amber-800">✅ 智能比對結果預覽（已完美整合共 {{ stagingList.length }} 筆，最多5個標的）</h3>
+                    <h3 class="text-lg font-black text-amber-800">✍️ 條件比對成功！請手動 Key 入客戶「期初成交價」</h3>
                     <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">取消本次導入</button>
                 </div>
                 
                 <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2 scrollbar-thin">
                     <div v-for="(item, sIdx) in stagingList" :key="sIdx" class="bg-white border border-gray-200 p-5 rounded-2xl shadow-sm">
                         
-                        <!-- 基本合約資訊 -->
-                        <div class="flex justify-between items-start mb-4 pb-2 border-b border-gray-100">
+                        <!-- 基本與整合條件資訊 -->
+                        <div class="flex justify-between items-start mb-2 pb-2 border-b border-gray-100">
                             <div>
                                 <span class="font-black text-slate-800 text-lg">{{ item.client }}</span>
                                 <span class="text-xs text-gray-400 font-mono ml-2">商品編碼(SN): {{ item.sn }}</span>
                             </div>
                             <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }} · 金額: {{ formatNum(item.amount) }}萬</span>
                         </div>
+
+                        <!-- 自動帶入的條對率預覽 -->
+                        <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 font-bold mb-3 bg-slate-50 p-2 rounded-xl">
+                            <span class="text-blue-600">已導入條件比例 ➔</span>
+                            <span>KO 觸發: <b class="text-slate-800">{{ item.koP }}%</b></span>
+                            <span>履約 Strike: <b class="text-slate-800">{{ item.strikeP }}%</b></span>
+                            <span>KI 門檻: <b class="text-slate-800">{{ item.kiP }}%</b></span>
+                        </div>
                         
-                        <!-- 掛鉤標的多欄位設定 (已修復，標的代號和期初成交價會直接出現在輸入框中) -->
+                        <!-- 手動Key入期初成交價區域 -->
                         <div class="space-y-2">
-                            <span class="text-xs font-black text-gray-400 uppercase tracking-widest">已自動帶入的連結標的與期初價明細 (最多5檔)</span>
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">請輸入下列連結標的的期初成交價</span>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
-                                    <div class="flex-1">
-                                        <label class="block text-[10px] text-gray-400 font-bold">標的代號 (自動帶入)</label>
-                                        <input v-model="st.code" @input="formatStockInput(st)" placeholder="標的代號" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-black text-blue-600 uppercase text-xs outline-none focus:border-blue-500">
+                                <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                                    <div class="w-1/3">
+                                        <span class="block text-[10px] text-gray-400 font-bold">標的代號</span>
+                                        <span class="font-black text-blue-600 uppercase text-xs block pt-1.5">{{ st.code }}</span>
                                     </div>
                                     <div class="flex-1">
-                                        <label class="block text-[10px] text-gray-400 font-bold">期初成交價 (自動帶入)</label>
-                                        <input type="number" step="0.01" v-model.number="st.init" placeholder="期初價" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-bold text-slate-800 text-xs outline-none focus:border-blue-500">
+                                        <label class="block text-[10px] text-indigo-500 font-bold">➔ 手動輸入：期初成交價格</label>
+                                        <input type="number" step="0.0001" v-model.number="st.init" placeholder="Key 入期初價" class="w-full bg-white p-1.5 rounded-lg border border-indigo-200 font-black text-slate-800 text-xs outline-none focus:ring-2 ring-indigo-400">
                                     </div>
-                                    <button @click="item.stocks.splice(stIdx, 1)" class="text-red-500 font-bold text-xs hover:text-red-700 pt-4 px-1">✕</button>
                                 </div>
-                            </div>
-                            <div class="pt-2">
-                                <button v-if="item.stocks.length < 5" @click="item.stocks.push({code:'',init:null})" class="text-blue-600 hover:text-blue-800 font-black text-xs">
-                                    <i class="fa-solid fa-plus mr-1"></i> 手動增加額外標的
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -201,42 +142,8 @@
 
                 <div class="mt-5 flex gap-3">
                     <button @click="commitStaging" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white p-3.5 rounded-2xl font-black text-center shadow-lg transition">
-                        確認無誤，正式匯入系統庫存
+                        確認期初價無誤，正式匯入系統庫存
                     </button>
-                </div>
-            </div>
-
-            <!-- 手動單筆新增/編輯部位 -->
-            <div class="fcn-card">
-                <h2 class="text-xl font-black italic mb-4">{{ editIndex===null ? '➕ 手動單筆新增部位' : '✏️ 編輯部位' }}</h2>
-                <div class="grid grid-cols-2 gap-3 text-sm">
-                    <label class="block font-bold text-gray-500">客戶<input v-model="form.client" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">SN<input v-model="form.sn" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">業務員<input v-model="form.sales" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">幣別<select v-model="form.currency" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"><option>USD</option><option>JPY</option></select></label>
-                    <label class="block font-bold text-gray-500">票息 %<input type="number" step="0.01" v-model.number="form.coupon" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">庫存金額(萬)<input type="number" v-model.number="form.amount" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">KO %<input type="number" step="0.01" v-model.number="form.koP" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">KI %<input type="number" step="0.01" v-model.number="form.kiP" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">PUT/履約 %<input type="number" step="0.01" v-model.number="form.strikeP" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">觀察起日<input type="date" v-model="form.koStart" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">下單日<input type="date" v-model="form.date" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                    <label class="block font-bold text-gray-500">到期日<input type="date" v-model="form.expiry" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
-                </div>
-                
-                <h3 class="font-black mt-5 mb-2 text-gray-500 text-sm">標的（最多 5 檔・日股代號自動轉大寫/補全 .T）</h3>
-                <div class="space-y-2">
-                    <div v-for="(st,idx) in form.stocks" :key="idx" class="flex gap-2 items-center">
-                        <input v-model="st.code" @input="formatStockInput(st)" placeholder="代號" class="flex-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-blue-600 uppercase">
-                        <input type="number" step="0.01" v-model.number="st.init" placeholder="期初價" class="flex-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800">
-                        <button @click="form.stocks.splice(idx,1)" class="text-red-500 font-black px-2">✕</button>
-                    </div>
-                    <button v-if="form.stocks.length<5" @click="form.stocks.push({code:'',init:null})" class="text-blue-600 font-black text-sm">＋ 加一檔標的</button>
-                </div>
-                
-                <div class="flex gap-2 mt-6">
-                    <button @click="submitEntry" class="flex-1 bg-slate-900 text-white p-3.5 rounded-2xl font-black hover:bg-slate-800 transition">{{ editIndex===null ? '新增到列表' : '更新' }}</button>
-                    <button v-if="editIndex!==null" @click="resetForm" class="bg-gray-200 text-gray-600 px-6 rounded-2xl font-black">取消</button>
                 </div>
             </div>
 
@@ -246,15 +153,13 @@
                     <div class="space-y-1">
                         <h3 class="font-black text-slate-800">目前資料（{{ inventory.length }} 筆）<span v-if="dirty" class="text-red-500 text-xs ml-1 align-middle animate-pulse">● 尚未儲存</span></h3>
                         <button v-if="inventory.length > 0" @click="clearAllInventory" class="bg-red-50 text-red-600 hover:bg-red-100 text-xs px-3 py-1.5 rounded-lg font-bold border border-red-200 transition">
-                            <i class="fa-solid fa-trash mr-1"></i> 一鍵清空目前所有 41 筆舊資料
+                            <i class="fa-solid fa-trash mr-1"></i> 一鍵清空目前所有舊資料
                         </button>
                     </div>
                     <div class="flex gap-2 items-center flex-wrap">
                         <button @click="exportExcel" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-black text-sm hover:bg-emerald-700 transition">📊 匯出 Excel</button>
                         <button @click="downloadCSV" class="bg-slate-600 text-white px-4 py-2 rounded-xl font-black text-sm hover:bg-slate-700 transition">⬇️ 下載備份</button>
-                        <div class="relative">
-                            <input v-model="githubToken" type="password" placeholder="GitHub Token" class="text-xs bg-gray-100 p-2 rounded-lg w-36 font-mono outline-none border focus:border-blue-500">
-                        </div>
+                        <input v-model="githubToken" type="password" placeholder="GitHub Token" class="text-xs bg-gray-100 p-2 rounded-lg w-36 font-mono outline-none border focus:border-blue-500">
                         <button @click="saveAllToGithub" :disabled="isUploading" :class="['px-4 py-2 rounded-xl font-black text-sm text-white transition', dirty ? 'bg-blue-600 animate-pulse' : 'bg-blue-600 hover:bg-blue-700']">
                             {{ isUploading ? '儲存中…' : '💾 儲存到 GitHub' }}
                         </button>
@@ -273,32 +178,6 @@
                         </div>
                     </div>
                     <div v-if="inventory.length===0" class="text-center text-gray-300 py-8 font-bold italic text-xs uppercase">No Data（資料庫為空）</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 管理面板安全驗證 -->
-        <div v-if="view === 'admin_login'" class="fade-in max-w-sm mx-auto mt-10 text-center">
-            <div class="fcn-card text-slate-800 text-center">
-                <h3 class="font-black mb-4 text-gray-400 uppercase italic text-xs tracking-widest text-slate-800">Admin Security</h3>
-                <input v-model="adminPassInput" type="password" @keyup.enter="checkAdminPass" class="w-full p-4 rounded-2xl bg-gray-100 mb-4 text-center font-mono outline-none border-2 focus:border-blue-500 text-slate-800 shadow-sm">
-                <button @click="checkAdminPass" class="w-full bg-slate-800 text-white p-4 rounded-2xl font-black shadow-lg hover:bg-slate-700 transition">VERIFY</button>
-            </div>
-        </div>
-
-        <!-- 管理面板 -->
-        <div v-if="view === 'admin_panel'" class="fade-in space-y-4 text-center text-slate-800 max-w-sm mx-auto">
-            <div class="fcn-card text-slate-800 text-left">
-                <h2 class="text-xl font-black italic mb-6 text-center">CSV DATA SYNC</h2>
-                <div class="space-y-6 text-slate-800 font-mono">
-                    <input v-model="githubToken" type="password" placeholder="GitHub Token" class="w-full bg-gray-50 p-3 rounded-xl border-none font-mono text-center text-sm text-slate-800">
-                    <div class="border-4 border-dashed rounded-[2rem] p-10 cursor-pointer hover:bg-gray-50 text-slate-800 text-center relative">
-                        <input type="file" id="csvFile" @change="handleFileUpload" class="hidden text-slate-800">
-                        <label for="csvFile" class="block font-black text-gray-500 cursor-pointer">
-                            {{ fileName ? '📄 ' + fileName : 'Choose data.csv' }}
-                        </label>
-                    </div>
-                    <button @click="uploadToGithub" class="w-full bg-blue-600 text-white p-5 rounded-2xl font-black shadow-xl uppercase hover:bg-blue-700 transition">Sync GitHub</button>
                 </div>
             </div>
         </div>
@@ -477,7 +356,6 @@ createApp({
             inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
             lastUpdated: '',
             
-            // 雙檔整合暫存
             clientFileName: '',
             termsFileName: '',
             rawClients: [], 
@@ -581,8 +459,12 @@ createApp({
         salesFilteredList() { return this.inventory.filter(i => i.sales === this.selectedSales); }
     },
     methods: {
-        formatNum: FcnUtils.formatNum,
-        getStockName(c) { return stockNames[c] || c; },
+        clearAllInventory() {
+            if (confirm('⚠️ 確定要清空目前清單中所有的舊資料嗎？\n此動作在您點選右上方「儲存到 GitHub」後才會正式同步。')) {
+                this.inventory = [];
+                this.dirty = true;
+            }
+        },
         formatStockInput(stock) {
             if (!stock.code) return;
             stock.code = stock.code.toUpperCase().trim();
@@ -591,15 +473,7 @@ createApp({
             }
         },
 
-        // 一鍵快速清空目前的 41 筆舊暫存資料 (免 GitHub 權限直接本地改)
-        clearAllInventory() {
-            if (confirm('⚠️ 警告：確定要清空目前清單中所有的舊資料嗎？\n此動作在您點選右上方「儲存到 GitHub」後才會正式同步。')) {
-                this.inventory = [];
-                this.dirty = true;
-            }
-        },
-
-        // STEP 1: 解析客戶庫存 Excel
+        // STEP 1: 客戶庫存表
         handleClientInventoryUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -610,13 +484,10 @@ createApp({
                 try {
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(sheet);
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
                     
                     const getVal = (row, keys) => {
-                        for (let k of keys) {
-                            if (row[k] !== undefined && row[k] !== null) return row[k];
-                        }
+                        for (let k of keys) if (row[k] !== undefined && row[k] !== null) return row[k];
                         return '';
                     };
                     
@@ -633,7 +504,8 @@ createApp({
 
                     this.rawClients = json.map(row => {
                         const client = String(getVal(row, ['姓名', '客戶', 'client'])).trim();
-                        const sn = String(getVal(row, ['商品編碼', 'ISIN', 'SN', 'sn'])).trim();
+                        // 修正細節：對照時要能相容前後空格
+                        const sn = String(getVal(row, ['商品編碼', 'ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
                         
                         if (!client || client === 'undefined' || !sn || sn === 'undefined') return null;
 
@@ -644,12 +516,6 @@ createApp({
                             if (match) sales = match[0];
                         }
 
-                        const parsePct = (val, def) => {
-                            if (val === undefined || val === null || String(val).toUpperCase() === 'NA') return def;
-                            const num = parseFloat(val);
-                            return isNaN(num) ? def : num;
-                        };
-
                         return {
                             client,
                             sn,
@@ -657,24 +523,21 @@ createApp({
                             currency: String(getVal(row, ['計價幣別', '幣別', 'currency'])).trim().toUpperCase() || 'USD',
                             coupon: parseFloat(getVal(row, ['配息年率(%)', '配息率', 'coupon'])) || null,
                             amount: parseFloat(getVal(row, ['庫存金額', '金額', 'amount'])) || null,
-                            koP: parsePct(getVal(row, ['KO價(%)', 'KO(%)']), 105),
-                            kiP: parsePct(getVal(row, ['KI價(%)', 'KI(%)']), 60),
-                            strikeP: parsePct(getVal(row, ['履約價(%)', 'PUT(%)']), 100),
                             koStart: formatExcelDate(getVal(row, ['下單日', '觀察日'])),
                             date: formatExcelDate(getVal(row, ['下單日', '下單日期'])),
                             expiry: formatExcelDate(getVal(row, ['到期日', '到期日期'])),
                         };
                     }).filter(item => item !== null);
 
-                    alert(`[第一步成功] 成功導入 ${this.rawClients.length} 筆客戶基本資料！請繼續上傳第二步「交易條件對照表」。`);
+                    alert(`[第一步] 成功載入 ${this.rawClients.length} 筆客戶。請繼續上傳第二步交易條件表。`);
                 } catch (err) {
-                    alert('客戶庫存檔解析出錯：' + err.message);
+                    alert('庫存檔解析錯：' + err.message);
                 }
             };
             reader.readAsBinaryString(file);
         },
 
-        // STEP 2: 解析對照表 (連結標的與觸價成交價)
+        // STEP 2: 交易條件表 (解析 ISIN, 標的名, KO%, Strike%, KI%)
         handleTermsMatchUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -685,76 +548,76 @@ createApp({
                 try {
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const json = XLSX.utils.sheet_to_json(sheet);
+                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
 
                     const getVal = (row, keys) => {
-                        for (let k of keys) {
-                            if (row[k] !== undefined && row[k] !== null) return row[k];
-                        }
+                        for (let k of keys) if (row[k] !== undefined && row[k] !== null) return row[k];
                         return '';
                     };
 
                     this.rawTerms = json.map(row => {
-                        const isin = String(getVal(row, ['ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
+                        // 修正：確實將商品代碼或第一欄當作 ISIN 比對主鍵
+                        const isin = String(getVal(row, ['商品代碼', 'ISIN Code', 'ISIN', 'sn'])).trim().toUpperCase();
                         if (!isin || isin === 'UNDEFINED') return null;
 
-                        const stocks = [];
-                        for (let i = 1; i <= 5; i++) {
-                            let stockCode = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`, `s${i}_code`])).trim();
-                            let priceRaw = getVal(row, [`觸價價格${i}`, `觸發價格${i}`, `履約價格${i}`, `期初價格${i}`, `s${i}_init`]);
-                            
-                            if (!priceRaw && i === 1) priceRaw = getVal(row, ['觸價價格', '履約價格', '觸發價格']);
+                        // 抓取條件比率
+                        const koP = parseFloat(getVal(row, ['KO(%)', 'KO價(%)', 'KO'])) || 105;
+                        const strikeP = parseFloat(getVal(row, ['Strike(%)', '履約價(%)', 'PUT(%)', 'PUT'])) || 100;
+                        const kiP = parseFloat(getVal(row, ['KI(%)', 'KI價(%)', 'KI'])) || 60;
 
-                            if (stockCode && stockCode !== 'undefined' && stockCode !== '') {
-                                stockCode = stockCode.toUpperCase();
-                                if (/^\d{4}$/.test(stockCode)) stockCode += '.T';
-                                
-                                stocks.push({
-                                    code: stockCode,
-                                    init: parseFloat(priceRaw) || null,
-                                    current: null,
-                                    history: null
-                                });
+                        // 提取 1 至 5 檔連結標的個股名稱
+                        const stockCodes = [];
+                        for (let i = 1; i <= 5; i++) {
+                            let code = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`])).trim();
+                            if (code && code !== 'undefined' && code !== '') {
+                                code = code.toUpperCase();
+                                if (/^\d{4}$/.test(code)) code += '.T';
+                                stockCodes.push(code);
                             }
                         }
 
-                        return { isin, stocks };
+                        return { isin, koP, strikeP, kiP, stockCodes };
                     }).filter(item => item !== null);
 
-                    alert(`[第二步成功] 成功讀取 ${this.rawTerms.length} 筆商品掛鉤條件對照！請點擊「開始進行智能比對」。`);
+                    alert(`[第二步] 成功讀取 ${this.rawTerms.length} 筆規格對照！可執行智能條件比對。`);
                 } catch (err) {
-                    alert('交易條件檔解析出錯：' + err.message);
+                    alert('條件表解析錯：' + err.message);
                 }
             };
             reader.readAsBinaryString(file);
         },
 
-        // 執行交叉智能合併比對 (已修復！徹底將資料填充進 v-model 輸入框)
+        // 核心修正：智能比對標的與條件，期初價留空讓你Key！
         runAutoMatch() {
             if (!this.rawClients.length || !this.rawTerms.length) {
-                alert('請確認兩個 Excel 檔案都已成功載入！');
+                alert('請先上傳兩個 Excel 檔案。');
                 return;
             }
 
             let matchedCount = 0;
             const mergedList = this.rawClients.map(clientRow => {
-                const termMatch = this.rawTerms.find(termRow => termRow.isin === clientRow.sn);
+                // 用客戶表的 SN 匹配 條件表的商品代碼 (isin)
+                const termMatch = this.rawTerms.find(t => t.isin === clientRow.sn);
                 
-                let matchedStocks = [];
-                if (termMatch && termMatch.stocks.length > 0) {
-                    // 關鍵修正：將對照表找到的標的代碼與數值，直接複製進 stocks 陣列
-                    matchedStocks = termMatch.stocks.map(st => ({
-                        code: st.code,
-                        init: st.init,
+                let finalizedStocks = [];
+                let koP = 105, strikeP = 100, kiP = 60; // 預設安全值
+
+                if (termMatch) {
+                    koP = termMatch.koP;
+                    strikeP = termMatch.strikeP;
+                    kiP = termMatch.kiP;
+                    
+                    // 將對齊到的標的轉化為空 init 物件，留空給你填價格
+                    finalizedStocks = termMatch.stockCodes.map(code => ({
+                        code: code,
+                        init: null, // 保持空白，等你手動 key！
                         current: null,
                         history: null
                     }));
                     matchedCount++;
                 } else {
-                    // 沒對齊到時的預設留白
-                    matchedStocks = [
-                        { code: '', init: null, current: null, history: null },
+                    // 沒匹配到的合約預設給三個空白格
+                    finalizedStocks = [
                         { code: '', init: null, current: null, history: null },
                         { code: '', init: null, current: null, history: null }
                     ];
@@ -762,21 +625,25 @@ createApp({
 
                 return {
                     ...clientRow,
-                    stocks: matchedStocks
+                    koP,
+                    strikeP,
+                    kiP,
+                    stocks: finalizedStocks
                 };
             });
 
             this.stagingList = mergedList;
-            alert(`🎉 智能比對完成！\n成功將 ${matchedCount} 筆合約的 FCN 連結標的與期初價格直接帶入輸入框！請在下方進行確認與補件。`);
+            alert(`🎉 智能比對完成！\n共成功對接 ${matchedCount} 筆合約的「連結標的物」及「KO/Strike/KI條件」！\n請在下方直接手動 Key 入對應的期初價格。`);
         },
 
-        // 確認匯入正式庫存
+        // 正式提交暫存區寫入系統庫存
         commitStaging() {
             if (this.stagingList.length === 0) return;
             
+            // 檢查：你手動 key 的期初價有沒有漏填
             const unFilled = this.stagingList.filter(item => item.stocks.length === 0 || item.stocks.some(st => !st.code || st.init === null || st.init === undefined || st.init <= 0));
             if (unFilled.length > 0) {
-                if (!confirm(`警告：尚有 ${unFilled.length} 筆合約包含空白標的或期初價格未填。匯入後可能無法正常更新報價。確定要匯入嗎？`)) {
+                if (!confirm(`提示：尚有 ${unFilled.length} 筆部位的期初成交價還沒有完全填寫（若強行匯入，未填寫價格者將預設為 0）。確定要直接完成匯入嗎？`)) {
                     return;
                 }
             }
@@ -785,7 +652,7 @@ createApp({
                 const validStocks = item.stocks.filter(st => st.code && st.code.trim() !== '');
                 validStocks.forEach(st => {
                     st.code = st.code.toUpperCase().trim();
-                    st.current = st.init; 
+                    st.current = st.init; // 現價起點同步手填期初
                 });
                 item.stocks = validStocks;
                 this.inventory.push(item);
@@ -798,87 +665,36 @@ createApp({
             this.termsFileName = '';
             this.dirty = true;
 
-            alert('✅ 雙檔整合部位已順利寫入系統！正自動同步最新現價與歷史數據...');
+            alert('✅ 客戶部位條件與手填期初價已正式整合匯入！現正更新最新行情與歷史高低點...');
             this.fetchRealPrices(); 
         },
 
-        login() { 
-            if (this.inputPass === this.password) { 
-                this.isLoggedIn = true; 
-                sessionStorage.setItem('fcn_auth', 'true'); 
-            } else {
-                alert('密碼錯誤');
-            }
-        },
-        checkAdminPass() { 
-            if (this.adminPassInput === this.adminPass) { 
-                this.view = 'admin_panel'; 
-            } else { 
-                alert('管理驗證錯誤'); 
-            } 
-        },
-        handleFileUpload(e) { 
-            const f = e.target.files[0]; 
-            if (f) { this.selectedFile=f; this.fileName=f.name; } 
-        },
+        login() { if (this.inputPass === this.password) { this.isLoggedIn = true; sessionStorage.setItem('fcn_auth', 'true'); } },
+        checkAdminPass() { if (this.adminPassInput === this.adminPass) this.view = 'admin_panel'; else alert('ERR'); },
+        handleFileUpload(e) { const f = e.target.files[0]; if(f){ this.selectedFile=f; this.fileName=f.name; } },
         resetForm() {
             this.form = { client:'', sn:'', sales:'', currency:'USD', coupon:null, koP:105, kiP:60, strikeP:100, koStart:'', date:'', expiry:'', amount:null, stocks:[{code:'',init:null}] };
             this.editIndex = null;
         },
         submitEntry() {
             const f = this.form;
-            if (!f.client) { alert('請輸入客戶'); return; }
-            if (!f.sn) { alert('請輸入SN'); return; }
-            
-            const stocks = (f.stocks || []).filter(s => s.code).map(s => ({ 
-                code: String(s.code).trim().toUpperCase(), 
-                init: s.init, 
-                current: s.init, 
-                history: null 
-            }));
-            
-            const item = { 
-                client: f.client.trim(), sn: f.sn.trim(), sales: f.sales.trim(), 
-                currency: f.currency, coupon: f.coupon, koP: f.koP, kiP: f.kiP, 
-                strikeP: f.strikeP, koStart: f.koStart, date: f.date, expiry: f.expiry, 
-                amount: f.amount, stocks 
-            };
-            
-            if (this.editIndex === null) this.inventory.push(item);
-            else this.inventory.splice(this.editIndex, 1, item);
-            
-            this.dirty = true;
-            this.resetForm();
-            this.fetchRealPrices(); 
+            const stocks = (f.stocks || []).filter(s => s.code).map(s => ({ code: String(s.code).trim().toUpperCase(), init: s.init, current: s.init, history: null }));
+            const item = { client:f.client.trim(), sn:f.sn.trim(), sales:f.sales.trim(), currency:f.currency, coupon:f.coupon, koP:f.koP, kiP:f.kiP, strikeP:f.strikeP, koStart:f.koStart, date:f.date, expiry:f.expiry, amount:f.amount, stocks };
+            if (this.editIndex === null) this.inventory.push(item); else this.inventory.splice(this.editIndex, 1, item);
+            this.dirty = true; this.resetForm(); this.fetchRealPrices();
         },
         editEntry(idx) {
             const it = this.inventory[idx];
-            this.form = { 
-                client: it.client, sn: it.sn, sales: it.sales, currency: it.currency, 
-                coupon: it.coupon, koP: it.koP, kiP: it.kiP, strikeP: it.strikeP, 
-                koStart: it.koStart, date: it.date, expiry: it.expiry, amount: it.amount, 
-                stocks: (it.stocks||[]).map(s => ({ code: s.code, init: s.init })) 
-            };
-            if (!this.form.stocks.length) this.form.stocks = [{code:'',init:null}];
-            this.editIndex = idx;
-            window.scrollTo({ top:0, behavior:'smooth' });
+            this.form = { client:it.client, sn:it.sn, sales:it.sales, currency:it.currency, coupon:it.coupon, koP:it.koP, kiP:it.kiP, strikeP:it.strikeP, koStart:it.koStart, date:it.date, expiry:it.expiry, amount:it.amount, stocks:(it.stocks||[]).map(s => ({ code:s.code, init:s.init })) };
+            this.editIndex = idx; window.scrollTo({ top:0, behavior:'smooth' });
         },
-        deleteEntry(idx) { 
-            if (confirm('確定刪除這筆？此動作將會在您儲存後永久生效。')) { 
-                this.inventory.splice(idx, 1); 
-                this.dirty = true; 
-            } 
-        },
+        deleteEntry(idx) { if (confirm('確定刪除？')) { this.inventory.splice(idx, 1); this.dirty = true; } },
         downloadCSV() {
-            if (!this.inventory.length) { alert('目前沒有資料'); return; }
-            const csv = '\uFEFF' + this.inventoryToCSV(); 
+            const csv = '\uFEFF' + this.inventoryToCSV();
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            const d = new Date();
-            a.download = `data_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.csv`;
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+            const d = new Date(); a.download = `data_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.csv`;
             document.body.appendChild(a); a.click(); a.remove();
-            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         },
         inventoryToCSV() {
             const cols = ['client','sn','sales','currency','coupon','koP','kiP','strikeP','koStart','date','expiry','amount','s1_code','s1_init','s2_code','s2_init','s3_code','s3_init','s4_code','s4_init','s5_code','s5_init'];
@@ -892,116 +708,56 @@ createApp({
             });
             return lines.join('\n');
         },
-        riskStatus(i) {
-            const parts = [];
-            try {
-                if (i.kiP > 0) {
-                    const dl = FcnUtils.parseDate(i.date);
-                    if ((i.stocks || []).some(s => { const lo = FcnUtils.getLowestSince(s, dl); return lo > 0 && lo <= (s.init * i.kiP / 100); })) parts.push('觸及KI');
-                }
-                if (!FcnUtils.isLocked(i)) {
-                    const st = FcnUtils.parseDate(i.koStart);
-                    if ((i.stocks || []).some(s => { const hi = FcnUtils.getHighestSince(s, st); return hi >= (s.init * i.koP / 100); })) parts.push('曾達KO');
-                }
-            } catch (e) {}
-            return parts.length ? parts.join('、') : '正常';
-        },
         exportExcel() {
-            if (typeof XLSX === 'undefined') { alert('Excel 元件尚未載入完成，請稍候再試一次'); return; }
-            if (!this.inventory.length) { alert('目前沒有資料可匯出'); return; }
             const perf = s => (s.init && s.current) ? Math.round((s.current / s.init) * 10000) / 100 : '';
             const rows = this.inventory.map(it => {
                 const st = it.stocks || [];
-                const row = {
-                    '客戶': it.client, 'SN': it.sn, '業務員': it.sales, '幣別': it.currency,
-                    '票息(%)': it.coupon, '庫存金額(萬)': it.amount,
-                    '月利率(%)': (it.coupon != null) ? Math.round((it.coupon / 12) * 10000) / 10000 : '',
-                    '下單日': it.date, '觀察起日': it.koStart, '到期日': it.expiry,
-                    'KO(%)': it.koP, 'KI(%)': it.kiP, 'PUT(%)': it.strikeP,
-                };
-                for (let i = 0; i < 5; i++) {
-                    const s = st[i];
-                    row['標的' + (i+1)] = s ? s.code : '';
-                    row['期初' + (i+1)] = s ? s.init : '';
-                    row['現價' + (i+1)] = s ? s.current : '';
-                    row['表現' + (i+1) + '(%)'] = s ? perf(s) : '';
-                }
-                row['風險狀態'] = this.riskStatus(it);
+                const row = { '客戶': it.client, 'SN': it.sn, '業務員': it.sales, '幣別': it.currency, '票息(%)': it.coupon, '庫存金額(萬)': it.amount, '下單日': it.date, '觀察起日': it.koStart, '到期日': it.expiry, 'KO(%)': it.koP, 'KI(%)': it.kiP, 'PUT(%)': it.strikeP };
+                for (let i = 0; i < 5; i++) { const s = st[i]; row['標的' + (i+1)] = s ? s.code : ''; row['期初' + (i+1)] = s ? s.init : ''; row['現價' + (i+1)] = s ? s.current : ''; row['表現' + (i+1) + '(%)'] = s ? perf(s) : ''; }
                 return row;
             });
-            const ws = XLSX.utils.json_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'FCN部位');
-            const d = new Date();
-            const ymd = `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-            XLSX.writeFile(wb, `FCN部位_${ymd}.xlsx`);
+            const ws = XLSX.utils.json_to_sheet(rows); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'FCN部位');
+            XLSX.writeFile(wb, `FCN部位_${new Date().toISOString().split('T')[0]}.xlsx`);
         },
         async saveAllToGithub() {
-            if (!this.githubToken) { alert('請先貼上 GitHub Token'); return; }
+            if (!this.githubToken) { alert('請貼上 GitHub Token'); return; }
             this.isUploading = true;
             try {
                 const owner = 'hpisokplay', repo = 'fcn-dashboard', path = 'data.csv';
                 localStorage.setItem('fcn_token', this.githubToken);
-                const csv = this.inventoryToCSV();
-                const content = btoa(unescape(encodeURIComponent(csv)));
-                let sha;
+                const csv = this.inventoryToCSV(); const content = btoa(unescape(encodeURIComponent(csv))); let sha;
                 const g = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { headers: { 'Authorization': `token ${this.githubToken}` } });
                 if (g.ok) { const gd = await g.json(); sha = gd.sha; }
-                const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-                    method: 'PUT', headers: { 'Authorization': `token ${this.githubToken}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: 'Update data.csv (web entry)', content, sha })
-                });
-                if (pr.ok) { this.dirty = false; alert('已儲存到 GitHub！約 1 分鐘後生效。'); }
-                else { const e = await pr.json().catch(() => ({})); alert('儲存失敗：' + (e.message || pr.status)); }
+                const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { method: 'PUT', headers: { 'Authorization': `token ${this.githubToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ message: 'Update data.csv', content, sha }) });
+                if (pr.ok) { this.dirty = false; alert('儲存到 GitHub 成功！約 1 分鐘後生效。'); } else alert('儲存失敗');
             } catch (e) { alert('錯誤：' + e.message); } finally { this.isUploading = false; }
         },
         async uploadToGithub() {
-            if (!this.githubToken) { alert('請先貼上 GitHub Token'); return; }
             this.isUploading = true;
             try {
                 const owner='hpisokplay', repo='fcn-dashboard', path='data.csv';
                 const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {headers:{'Authorization':`token ${this.githubToken}`}});
-                const fd = await res.json();
-                const r = new FileReader();
+                const fd = await res.json(); const r = new FileReader();
                 r.onload = async (e) => {
                     const c = e.target.result.split(',')[1];
-                    const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-                        method:'PUT', headers:{'Authorization':`token ${this.githubToken}`,'Content-Type':'application/json'},
-                        body: JSON.stringify({message:'Web Update', content:c, sha:fd.sha})
-                    });
-                    if (pr.ok) { alert('同步成功'); location.reload(); }
-                };
-                r.readAsDataURL(this.selectedFile);
-            } catch(e) { alert('同步失敗，請檢查 Token 與專案權限'); } finally { this.isUploading=false; }
+                    const pr = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, { method:'PUT', headers:{'Authorization':`token ${this.githubToken}`,'Content-Type':'application/json'}, body: JSON.stringify({message:'Web Update', content:c, sha:fd.sha}) });
+                    if(pr.ok) { alert('SUCCESS'); location.reload(); }
+                }; r.readAsDataURL(this.selectedFile);
+            } catch(e){ alert('Error'); } finally { this.isUploading=false; }
         },
         async loadCSVData() {
             this.isSyncing = true;
             try {
-                const response = await fetch('data.csv?v=' + Date.now());
-                const csvText = await response.text();
+                const response = await fetch('data.csv?v=' + Date.now()); const csvText = await response.text();
                 Papa.parse(csvText, {
-                    header: true, dynamicTyping: true, skipEmptyLines: true,
-                    transformHeader: h => h.trim().replace(/^﻿/, ""),
+                    header: true, dynamicTyping: true, skipEmptyLines: true, transformHeader: h => h.trim().replace(/^﻿/, ""),
                     complete: (results) => {
                         this.inventory = results.data.map(row => {
                             const stocks = [];
-                            for (let i=1; i<=5; i++) {
-                                if (row[`s${i}_code`]) stocks.push({
-                                    code: String(row[`s${i}_code`]).trim().toUpperCase(),
-                                    init: row[`s${i}_init`],
-                                    current: row[`s${i}_init`],
-                                    history: null
-                                });
-                            }
-                            return {
-                                ...row,
-                                client: row.client ? String(row.client).trim() : '',
-                                sn: row.sn ? String(row.sn).trim() : '',
-                                stocks: stocks
-                            };
+                            for(let i=1; i<=5; i++) if(row[`s${i}_code`]) stocks.push({ code: String(row[`s${i}_code`]).trim().toUpperCase(), init: row[`s${i}_init`], current: row[`s${i}_init`], history: null });
+                            return { ...row, client: row.client ? String(row.client).trim() : '', sn: row.sn ? String(row.sn).trim() : '', stocks };
                         });
-                        this.dirty = false;
-                        this.fetchRealPrices();
+                        this.dirty = false; this.fetchRealPrices();
                     }
                 });
             } catch (e) { console.error("CSV ERR"); } finally { this.isSyncing = false; }
@@ -1010,54 +766,30 @@ createApp({
             if (this.inventory.length === 0) return;
             this.isSyncing = true;
             try {
-                const resp = await fetch('prices.json?v=' + Date.now());
-                if (!resp.ok) throw new Error('no prices.json');
-                const payload = await resp.json();
-                const prices = payload.prices || {};
-                if (!Object.keys(prices).length) throw new Error('empty prices.json');
-                this.inventory.forEach(item => {
-                    (item.stocks || []).forEach(stock => {
-                        const p = prices[stock.code];
-                        if (p && p.current != null) {
-                            stock.current = p.current;
-                            stock.history = { timestamp: p.timestamp, high: p.high, low: p.low };
-                        }
-                    });
-                });
+                const resp = await fetch('prices.json?v=' + Date.now()); if (!resp.ok) throw new Error();
+                const payload = await resp.json(); const prices = payload.prices || {};
+                this.inventory.forEach(item => { (item.stocks || []).forEach(stock => { const p = prices[stock.code]; if (p && p.current != null) { stock.current = p.current; stock.history = { timestamp: p.timestamp, high: p.high, low: p.low }; } }); });
                 this.lastUpdated = new Date().toLocaleTimeString() + '（每日自動）';
             } catch (e) {
-                console.warn('prices.json 讀取失敗，改用即時抓取', e);
                 const symbols = [...new Set(this.inventory.flatMap(i => (i.stocks || []).map(s => s.code)))];
                 try {
                     await Promise.all(symbols.map(async (symbol) => {
                         try {
                             const ysym = symbol.endsWith('.T') ? symbol : symbol.replace('.', '-');
-                            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${ysym}?interval=1d&range=2y`;
-                            const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                            const d = await r.json();
-                            const j = JSON.parse(d.contents);
-                            const res = j.chart.result[0];
-                            const cur = res.meta.regularMarketPrice;
-                            const hist = { timestamp: res.timestamp, high: res.indicators.quote[0].high, low: res.indicators.quote[0].low };
-                            if (cur) this.inventory.forEach(item => (item.stocks || []).forEach(stock => {
-                                if (stock.code === symbol) { stock.current = cur; stock.history = hist; }
-                            }));
-                        } catch (err) { console.warn("Fail: " + symbol); }
+                            const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(`https://query1.finance.yahoo.com/v8/finance/chart/${ysym}?interval=1d&range=2y`)}`);
+                            const d = await r.json(); const j = JSON.parse(d.contents); const res = j.chart.result[0];
+                            if (res.meta.regularMarketPrice) this.inventory.forEach(item => (item.stocks || []).forEach(stock => { if (stock.code === symbol) { stock.current = res.meta.regularMarketPrice; stock.history = { timestamp: res.timestamp, high: res.indicators.quote[0].high, low: res.indicators.quote[0].low }; } }));
+                        } catch (err) {}
                     }));
                     this.lastUpdated = new Date().toLocaleTimeString() + '（即時）';
-                } catch (e2) { console.error("ERR", e2); }
-            } finally {
-                this.isSyncing = false;
-            }
+                } catch (e2) {}
+            } finally { this.isSyncing = false; }
         }
     },
     mounted() {
-        if (sessionStorage.getItem('fcn_auth') === 'true') this.isLoggedIn = true;
-        this.loadCSVData();
+        if (sessionStorage.getItem('fcn_auth') === 'true') this.isLoggedIn = true; this.loadCSVData();
         setInterval(() => this.fetchRealPrices(), 60000);
-        window.addEventListener('beforeunload', (e) => {
-            if (this.dirty) { e.preventDefault(); e.returnValue = '你有尚未儲存的資料，確定要離開或重新整理嗎？'; }
-        });
+        window.addEventListener('beforeunload', (e) => { if (this.dirty) { e.preventDefault(); e.returnValue = '尚未儲存'; } });
     }
 }).mount('#app');
 </script>
