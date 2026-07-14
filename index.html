@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.Optimized</title>
+    <title>上新莊分行 - FCN 管理系統 v58.AutoMerge</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -111,27 +111,55 @@
         <!-- 資料輸入/編輯 -->
         <div v-if="view === 'entry'" class="space-y-4 fade-in text-slate-800 text-left">
             
-            <!-- Excel 批次導入控制區 -->
-            <div class="fcn-card border-2 border-dashed border-blue-200 bg-blue-50/30">
+            <!-- 雙檔智能比對與自動整合導入面板 -->
+            <div class="fcn-card border-4 border-dashed border-indigo-200 bg-indigo-50/20">
                 <div class="flex justify-between items-center mb-3">
-                    <h2 class="text-lg font-black text-slate-800 italic">📊 快速導入：上傳客戶庫存 Excel</h2>
-                    <span class="text-xs text-blue-600 bg-blue-100 px-3 py-1 rounded-full font-bold">已對接「姓名、商品編碼」格式</span>
+                    <h2 class="text-lg font-black text-indigo-900 italic">⚡️ 雙檔智慧比對整合器 (自動帶入標的與期初價)</h2>
+                    <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">零人工填寫</span>
                 </div>
-                <p class="text-xs text-gray-400 mb-4">系統已針對您的分行庫存表進行欄位對接。上傳後，請在下方區塊<b>手動補上掛鉤的個股代號（1-4 檔）與對應的期初價格</b>。</p>
-                <div class="relative border border-slate-200 rounded-2xl p-6 bg-white text-center cursor-pointer hover:bg-slate-50 transition">
-                    <input type="file" id="excelImportFile" @change="handleExcelImport" accept=".xlsx, .xls" class="hidden">
-                    <label for="excelImportFile" class="cursor-pointer block font-bold text-slate-600">
-                        <i class="fa-solid fa-file-excel text-emerald-600 text-2xl mb-2 block"></i>
-                        選擇或拖曳客戶庫存 Excel 檔案
-                    </label>
+                <p class="text-xs text-slate-500 mb-4">請依序上傳兩個檔案，系統將透過「商品編碼」進行高速自動比對，並為每一筆合約完美帶入最多 5 個標的名稱及期初成交價格。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- 第一步：上傳客戶庫存 -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center relative">
+                        <span class="absolute top-2 left-2 text-[10px] bg-slate-200 px-2 py-0.5 rounded font-black text-slate-600">STEP 1</span>
+                        <input type="file" id="clientInventoryFile" @change="handleClientInventoryUpload" accept=".xlsx, .xls" class="hidden">
+                        <label for="clientInventoryFile" class="cursor-pointer block pt-2">
+                            <i class="fa-solid fa-users text-blue-600 text-2xl mb-1 block"></i>
+                            <span class="font-black text-sm block text-slate-700">上傳「客戶庫存表」</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、SN等基本資料）' }}</span>
+                        </label>
+                    </div>
+
+                    <!-- 第二步：上傳交易條件對照表 -->
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 text-center relative">
+                        <span class="absolute top-2 left-2 text-[10px] bg-indigo-200 px-2 py-0.5 rounded font-black text-indigo-700">STEP 2</span>
+                        <input type="file" id="termsMatchFile" @change="handleTermsMatchUpload" accept=".xlsx, .xls" class="hidden" :disabled="!rawClients.length">
+                        <label for="termsMatchFile" :class="['cursor-pointer block pt-2', !rawClients.length ? 'opacity-40 cursor-not-allowed' : '']">
+                            <i class="fa-solid fa-chart-line text-indigo-600 text-2xl mb-1 block"></i>
+                            <span class="font-black text-sm block text-slate-700">上傳「交易條件對照表」</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ termsFileName || '（含ISIN、連結標的與期初價）' }}</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- 比對狀態與結果預覽提示 -->
+                <div v-if="rawClients.length > 0 || rawTerms.length > 0" class="mt-4 bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                    <div class="space-y-1 font-bold text-slate-600">
+                        <p>🔹 客戶庫存暫存數：<span class="text-blue-600">{{ rawClients.length }} 筆</span></p>
+                        <p>🔹 標的條件暫存數：<span class="text-indigo-600">{{ rawTerms.length }} 筆</span></p>
+                    </div>
+                    <button v-if="rawClients.length > 0 && rawTerms.length > 0" @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-2.5 rounded-xl shadow-md transition">
+                        🚀 開始進行智能比對
+                    </button>
                 </div>
             </div>
 
-            <!-- 待補登期初價表格 (100% 解決一對多個股代號與期初價輸入問題) -->
+            <!-- 待確認與微調期初價表格 (自動對比成功後，會先呈現在這，供理專做最後確認) -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-black text-amber-800">✍️ 待補登標的與期初成交價（共 {{ stagingList.length }} 筆）</h3>
-                    <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">清空暫存</button>
+                    <h3 class="text-lg font-black text-amber-800">✅ 智能比對結果預覽（已完美整合共 {{ stagingList.length }} 筆，最多5個標的）</h3>
+                    <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">取消本次導入</button>
                 </div>
                 
                 <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2 scrollbar-thin">
@@ -146,25 +174,25 @@
                             <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }} · 金額: {{ formatNum(item.amount) }}萬</span>
                         </div>
                         
-                        <!-- 掛鉤標的多欄位設定 (可自由新增、修改 1-4 檔股票) -->
+                        <!-- 掛鉤標的多欄位設定 (自動填入後，可手動增刪修改) -->
                         <div class="space-y-2">
-                            <span class="text-xs font-black text-gray-400 uppercase tracking-widest">掛鉤標的個股明細 (最多4檔)</span>
+                            <span class="text-xs font-black text-gray-400 uppercase tracking-widest">已自動帶入的連結標的與期初價明細 (最多5檔)</span>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
                                     <div class="flex-1">
-                                        <label class="block text-[10px] text-gray-400 font-bold">標的代號 (例: 7974 或 NVDA)</label>
+                                        <label class="block text-[10px] text-gray-400 font-bold">標的代號 (自動帶入)</label>
                                         <input v-model="st.code" @input="formatStockInput(st)" placeholder="標的代號" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-black text-blue-600 uppercase text-xs outline-none focus:border-blue-500">
                                     </div>
                                     <div class="flex-1">
-                                        <label class="block text-[10px] text-gray-400 font-bold">期初成交價</label>
+                                        <label class="block text-[10px] text-gray-400 font-bold">期初成交價 (自動帶入)</label>
                                         <input type="number" step="0.01" v-model.number="st.init" placeholder="期初價" class="w-full bg-white p-1.5 rounded-lg border border-gray-200 font-bold text-slate-800 text-xs outline-none focus:border-blue-500">
                                     </div>
                                     <button @click="item.stocks.splice(stIdx, 1)" class="text-red-500 font-bold text-xs hover:text-red-700 pt-4 px-1">✕</button>
                                 </div>
                             </div>
                             <div class="pt-2">
-                                <button v-if="item.stocks.length < 4" @click="item.stocks.push({code:'',init:null})" class="text-blue-600 hover:text-blue-800 font-black text-xs">
-                                    <i class="fa-solid fa-plus mr-1"></i> 新增掛鉤標的
+                                <button v-if="item.stocks.length < 5" @click="item.stocks.push({code:'',init:null})" class="text-blue-600 hover:text-blue-800 font-black text-xs">
+                                    <i class="fa-solid fa-plus mr-1"></i> 手動增加額外標的
                                 </button>
                             </div>
                         </div>
@@ -172,15 +200,15 @@
                 </div>
 
                 <div class="mt-5 flex gap-3">
-                    <button @click="commitStaging" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white p-3.5 rounded-2xl font-black text-center shadow-lg transition">
-                        確認並匯入系統部位
+                    <button @click="commitStaging" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white p-3.5 rounded-2xl font-black text-center shadow-lg transition">
+                        確認無誤，正式匯入系統庫存
                     </button>
                 </div>
             </div>
 
             <!-- 手動單筆新增/編輯部位 -->
             <div class="fcn-card">
-                <h2 class="text-xl font-black italic mb-4">{{ editIndex===null ? '➕ 手動新增部位' : '✏️ 編輯部位' }}</h2>
+                <h2 class="text-xl font-black italic mb-4">{{ editIndex===null ? '➕ 手動單筆新增部位' : '✏️ 編輯部位' }}</h2>
                 <div class="grid grid-cols-2 gap-3 text-sm">
                     <label class="block font-bold text-gray-500">客戶<input v-model="form.client" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
                     <label class="block font-bold text-gray-500">SN<input v-model="form.sn" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
@@ -196,14 +224,14 @@
                     <label class="block font-bold text-gray-500">到期日<input type="date" v-model="form.expiry" class="w-full mt-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800"></label>
                 </div>
                 
-                <h3 class="font-black mt-5 mb-2 text-gray-500 text-sm">標的（最多 4 檔・日股代號自動轉大寫/補全 .T）</h3>
+                <h3 class="font-black mt-5 mb-2 text-gray-500 text-sm">標的（最多 5 檔・日股代號自動轉大寫/補全 .T）</h3>
                 <div class="space-y-2">
                     <div v-for="(st,idx) in form.stocks" :key="idx" class="flex gap-2 items-center">
-                        <input v-model="st.code" @input="formatStockInput(st)" placeholder="代號 (例: 7974 或 NVDA)" class="flex-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-blue-600 uppercase">
+                        <input v-model="st.code" @input="formatStockInput(st)" placeholder="代號" class="flex-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-blue-600 uppercase">
                         <input type="number" step="0.01" v-model.number="st.init" placeholder="期初價" class="flex-1 bg-gray-100 p-2.5 rounded-xl outline-none font-black text-slate-800">
                         <button @click="form.stocks.splice(idx,1)" class="text-red-500 font-black px-2">✕</button>
                     </div>
-                    <button v-if="form.stocks.length<4" @click="form.stocks.push({code:'',init:null})" class="text-blue-600 font-black text-sm">＋ 加一檔標的</button>
+                    <button v-if="form.stocks.length<5" @click="form.stocks.push({code:'',init:null})" class="text-blue-600 font-black text-sm">＋ 加一檔標的</button>
                 </div>
                 
                 <div class="flex gap-2 mt-6">
@@ -241,7 +269,6 @@
                     </div>
                     <div v-if="inventory.length===0" class="text-center text-gray-300 py-8 font-bold italic text-xs uppercase">No Data</div>
                 </div>
-                <p class="text-[11px] text-gray-400 mt-4 leading-relaxed">＊ 新增/編輯/刪除後，要按上面「儲存到 GitHub」才會永久保存。第一次使用請貼上 GitHub Token（會儲存在此瀏覽器本地）。</p>
             </div>
         </div>
 
@@ -353,13 +380,13 @@ const ClientCard = {
                 <div class="text-[9px] text-gray-400 font-bold mt-1 uppercase text-right tracking-tighter">業務: {{ item.sales }}</div>
             </div>
         </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6 text-slate-800">
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 text-slate-800">
             <div v-for="s in (item.stocks || [])" :key="s.code" class="stock-tag" :class="getStockClass(item, s)">
-                <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ 觸及KI</div>
-                <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ 曾達KO</div>
+                <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ KI</div>
+                <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ KO</div>
                 <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
                 <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
-                <p class="text-xl font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
+                <p class="text-lg font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                 <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
                     <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
                     <p>KI: <span class="text-slate-800 font-black">{{ item.kiP > 0 ? formatPrice(s.init * (item.kiP/100)) : 'None' }}</span></p>
@@ -444,7 +471,13 @@ createApp({
             selectedFile: null, fileName: '', isUploading: false,
             inventory: [], isSyncing: false, search: '', alertTab: 'ki', selectedSales: '吳坤達',
             lastUpdated: '',
-            stagingList: [] 
+            
+            // 雙檔整合暫存區
+            clientFileName: '',
+            termsFileName: '',
+            rawClients: [], // 暫存第一個檔解析後的客戶資訊
+            rawTerms: [],   // 暫存第二個檔解析後的交易條件對照
+            stagingList: [] // 比對合併完成，待確認導入的清單
         }
     },
     computed: {
@@ -552,24 +585,20 @@ createApp({
                 stock.code += '.T';
             }
         },
-        // Excel 欄位解析器：這次預設提供一個空的標的欄位，讓使用者可以自由在網頁介面上點擊「新增掛鉤標的」
-        handleExcelImport(e) {
+
+        // STEP 1: 解析第一張「客戶庫存 Excel」
+        handleClientInventoryUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
+            this.clientFileName = file.name;
             
             const reader = new FileReader();
             reader.onload = (evt) => {
                 try {
                     const data = evt.target.result;
                     const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-                    const firstSheetName = workbook.SheetNames[0];
-                    const worksheet = workbook.Sheets[firstSheetName];
-                    const json = XLSX.utils.sheet_to_json(worksheet);
-                    
-                    if (json.length === 0) {
-                        alert('Excel 檔案內沒有資料。');
-                        return;
-                    }
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
                     
                     const getVal = (row, keys) => {
                         for (let k of keys) {
@@ -589,27 +618,18 @@ createApp({
                         return String(val).replace(/\//g, '-').trim();
                     };
 
-                    const parsedList = json.map(row => {
+                    this.rawClients = json.map(row => {
                         const client = String(getVal(row, ['姓名', '客戶', 'client'])).trim();
                         const sn = String(getVal(row, ['商品編碼', 'ISIN', 'SN', 'sn'])).trim();
                         
-                        if (!client || client === 'undefined' || !sn || sn === 'undefined') return null; 
-                        
+                        if (!client || client === 'undefined' || !sn || sn === 'undefined') return null;
+
                         let salesRaw = String(getVal(row, ['營業員', '業務員', 'sales'])).trim();
                         let sales = '吳坤達'; 
                         if (salesRaw && salesRaw !== 'undefined') {
                             const match = salesRaw.match(/[^\d\s\-]+/);
                             if (match) sales = match[0];
                         }
-
-                        // 核心調整：我們不再盲目地將 ISIN 塞作唯一標的。
-                        // 我們預設為使用者建立 3 個空的「標的 + 期初價」輸入組，
-                        // 讓理專可以在介面上直接、自由地為每一檔個股手動補上標的代號（例如: 7974.T）與期初價
-                        const stocks = [
-                            { code: '', init: null, current: null, history: null },
-                            { code: '', init: null, current: null, history: null },
-                            { code: '', init: null, current: null, history: null }
-                        ];
 
                         const parsePct = (val, def) => {
                             if (val === undefined || val === null || String(val).toUpperCase() === 'NA') return def;
@@ -627,68 +647,149 @@ createApp({
                             koP: parsePct(getVal(row, ['KO價(%)', 'KO(%)']), 105),
                             kiP: parsePct(getVal(row, ['KI價(%)', 'KI(%)']), 60),
                             strikeP: parsePct(getVal(row, ['履約價(%)', 'PUT(%)']), 100),
-                            koStart: formatExcelDate(getVal(row, ['下單日', '觀察日'])), 
+                            koStart: formatExcelDate(getVal(row, ['下單日', '觀察日'])),
                             date: formatExcelDate(getVal(row, ['下單日', '下單日期'])),
                             expiry: formatExcelDate(getVal(row, ['到期日', '到期日期'])),
-                            stocks
                         };
                     }).filter(item => item !== null);
 
-                    if (parsedList.length === 0) {
-                        alert('未能成功比對出「姓名」與「商品編碼」欄位，請確認 Excel 表頭。');
-                        return;
-                    }
-                    
-                    this.stagingList = parsedList;
-                    alert(`Excel 成功載入 ${parsedList.length} 筆客戶資料！請在下方「待補登」區塊自由填寫各別「標的代號」與「期初價格」後完成匯入。`);
+                    alert(`[第一步成功] 成功導入 ${this.rawClients.length} 筆客戶基本資料！請繼續上傳第二步「交易條件對照表」。`);
                 } catch (err) {
-                    alert('Excel 檔案解析錯誤：' + err.message);
+                    alert('客戶庫存檔解析出錯：' + err.message);
                 }
             };
             reader.readAsBinaryString(file);
         },
-        commitStaging() {
-            if (this.stagingList.length === 0) return;
-            
-            // 整理 stagingList 中的標的個股，過濾掉沒有填寫代號的空白組
-            let isAnyValid = true;
-            const finalizedList = this.stagingList.map(item => {
-                // 只保留真的有填寫股票代號（code）的組
-                const validStocks = item.stocks.filter(st => st.code && st.code.trim() !== '');
-                
-                if (validStocks.length === 0) {
-                    isAnyValid = false;
+
+        // STEP 2: 解析第二張「交易條件對照表 Excel」（最多支援5個標的）
+        handleTermsMatchUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            this.termsFileName = file.name;
+
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const data = evt.target.result;
+                    const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
+                    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const json = XLSX.utils.sheet_to_json(sheet);
+
+                    const getVal = (row, keys) => {
+                        for (let k of keys) {
+                            if (row[k] !== undefined && row[k] !== null) return row[k];
+                        }
+                        return '';
+                    };
+
+                    this.rawTerms = json.map(row => {
+                        const isin = String(getVal(row, ['ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
+                        if (!isin || isin === 'UNDEFINED') return null;
+
+                        // 提取 1 至 5 檔掛鉤個股及對應的期初價格（觸價價格）
+                        const stocks = [];
+                        for (let i = 1; i <= 5; i++) {
+                            let stockCode = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`, `s${i}_code`])).trim();
+                            let priceRaw = getVal(row, [`觸價價格${i}`, `觸發價格${i}`, `履約價格${i}`, `期初價格${i}`, `s${i}_init`]);
+                            
+                            // 修正欄位找不到時的相容備選（有些表直接叫 觸價價格 / 履約價格）
+                            if (!priceRaw && i === 1) priceRaw = getVal(row, ['觸價價格', '履約價格', '觸發價格']);
+
+                            if (stockCode && stockCode !== 'undefined' && stockCode !== '') {
+                                stockCode = stockCode.toUpperCase();
+                                // 如果純數字4碼自動補日股後綴
+                                if (/^\d{4}$/.test(stockCode)) stockCode += '.T';
+                                
+                                stocks.push({
+                                    code: stockCode,
+                                    init: parseFloat(priceRaw) || null,
+                                    current: null,
+                                    history: null
+                                });
+                            }
+                        }
+
+                        return { isin, stocks };
+                    }).filter(item => item !== null);
+
+                    alert(`[第二步成功] 成功讀取 ${this.rawTerms.length} 筆商品掛鉤條件對照！請點擊「開始進行智能比對」。`);
+                } catch (err) {
+                    alert('交易條件檔解析出錯：' + err.message);
                 }
-                
-                // 將 current 初始化為與手填的 init 相同
-                validStocks.forEach(st => {
-                    st.code = st.code.toUpperCase().trim();
-                    if (st.init > 0) {
-                        st.current = st.init;
-                    }
-                });
+            };
+            reader.readAsBinaryString(file);
+        },
 
-                return {
-                    ...item,
-                    stocks: validStocks
-                };
-            });
-
-            if (!isAnyValid) {
-                alert('匯入失敗：有部分客戶完全沒有填寫任何一個有效的「標的代號」！每一筆至少需設定一檔標的。');
+        // 自動進行 VLOOKUP 交叉智能整合
+        runAutoMatch() {
+            if (!this.rawClients.length || !this.rawTerms.length) {
+                alert('請確認兩個 Excel 檔案都已成功載入！');
                 return;
             }
 
-            // 正式寫入庫存系統中
-            finalizedList.forEach(item => {
+            let matchedCount = 0;
+            const mergedList = this.rawClients.map(clientRow => {
+                // 以 SN 比對 ISIN Code
+                const termMatch = this.rawTerms.find(termRow => termRow.isin === clientRow.sn);
+                
+                let matchedStocks = [];
+                if (termMatch && termMatch.stocks.length > 0) {
+                    // 深度拷貝標的資料
+                    matchedStocks = termMatch.stocks.map(st => ({ ...st }));
+                    matchedCount++;
+                } else {
+                    // 若比對不成功，預設給 3 個空的空白框，方便理專手動對帳補上
+                    matchedStocks = [
+                        { code: '', init: null, current: null, history: null },
+                        { code: '', init: null, current: null, history: null },
+                        { code: '', init: null, current: null, history: null }
+                    ];
+                }
+
+                return {
+                    ...clientRow,
+                    stocks: matchedStocks
+                };
+            });
+
+            this.stagingList = mergedList;
+            alert(`🎉 智能比對完成！\n成功將 ${matchedCount} 筆合約與掛鉤標的自動對接整合！請在下方預覽確認。`);
+        },
+
+        // 確認匯入正式庫存
+        commitStaging() {
+            if (this.stagingList.length === 0) return;
+            
+            const unFilled = this.stagingList.filter(item => item.stocks.length === 0 || item.stocks.some(st => !st.code || st.init === null || st.init === undefined || st.init <= 0));
+            if (unFilled.length > 0) {
+                if (!confirm(`警告：尚有 ${unFilled.length} 筆合約包含空白標的或期初價格未填。匯入後可能無法正常更新報價。確定要匯入嗎？`)) {
+                    return;
+                }
+            }
+
+            // 清理空白標的、合併寫入
+            this.stagingList.forEach(item => {
+                const validStocks = item.stocks.filter(st => st.code && st.code.trim() !== '');
+                validStocks.forEach(st => {
+                    st.code = st.code.toUpperCase().trim();
+                    st.current = st.init; // 初始化現價等於期初價
+                });
+                item.stocks = validStocks;
                 this.inventory.push(item);
             });
 
+            // 清空暫存並標記未儲存
             this.stagingList = [];
+            this.rawClients = [];
+            this.rawTerms = [];
+            this.clientFileName = '';
+            this.termsFileName = '';
             this.dirty = true;
-            alert('所有部位與關聯標的已補登成功！正在啟動最新報價與歷史極值同步...');
+
+            alert('✅ 雙檔整合部位已順利寫入系統！正自動同步最新現價與歷史數據...');
             this.fetchRealPrices(); 
         },
+
         login() { 
             if (this.inputPass === this.password) { 
                 this.isLoggedIn = true; 
@@ -768,13 +869,13 @@ createApp({
             setTimeout(() => URL.revokeObjectURL(a.href), 1000);
         },
         inventoryToCSV() {
-            const cols = ['client','sn','sales','currency','coupon','koP','kiP','strikeP','koStart','date','expiry','amount','s1_code','s1_init','s2_code','s2_init','s3_code','s3_init','s4_code','s4_init'];
+            const cols = ['client','sn','sales','currency','coupon','koP','kiP','strikeP','koStart','date','expiry','amount','s1_code','s1_init','s2_code','s2_init','s3_code','s3_init','s4_code','s4_init','s5_code','s5_init'];
             const esc = v => { if (v == null) return ''; const s = String(v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
             const lines = [cols.join(',')];
             this.inventory.forEach(it => {
                 const st = it.stocks || [];
                 const row = { client:it.client, sn:it.sn, sales:it.sales, currency:it.currency, coupon:it.coupon, koP:it.koP, kiP:it.kiP, strikeP:it.strikeP, koStart:it.koStart, date:it.date, expiry:it.expiry, amount:it.amount };
-                for (let i = 0; i < 4; i++) { row['s'+(i+1)+'_code'] = st[i] ? st[i].code : ''; row['s'+(i+1)+'_init'] = st[i] ? st[i].init : ''; }
+                for (let i = 0; i < 5; i++) { row['s'+(i+1)+'_code'] = st[i] ? st[i].code : ''; row['s'+(i+1)+'_init'] = st[i] ? st[i].init : ''; }
                 lines.push(cols.map(c => esc(row[c])).join(','));
             });
             return lines.join('\n');
@@ -806,7 +907,7 @@ createApp({
                     '下單日': it.date, '觀察起日': it.koStart, '到期日': it.expiry,
                     'KO(%)': it.koP, 'KI(%)': it.kiP, 'PUT(%)': it.strikeP,
                 };
-                for (let i = 0; i < 4; i++) {
+                for (let i = 0; i < 5; i++) {
                     const s = st[i];
                     row['標的' + (i+1)] = s ? s.code : '';
                     row['期初' + (i+1)] = s ? s.init : '';
@@ -872,7 +973,8 @@ createApp({
                     complete: (results) => {
                         this.inventory = results.data.map(row => {
                             const stocks = [];
-                            for (let i=1; i<=4; i++) {
+                            // 支援最多 5 檔
+                            for (let i=1; i<=5; i++) {
                                 if (row[`s${i}_code`]) stocks.push({
                                     code: String(row[`s${i}_code`]).trim().toUpperCase(),
                                     init: row[`s${i}_init`],
