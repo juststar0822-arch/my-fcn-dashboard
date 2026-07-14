@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.RobustMerge</title>
+    <title>上新莊分行 - FCN 管理系統 v58.RobustMerge.Fixed</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -127,7 +127,7 @@
                         <label for="clientInventoryFile" class="cursor-pointer block pt-2">
                             <i class="fa-solid fa-users text-blue-600 text-2xl mb-1 block"></i>
                             <span class="font-black text-sm block text-slate-700">上傳「客戶庫存表」</span>
-                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、商品編碼等基本資料）' }}</span>
+                            <span class="text-[10px] text-gray-400 block mt-1 truncate">{{ clientFileName || '（含姓名、SN等基本資料）' }}</span>
                         </label>
                     </div>
 
@@ -149,16 +149,16 @@
                         <p>🔹 客戶庫存表基本資料：<span class="text-blue-600">{{ rawClients.length }} 筆</span></p>
                         <p>🔹 交易條件規格資料：<span class="text-indigo-600">{{ rawTerms.length }} 筆</span></p>
                     </div>
-                    <button @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 py-3 rounded-xl shadow-md transition animate-bounce">
+                    <button @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 py-3 rounded-xl shadow-md transition">
                         🚀 開始進行條件整合比對
                     </button>
                 </div>
             </div>
 
-            <!-- 補登期初價預覽工作區 (修復容錯：匹配失敗者也會強制顯示以供補件) -->
+            <!-- 補登期初價預覽工作區 -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-black text-amber-800">✍️ 條件比對清單（共 {{ stagingList.length }} 筆）➔ 請手動 Key 入「期初成交價」</h3>
+                    <h3 class="text-lg font-black text-amber-800">✍️ 條件比對清單（共 {{ stagingList.length }} 筆）➔ 請手動 Key 入客戶「期初成交價」</h3>
                     <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">取消本次導入</button>
                 </div>
                 
@@ -193,7 +193,6 @@
                                 <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
                                     <div class="w-1/2">
                                         <label class="block text-[10px] text-gray-400 font-bold">標的代號</label>
-                                        <!-- 匹配成功則唯讀鎖定，匹配失敗則可手動key代號 -->
                                         <span v-if="!item.isUnmatched" class="font-black text-blue-600 uppercase text-xs block pt-2">{{ st.code }}</span>
                                         <input v-else v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
                                     </div>
@@ -337,7 +336,7 @@ const ClientCard = {
                 <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ KI</div>
                 <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ KO</div>
                 <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
-                <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(c) }}</p>
+                <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
                 <p class="text-lg font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                 <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
                     <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
@@ -572,7 +571,6 @@ createApp({
 
                     this.rawClients = json.map(row => {
                         const client = String(getVal(row, ['姓名', '客戶', 'client'])).trim();
-                        // 智能容錯修正：自動剔除前後不可見空格、強制轉大寫比對
                         const sn = String(getVal(row, ['商品編碼', 'ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
                         
                         if (!client || client === 'undefined' || !sn || sn === 'undefined' || sn === '') return null;
@@ -605,7 +603,7 @@ createApp({
             reader.readAsBinaryString(file);
         },
 
-        // STEP 2: 交易條件表 (解析 ISIN, 標的名, KO%, Strike%, KI%)
+        // STEP 2: 交易條件表
         handleTermsMatchUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -624,7 +622,6 @@ createApp({
                     };
 
                     this.rawTerms = json.map(row => {
-                        // 智能容錯修正：自動剔除前後不可見空格、強制轉大寫比對
                         const isin = String(getVal(row, ['商品代碼', 'ISIN Code', 'ISIN', 'sn', '商品代號'])).trim().toUpperCase();
                         if (!isin || isin === 'UNDEFINED' || isin === '') return null;
 
@@ -653,7 +650,7 @@ createApp({
             reader.readAsBinaryString(file);
         },
 
-        // 高強健智能交叉整合比對 (終極修正：即便匹配失敗也絕不漏掉資料，強制提供手填框)
+        // 交叉整合比對
         runAutoMatch() {
             if (!this.rawClients.length) {
                 alert('請先上傳第一步「客戶庫存表」Excel 檔案！');
@@ -666,7 +663,6 @@ createApp({
 
             let matchedCount = 0;
             const mergedList = this.rawClients.map(clientRow => {
-                // 清理多餘不可見空格進行強力比對
                 const cleanSN = clientRow.sn.replace(/\s+/g, '');
                 const termMatch = this.rawTerms.find(t => t.isin.replace(/\s+/g, '') === cleanSN);
                 
@@ -681,13 +677,12 @@ createApp({
                     
                     finalizedStocks = termMatch.stockCodes.map(code => ({
                         code: code,
-                        init: null, // 留空給你填價格
+                        init: null, 
                         current: null,
                         history: null
                     }));
                     matchedCount++;
                 } else {
-                    // 終極防線：對不上的商品編碼，強制保留，並設為 unmatched 狀態供使用者在前端補件
                     isUnmatched = true;
                     finalizedStocks = [
                         { code: '', init: null, current: null, history: null },
@@ -709,14 +704,13 @@ createApp({
             alert(`🎉 條件整合比對完畢！\n完美配對數：${matchedCount} 筆合約。\n總處理數：${mergedList.length} 筆客戶。\n\n請立刻往下滑動網頁，即可在下方看到完整的「期初價格輸入欄位」！`);
         },
 
-        // 正式提交暫存區寫入系統庫存
+        // 正式匯入系統庫存
         commitStaging() {
             if (this.stagingList.length === 0) return;
             
-            // 檢查是否有漏填
             const unFilled = this.stagingList.filter(item => item.stocks.length === 0 || item.stocks.some(st => !st.code || st.init === null || st.init === undefined || st.init <= 0));
             if (unFilled.length > 0) {
-                if (!confirm(`提示：尚有 ${unFilled.length} 筆部位的個股期初成交價未完全 Key 入。\n（匯入後未填寫價格者將暫設為 0）。確定要直接完成匯入嗎？`)) {
+                if (!confirm(`提示：尚有 ${unFilled.length} 筆部位的個股期初成交價未完全 Key 入。\n確定要直接完成匯入嗎？`)) {
                     return;
                 }
             }
@@ -728,8 +722,6 @@ createApp({
                     st.current = st.init; 
                 });
                 item.stocks = validStocks;
-                
-                // 移除輔助辨識欄位後推入庫存
                 delete item.isUnmatched;
                 this.inventory.push(item);
             });
