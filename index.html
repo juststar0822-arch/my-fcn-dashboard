@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>上新莊分行 - FCN 管理系統 v58.AutoConditions</title>
+    <title>上新莊分行 - FCN 管理系統 v58.RobustMerge</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
@@ -33,6 +33,18 @@
 </head>
 <body class="p-4 md:p-10">
 <div id="app" v-cloak class="max-w-4xl mx-auto">
+    <!-- 登入模組 -->
+    <div v-if="!isLoggedIn" class="fixed inset-0 bg-slate-900 z-[2000] flex items-center justify-center p-6">
+        <div class="bg-white rounded-[2.5rem] p-10 w-full max-w-sm text-center shadow-2xl">
+            <div class="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white mx-auto mb-6">
+                <i class="fa-solid fa-lock text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-black mb-2 italic">上新莊管理系統</h2>
+            <input v-model="inputPass" type="password" @keyup.enter="login" placeholder="Password" class="w-full bg-slate-100 border-none p-4 rounded-2xl text-center text-3xl tracking-[0.4em] mb-6 outline-none focus:ring-2 ring-blue-500 font-mono">
+            <button @click="login" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black text-lg hover:bg-slate-800 transition">LOGIN</button>
+        </div>
+    </div>
+
     <template v-if="isLoggedIn">
         <!-- 導航列 -->
         <div class="nav-header sticky top-4 z-[1000] scrollbar-hide text-slate-800">
@@ -47,6 +59,55 @@
             </div>
         </div>
 
+        <div class="px-4 mb-4 flex justify-between items-center text-[10px] font-black italic tracking-widest text-gray-400 uppercase">
+            <span class="flex items-center gap-1"><i class="fa-solid fa-circle text-[6px] text-green-500"></i> FCN Iron-Shield System</span>
+            <span v-if="lastUpdated">Refreshed: {{ lastUpdated }}</span>
+        </div>
+
+        <!-- 預警中心 -->
+        <div v-if="view === 'alerts'" class="space-y-4 fade-in">
+            <div class="flex bg-white rounded-2xl shadow-sm mb-4 overflow-x-auto text-slate-800 scrollbar-hide border border-gray-100">
+                <button @click="alertTab = 'ki'" :class="['risk-tab', alertTab === 'ki' ? 'active' : '']">觸及KI({{kiList.length}})</button>
+                <button @click="alertTab = 'obs'" :class="['risk-tab', alertTab === 'obs' ? 'active' : '']">即將觀察({{observationList.length}})</button>
+                <button @click="alertTab = 'pko'" :class="['risk-tab', alertTab === 'pko' ? 'active' : '']">曾經KO({{partKOList.length}})</button>
+                <button @click="alertTab = 'nko'" :class="['risk-tab', alertTab === 'nko' ? 'active' : '']">即將KO({{nearKOList.length}})</button>
+                <button @click="alertTab = 'exp'" :class="['risk-tab', alertTab === 'exp' ? 'active' : '']">到期({{expiringList.length}})</button>
+                <button @click="alertTab = 'exit'" :class="['risk-tab', alertTab === 'exit' ? 'active' : '']">已出場({{exitList.length}})</button>
+            </div>
+            <div class="space-y-4">
+                <client-card v-for="item in currentAlertList" :item="item" :key="item.sn + item.client"></client-card>
+                <div v-if="currentAlertList.length === 0" class="text-center py-20 text-gray-300 font-bold italic uppercase text-xs tracking-widest">No Matches Found</div>
+            </div>
+        </div>
+
+        <!-- 資產管理 -->
+        <div v-if="view === 'branch'" class="space-y-4 fade-in">
+            <h2 class="text-xl font-black px-2 italic uppercase text-slate-800 text-left tracking-tighter">Portfolio Summary</h2>
+            <div v-for="curr in ['JPY', 'USD']" :key="curr" class="fcn-card shadow-xl text-white border-none" :class="curr==='JPY'?'bg-slate-800':'bg-blue-600'">
+                <div class="flex justify-between items-start mb-4 opacity-80 text-xs font-bold uppercase text-white font-black">
+                    <span>Portfolio size</span><span>{{ curr==='JPY'?countJPY:countUSD }}筆</span>
+                </div>
+                <div class="text-5xl font-black italic font-mono tracking-tighter text-white">
+                    {{ curr==='JPY'?'¥':'$' }} {{ formatNum(curr==='JPY'?totalJPY:totalUSD) }} 
+                    <span class="text-lg font-normal opacity-50 uppercase text-white">萬</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 按客戶 -->
+        <div v-if="view === 'client'" class="space-y-4 fade-in">
+            <input v-model="search" type="text" placeholder="🔍 Search Client or SN..." class="w-full p-4 rounded-3xl bg-white shadow-sm font-bold outline-none text-slate-800 pl-6">
+            <client-card v-for="item in clientFilteredList" :item="item" :key="item.sn + item.client"></client-card>
+        </div>
+
+        <!-- 按業務員 -->
+        <div v-if="view === 'sales'" class="space-y-4 fade-in text-slate-800 text-left">
+            <select v-model="selectedSales" class="w-full p-4 rounded-3xl bg-white shadow-sm font-black text-blue-600 outline-none text-lg text-slate-800 font-mono">
+                <option v-for="s in salesSummary" :value="s.name">{{ s.name }} ({{ s.count }} 筆)</option>
+            </select>
+            <client-card v-for="item in salesFilteredList" :item="item" :key="item.sn + item.client"></client-card>
+        </div>
+
         <!-- 資料輸入/編輯 -->
         <div v-if="view === 'entry'" class="space-y-4 fade-in text-slate-800 text-left">
             
@@ -56,7 +117,7 @@
                     <h2 class="text-lg font-black text-indigo-900 italic">⚡️ 雙檔條件比對器 (自動帶入標的、KO、履約、KI條件)</h2>
                     <span class="text-xs text-indigo-600 bg-indigo-100 px-3 py-1 rounded-full font-bold">手動填期初價</span>
                 </div>
-                <p class="text-xs text-slate-500 mb-4">比對後系統會自動對接標的名稱與合約條件比例（最多5檔），期初成交價留空供您手動對帳Key入。</p>
+                <p class="text-xs text-slate-500 mb-4">請確實點擊右下角「<b>開始進行條件整合比對</b>」按鈕，比對完成後下方即會展開資料確認與期初價格 Key 入欄位。</p>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- 第一步：上傳客戶庫存 -->
@@ -83,21 +144,21 @@
                 </div>
 
                 <!-- 比對整合觸發鈕 -->
-                <div v-if="rawClients.length > 0 || rawTerms.length > 0" class="mt-4 bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
+                <div class="mt-4 bg-white p-3 rounded-xl border border-slate-100 flex justify-between items-center text-xs">
                     <div class="space-y-1 font-bold text-slate-600">
                         <p>🔹 客戶庫存表基本資料：<span class="text-blue-600">{{ rawClients.length }} 筆</span></p>
                         <p>🔹 交易條件規格資料：<span class="text-indigo-600">{{ rawTerms.length }} 筆</span></p>
                     </div>
-                    <button v-if="rawClients.length > 0 && rawTerms.length > 0" @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-5 py-2.5 rounded-xl shadow-md transition">
+                    <button @click="runAutoMatch" class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-6 py-3 rounded-xl shadow-md transition animate-bounce">
                         🚀 開始進行條件整合比對
                     </button>
                 </div>
             </div>
 
-            <!-- 補登期初價預覽工作區 -->
+            <!-- 補登期初價預覽工作區 (修復容錯：匹配失敗者也會強制顯示以供補件) -->
             <div v-if="stagingList.length > 0" class="fcn-card border-2 border-amber-300 bg-amber-50/20">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-black text-amber-800">✍️ 條件比對成功！請手動 Key 入客戶「期初成交價」</h3>
+                    <h3 class="text-lg font-black text-amber-800">✍️ 條件比對清單（共 {{ stagingList.length }} 筆）➔ 請手動 Key 入「期初成交價」</h3>
                     <button @click="stagingList = []" class="text-xs font-bold text-red-500 hover:underline">取消本次導入</button>
                 </div>
                 
@@ -109,13 +170,14 @@
                             <div>
                                 <span class="font-black text-slate-800 text-lg">{{ item.client }}</span>
                                 <span class="text-xs text-gray-400 font-mono ml-2">商品編碼(SN): {{ item.sn }}</span>
+                                <span v-if="item.isUnmatched" class="text-[10px] bg-red-100 text-red-600 px-2 py-0.5 rounded ml-2 font-bold animate-pulse">⚠️ 對照表無此商品代碼</span>
                             </div>
                             <span class="lock-badge" v-if="item.currency">{{ item.currency }} · 業務: {{ item.sales }} · 金額: {{ formatNum(item.amount) }}萬</span>
                         </div>
 
                         <!-- 自動帶入的條對率預覽 -->
                         <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 font-bold mb-3 bg-slate-50 p-2 rounded-xl">
-                            <span class="text-blue-600">已導入條件比例 ➔</span>
+                            <span class="text-indigo-600">合約規格比率 ➔</span>
                             <span>KO 觸發: <b class="text-slate-800">{{ item.koP }}%</b></span>
                             <span>履約 Strike: <b class="text-slate-800">{{ item.strikeP }}%</b></span>
                             <span>KI 門檻: <b class="text-slate-800">{{ item.kiP }}%</b></span>
@@ -123,17 +185,23 @@
                         
                         <!-- 手動Key入期初成交價區域 -->
                         <div class="space-y-2">
-                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">請輸入下列連結標的的期初成交價</span>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">連結標的明細與期初成交價填寫</span>
+                                <button v-if="item.isUnmatched && item.stocks.length < 5" @click="item.stocks.push({code:'',init:null})" class="text-[11px] text-blue-600 font-black">+ 手動加掛個股</button>
+                            </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                                    <div class="w-1/3">
-                                        <span class="block text-[10px] text-gray-400 font-bold">標的代號</span>
-                                        <span class="font-black text-blue-600 uppercase text-xs block pt-1.5">{{ st.code }}</span>
+                                <div v-for="(st, stIdx) in item.stocks" :key="stIdx" class="flex gap-2 items-center bg-slate-50 p-2.5 rounded-xl border border-slate-100 relative">
+                                    <div class="w-1/2">
+                                        <label class="block text-[10px] text-gray-400 font-bold">標的代號</label>
+                                        <!-- 匹配成功則唯讀鎖定，匹配失敗則可手動key代號 -->
+                                        <span v-if="!item.isUnmatched" class="font-black text-blue-600 uppercase text-xs block pt-2">{{ st.code }}</span>
+                                        <input v-else v-model="st.code" @input="formatStockInput(st)" placeholder="輸入代號" class="w-full bg-white p-1 rounded border border-gray-300 font-black text-blue-600 text-xs mt-1 uppercase outline-none">
                                     </div>
                                     <div class="flex-1">
-                                        <label class="block text-[10px] text-indigo-500 font-bold">➔ 手動輸入：期初成交價格</label>
-                                        <input type="number" step="0.0001" v-model.number="st.init" placeholder="Key 入期初價" class="w-full bg-white p-1.5 rounded-lg border border-indigo-200 font-black text-slate-800 text-xs outline-none focus:ring-2 ring-indigo-400">
+                                        <label class="block text-[10px] text-indigo-600 font-bold">➔ 手動輸入期初價</label>
+                                        <input type="number" step="0.0001" v-model.number="st.init" placeholder="Key 入價格" class="w-full bg-white p-1.5 rounded-lg border border-indigo-200 font-black text-slate-800 text-xs outline-none focus:ring-2 ring-indigo-400">
                                     </div>
+                                    <button v-if="item.isUnmatched" @click="item.stocks.splice(stIdx, 1)" class="text-red-500 font-bold text-xs pt-4">✕</button>
                                 </div>
                             </div>
                         </div>
@@ -269,7 +337,7 @@ const ClientCard = {
                 <div v-if="isStockKI(item, s)" class="absolute -top-3 right-0 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">⚠ KI</div>
                 <div v-if="isStockKO(item, s)" class="absolute -top-3 right-0 bg-blue-600 text-white text-[9px] px-2 py-0.5 rounded-full font-bold shadow-sm z-10">★ KO</div>
                 <p class="text-[11px] font-black text-blue-500 leading-none uppercase">{{ s.code.replace('.T', '') }}</p>
-                <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(s.code) }}</p>
+                <p class="text-[9px] font-bold text-gray-400 mb-1 h-5 overflow-hidden text-ellipsis">{{ getStockName(c) }}</p>
                 <p class="text-lg font-black leading-none my-1 tracking-tighter text-slate-800">{{ formatPrice(s.current) }}</p>
                 <div class="text-[8px] font-bold text-gray-400 border-t border-gray-50 pt-1 mt-1 leading-tight">
                     <p>KO: <span class="text-slate-800 font-black">{{ formatPrice(s.init * (item.koP/100)) }}</span></p>
@@ -504,10 +572,10 @@ createApp({
 
                     this.rawClients = json.map(row => {
                         const client = String(getVal(row, ['姓名', '客戶', 'client'])).trim();
-                        // 修正細節：對照時要能相容前後空格
+                        // 智能容錯修正：自動剔除前後不可見空格、強制轉大寫比對
                         const sn = String(getVal(row, ['商品編碼', 'ISIN Code', '商品代碼', 'ISIN', 'sn'])).trim().toUpperCase();
                         
-                        if (!client || client === 'undefined' || !sn || sn === 'undefined') return null;
+                        if (!client || client === 'undefined' || !sn || sn === 'undefined' || sn === '') return null;
 
                         let salesRaw = String(getVal(row, ['營業員', '業務員', 'sales'])).trim();
                         let sales = '吳坤達'; 
@@ -529,9 +597,9 @@ createApp({
                         };
                     }).filter(item => item !== null);
 
-                    alert(`[第一步] 成功載入 ${this.rawClients.length} 筆客戶。請繼續上傳第二步交易條件表。`);
+                    alert(`[第一步] 成功載入 ${this.rawClients.length} 筆客戶基本資料。請上傳第二步交易條件表。`);
                 } catch (err) {
-                    alert('庫存檔解析錯：' + err.message);
+                    alert('庫存檔解析錯誤：' + err.message);
                 }
             };
             reader.readAsBinaryString(file);
@@ -556,16 +624,14 @@ createApp({
                     };
 
                     this.rawTerms = json.map(row => {
-                        // 修正：確實將商品代碼或第一欄當作 ISIN 比對主鍵
-                        const isin = String(getVal(row, ['商品代碼', 'ISIN Code', 'ISIN', 'sn'])).trim().toUpperCase();
-                        if (!isin || isin === 'UNDEFINED') return null;
+                        // 智能容錯修正：自動剔除前後不可見空格、強制轉大寫比對
+                        const isin = String(getVal(row, ['商品代碼', 'ISIN Code', 'ISIN', 'sn', '商品代號'])).trim().toUpperCase();
+                        if (!isin || isin === 'UNDEFINED' || isin === '') return null;
 
-                        // 抓取條件比率
                         const koP = parseFloat(getVal(row, ['KO(%)', 'KO價(%)', 'KO'])) || 105;
                         const strikeP = parseFloat(getVal(row, ['Strike(%)', '履約價(%)', 'PUT(%)', 'PUT'])) || 100;
                         const kiP = parseFloat(getVal(row, ['KI(%)', 'KI價(%)', 'KI'])) || 60;
 
-                        // 提取 1 至 5 檔連結標的個股名稱
                         const stockCodes = [];
                         for (let i = 1; i <= 5; i++) {
                             let code = String(getVal(row, [`連結標的${i}`, `連結標的_${i}`])).trim();
@@ -579,44 +645,50 @@ createApp({
                         return { isin, koP, strikeP, kiP, stockCodes };
                     }).filter(item => item !== null);
 
-                    alert(`[第二步] 成功讀取 ${this.rawTerms.length} 筆規格對照！可執行智能條件比對。`);
+                    alert(`[第二步] 成功讀取 ${this.rawTerms.length} 筆規格條件對照！可執行智能條件比對。`);
                 } catch (err) {
-                    alert('條件表解析錯：' + err.message);
+                    alert('條件表解析錯誤：' + err.message);
                 }
             };
             reader.readAsBinaryString(file);
         },
 
-        // 核心修正：智能比對標的與條件，期初價留空讓你Key！
+        // 高強健智能交叉整合比對 (終極修正：即便匹配失敗也絕不漏掉資料，強制提供手填框)
         runAutoMatch() {
-            if (!this.rawClients.length || !this.rawTerms.length) {
-                alert('請先上傳兩個 Excel 檔案。');
+            if (!this.rawClients.length) {
+                alert('請先上傳第一步「客戶庫存表」Excel 檔案！');
+                return;
+            }
+            if (!this.rawTerms.length) {
+                alert('請先上傳第二步「交易條件對照表」Excel 檔案！');
                 return;
             }
 
             let matchedCount = 0;
             const mergedList = this.rawClients.map(clientRow => {
-                // 用客戶表的 SN 匹配 條件表的商品代碼 (isin)
-                const termMatch = this.rawTerms.find(t => t.isin === clientRow.sn);
+                // 清理多餘不可見空格進行強力比對
+                const cleanSN = clientRow.sn.replace(/\s+/g, '');
+                const termMatch = this.rawTerms.find(t => t.isin.replace(/\s+/g, '') === cleanSN);
                 
                 let finalizedStocks = [];
-                let koP = 105, strikeP = 100, kiP = 60; // 預設安全值
+                let koP = 105, strikeP = 100, kiP = 60;
+                let isUnmatched = false;
 
                 if (termMatch) {
                     koP = termMatch.koP;
                     strikeP = termMatch.strikeP;
                     kiP = termMatch.kiP;
                     
-                    // 將對齊到的標的轉化為空 init 物件，留空給你填價格
                     finalizedStocks = termMatch.stockCodes.map(code => ({
                         code: code,
-                        init: null, // 保持空白，等你手動 key！
+                        init: null, // 留空給你填價格
                         current: null,
                         history: null
                     }));
                     matchedCount++;
                 } else {
-                    // 沒匹配到的合約預設給三個空白格
+                    // 終極防線：對不上的商品編碼，強制保留，並設為 unmatched 狀態供使用者在前端補件
+                    isUnmatched = true;
                     finalizedStocks = [
                         { code: '', init: null, current: null, history: null },
                         { code: '', init: null, current: null, history: null }
@@ -628,22 +700,23 @@ createApp({
                     koP,
                     strikeP,
                     kiP,
-                    stocks: finalizedStocks
+                    stocks: finalizedStocks,
+                    isUnmatched
                 };
             });
 
             this.stagingList = mergedList;
-            alert(`🎉 智能比對完成！\n共成功對接 ${matchedCount} 筆合約的「連結標的物」及「KO/Strike/KI條件」！\n請在下方直接手動 Key 入對應的期初價格。`);
+            alert(`🎉 條件整合比對完畢！\n完美配對數：${matchedCount} 筆合約。\n總處理數：${mergedList.length} 筆客戶。\n\n請立刻往下滑動網頁，即可在下方看到完整的「期初價格輸入欄位」！`);
         },
 
         // 正式提交暫存區寫入系統庫存
         commitStaging() {
             if (this.stagingList.length === 0) return;
             
-            // 檢查：你手動 key 的期初價有沒有漏填
+            // 檢查是否有漏填
             const unFilled = this.stagingList.filter(item => item.stocks.length === 0 || item.stocks.some(st => !st.code || st.init === null || st.init === undefined || st.init <= 0));
             if (unFilled.length > 0) {
-                if (!confirm(`提示：尚有 ${unFilled.length} 筆部位的期初成交價還沒有完全填寫（若強行匯入，未填寫價格者將預設為 0）。確定要直接完成匯入嗎？`)) {
+                if (!confirm(`提示：尚有 ${unFilled.length} 筆部位的個股期初成交價未完全 Key 入。\n（匯入後未填寫價格者將暫設為 0）。確定要直接完成匯入嗎？`)) {
                     return;
                 }
             }
@@ -652,9 +725,12 @@ createApp({
                 const validStocks = item.stocks.filter(st => st.code && st.code.trim() !== '');
                 validStocks.forEach(st => {
                     st.code = st.code.toUpperCase().trim();
-                    st.current = st.init; // 現價起點同步手填期初
+                    st.current = st.init; 
                 });
                 item.stocks = validStocks;
+                
+                // 移除輔助辨識欄位後推入庫存
+                delete item.isUnmatched;
                 this.inventory.push(item);
             });
 
@@ -665,7 +741,7 @@ createApp({
             this.termsFileName = '';
             this.dirty = true;
 
-            alert('✅ 客戶部位條件與手填期初價已正式整合匯入！現正更新最新行情與歷史高低點...');
+            alert('✅ 客戶部位條件與手填期初價已正式匯入系統！現正更新最新股價行情...');
             this.fetchRealPrices(); 
         },
 
@@ -754,7 +830,9 @@ createApp({
                     complete: (results) => {
                         this.inventory = results.data.map(row => {
                             const stocks = [];
-                            for(let i=1; i<=5; i++) if(row[`s${i}_code`]) stocks.push({ code: String(row[`s${i}_code`]).trim().toUpperCase(), init: row[`s${i}_init`], current: row[`s${i}_init`], history: null });
+                            for (let i=1; i<=5; i++) {
+                                if (row[`s${i}_code`]) stocks.push({ code: String(row[`s${i}_code`]).trim().toUpperCase(), init: row[`s${i}_init`], current: row[`s${i}_init`], history: null });
+                            }
                             return { ...row, client: row.client ? String(row.client).trim() : '', sn: row.sn ? String(row.sn).trim() : '', stocks };
                         });
                         this.dirty = false; this.fetchRealPrices();
