@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場追蹤 (精確間隔版)</title>
+    <title>市場追蹤 - 匯率與殖利率專區</title>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
         :root {
@@ -23,7 +23,7 @@
             background-color: var(--bg-color);
             margin: 0; padding: 4px 10px; 
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden; height: 100vh;
+            overflow-x: hidden; height: 100vh;
         }
 
         .main-header { text-align: center; margin: 4px 0; }
@@ -31,7 +31,7 @@
 
         #update-time { align-self: flex-end; font-size: 8px; color: var(--text-sub); margin-bottom: 2px; font-family: 'SF Mono', monospace; }
 
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; height: 100%; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
         
         .stock-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;
@@ -47,18 +47,18 @@
         .highlight-label {
             font-size: 13px !important; font-weight: 900; color: #000;
             border-left: 4px solid var(--price-blue); padding-left: 6px;
-            margin: 4px 0 2px 2px !important;
+            margin: 6px 0 2px 2px !important;
         }
 
         .card {
             background: var(--card-bg); border-radius: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 2px; width: 100%; overflow: hidden;
+            margin-bottom: 4px; width: 100%; overflow: hidden;
         }
 
-        .k-card { padding: 4px 8px; height: 125px; position: relative; }
+        .k-card { padding: 6px 8px; height: 135px; position: relative; }
         .k-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: -10px; z-index: 10; position: relative; }
-        .k-header .price { font-size: 18px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
+        .k-header .price { font-size: 16px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
         .chart-box { width: 100%; height: 110px; } 
 
         .up { color: var(--up-red); }
@@ -67,11 +67,14 @@
 </head>
 <body>
 
-    <div class="main-header"><h1>每日市場追蹤</h1></div>
+    <div class="main-header"><h1>市場走勢追蹤</h1></div>
     <div id="update-time">SYNCING...</div>
 
     <div class="container">
+        <!-- 股市總覽維持上方小卡 -->
         <div class="stock-grid" id="stock-grid"></div>
+        
+        <!-- 專門呈現匯率與殖利率的走勢圖區塊 -->
         <div id="k-list-container"></div>
     </div>
 
@@ -79,15 +82,16 @@
         const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
 
         const symbols = [
+            // 上方股市總覽
             { id: "TWII", sym: "^TWII", name: "台股加權指數", prec: 0, grid: true },
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, grid: true },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
             
-            // 下方走勢圖，加入 stepSize 定義
-            { id: "USD", sym: "USDTWD=X", name: "USD/TWD 美元", prec: 3, step: 0.2 },
-            { id: "JPY", sym: "JPYTWD=X", name: "JPY/TWD 日圓", prec: 4, step: 0.001 },
-            { id: "TNX", sym: "^TNX", name: "10Y Bond 債券殖利率", prec: 3, step: 0.04 }
+            // 重點呈現：美元、日圓、10年公債殖利率
+            { id: "USD", sym: "USDTWD=X", name: "美元 / 新台幣 (USD/TWD)", prec: 3, step: 0.2, grid: false },
+            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 新台幣 (JPY/TWD)", prec: 4, step: 0.001, grid: false },
+            { id: "TNX", sym: "^TNX", name: "美國 10年期公債殖利率", prec: 3, step: 0.04, grid: false }
         ];
 
         let charts = {};
@@ -172,7 +176,7 @@
                     height: 110, 
                     toolbar: { show: false }, 
                     animations: { enabled: false },
-                    offsetY: -10 
+                    offsetY: -5 
                 },
                 xaxis: { 
                     type: 'datetime', 
@@ -188,9 +192,8 @@
                 },
                 yaxis: { 
                     opposite: true, 
-                    // 關鍵修正：設定精確間隔
                     stepSize: item.step, 
-                    forceNiceScale: false, // 關閉 NiceScale 以便嚴格執行 stepSize
+                    forceNiceScale: false, 
                     labels: { 
                         style: { fontSize: '9px', colors: '#8e8e93', fontFamily: 'SF Mono' }, 
                         formatter: v => v.toFixed(item.prec) 
