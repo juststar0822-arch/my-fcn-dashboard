@@ -71,10 +71,7 @@
     <div id="update-time">SYNCING...</div>
 
     <div class="container">
-        <!-- 股市總覽維持上方小卡 -->
         <div class="stock-grid" id="stock-grid"></div>
-        
-        <!-- 專門呈現匯率與殖利率的走勢圖區塊 -->
         <div id="k-list-container"></div>
     </div>
 
@@ -82,13 +79,11 @@
         const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
 
         const symbols = [
-            // 上方股市總覽
             { id: "TWII", sym: "^TWII", name: "台股加權指數", prec: 0, grid: true },
             { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, grid: true },
             { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
             { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
             
-            // 重點呈現：美元、日圓、10年公債殖利率
             { id: "USD", sym: "USDTWD=X", name: "美元 / 新台幣 (USD/TWD)", prec: 3, step: 0.2, grid: false },
             { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 新台幣 (JPY/TWD)", prec: 4, step: 0.001, grid: false },
             { id: "TNX", sym: "^TNX", name: "美國 10年期公債殖利率", prec: 3, step: 0.04, grid: false }
@@ -98,16 +93,32 @@
 
         async function fetchYahooData() {
             const promises = symbols.map(item => {
-                const url = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&period1=${startTime}&period2=9999999999`;
-                return fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}&disableCache=true`)
-                .then(res => res.json())
-                .then(data => ({ item, result: JSON.parse(data.contents).chart.result[0] }))
-                .catch(err => null);
+                const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&period1=${startTime}&period2=9999999999`;
+                // 改用corsproxy.io加速回應，並加入 timeout 機制避免無限卡住
+                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+                return fetch(proxyUrl, { signal: controller.signal })
+                .then(res => {
+                    clearTimeout(timeoutId);
+                    if (!res.ok) throw new Error('Network response was not ok');
+                    return res.json();
+                })
+                .then(data => ({ item, result: data.chart.result[0] }))
+                .catch(err => {
+                    console.warn(`Fetch failed for ${item.sym}:`, err);
+                    return null;
+                });
             });
 
             const results = await Promise.all(promises);
+            let successCount = 0;
+
             results.forEach(res => {
-                if (!res) return;
+                if (!res || !res.result) return;
+                successCount++;
                 const { item, result } = res;
                 const meta = result.meta;
                 const quotes = result.indicators.quote[0].close.filter(v => v != null);
@@ -121,7 +132,13 @@
                     updateChartUI(item, result, currentPrice);
                 }
             });
-            document.getElementById('update-time').innerText = `UPDATED: ${new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}`;
+
+            const timeStr = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+            if (successCount > 0) {
+                document.getElementById('update-time').innerText = `UPDATED: ${timeStr}`;
+            } else {
+                document.getElementById('update-time').innerText = `SYNC FAILED (${timeStr})`;
+            }
         }
 
         function updateStockUI(id, name, price, pct) {
@@ -148,7 +165,7 @@
                         <div id="chart-${item.id}" class="chart-box"></div>
                     </div>
                 `;
-                setTimeout(() => renderKChart(item, result, currentPrice), 400);
+                setTimeout(() => renderKChart(item, result, currentPrice), 300);
             } else {
                 updatePriceLabel(item, currentPrice);
                 refreshChart(item.id, result);
