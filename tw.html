@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券工具</title>
+    <title>海外債券報價工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -174,11 +174,12 @@ US12189TAZ75"></textarea>
         return val;
     }
 
-    function getValByHeader(headers, row, exactNames) {
+    function getValByHeader(headers, row, exactNames, excludeNames = []) {
         for (let name of exactNames) {
             for (let idx = 0; idx < headers.length; idx++) {
                 let hText = String(headers[idx] || "").trim();
-                if (hText === name || hText.includes(name)) {
+                let isExcluded = excludeNames.some(ex => hText.includes(ex));
+                if (!isExcluded && (hText === name || hText.includes(name))) {
                     return row[idx] !== undefined ? row[idx] : "";
                 }
             }
@@ -247,7 +248,8 @@ US12189TAZ75"></textarea>
             let seniority = getValByHeader(h, r, ["債償順位", "債信順位", "順位"]);
             let rating = getValByHeader(h, r, ["移轉", "標臂", "處置", "信評"]);
             
-            let rawRefPrice = getValByHeader(h, r, ["買進參考價", "參考價"]);
+            // 嚴格排除「賣出」欄位，確保只抓「買進參考價」
+            let rawRefPrice = getValByHeader(h, r, ["買進參考價", "買進", "參考價"], ["賣出"]);
             let refPrice = formatNumber(rawRefPrice, 2);
             
             let ytm = formatPercentage(getValByHeader(h, r, ["到期收益率", "收益率"]));
