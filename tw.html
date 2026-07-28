@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券報價工具</title>
+    <title>海外債券動態對應快查與圖片生成工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -60,7 +60,7 @@
         </div>
 
         <div class="card">
-            <h3>🔍 輸入欲查詢的 ISIN 代碼 (必須相符才會帶入)</h3>
+            <h3>🔍 輸入欲查詢的 ISIN 代碼 (自動清除多餘空白)</h3>
             <p>每行輸入一個代碼，或用逗號隔開</p>
             <textarea id="isinInput" placeholder="例如：
 US91324PAR38
@@ -74,7 +74,7 @@ US12189TAZ75"></textarea>
 
     <div id="captureArea">
         <div class="header-bar">
-            <h1>海外債券每日報價</h1>
+            <h1>海外債券每日報價快查報表</h1>
             <div class="date-badge" id="reportDate">報價日期：載入中...</div>
         </div>
 
@@ -131,13 +131,14 @@ US12189TAZ75"></textarea>
                             let row = rows[i];
                             let rowStr = row.join(" ");
                             if (row.length >= 2 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
-                                let isin = String(row[0]).trim().toUpperCase();
+                                let isin = String(row[0]).replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim().toUpperCase();
                                 if (!uniqueIsinSet.has(isin)) {
                                     uniqueIsinSet.add(isin);
                                     extractedRows.push({
                                         sheet: sheetName,
                                         headers: headers,
-                                        data: row
+                                        data: row,
+                                        cleanIsin: isin
                                     });
                                 }
                             }
@@ -199,15 +200,15 @@ US12189TAZ75"></textarea>
             return;
         }
 
-        let targetIsins = rawIsinText.split(/[\\n,]+/).map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+        // 智慧淨化：清除所有換行、前後空白、特殊字元並轉大寫
+        let targetIsins = rawIsinText.split(/[,\n\r]+/).map(s => s.replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim().toUpperCase()).filter(s => s.length > 0);
 
         const container = document.getElementById('resultContainer');
         container.innerHTML = '';
 
         let matchedItems = [];
         extractedRows.forEach(item => {
-            let currentIsin = String(item.data[0]).trim().toUpperCase();
-            if (targetIsins.includes(currentIsin)) {
+            if (targetIsins.includes(item.cleanIsin)) {
                 matchedItems.push(item);
             }
         });
@@ -239,7 +240,7 @@ US12189TAZ75"></textarea>
             let h = item.headers;
             let r = item.data;
 
-            let isin = r[0] || '';
+            let isin = item.cleanIsin;
             let issuer = getValByHeader(h, r, ["發行機構", "保證機構", "證券名稱"]);
             let currency = getValByHeader(h, r, ["幣別", "幣種"]) || "USD";
             let coupon = formatPercentage(getValByHeader(h, r, ["票面利率", "債息", "利率"]));
@@ -248,7 +249,6 @@ US12189TAZ75"></textarea>
             let seniority = getValByHeader(h, r, ["債償順位", "債信順位", "順位"]);
             let rating = getValByHeader(h, r, ["移轉", "標臂", "處置", "信評"]);
             
-            // 嚴格排除「賣出」欄位，確保只抓「買進參考價」
             let rawRefPrice = getValByHeader(h, r, ["買進參考價", "買進", "參考價"], ["賣出"]);
             let refPrice = formatNumber(rawRefPrice, 2);
             
