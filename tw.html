@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券動態工具</title>
+    <title>海外債券報價生成</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -32,7 +32,6 @@
         .date-badge { font-size: 14px; font-weight: bold; color: #334155; background: #e2e8f0; padding: 6px 14px; border-radius: 6px; }
         
         .table-section { margin-bottom: 35px; }
-        .section-title { background: #d9e1f2; color: #000000; font-size: 15px; font-weight: bold; padding: 10px 16px; border: 1px solid #b0c4de; border-bottom: none; }
         
         table { width: 100%; border-collapse: collapse; font-size: 13px; background: #ffffff; margin-bottom: 10px; }
         th, td { border: 1px solid #bfbfbf; padding: 8px 10px; text-align: center; vertical-align: middle; }
@@ -40,6 +39,8 @@
         td.text-left { text-align: left; }
         td.text-right { text-align: right; }
         td.highlight-orange { background-color: #fce4d6 !important; font-weight: bold; color: #000000; }
+        td.issuer-bold { font-weight: bold; }
+        td.text-red { color: #dc2626; font-weight: bold; }
         tr:nth-child(even) { background-color: #fafafa; }
         tr:hover { background-color: #f1f5f9; }
     </style>
@@ -73,7 +74,7 @@ US12189TAZ75"></textarea>
 
     <div id="captureArea">
         <div class="header-bar">
-            <h1>海外債券每日報價</h1>
+            <h1>海外債券每日報價快查報表</h1>
             <div class="date-badge" id="reportDate">報價日期：載入中...</div>
         </div>
 
@@ -224,7 +225,6 @@ US12189TAZ75"></textarea>
 
         let htmlContent = `
             <div class="table-section">
-                <div class="section-title"></div>
                 <table>
                     <thead>
                         <tr>
@@ -246,7 +246,8 @@ US12189TAZ75"></textarea>
             let freq = getColVal(h, r, ["配息頻率"]);
             let seniority = getColVal(h, r, ["債償順位", "債信順位", "順位"]);
             let rating = getColVal(h, r, ["移轉", "標臂", "處置", "信評"]);
-            let refPrice = formatNumber(getColVal(h, r, ["買進參考價", "參考價"]), 2);
+            let rawRefPrice = getColVal(h, r, ["買進參考價", "參考价", "參考價"]);
+            let refPrice = formatNumber(rawRefPrice, 2);
             let ytm = formatPercentage(getColVal(h, r, ["到期收益率", "收益率"]));
             let maturityYears = getColVal(h, r, ["距到期年", "到期年限", "年限"]);
             let accruedInterest = formatNumber(getColVal(h, r, ["前手息"]), 2);
@@ -260,8 +261,20 @@ US12189TAZ75"></textarea>
 
             displayCols.forEach((cellVal, idx) => {
                 let cellClass = '';
-                if (idx === 1) cellClass = 'text-left';
-                else if (idx === 8 || idx === 11) cellClass = 'text-right';
+                if (idx === 1) {
+                    cellClass = 'text-left issuer-bold'; // 發行機構改為粗體
+                } else if (idx === 8 || idx === 11) {
+                    cellClass = 'text-right';
+                }
+                
+                // 買進參考價大於100變紅色
+                if (idx === 8) {
+                    let numVal = Number(cellVal);
+                    if (!isNaN(numVal) && numVal > 100) {
+                        cellClass += ' text-red';
+                    }
+                }
+
                 if (idx === 9) {
                     cellClass += ' highlight-orange';
                 }
