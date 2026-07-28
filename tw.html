@@ -20,7 +20,10 @@
         .upload-btn:hover { background-color: #1d4ed8; }
         input[type="file"] { display: none; }
         textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical; background: #fff; }
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .sort-group { display: flex; gap: 10px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+        .sort-group label { font-size: 13px; font-weight: bold; color: #334155; }
+        .sort-group select { padding: 6px 10px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 13px; background: #fff; }
+        .btn-group { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
         .action-btn { background-color: #059669; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; }
         .action-btn:hover { background-color: #047857; }
         .featured-btn { background-color: #d97706; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; display: none; }
@@ -82,8 +85,25 @@
             <textarea id="isinInput" placeholder="例如：
 US91324PAR38
 US12189TAZ75"></textarea>
+            
+            <!-- 新增排序設定選項 -->
+            <div class="sort-group">
+                <label>排序依據：</label>
+                <select id="sortBySelect">
+                    <option value="">(不排序，維持輸入順序)</option>
+                    <option value="maturityYears">到期年限</option>
+                    <option value="coupon">票面利率</option>
+                    <option value="refPrice">買進參考價</option>
+                    <option value="ytm">到期收益率(YTM)</option>
+                </select>
+                <select id="sortOrderSelect">
+                    <option value="desc">由高到低 (降冪)</option>
+                    <option value="asc">由低到高 (升冪)</option>
+                </select>
+            </div>
+
             <div class="btn-group">
-                <button class="action-btn" onclick="filterAndRender()">依 ISIN 篩選</button>
+                <button class="action-btn" onclick="filterAndRender()">依 ISIN 篩選並排序</button>
                 <button class="download-img-btn" id="downloadImgBtn" onclick="downloadImage()">📸 儲存一般報表圖</button>
                 <button class="featured-btn" id="featuredBtn" onclick="openFeaturedModal()">🌟 生成精選海外債圖片</button>
             </div>
@@ -238,7 +258,6 @@ US12189TAZ75"></textarea>
         return "";
     }
 
-    // 自動依據距到期年與申購資格計算分類
     function computeBondCategory(headers, row) {
         let maturityYearsVal = Number(getValByHeader(headers, row, ["距到期年", "到期年限", "年限"]));
         let qualification = String(getValByHeader(headers, row, ["申購資格", "資格"]) || "").trim();
@@ -299,6 +318,38 @@ US12189TAZ75"></textarea>
             container.innerHTML = `<p style="text-align:center; color:#e11d48; padding:40px; font-weight:bold;">找不到任何符合您輸入的 ISIN 代碼資料。</p>`;
             document.getElementById('downloadImgBtn').style.display = 'none';
             return;
+        }
+
+        // 進行數值排序處理
+        const sortBy = document.getElementById('sortBySelect').value;
+        const sortOrder = document.getElementById('sortOrderSelect').value;
+
+        if (sortBy) {
+            matchedItems.sort((a, b) => {
+                let valA, valB;
+                let hA = a.headers, rA = a.data;
+                let hB = b.headers, rB = b.data;
+
+                if (sortBy === 'maturityYears') {
+                    valA = Number(getValByHeader(hA, rA, ["距到期年", "到期年限", "年限"])) || 0;
+                    valB = Number(getValByHeader(hB, rB, ["距到期年", "到期年限", "年限"])) || 0;
+                } else if (sortBy === 'coupon') {
+                    valA = parseFloat(String(getValByHeader(hA, rA, ["票面利率", "債息", "利率"])).replace('%', '')) || 0;
+                    valB = parseFloat(String(getValByHeader(hB, rB, ["票面利率", "債息", "利率"])).replace('%', '')) || 0;
+                } else if (sortBy === 'refPrice') {
+                    valA = Number(getValByHeader(hA, rA, ["買進參考價", "買進", "參考價"], ["賣出"])) || 0;
+                    valB = Number(getValByHeader(hB, rB, ["買進參考價", "買進", "參考價"], ["賣出"])) || 0;
+                } else if (sortBy === 'ytm') {
+                    valA = parseFloat(String(getValByHeader(hA, rA, ["到期收益率", "收益率"])).replace('%', '')) || 0;
+                    valB = parseFloat(String(getValByHeader(hB, rB, ["到期收益率", "收益率"])).replace('%', '')) || 0;
+                }
+
+                if (sortOrder === 'desc') {
+                    return valB - valA; // 由高到低
+                } else {
+                    return valA - valB; // 由低到高
+                }
+            });
         }
 
         const targetHeaders = [
@@ -380,9 +431,7 @@ US12189TAZ75"></textarea>
             let r = item.data;
             let isin = item.cleanIsin;
             
-            // 自動計算分類（短期、中期、長期、公司債(PI)、金融債(PI)）
             let category = computeBondCategory(h, r);
-            
             let issuer = getValByHeader(h, r, ["發行機構", "保證機構", "證券名稱"]);
             let coupon = formatPercentage(getValByHeader(h, r, ["票面利率", "債息", "利率"]));
             let maturityDate = getValByHeader(h, r, ["到期日", "到期"]);
