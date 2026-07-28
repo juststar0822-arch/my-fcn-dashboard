@@ -104,6 +104,7 @@ US12189TAZ75"></textarea>
                 globalWorkbook = XLSX.read(data, { type: 'array' });
                 
                 allSheetsConsolidatedRows = [];
+                let uniqueSet = new Set(); // 防止重複收集相同 ISIN
 
                 globalWorkbook.SheetNames.forEach(sheetName => {
                     const ws = globalWorkbook.Sheets[sheetName];
@@ -126,20 +127,24 @@ US12189TAZ75"></textarea>
                         }
 
                         if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8) {
-                            allSheetsConsolidatedRows.push({
-                                sheetName: sheetName,
-                                sectionTitle: currentSectionTitle,
-                                headers: sheetHeaders.length > 0 ? sheetHeaders : [
-                                    "ISIN", "發行機構/保證機構/證券名稱", "票面利率", "類型", "配息頻率", 
-                                    "債信順位", "移轉\\標臂\\處置", "買進參考價", "到期收益率", "到期年限", "每萬元前手息", "申購資格"
-                                ],
-                                data: row
-                            });
+                            let isinKey = String(row[0]).trim().toUpperCase() + "_" + currentSectionTitle;
+                            if (!uniqueSet.has(isinKey)) {
+                                uniqueSet.add(isinKey);
+                                allSheetsConsolidatedRows.push({
+                                    sheetName: sheetName,
+                                    sectionTitle: currentSectionTitle,
+                                    headers: sheetHeaders.length > 0 ? sheetHeaders : [
+                                        "ISIN", "發行機構/保證機構/證券名稱", "票面利率", "類型", "配息頻率", 
+                                        "債信順位", "移轉\\標臂\\處置", "買進參考價", "到期收益率", "到期年限", "每萬元前手息", "申購資格"
+                                    ],
+                                    data: row
+                                });
+                            }
                         }
                     });
                 });
 
-                document.getElementById('fileStatus').innerText = `✅ 成功載入檔案！共讀取 ${allSheetsConsolidatedRows.length} 筆債券資料，請於右側輸入 ISIN 查詢。`;
+                document.getElementById('fileStatus').innerText = `✅ 成功載入檔案！共讀取 ${allSheetsConsolidatedRows.length} 筆獨立債券資料，請於右側輸入 ISIN 查詢。`;
             } catch (err) {
                 alert("解析檔案發生錯誤：" + err);
             }
@@ -150,11 +155,9 @@ US12189TAZ75"></textarea>
     function formatCell(val, idx) {
         if (val === undefined || val === null || val === '') return '';
         let num = Number(val);
-        // 買進參考價 (索引 7) -> 小數點第二位
         if (idx === 7 && !isNaN(num)) {
             return num.toFixed(2);
         }
-        // 票面利率 (索引 2) 或 到期收益率 (索引 8) -> % 顯示
         if (idx === 2 || idx === 8) {
             let strVal = String(val).trim();
             if (strVal.includes('%')) return strVal;
@@ -186,7 +189,6 @@ US12189TAZ75"></textarea>
         let groupedBySection = {};
         allSheetsConsolidatedRows.forEach(item => {
             let currentIsin = String(item.data[0]).trim().toUpperCase();
-            // 嚴格比對：必須在使用者輸入的 ISIN 清單中才予帶入
             if (targetIsins.includes(currentIsin)) {
                 let secKey = item.sectionTitle;
                 if (!groupedBySection[secKey]) {
