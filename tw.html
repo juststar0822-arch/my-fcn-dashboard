@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券生成工具</title>
+    <title>海外債券與精選商品報價圖片生成工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -16,7 +16,7 @@
         @media (max-width: 900px) { .control-panel { grid-template-columns: 1fr; } }
         .card h3 { font-size: 16px; color: #0f172a; margin-bottom: 6px; }
         .card p { font-size: 12px; color: #64748b; margin-bottom: 12px; }
-        .upload-btn { background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-block; }
+        .upload-btn { background-color: #2563eb; color: white; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: bold; display: inline-block; border: none; }
         .upload-btn:hover { background-color: #1d4ed8; }
         input[type="file"] { display: none; }
         textarea { width: 100%; height: 85px; padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-family: monospace; font-size: 13px; resize: vertical; background: #fff; }
@@ -45,29 +45,22 @@
         tr:nth-child(even) { background-color: #fafafa; }
         tr:hover { background-color: #f1f5f9; }
 
+        /* 彈出視窗樣式 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
-        .modal-content { background: #ffffff; width: 100%; max-width: 1200px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; }
-        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 24px; font-weight: bold; cursor: pointer; color: #64748b; }
+        .modal-content { background: #ffffff; width: 100%; max-width: 1200px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; z-index: 1001; }
+        .close-modal { position: absolute; top: 20px; right: 25px; font-size: 28px; font-weight: bold; cursor: pointer; color: #64748b; z-index: 1002; }
         .close-modal:hover { color: #0f172a; }
 
-        /* 改為質感淡藍色背景的精選海外債專屬圖片卡片 */
-        #featuredCaptureCard { background: #f0f9ff; border-radius: 8px; overflow: hidden; border: 1px solid #bae6fd; }
-        .featured-hero { display: flex; background: #f0f9ff; padding: 30px; align-items: center; justify-content: space-between; border-bottom: 2px solid #bae6fd; }
+        /* 高質感精選海外債專屬圖片卡片 */
+        #featuredCaptureCard { background: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .featured-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 28px 36px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #3b82f6; }
+        .featured-banner h2 { font-size: 32px; font-weight: 900; letter-spacing: 1.5px; }
         
-        .title-box-wrapper { position: relative; width: 420px; height: 160px; background: #ffffff; border: 3px solid #1e3a8a; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; padding-left: 45px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .title-box-wrapper h2 { font-size: 42px; font-weight: 900; color: #0f172a; letter-spacing: 2px; line-height: 1.2; }
-        .title-blue-bar { width: 280px; height: 8px; background-color: #1d4ed8; margin-top: 10px; border-radius: 2px; }
-        .orange-dot-top { position: absolute; top: 15px; left: 20px; width: 35px; height: 35px; background: radial-gradient(circle, #f97316 40%, transparent 41%); background-size: 6px 6px; border-radius: 50%; }
-        .orange-dot-bottom { position: absolute; bottom: 15px; right: 25px; width: 35px; height: 35px; background: radial-gradient(circle, #f97316 40%, transparent 41%); background-size: 6px 6px; border-radius: 50%; }
-
-        .hero-illustration { flex: 1; height: 160px; background: linear-gradient(180deg, rgba(240,249,2ff,0) 0%, rgba(56,189,248,0.15) 100%); position: relative; display: flex; align-items: flex-end; justify-content: flex-end; padding-right: 20px; overflow: hidden; }
-        .illustration-curve { position: absolute; bottom: 0; right: 0; width: 100%; height: 80px; background: #0284c7; border-top-left-radius: 100% 50px; opacity: 0.75; }
-
         .featured-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #ffffff; }
-        .featured-table th { background-color: #2563eb; color: #ffffff; padding: 12px 14px; font-weight: bold; text-align: center; border: 1px solid #93c5fd; }
-        .featured-table td { padding: 10px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; }
+        .featured-table th { background-color: #1e293b; color: #ffffff; padding: 12px 14px; font-weight: bold; text-align: center; border: 1px solid #475569; font-size: 13px; }
+        .featured-table td { padding: 11px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; color: #0f172a; }
         .featured-table tr:nth-child(even) { background-color: #f8fafc; }
-        .featured-footer { padding: 15px 20px; text-align: right; font-size: 12px; color: #64748b; background: #f8fafc; border-top: 1px solid #e2e8f0; }
+        .featured-footer { padding: 16px 24px; text-align: right; font-size: 12px; color: #64748b; background: #f8fafc; border-top: 1px solid #e2e8f0; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -119,21 +112,13 @@ US12189TAZ75"></textarea>
         <span class="close-modal" onclick="closeFeaturedModal()">&times;</span>
         <h3 style="margin-bottom: 15px; color: #1e293b;">📅 「每日精選海外債」圖片預覽</h3>
         
-        <!-- 截圖專用精選卡片 (淡藍色系) -->
+        <!-- 截圖專用精選卡片 -->
         <div id="featuredCaptureCard">
-            <div class="featured-hero">
-                <div class="title-box-wrapper">
-                    <div class="orange-dot-top"></div>
-                    <h2>精選海外債</h2>
-                    <div class="title-blue-bar"></div>
-                    <div class="orange-dot-bottom"></div>
-                </div>
-                <div class="hero-illustration">
-                    <div class="illustration-curve"></div>
-                    <div style="position: relative; z-index: 2; font-size: 13px; font-weight: bold; color: white; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 4px; margin-bottom: 10px;" id="modalDateBadge">報價日期：2026/07/28</div>
-                </div>
+            <div class="featured-banner">
+                <h2>精選海外債</h2>
+                <div style="font-size: 14px; font-weight: bold; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 6px;" id="modalDateBadge">報價日期：2026/07/28</div>
             </div>
-            <div style="padding: 20px;">
+            <div style="padding: 24px;">
                 <table class="featured-table" id="featuredTableContainer">
                     <!-- 動態帶入精選商品資料 -->
                 </table>
@@ -143,7 +128,8 @@ US12189TAZ75"></textarea>
             </div>
         </div>
 
-        <div style="margin-top: 20px; text-align: right;">
+        <div style="margin-top: 20px; text-align: right; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="upload-btn" style="background-color: #64748b;" onclick="closeFeaturedModal()">關閉視窗</button>
             <button class="upload-btn" style="background-color: #7c3aed;" onclick="downloadFeaturedImage()">📸 一鍵儲存精選海外債圖片 (PNG)</button>
         </div>
     </div>
