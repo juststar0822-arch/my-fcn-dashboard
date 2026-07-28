@@ -28,6 +28,7 @@
         .download-img-btn { background-color: #7c3aed; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; flex: 1; display: none; }
         .download-img-btn:hover { background-color: #6d28d9; }
         
+        /* 一般查詢報表樣式 */
         #captureArea { background: #ffffff; padding: 24px; border-radius: 8px; border: 1px solid #e2e8f0; }
         .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 3px solid #0f172a; padding-bottom: 14px; }
         .header-bar h1 { font-size: 20px; color: #0f172a; font-weight: 800; }
@@ -51,9 +52,21 @@
         .close-modal { position: absolute; top: 20px; right: 25px; font-size: 24px; font-weight: bold; cursor: pointer; color: #64748b; }
         .close-modal:hover { color: #0f172a; }
 
-        #featuredCaptureCard { background: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #e2e8f0; }
-        .featured-banner { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 30px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .featured-banner h2 { font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+        /* 仿照圖片 8 的精緻精選海外債專屬圖片卡片 */
+        #featuredCaptureCard { background: #eef2f7; border-radius: 8px; overflow: hidden; border: 1px solid #cbd5e1; }
+        .featured-hero { display: flex; background: #eef2f7; padding: 30px; align-items: center; justify-content: space-between; border-bottom: 2px solid #cbd5e1; }
+        
+        /* 左側標題方塊 */
+        .title-box-wrapper { position: relative; width: 420px; height: 160px; background: #ffffff; border: 3px solid #1e3a8a; border-radius: 4px; display: flex; flex-direction: column; justify-content: center; padding-left: 45px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .title-box-wrapper h2 { font-size: 42px; font-weight: 900; color: #0f172a; letter-spacing: 2px; line-height: 1.2; }
+        .title-blue-bar { width: 280px; height: 8px; background-color: #1d4ed8; margin-top: 10px; border-radius: 2px; }
+        .orange-dot-top { position: absolute; top: 15px; left: 20px; width: 35px; height: 35px; background: radial-gradient(circle, #f97316 40%, transparent 41%); background-size: 6px 6px; border-radius: 50%; }
+        .orange-dot-bottom { position: absolute; bottom: 15px; right: 25px; width: 35px; height: 35px; background: radial-gradient(circle, #f97316 40%, transparent 41%); background-size: 6px 6px; border-radius: 50%; }
+
+        /* 右側情境插畫風格背景 */
+        .hero-illustration { flex: 1; height: 160px; background: linear-gradient(180deg, rgba(238,242,247,0) 0%, rgba(249,115,22,0.15) 100%); position: relative; display: flex; align-items: flex-end; justify-content: flex-end; padding-right: 20px; overflow: hidden; }
+        .illustration-curve { position: absolute; bottom: 0; right: 0; width: 100%; height: 80px; background: #ea580c; border-top-left-radius: 100% 50px; opacity: 0.85; }
+
         .featured-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #ffffff; }
         .featured-table th { background-color: #2563eb; color: #ffffff; padding: 12px 14px; font-weight: bold; text-align: center; border: 1px solid #93c5fd; }
         .featured-table td { padding: 10px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; }
@@ -110,11 +123,19 @@ US12189TAZ75"></textarea>
         <span class="close-modal" onclick="closeFeaturedModal()">&times;</span>
         <h3 style="margin-bottom: 15px; color: #1e293b;">📅 「每日精選海外債」圖片預覽</h3>
         
-        <!-- 截圖專用精選卡片 -->
+        <!-- 截圖專用精選卡片 (完美仿照圖 8 風格) -->
         <div id="featuredCaptureCard">
-            <div class="featured-banner">
-                <h2>精選海外債</h2>
-                <div style="font-size: 14px; font-weight: bold; background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 6px;" id="modalDateBadge">報價日期：2026/07/28</div>
+            <div class="featured-hero">
+                <div class="title-box-wrapper">
+                    <div class="orange-dot-top"></div>
+                    <h2>精選海外債</h2>
+                    <div class="title-blue-bar"></div>
+                    <div class="orange-dot-bottom"></div>
+                </div>
+                <div class="hero-illustration">
+                    <div class="illustration-curve"></div>
+                    <div style="position: relative; z-index: 2; font-size: 13px; font-weight: bold; color: white; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 4px; margin-bottom: 10px;" id="modalDateBadge">報價日期：2026/07/28</div>
+                </div>
             </div>
             <div style="padding: 20px;">
                 <table class="featured-table" id="featuredTableContainer">
@@ -177,7 +198,7 @@ US12189TAZ75"></textarea>
                             let row = rows[i];
                             let rowStr = row.join(" ");
                             if (row.length >= 2 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
-                                let isin = String(row[0]).replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim().toUpperCase();
+                                let isin = String(row[0]).replace(/[\s​-‍﻿]/g, '').trim().toUpperCase();
                                 
                                 if (!uniqueIsinSet.has(isin)) {
                                     uniqueIsinSet.add(isin);
@@ -248,7 +269,7 @@ US12189TAZ75"></textarea>
             return;
         }
 
-        let targetIsins = rawIsinText.split(/[,\n\r]+/).map(s => s.replace(/[\s\u200B-\u200D\uFEFF]/g, '').trim().toUpperCase()).filter(s => s.length > 0);
+        let targetIsins = rawIsinText.split(/[,\n\r]+/).map(s => s.replace(/[\s​-‍﻿]/g, '').trim().toUpperCase()).filter(s => s.length > 0);
 
         const container = document.getElementById('resultContainer');
         container.innerHTML = '';
