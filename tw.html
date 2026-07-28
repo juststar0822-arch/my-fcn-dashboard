@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券 ISIN 精準快查與圖片生成工具</title>
+    <title>海外債券每日報價</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -11,7 +11,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: #f1f5f9; color: #1e293b; padding: 24px; }
-        .container { max-width: 1500px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
+        .container { max-width: 1550px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
         .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
         @media (max-width: 900px) { .control-panel { grid-template-columns: 1fr; } }
         .card h3 { font-size: 16px; color: #0f172a; margin-bottom: 6px; }
@@ -104,13 +104,12 @@ US12189TAZ75"></textarea>
                 globalWorkbook = XLSX.read(data, { type: 'array' });
                 
                 allSheetsConsolidatedRows = [];
-                let uniqueSet = new Set(); // 防止重複收集相同 ISIN
+                let uniqueSet = new Set();
 
                 globalWorkbook.SheetNames.forEach(sheetName => {
                     const ws = globalWorkbook.Sheets[sheetName];
                     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
                     
-                    let sheetHeaders = [];
                     let currentSectionTitle = sheetName.includes("日本") ? "日本公司海外債券" : "10年以上海外債券每日報價 [依 YTM 排序]";
                     
                     rows.forEach(row => {
@@ -121,22 +120,12 @@ US12189TAZ75"></textarea>
                             currentSectionTitle = "10年以上海外債券每日報價 [依 YTM 排序]";
                         }
 
-                        if (rowStr.includes("ISIN") || rowStr.includes("票面利率")) {
-                            sheetHeaders = row.filter(cell => cell !== undefined && cell !== null && cell !== "");
-                            return;
-                        }
-
-                        if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8) {
+                        if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
                             let isinKey = String(row[0]).trim().toUpperCase() + "_" + currentSectionTitle;
                             if (!uniqueSet.has(isinKey)) {
                                 uniqueSet.add(isinKey);
                                 allSheetsConsolidatedRows.push({
-                                    sheetName: sheetName,
                                     sectionTitle: currentSectionTitle,
-                                    headers: sheetHeaders.length > 0 ? sheetHeaders : [
-                                        "ISIN", "發行機構/保證機構/證券名稱", "票面利率", "類型", "配息頻率", 
-                                        "債信順位", "移轉\\標臂\\處置", "買進參考價", "到期收益率", "到期年限", "每萬元前手息", "申購資格"
-                                    ],
                                     data: row
                                 });
                             }
@@ -192,12 +181,9 @@ US12189TAZ75"></textarea>
             if (targetIsins.includes(currentIsin)) {
                 let secKey = item.sectionTitle;
                 if (!groupedBySection[secKey]) {
-                    groupedBySection[secKey] = {
-                        headers: item.headers,
-                        rows: []
-                    };
+                    groupedBySection[secKey] = [];
                 }
-                groupedBySection[secKey].rows.push(item);
+                groupedBySection[secKey].push(item.data);
             }
         });
 
@@ -208,9 +194,15 @@ US12189TAZ75"></textarea>
             return;
         }
 
+        const targetHeaders = [
+            "ISIN代碼", "發行機構", "幣別", "票面利率", "類型", 
+            "配息頻率", "債償順位", "債券信評", "買進參考價", 
+            "到期收益率", "到期年限", "每萬元前手息", "申購資格"
+        ];
+
         let htmlContent = '';
         keys.forEach(secKey => {
-            let group = groupedBySection[secKey];
+            let rowsData = groupedBySection[secKey];
             let isJapan = secKey.includes("日本") || secKey.includes("Japan");
             let titleClass = isJapan ? "section-title japan" : "section-title";
 
@@ -221,21 +213,42 @@ US12189TAZ75"></textarea>
                         <thead>
                             <tr>
             `;
-            group.headers.forEach(h => { htmlContent += `<th>${h || ''}</th>`; });
+            targetHeaders.forEach(h => { htmlContent += `<th>${h}</th>`; });
             htmlContent += `</tr></thead><tbody>`;
 
-            group.rows.forEach(item => {
+            rowsData.forEach(row => {
                 htmlContent += `<tr>`;
-                item.data.forEach((cell, idx) => {
-                    let formattedVal = formatCell(cell, idx);
+                
+                let isin = row[0] || '';
+                let issuer = row[1] || '';
+                let currency = "USD";
+                let coupon = formatCell(row[2], 2);
+                let bondType = row[3] || '';
+                let freq = row[4] || '';
+                let seniority = row[5] || '';
+                let rating = row[6] || '';
+                let refPrice = formatCell(row[7], 7);
+                let ytm = formatCell(row[8], 8);
+                let maturityYears = row[9] || '';
+                let accruedInterest = row[10] || '';
+                let qualification = row[11] || '';
+
+                let displayCols = [
+                    isin, issuer, currency, coupon, bondType, 
+                    freq, seniority, rating, refPrice, 
+                    ytm, maturityYears, accruedInterest, qualification
+                ];
+
+                displayCols.forEach((cellVal, idx) => {
                     let cellClass = '';
                     if (idx === 1) cellClass = 'text-left';
-                    else if (idx === 10 || idx === 7) cellClass = 'text-right';
-                    if (idx === 8) {
+                    else if (idx === 8 || idx === 10) cellClass = 'text-right';
+                    if (idx === 9) {
                         cellClass += ' highlight-orange';
                     }
-                    htmlContent += `<td class="${cellClass}">${formattedVal}</td>`;
+                    htmlContent += `<td class="${cellClass}">${cellVal}</td>`;
                 });
+
                 htmlContent += `</tr>`;
             });
 
