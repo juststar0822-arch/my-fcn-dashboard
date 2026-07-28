@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券每日報價</title>
+    <title>海外債券精準快查與圖片生成工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -11,7 +11,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: #f1f5f9; color: #1e293b; padding: 24px; }
-        .container { max-width: 1550px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
+        .container { max-width: 1600px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
         .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
         @media (max-width: 900px) { .control-panel { grid-template-columns: 1fr; } }
         .card h3 { font-size: 16px; color: #0f172a; margin-bottom: 6px; }
@@ -110,14 +110,14 @@ US12189TAZ75"></textarea>
                     const ws = globalWorkbook.Sheets[sheetName];
                     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
                     
-                    let currentSectionTitle = sheetName.includes("日本") ? "日本公司海外債券" : "10年以上海外債券每日報價 [依 YTM 排序]";
+                    let currentSectionTitle = sheetName.includes("日本") ? "日本公司海外債券" : "海外債券每日報價清單";
                     
                     rows.forEach(row => {
                         let rowStr = row.join(" ");
                         if (rowStr.includes("日本公司海外債券")) {
                             currentSectionTitle = "日本公司海外債券";
-                        } else if (rowStr.includes("10年以上海外債券")) {
-                            currentSectionTitle = "10年以上海外債券每日報價 [依 YTM 排序]";
+                        } else if (rowStr.includes("海外債券") || rowStr.includes("每日報價")) {
+                            currentSectionTitle = sheetName;
                         }
 
                         if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
@@ -141,19 +141,23 @@ US12189TAZ75"></textarea>
         reader.readAsArrayBuffer(file);
     }
 
-    function formatCell(val, idx) {
+    function formatNumber(val, decimals) {
         if (val === undefined || val === null || val === '') return '';
         let num = Number(val);
-        if (idx === 7 && !isNaN(num)) {
-            return num.toFixed(2);
+        if (!isNaN(num)) {
+            return num.toFixed(decimals);
         }
-        if (idx === 2 || idx === 8) {
-            let strVal = String(val).trim();
-            if (strVal.includes('%')) return strVal;
-            if (!isNaN(num)) {
-                let percentage = num < 1 ? num * 100 : num;
-                return percentage.toFixed(2) + '%';
-            }
+        return val;
+    }
+
+    function formatPercentage(val) {
+        if (val === undefined || val === null || val === '') return '';
+        let strVal = String(val).trim();
+        if (strVal.includes('%')) return strVal;
+        let num = Number(val);
+        if (!isNaN(num)) {
+            let percentage = num < 1 ? num * 100 : num;
+            return percentage.toFixed(2) + '%';
         }
         return val;
     }
@@ -222,15 +226,15 @@ US12189TAZ75"></textarea>
                 let isin = row[0] || '';
                 let issuer = row[1] || '';
                 let currency = "USD";
-                let coupon = formatCell(row[2], 2);
+                let coupon = formatPercentage(row[2]);
                 let bondType = row[3] || '';
                 let freq = row[4] || '';
                 let seniority = row[5] || '';
                 let rating = row[6] || '';
-                let refPrice = formatCell(row[7], 7);
-                let ytm = formatCell(row[8], 8);
+                let refPrice = formatNumber(row[7], 2);
+                let ytm = formatPercentage(row[8]);
                 let maturityYears = row[9] || '';
-                let accruedInterest = row[10] || '';
+                let accruedInterest = formatNumber(row[10], 2);
                 let qualification = row[11] || '';
 
                 let displayCols = [
