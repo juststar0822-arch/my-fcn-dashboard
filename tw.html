@@ -2,253 +2,216 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>市場追蹤 - 匯率與殖利率專區</title>
-    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>海外債券每日報價系統</title>
     <style>
-        :root {
-            --bg-color: #f2f2f7;
-            --card-bg: #ffffff;
-            --text-main: #1c1c1e;
-            --text-sub: #8e8e93;
-            --price-blue: #0040ff;
-            --up-red: #ff3b30;
-            --down-green: #34c759;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-
-        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-color);
-            margin: 0; padding: 4px 10px; 
-            display: flex; flex-direction: column; align-items: center;
-            overflow-x: hidden; height: 100vh;
+            font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 20px;
         }
-
-        .main-header { text-align: center; margin: 4px 0; }
-        .main-header h1 { font-size: 18px; font-weight: 800; margin: 0; color: var(--text-main); }
-
-        #update-time { align-self: flex-end; font-size: 8px; color: var(--text-sub); margin-bottom: 2px; font-family: 'SF Mono', monospace; }
-
-        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
-        
-        .stock-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
         }
-        .mini-card {
-            background: var(--card-bg); padding: 5px 8px; border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            display: flex; flex-direction: column; justify-content: center;
+        .header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 12px;
         }
-        .mini-name { font-size: 10px; font-weight: 700; color: var(--text-sub); margin-bottom: 1px; }
-        .mini-price { font-size: 12px; font-weight: 800; color: var(--text-main); font-family: 'SF Mono', monospace; white-space: nowrap; }
-
-        .highlight-label {
-            font-size: 13px !important; font-weight: 900; color: #000;
-            border-left: 4px solid var(--price-blue); padding-left: 6px;
-            margin: 6px 0 2px 2px !important;
+        .header-bar h1 {
+            font-size: 20px;
+            color: #1e293b;
         }
-
-        .card {
-            background: var(--card-bg); border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            margin-bottom: 4px; width: 100%; overflow: hidden;
+        .date-badge {
+            font-size: 14px;
+            font-weight: bold;
+            color: #475569;
+            background: #e2e8f0;
+            padding: 6px 12px;
+            border-radius: 4px;
         }
-
-        .k-card { padding: 6px 8px; height: 135px; position: relative; }
-        .k-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: -10px; z-index: 10; position: relative; }
-        .k-header .price { font-size: 16px; font-weight: 900; color: var(--price-blue); font-family: 'SF Mono', monospace; }
-        .chart-box { width: 100%; height: 110px; } 
-
-        .up { color: var(--up-red); }
-        .down { color: var(--down-green); }
+        .table-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            background-color: #d9e1f2;
+            color: #000000;
+            font-size: 15px;
+            font-weight: bold;
+            padding: 10px 16px;
+            border: 1px solid #b0c4de;
+            border-bottom: none;
+        }
+        .section-title.japan {
+            background-color: #fce4d6;
+            border-color: #f8cbad;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            background: #ffffff;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #bfbfbf;
+            padding: 8px 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background-color: #333333;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+        td.text-left {
+            text-align: left;
+        }
+        td.text-right {
+            text-align: right;
+        }
+        td.highlight-orange {
+            background-color: #fce4d6;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+        tr:hover {
+            background-color: #f1f5f9;
+        }
     </style>
 </head>
 <body>
 
-    <div class="main-header"><h1>市場走勢追蹤</h1></div>
-    <div id="update-time">SYNCING...</div>
-
-    <div class="container">
-        <div class="stock-grid" id="stock-grid"></div>
-        <div id="k-list-container"></div>
+<div class="container">
+    <div class="header-bar">
+        <h1>海外債券每日報價儀表板</h1>
+        <div class="date-badge">報價日期：2026/7/28</div>
     </div>
 
-    <script>
-        const startTime = Math.floor(new Date('2025-12-01').getTime() / 1000);
+    <!-- 10年以上海外債券區塊 -->
+    <div class="table-section">
+        <div class="section-title">10年以上海外債券每日報價 [依 YTM 排序]</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ISIN</th>
+                    <th>發行機構/保證機構/證券名稱</th>
+                    <th>票面利率</th>
+                    <th>類型</th>
+                    <th>配息頻率</th>
+                    <th>債信順位</th>
+                    <th>移轉\標臂\處置</th>
+                    <th>買進參考價</th>
+                    <th>到期收益率</th>
+                    <th>到期年限</th>
+                    <th>每萬元前手息</th>
+                    <th>申購資格</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>US91324PAR38</td>
+                    <td class="text-left">聯合健康集團公司</td>
+                    <td>5.8%</td>
+                    <td>固定</td>
+                    <td>半年配</td>
+                    <td>主順位，優先無擔保</td>
+                    <td>A+,A2,A</td>
+                    <td>106.80</td>
+                    <td class="highlight-orange">4.90%</td>
+                    <td>9.63</td>
+                    <td class="text-right">214.28</td>
+                    <td>一般投資人</td>
+                </tr>
+                <tr>
+                    <td>US12189TAZ75</td>
+                    <td class="text-left">伯靈頓北方聖塔菲有限責任公司</td>
+                    <td>6.15%</td>
+                    <td>固定</td>
+                    <td>半年配</td>
+                    <td>主順位，優先無擔保</td>
+                    <td>AA-,A2,-</td>
+                    <td>110.83</td>
+                    <td class="highlight-orange">4.84%</td>
+                    <td>10.76</td>
+                    <td class="text-right">148.63</td>
+                    <td>一般投資人</td>
+                </tr>
+                <tr>
+                    <td>US822582AD40</td>
+                    <td class="text-left">殼牌國際金融私人有限公司</td>
+                    <td>6.375%</td>
+                    <td>固定</td>
+                    <td>半年配</td>
+                    <td>主順位，優先無擔保</td>
+                    <td>A+,Aa2,AA-</td>
+                    <td>110.71</td>
+                    <td class="highlight-orange">5.19%</td>
+                    <td>12.39</td>
+                    <td class="text-right">76.15</td>
+                    <td>一般投資人</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
-        const symbols = [
-            { id: "TWII", sym: "^TWII", name: "台股加權指數", prec: 0, grid: true },
-            { id: "DJI", sym: "^DJI", name: "道瓊工業指數", prec: 0, grid: true },
-            { id: "IXIC", sym: "^IXIC", name: "那斯達克指數", prec: 0, grid: true },
-            { id: "TSM", sym: "TSM", name: "台積電 ADR", prec: 1, grid: true },
-            
-            { id: "USD", sym: "USDTWD=X", name: "美元 / 新台幣 (USD/TWD)", prec: 3, step: 0.2, grid: false },
-            { id: "JPY", sym: "JPYTWD=X", name: "日圓 / 新台幣 (JPY/TWD)", prec: 4, step: 0.001, grid: false },
-            { id: "TNX", sym: "^TNX", name: "美國 10年期公債殖利率", prec: 3, step: 0.04, grid: false }
-        ];
+    <!-- 日本公司海外債券區塊 -->
+    <div class="table-section">
+        <div class="section-title japan">日本公司海外債券</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>ISIN</th>
+                    <th>發行機構/保證機構/證券名稱</th>
+                    <th>票面利率</th>
+                    <th>類型</th>
+                    <th>配息頻率</th>
+                    <th>債信順位</th>
+                    <th>移轉\標臂\處置</th>
+                    <th>買進參考價</th>
+                    <th>到期收益率</th>
+                    <th>到期年限</th>
+                    <th>每萬元前手息</th>
+                    <th>申購資格</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>US89236TLM52</td>
+                    <td class="text-left">豐田汽車信貸公司</td>
+                    <td>4.8%</td>
+                    <td>固定</td>
+                    <td>半年配</td>
+                    <td>主順位，優先無擔保</td>
+                    <td>A+,A1,A+</td>
+                    <td>100.06</td>
+                    <td class="highlight-orange">4.78%</td>
+                    <td>7.44</td>
+                    <td class="text-right">30.67</td>
+                    <td>一般投資人</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        let charts = {};
-
-        async function fetchYahooData() {
-            const promises = symbols.map(item => {
-                const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${item.sym}?interval=1d&period1=${startTime}&period2=9999999999`;
-                // 改用corsproxy.io加速回應，並加入 timeout 機制避免無限卡住
-                const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-                
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
-
-                return fetch(proxyUrl, { signal: controller.signal })
-                .then(res => {
-                    clearTimeout(timeoutId);
-                    if (!res.ok) throw new Error('Network response was not ok');
-                    return res.json();
-                })
-                .then(data => ({ item, result: data.chart.result[0] }))
-                .catch(err => {
-                    console.warn(`Fetch failed for ${item.sym}:`, err);
-                    return null;
-                });
-            });
-
-            const results = await Promise.all(promises);
-            let successCount = 0;
-
-            results.forEach(res => {
-                if (!res || !res.result) return;
-                successCount++;
-                const { item, result } = res;
-                const meta = result.meta;
-                const quotes = result.indicators.quote[0].close.filter(v => v != null);
-                const currentPrice = meta.regularMarketPrice || quotes[quotes.length - 1];
-                const prevClose = quotes.length > 1 ? quotes[quotes.length - 2] : meta.chartPreviousClose;
-                const changePct = prevClose ? (((currentPrice - prevClose) / prevClose) * 100).toFixed(2) : "0.00";
-                
-                if (item.grid) {
-                    updateStockUI(item.id, item.name, currentPrice, changePct);
-                } else {
-                    updateChartUI(item, result, currentPrice);
-                }
-            });
-
-            const timeStr = new Date().toLocaleTimeString('zh-TW', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
-            if (successCount > 0) {
-                document.getElementById('update-time').innerText = `UPDATED: ${timeStr}`;
-            } else {
-                document.getElementById('update-time').innerText = `SYNC FAILED (${timeStr})`;
-            }
-        }
-
-        function updateStockUI(id, name, price, pct) {
-            const grid = document.getElementById('stock-grid');
-            let el = document.getElementById(`box-${id}`);
-            if (!el) {
-                el = document.createElement('div'); el.id = `box-${id}`; el.className = 'mini-card';
-                grid.appendChild(el);
-            }
-            const isUp = parseFloat(pct) >= 0;
-            el.innerHTML = `
-                <span class="mini-name">${name}</span>
-                <span class="mini-price">${price.toLocaleString('en-US', {maximumFractionDigits: 1})} <small class="${isUp?'up':'down'}" style="font-size:9px">${isUp?'▲':'▼'}${pct}%</small></span>
-            `;
-        }
-
-        function updateChartUI(item, result, currentPrice) {
-            const container = document.getElementById('k-list-container');
-            if (!document.getElementById(`card-${item.id}`)) {
-                container.innerHTML += `
-                    <div class="highlight-label">${item.name}</div>
-                    <div class="card k-card" id="card-${item.id}">
-                        <div class="k-header"><span class="price" id="price-${item.id}">--</span></div>
-                        <div id="chart-${item.id}" class="chart-box"></div>
-                    </div>
-                `;
-                setTimeout(() => renderKChart(item, result, currentPrice), 300);
-            } else {
-                updatePriceLabel(item, currentPrice);
-                refreshChart(item.id, result);
-            }
-        }
-
-        function updatePriceLabel(item, price) {
-            let displayPrice = item.id === "TNX" ? price.toFixed(3) + "%" : price.toFixed(item.prec);
-            if(item.id === "USD") displayPrice = "USD " + displayPrice;
-            if(item.id === "JPY") displayPrice = "JPY " + displayPrice;
-            document.getElementById(`price-${item.id}`).innerText = displayPrice;
-        }
-
-        function renderKChart(item, result, currentPrice) {
-            const ohlc = result.indicators.quote[0];
-            const seriesData = result.timestamp.map((t, i) => {
-                const c = ohlc.close[i];
-                return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
-            }).filter(d => d);
-
-            const options = {
-                series: [{ data: seriesData }],
-                chart: { 
-                    type: 'candlestick', 
-                    height: 110, 
-                    toolbar: { show: false }, 
-                    animations: { enabled: false },
-                    offsetY: -5 
-                },
-                xaxis: { 
-                    type: 'datetime', 
-                    labels: { 
-                        show: true, 
-                        format: 'MM/dd', 
-                        style: { fontSize: '9px', colors: '#8e8e93' },
-                        offsetY: -5 
-                    },
-                    tickAmount: 4,
-                    axisTicks: { show: false },
-                    axisBorder: { show: false }
-                },
-                yaxis: { 
-                    opposite: true, 
-                    stepSize: item.step, 
-                    forceNiceScale: false, 
-                    labels: { 
-                        style: { fontSize: '9px', colors: '#8e8e93', fontFamily: 'SF Mono' }, 
-                        formatter: v => v.toFixed(item.prec) 
-                    } 
-                },
-                plotOptions: { 
-                    candlestick: { 
-                        colors: { upward: '#ff3b30', downward: '#34c759' },
-                        wick: { useFillColor: true }
-                    } 
-                },
-                grid: { 
-                    borderColor: '#f1f2f6', 
-                    strokeDashArray: 3,
-                    padding: { bottom: 0, top: 0, left: 10, right: 10 } 
-                },
-                tooltip: { enabled: false }
-            };
-
-            const chart = new ApexCharts(document.querySelector(`#chart-${item.id}`), options);
-            chart.render(); 
-            charts[item.id] = chart;
-            updatePriceLabel(item, currentPrice);
-        }
-
-        function refreshChart(id, result) {
-            if (charts[id]) {
-                const ohlc = result.indicators.quote[0];
-                const seriesData = result.timestamp.map((t, i) => {
-                    const c = ohlc.close[i];
-                    return (c && ohlc.open[i]) ? { x: t * 1000, y: [ohlc.open[i], ohlc.high[i], ohlc.low[i], c] } : null;
-                }).filter(d => d);
-                charts[id].updateSeries([{ data: seriesData }]);
-            }
-        }
-
-        fetchYahooData();
-        setInterval(fetchYahooData, 60000); 
-    </script>
 </body>
 </html>
