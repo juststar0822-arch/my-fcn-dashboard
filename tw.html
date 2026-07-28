@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券精準快查與圖片生成工具</title>
+    <title>海外債券工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -11,7 +11,7 @@
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: "Microsoft JhengHei", "微軟正黑體", sans-serif; background-color: #f1f5f9; color: #1e293b; padding: 24px; }
-        .container { max-width: 1600px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
+        .container { max-width: 1650px; margin: 0 auto; background: #ffffff; padding: 28px; border-radius: 12px; box-shadow: 0 10px 25px -3px rgba(0,0,0,0.05); }
         .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; background: #f8fafc; padding: 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
         @media (max-width: 900px) { .control-panel { grid-template-columns: 1fr; } }
         .card h3 { font-size: 16px; color: #0f172a; margin-bottom: 6px; }
@@ -33,7 +33,6 @@
         
         .table-section { margin-bottom: 35px; }
         .section-title { background: #d9e1f2; color: #000000; font-size: 15px; font-weight: bold; padding: 10px 16px; border: 1px solid #b0c4de; border-bottom: none; }
-        .section-title.japan { background: #fce4d6; border-color: #f8cbad; }
         
         table { width: 100%; border-collapse: collapse; font-size: 13px; background: #ffffff; margin-bottom: 10px; }
         th, td { border: 1px solid #bfbfbf; padding: 8px 10px; text-align: center; vertical-align: middle; }
@@ -88,7 +87,7 @@ US12189TAZ75"></textarea>
 
 <script>
     let globalWorkbook = null;
-    let allSheetsConsolidatedRows = [];
+    let allValidRows = [];
 
     const today = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
     document.getElementById('reportDate').innerText = `報價日期：${today}`;
@@ -103,37 +102,26 @@ US12189TAZ75"></textarea>
                 const data = new Uint8Array(e.target.result);
                 globalWorkbook = XLSX.read(data, { type: 'array' });
                 
-                allSheetsConsolidatedRows = [];
-                let uniqueSet = new Set();
+                allValidRows = [];
+                let uniqueIsinSet = new Set(); // 全域唯一 ISIN 檢查，絕對不允許重複
 
                 globalWorkbook.SheetNames.forEach(sheetName => {
                     const ws = globalWorkbook.Sheets[sheetName];
                     const rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
                     
-                    let currentSectionTitle = sheetName.includes("日本") ? "日本公司海外債券" : "海外債券每日報價清單";
-                    
                     rows.forEach(row => {
                         let rowStr = row.join(" ");
-                        if (rowStr.includes("日本公司海外債券")) {
-                            currentSectionTitle = "日本公司海外債券";
-                        } else if (rowStr.includes("海外債券") || rowStr.includes("每日報價")) {
-                            currentSectionTitle = sheetName;
-                        }
-
-                        if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
-                            let isinKey = String(row[0]).trim().toUpperCase() + "_" + currentSectionTitle;
-                            if (!uniqueSet.has(isinKey)) {
-                                uniqueSet.add(isinKey);
-                                allSheetsConsolidatedRows.push({
-                                    sectionTitle: currentSectionTitle,
-                                    data: row
-                                });
+                        if (row.length >= 5 && row[0] && String(row[0]).trim().length >= 8 && !rowStr.includes("ISIN")) {
+                            let isin = String(row[0]).trim().toUpperCase();
+                            if (!uniqueIsinSet.has(isin)) {
+                                uniqueIsinSet.add(isin);
+                                allValidRows.push(row);
                             }
                         }
                     });
                 });
 
-                document.getElementById('fileStatus').innerText = `✅ 成功載入檔案！共讀取 ${allSheetsConsolidatedRows.length} 筆獨立債券資料，請於右側輸入 ISIN 查詢。`;
+                document.getElementById('fileStatus').innerText = `✅ 成功載入檔案！共讀取 ${allValidRows.length} 筆不重複債券資料，請於右側輸入 ISIN 查詢。`;
             } catch (err) {
                 alert("解析檔案發生錯誤：" + err);
             }
@@ -163,7 +151,7 @@ US12189TAZ75"></textarea>
     }
 
     function filterAndRender() {
-        if (allSheetsConsolidatedRows.length === 0) {
+        if (allValidRows.length === 0) {
             alert("請先上傳 Excel 檔案！");
             return;
         }
@@ -179,20 +167,15 @@ US12189TAZ75"></textarea>
         const container = document.getElementById('resultContainer');
         container.innerHTML = '';
 
-        let groupedBySection = {};
-        allSheetsConsolidatedRows.forEach(item => {
-            let currentIsin = String(item.data[0]).trim().toUpperCase();
+        let matchedRows = [];
+        allValidRows.forEach(row => {
+            let currentIsin = String(row[0]).trim().toUpperCase();
             if (targetIsins.includes(currentIsin)) {
-                let secKey = item.sectionTitle;
-                if (!groupedBySection[secKey]) {
-                    groupedBySection[secKey] = [];
-                }
-                groupedBySection[secKey].push(item.data);
+                matchedRows.push(row);
             }
         });
 
-        let keys = Object.keys(groupedBySection);
-        if (keys.length === 0) {
+        if (matchedRows.length === 0) {
             container.innerHTML = `<p style="text-align:center; color:#e11d48; padding:40px; font-weight:bold;">找不到任何符合您輸入的 ISIN 代碼資料，請確認代碼是否正確。</p>`;
             document.getElementById('downloadImgBtn').style.display = 'none';
             return;
@@ -204,61 +187,68 @@ US12189TAZ75"></textarea>
             "到期收益率", "到期年限", "每萬元前手息", "申購資格"
         ];
 
-        let htmlContent = '';
-        keys.forEach(secKey => {
-            let rowsData = groupedBySection[secKey];
-            let isJapan = secKey.includes("日本") || secKey.includes("Japan");
-            let titleClass = isJapan ? "section-title japan" : "section-title";
+        let htmlContent = `
+            <div class="table-section">
+                <div class="section-title">海外債券查詢結果清單</div>
+                <table>
+                    <thead>
+                        <tr>
+        `;
+        targetHeaders.forEach(h => { htmlContent += `<th>${h}</th>`; });
+        htmlContent += `</tr></thead><tbody>`;
 
-            htmlContent += `
-                <div class="table-section">
-                    <div class="${titleClass}">${secKey}</div>
-                    <table>
-                        <thead>
-                            <tr>
-            `;
-            targetHeaders.forEach(h => { htmlContent += `<th>${h}</th>`; });
-            htmlContent += `</tr></thead><tbody>`;
+        matchedRows.forEach(row => {
+            htmlContent += `<tr>`;
+            
+            // 精準對應實際 Excel 欄位索引：
+            // row[0]: ISIN代碼
+            // row[1]: 發行機構
+            // row[2]: 幣別
+            // row[3]: 票面利率
+            // row[4]: 類型
+            // row[5]: 配息頻率
+            // row[6]: 債償順位
+            // row[7]: 債券信評
+            // row[8]: 買進參考價
+            // row[9]: 到期收益率
+            // row[10]: 到期年限
+            // row[11]: 每萬元前手息
+            // row[12]: 申購資格
 
-            rowsData.forEach(row => {
-                htmlContent += `<tr>`;
-                
-                let isin = row[0] || '';
-                let issuer = row[1] || '';
-                let currency = "USD";
-                let coupon = formatPercentage(row[2]);
-                let bondType = row[3] || '';
-                let freq = row[4] || '';
-                let seniority = row[5] || '';
-                let rating = row[6] || '';
-                let refPrice = formatNumber(row[7], 2);
-                let ytm = formatPercentage(row[8]);
-                let maturityYears = row[9] || '';
-                let accruedInterest = formatNumber(row[10], 2);
-                let qualification = row[11] || '';
+            let isin = row[0] || '';
+            let issuer = row[1] || '';
+            let currency = row[2] || 'USD';
+            let coupon = formatPercentage(row[3]);
+            let bondType = row[4] || '';
+            let freq = row[5] || '';
+            let seniority = row[6] || '';
+            let rating = row[7] || '';
+            let refPrice = formatNumber(row[8], 2);
+            let ytm = formatPercentage(row[9]);
+            let maturityYears = row[10] || '';
+            let accruedInterest = formatNumber(row[11], 2);
+            let qualification = row[12] || '';
 
-                let displayCols = [
-                    isin, issuer, currency, coupon, bondType, 
-                    freq, seniority, rating, refPrice, 
-                    ytm, maturityYears, accruedInterest, qualification
-                ];
+            let displayCols = [
+                isin, issuer, currency, coupon, bondType, 
+                freq, seniority, rating, refPrice, 
+                ytm, maturityYears, accruedInterest, qualification
+            ];
 
-                displayCols.forEach((cellVal, idx) => {
-                    let cellClass = '';
-                    if (idx === 1) cellClass = 'text-left';
-                    else if (idx === 8 || idx === 10) cellClass = 'text-right';
-                    if (idx === 9) {
-                        cellClass += ' highlight-orange';
-                    }
-                    htmlContent += `<td class="${cellClass}">${cellVal}</td>`;
-                });
-
-                htmlContent += `</tr>`;
+            displayCols.forEach((cellVal, idx) => {
+                let cellClass = '';
+                if (idx === 1) cellClass = 'text-left';
+                else if (idx === 8 || idx === 11) cellClass = 'text-right';
+                if (idx === 9) {
+                    cellClass += ' highlight-orange';
+                }
+                htmlContent += `<td class="${cellClass}">${cellVal}</td>`;
             });
 
-            htmlContent += `</tbody></table></div>`;
+            htmlContent += `</tr>`;
         });
 
+        htmlContent += `</tbody></table></div>`;
         container.innerHTML = htmlContent;
         document.getElementById('downloadImgBtn').style.display = 'block';
     }
