@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券動態對應快查與圖片生成工具</title>
+    <title>海外債券動態工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -113,7 +113,6 @@ US12189TAZ75"></textarea>
                     let headerIndex = -1;
                     let headers = [];
 
-                    // 尋找包含 ISIN 或 發行機構 的標題行
                     for (let i = 0; i < rows.length; i++) {
                         let rStr = rows[i].join(" ");
                         if (rStr.includes("ISIN") || rStr.includes("發行機構")) {
@@ -242,14 +241,14 @@ US12189TAZ75"></textarea>
             let isin = r[0] || '';
             let issuer = getColVal(h, r, ["發行機構", "保證機構", "證券名稱"]);
             let currency = getColVal(h, r, ["幣別", "幣種"]) || "USD";
-            let coupon = formatPercentage(getColVal(h, r, ["票面利率"]));
+            let coupon = formatPercentage(getColVal(h, r, ["票面利率", "債息", "利率"]));
             let bondType = getColVal(h, r, ["類型"]);
             let freq = getColVal(h, r, ["配息頻率"]);
-            let seniority = getColVal(h, r, ["債信順位", "債償順位"]);
+            let seniority = getColVal(h, r, ["債償順位", "債信順位", "順位"]);
             let rating = getColVal(h, r, ["移轉", "標臂", "處置", "信評"]);
             let refPrice = formatNumber(getColVal(h, r, ["買進參考價", "參考價"]), 2);
             let ytm = formatPercentage(getColVal(h, r, ["到期收益率", "收益率"]));
-            let maturityYears = getColVal(h, r, ["到期年限", "年限"]);
+            let maturityYears = getColVal(h, r, ["距到期年", "到期年限", "年限"]);
             let accruedInterest = formatNumber(getColVal(h, r, ["前手息"]), 2);
             let qualification = getColVal(h, r, ["申購資格"]);
 
