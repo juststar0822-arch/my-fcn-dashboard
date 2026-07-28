@@ -246,7 +246,7 @@ US12189TAZ75"></textarea>
             let freq = getColVal(h, r, ["配息頻率"]);
             let seniority = getColVal(h, r, ["債償順位", "債信順位", "順位"]);
             let rating = getColVal(h, r, ["移轉", "標臂", "處置", "信評"]);
-            let rawRefPrice = getColVal(h, r, ["買進參考價", "參考价", "參考價"]);
+            let rawRefPrice = getColVal(h, r, ["買進參考價"]);
             let refPrice = formatNumber(rawRefPrice, 2);
             let ytm = formatPercentage(getColVal(h, r, ["到期收益率", "收益率"]));
             let maturityYears = getColVal(h, r, ["距到期年", "到期年限", "年限"]);
