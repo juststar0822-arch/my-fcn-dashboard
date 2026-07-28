@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券與精選商品報價圖片生成工具</title>
+    <title>海外債券與精選商品生成工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -45,13 +45,11 @@
         tr:nth-child(even) { background-color: #fafafa; }
         tr:hover { background-color: #f1f5f9; }
 
-        /* 彈出視窗樣式 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
-        .modal-content { background: #ffffff; width: 100%; max-width: 1200px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; z-index: 1001; }
+        .modal-content { background: #ffffff; width: 100%; max-width: 1250px; border-radius: 12px; padding: 30px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; z-index: 1001; }
         .close-modal { position: absolute; top: 20px; right: 25px; font-size: 28px; font-weight: bold; cursor: pointer; color: #64748b; z-index: 1002; }
         .close-modal:hover { color: #0f172a; }
 
-        /* 高質感精選海外債專屬圖片卡片 */
         #featuredCaptureCard { background: #ffffff; border-radius: 10px; overflow: hidden; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
         .featured-banner { background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%); color: white; padding: 28px 36px; display: flex; justify-content: space-between; align-items: center; border-bottom: 4px solid #3b82f6; }
         .featured-banner h2 { font-size: 32px; font-weight: 900; letter-spacing: 1.5px; }
@@ -61,6 +59,7 @@
         .featured-table td { padding: 11px 14px; border: 1px solid #cbd5e1; text-align: center; vertical-align: middle; color: #0f172a; }
         .featured-table tr:nth-child(even) { background-color: #f8fafc; }
         .featured-footer { padding: 16px 24px; text-align: right; font-size: 12px; color: #64748b; background: #f8fafc; border-top: 1px solid #e2e8f0; font-weight: 600; }
+        td.category-cell { font-weight: bold; background-color: #f8fafc; color: #1e3a8a; line-height: 1.3; }
     </style>
 </head>
 <body>
@@ -239,6 +238,39 @@ US12189TAZ75"></textarea>
         return "";
     }
 
+    // 自動依據距到期年與申購資格計算分類
+    function computeBondCategory(headers, row) {
+        let maturityYearsVal = Number(getValByHeader(headers, row, ["距到期年", "到期年限", "年限"]));
+        let qualification = String(getValByHeader(headers, row, ["申購資格", "資格"]) || "").trim();
+        let issuerName = String(getValByHeader(headers, row, ["發行機構", "保證機構", "證券名稱"]) || "").trim();
+        
+        let isPI = qualification.includes("專業") || qualification.includes("PI") || qualification.includes("專業投資人");
+        
+        let baseCategory = "";
+        if (!isNaN(maturityYearsVal) && maturityYearsVal > 0) {
+            if (maturityYearsVal < 7) {
+                baseCategory = "短期";
+            } else if (maturityYearsVal >= 7 && maturityYearsVal < 10) {
+                baseCategory = "中期";
+            } else {
+                baseCategory = "長期";
+            }
+        }
+
+        if (isPI) {
+            let isFinancial = issuerName.includes("銀行") || issuerName.includes("金融") || issuerName.includes("資本") || issuerName.includes("信貸") || issuerName.includes("金控");
+            let subType = isFinancial ? "金融債" : "公司債";
+            
+            if (baseCategory !== "") {
+                return `${baseCategory}<br>${subType}(PI)`;
+            } else {
+                return `${subType}(PI)`;
+            }
+        }
+
+        return baseCategory || "一般";
+    }
+
     function filterAndRender() {
         if (extractedRows.length === 0) {
             alert("請先上傳 Excel 檔案！");
@@ -330,6 +362,7 @@ US12189TAZ75"></textarea>
         let tableHtml = `
             <thead>
                 <tr>
+                    <th>分類</th>
                     <th>ISIN</th>
                     <th>發行機構</th>
                     <th>票面利率</th>
@@ -346,6 +379,10 @@ US12189TAZ75"></textarea>
             let h = item.headers;
             let r = item.data;
             let isin = item.cleanIsin;
+            
+            // 自動計算分類（短期、中期、長期、公司債(PI)、金融債(PI)）
+            let category = computeBondCategory(h, r);
+            
             let issuer = getValByHeader(h, r, ["發行機構", "保證機構", "證券名稱"]);
             let coupon = formatPercentage(getValByHeader(h, r, ["票面利率", "債息", "利率"]));
             let maturityDate = getValByHeader(h, r, ["到期日", "到期"]);
@@ -356,6 +393,7 @@ US12189TAZ75"></textarea>
 
             tableHtml += `
                 <tr>
+                    <td class="category-cell">${category}</td>
                     <td><b>${isin}</b></td>
                     <td class="text-left issuer-bold">${issuer}</td>
                     <td>${coupon}</td>
