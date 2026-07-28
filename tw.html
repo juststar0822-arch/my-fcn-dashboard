@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券報價生成</title>
+    <title>海外債券動態對應快查與圖片生成工具</title>
     <!-- 引入 SheetJS 解析 Excel -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <!-- 引入 html2canvas 支援一鍵截圖儲存圖片 -->
@@ -74,7 +74,7 @@ US12189TAZ75"></textarea>
 
     <div id="captureArea">
         <div class="header-bar">
-            <h1>海外債券每日報價</h1>
+            <h1>海外債券每日報價快查報表</h1>
             <div class="date-badge" id="reportDate">報價日期：載入中...</div>
         </div>
 
@@ -174,11 +174,11 @@ US12189TAZ75"></textarea>
         return val;
     }
 
-    function getColVal(headers, row, keywordList) {
-        for (let kw of keywordList) {
+    function getValByHeader(headers, row, exactNames) {
+        for (let name of exactNames) {
             for (let idx = 0; idx < headers.length; idx++) {
                 let hText = String(headers[idx] || "").trim();
-                if (hText.includes(kw)) {
+                if (hText === name || hText.includes(name)) {
                     return row[idx] !== undefined ? row[idx] : "";
                 }
             }
@@ -198,7 +198,7 @@ US12189TAZ75"></textarea>
             return;
         }
 
-        let targetIsins = rawIsinText.split(/[\n,]+/).map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
+        let targetIsins = rawIsinText.split(/[\\n,]+/).map(s => s.trim().toUpperCase()).filter(s => s.length > 0);
 
         const container = document.getElementById('resultContainer');
         container.innerHTML = '';
@@ -239,19 +239,21 @@ US12189TAZ75"></textarea>
             let r = item.data;
 
             let isin = r[0] || '';
-            let issuer = getColVal(h, r, ["發行機構", "保證機構", "證券名稱"]);
-            let currency = getColVal(h, r, ["幣別", "幣種"]) || "USD";
-            let coupon = formatPercentage(getColVal(h, r, ["票面利率", "債息", "利率"]));
-            let bondType = getColVal(h, r, ["類型"]);
-            let freq = getColVal(h, r, ["配息頻率"]);
-            let seniority = getColVal(h, r, ["債償順位", "債信順位", "順位"]);
-            let rating = getColVal(h, r, ["移轉", "標臂", "處置", "信評"]);
-            let rawRefPrice = getColVal(h, r, ["買進參考價"]);
+            let issuer = getValByHeader(h, r, ["發行機構", "保證機構", "證券名稱"]);
+            let currency = getValByHeader(h, r, ["幣別", "幣種"]) || "USD";
+            let coupon = formatPercentage(getValByHeader(h, r, ["票面利率", "債息", "利率"]));
+            let bondType = getValByHeader(h, r, ["類型"]);
+            let freq = getValByHeader(h, r, ["配息頻率"]);
+            let seniority = getValByHeader(h, r, ["債償順位", "債信順位", "順位"]);
+            let rating = getValByHeader(h, r, ["移轉", "標臂", "處置", "信評"]);
+            
+            let rawRefPrice = getValByHeader(h, r, ["買進參考價", "參考價"]);
             let refPrice = formatNumber(rawRefPrice, 2);
-            let ytm = formatPercentage(getColVal(h, r, ["到期收益率", "收益率"]));
-            let maturityYears = getColVal(h, r, ["距到期年", "到期年限", "年限"]);
-            let accruedInterest = formatNumber(getColVal(h, r, ["前手息"]), 2);
-            let qualification = getColVal(h, r, ["申購資格"]);
+            
+            let ytm = formatPercentage(getValByHeader(h, r, ["到期收益率", "收益率"]));
+            let maturityYears = getValByHeader(h, r, ["距到期年", "到期年限", "年限"]);
+            let accruedInterest = formatNumber(getValByHeader(h, r, ["前手息"]), 2);
+            let qualification = getValByHeader(h, r, ["申購資格"]);
 
             let displayCols = [
                 isin, issuer, currency, coupon, bondType, 
@@ -262,12 +264,11 @@ US12189TAZ75"></textarea>
             displayCols.forEach((cellVal, idx) => {
                 let cellClass = '';
                 if (idx === 1) {
-                    cellClass = 'text-left issuer-bold'; // 發行機構改為粗體
+                    cellClass = 'text-left issuer-bold';
                 } else if (idx === 8 || idx === 11) {
                     cellClass = 'text-right';
                 }
                 
-                // 買進參考價大於100變紅色
                 if (idx === 8) {
                     let numVal = Number(cellVal);
                     if (!isNaN(numVal) && numVal > 100) {
