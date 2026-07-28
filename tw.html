@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>海外債券每日報價系統</title>
+    <title>海外債券每日報價自動生成工具</title>
+    <!-- 引入 SheetJS 用於在瀏覽器端解析 Excel 檔案 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -17,12 +19,41 @@
             padding: 20px;
         }
         .container {
-            max-width: 1400px;
+            max-width: 1450px;
             margin: 0 auto;
             background: #ffffff;
             padding: 24px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .upload-card {
+            background: #f8fafc;
+            border: 2px dashed #3b82f6;
+            padding: 24px;
+            border-radius: 8px;
+            text-align: center;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+        .upload-card:hover {
+            background: #eff6ff;
+        }
+        .upload-card input[type="file"] {
+            display: none;
+        }
+        .upload-btn {
+            background-color: #2563eb;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .upload-btn:hover {
+            background-color: #1d4ed8;
         }
         .header-bar {
             display: flex;
@@ -80,138 +111,161 @@
             font-size: 12px;
             letter-spacing: 0.5px;
         }
-        td.text-left {
-            text-align: left;
-        }
-        td.text-right {
-            text-align: right;
-        }
+        td.text-left { text-align: left; }
+        td.text-right { text-align: right; }
         td.highlight-orange {
             background-color: #fce4d6;
             font-weight: bold;
         }
-        tr:nth-child(even) {
-            background-color: #fafafa;
-        }
-        tr:hover {
-            background-color: #f1f5f9;
+        tr:nth-child(even) { background-color: #fafafa; }
+        tr:hover { background-color: #f1f5f9; }
+        .instructions {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 6px;
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- 上傳互動區塊 -->
+    <div class="upload-card" id="dropZone">
+        <h3>📊 拖放或上傳您的每日報價 Excel 檔案</h3>
+        <p class="instructions">支援格式：.xlsx, .xls (將自動解析並即時渲染為專業報表)</p>
+        <label class="upload-btn">
+            選擇 Excel 檔案
+            <input type="file" id="excelFile" accept=".xlsx, .xls" onchange="handleFile(event)">
+        </label>
+    </div>
+
     <div class="header-bar">
-        <h1>海外債券每日報價儀表板</h1>
-        <div class="date-badge">報價日期：2026/7/28</div>
+        <h1 id="reportTitle">海外債券每日報價儀表板</h1>
+        <div class="date-badge" id="reportDate">報價日期：載入中...</div>
     </div>
 
-    <!-- 10年以上海外債券區塊 -->
-    <div class="table-section">
-        <div class="section-title">10年以上海外債券每日報價 [依 YTM 排序]</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ISIN</th>
-                    <th>發行機構/保證機構/證券名稱</th>
-                    <th>票面利率</th>
-                    <th>類型</th>
-                    <th>配息頻率</th>
-                    <th>債信順位</th>
-                    <th>移轉\標臂\處置</th>
-                    <th>買進參考價</th>
-                    <th>到期收益率</th>
-                    <th>到期年限</th>
-                    <th>每萬元前手息</th>
-                    <th>申購資格</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>US91324PAR38</td>
-                    <td class="text-left">聯合健康集團公司</td>
-                    <td>5.8%</td>
-                    <td>固定</td>
-                    <td>半年配</td>
-                    <td>主順位，優先無擔保</td>
-                    <td>A+,A2,A</td>
-                    <td>106.80</td>
-                    <td class="highlight-orange">4.90%</td>
-                    <td>9.63</td>
-                    <td class="text-right">214.28</td>
-                    <td>一般投資人</td>
-                </tr>
-                <tr>
-                    <td>US12189TAZ75</td>
-                    <td class="text-left">伯靈頓北方聖塔菲有限責任公司</td>
-                    <td>6.15%</td>
-                    <td>固定</td>
-                    <td>半年配</td>
-                    <td>主順位，優先無擔保</td>
-                    <td>AA-,A2,-</td>
-                    <td>110.83</td>
-                    <td class="highlight-orange">4.84%</td>
-                    <td>10.76</td>
-                    <td class="text-right">148.63</td>
-                    <td>一般投資人</td>
-                </tr>
-                <tr>
-                    <td>US822582AD40</td>
-                    <td class="text-left">殼牌國際金融私人有限公司</td>
-                    <td>6.375%</td>
-                    <td>固定</td>
-                    <td>半年配</td>
-                    <td>主順位，優先無擔保</td>
-                    <td>A+,Aa2,AA-</td>
-                    <td>110.71</td>
-                    <td class="highlight-orange">5.19%</td>
-                    <td>12.39</td>
-                    <td class="text-right">76.15</td>
-                    <td>一般投資人</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- 日本公司海外債券區塊 -->
-    <div class="table-section">
-        <div class="section-title japan">日本公司海外債券</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>ISIN</th>
-                    <th>發行機構/保證機構/證券名稱</th>
-                    <th>票面利率</th>
-                    <th>類型</th>
-                    <th>配息頻率</th>
-                    <th>債信順位</th>
-                    <th>移轉\標臂\處置</th>
-                    <th>買進參考價</th>
-                    <th>到期收益率</th>
-                    <th>到期年限</th>
-                    <th>每萬元前手息</th>
-                    <th>申購資格</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>US89236TLM52</td>
-                    <td class="text-left">豐田汽車信貸公司</td>
-                    <td>4.8%</td>
-                    <td>固定</td>
-                    <td>半年配</td>
-                    <td>主順位，優先無擔保</td>
-                    <td>A+,A1,A+</td>
-                    <td>100.06</td>
-                    <td class="highlight-orange">4.78%</td>
-                    <td>7.44</td>
-                    <td class="text-right">30.67</td>
-                    <td>一般投資人</td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- 動態生成表格容器 -->
+    <div id="resultContainer">
+        <div style="text-align: center; color: #94a3b8; padding: 40px;">
+            尚未上傳檔案，請點擊上方按鈕上傳您的 Excel 每日報價檔案。
+        </div>
     </div>
 </div>
+
+<script>
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, '/');
+    document.getElementById('reportDate').innerText = `報價日期：${today}`;
+
+    function handleFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                renderReport(jsonRows);
+            } catch (err) {
+                alert("解析檔案發生錯誤：" + err);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function renderReport(rows) {
+        const container = document.getElementById('resultContainer');
+        container.innerHTML = '';
+
+        if (!rows || rows.length === 0) {
+            container.innerHTML = '<p style="text-align:center; color:red;">檔案內容為空。</p>';
+            return;
+        }
+
+        let htmlContent = '';
+        let currentSection = "10年以上海外債券每日報價 [依 YTM 排序]";
+        let isJapan = false;
+        let tableHeaders = [];
+        let activeRows = [];
+
+        const defaultHeaders = [
+            "ISIN", "發行機構/保證機構/證券名稱", "票面利率", "類型", "配息頻率", 
+            "債信順位", "移轉\\標臂\\處置", "買進參考價", "到期收益率", "到期年限", 
+            "每萬元前手息", "申購資格"
+        ];
+
+        for (let i = 0; i < rows.length; i++) {
+            let row = rows[i];
+            let rowStr = row.join(" ");
+
+            if (rowStr.includes("日本公司海外債券")) {
+                if (activeRows.length > 0) {
+                    htmlContent += generateTableHTML(currentSection, tableHeaders.length > 0 ? tableHeaders : defaultHeaders, activeRows, isJapan);
+                    activeRows = [];
+                }
+                currentSection = "日本公司海外債券";
+                isJapan = true;
+                continue;
+            } else if (rowStr.includes("10年以上海外債券")) {
+                if (activeRows.length > 0) {
+                    htmlContent += generateTableHTML(currentSection, tableHeaders.length > 0 ? tableHeaders : defaultHeaders, activeRows, isJapan);
+                    activeRows = [];
+                }
+                currentSection = "10年以上海外債券每日報價 [依 YTM 排序]";
+                isJapan = false;
+                continue;
+            }
+
+            if (rowStr.includes("ISIN") || rowStr.includes("票面利率")) {
+                tableHeaders = row.filter(cell => cell !== undefined && cell !== null && cell !== "");
+                continue;
+            }
+
+            if (row.length >= 3 && row[0] && String(row[0]).trim().length >= 8) {
+                activeRows.push(row);
+            }
+        }
+
+        if (activeRows.length > 0) {
+            htmlContent += generateTableHTML(currentSection, tableHeaders.length > 0 ? tableHeaders : defaultHeaders, activeRows, isJapan);
+        }
+
+        if (htmlContent === '') {
+            let fallbackRows = rows.filter(r => r.length >= 3 && r[0]);
+            htmlContent = generateTableHTML("海外債券每日報價總覽", defaultHeaders, fallbackRows, false);
+        }
+
+        container.innerHTML = htmlContent;
+    }
+
+    function generateTableHTML(sectionTitle, headers, rowsData, isJapan) {
+        let titleClass = isJapan ? "section-title japan" : "section-title";
+        let html = `<div class="table-section"><div class="${titleClass}">${sectionTitle}</div><table><thead><tr>`;
+        headers.forEach(h => { html += `<th>${h || ''}</th>`; });
+        html += `</tr></thead><tbody>`;
+
+        rowsData.forEach(row => {
+            html += `<tr>`;
+            row.forEach((cell, idx) => {
+                let cellVal = cell !== undefined && cell !== null ? cell : '';
+                let cellClass = '';
+                if (idx === 1) cellClass = 'text-left';
+                else if (idx === 10 || idx === 7) cellClass = 'text-right';
+                if (String(cellVal).includes('%') && (idx === 8 || idx === 2)) {
+                    cellClass += ' highlight-orange';
+                }
+                html += `<td class="${cellClass}">${cellVal}</td>`;
+            });
+            html += `</tr>`;
+        });
+
+        html += `</tbody></table></div>`;
+        return html;
+    }
+</script>
 
 </body>
 </html>
