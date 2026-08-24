@@ -206,6 +206,16 @@ button:disabled {
 }
 
 
+/* 新增：A4 列印按鈕 */
+
+.btn-print {
+
+    background: #2f6b57;
+
+    color: white;
+}
+
+
 /* =====================================================
    FCN 主畫面
 ===================================================== */
@@ -406,11 +416,6 @@ button:disabled {
 
     display: grid;
 
-    /*
-       加寬發行機構與 Coupon
-       避免擠在一起
-    */
-
     grid-template-columns:
         150px
         75px
@@ -483,10 +488,6 @@ button:disabled {
     font-size: 27px;
 
     color: #174f82;
-
-    /*
-       防止碰到下一欄
-    */
 
     overflow: hidden;
 
@@ -695,6 +696,307 @@ button:disabled {
     padding-bottom: 10px;
 }
 
+
+/* =====================================================
+   新增：A4 橫式列印
+===================================================== */
+
+@page {
+
+    size: A4 landscape;
+
+    margin: 8mm;
+}
+
+
+@media print {
+
+
+    .control-panel {
+
+        display: none !important;
+    }
+
+
+    body {
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        background: #ffffff !important;
+
+        -webkit-print-color-adjust:
+            exact !important;
+
+        print-color-adjust:
+            exact !important;
+    }
+
+
+    .app {
+
+        margin: 0 !important;
+
+        padding: 0 !important;
+
+        width: 100% !important;
+
+        max-width: none !important;
+    }
+
+
+    .preview-wrapper {
+
+        width: 100% !important;
+
+        overflow: visible !important;
+
+        padding: 0 !important;
+    }
+
+
+    #quoteArea {
+
+        width: 281mm !important;
+
+        min-width: 0 !important;
+
+        margin: 0 auto !important;
+
+        padding: 7mm !important;
+
+        border-radius: 0 !important;
+
+        box-shadow: none !important;
+
+        overflow: visible !important;
+    }
+
+
+    .header {
+
+        margin-bottom:
+            4mm !important;
+
+        padding-bottom:
+            4mm !important;
+    }
+
+
+    .brand-small {
+
+        font-size:
+            8pt !important;
+    }
+
+
+    .title {
+
+        font-size:
+            23pt !important;
+    }
+
+
+    .subtitle {
+
+        font-size:
+            9pt !important;
+    }
+
+
+    .today {
+
+        font-size:
+            18pt !important;
+    }
+
+
+    .update {
+
+        font-size:
+            7pt !important;
+    }
+
+
+    .summary {
+
+        gap:
+            2.5mm !important;
+
+        margin-bottom:
+            4mm !important;
+    }
+
+
+    .summary-card {
+
+        padding:
+            2.5mm 4mm !important;
+
+        border-radius:
+            3mm !important;
+    }
+
+
+    .summary-card span {
+
+        font-size:
+            7.5pt !important;
+    }
+
+
+    .summary-card strong {
+
+        font-size:
+            15pt !important;
+    }
+
+
+    .quote-list {
+
+        gap:
+            2.2mm !important;
+    }
+
+
+    .quote-row {
+
+        grid-template-columns:
+            29mm
+            16mm
+            17mm
+            29mm
+            25mm
+            23mm
+            23mm
+            1fr !important;
+
+        column-gap:
+            2.3mm !important;
+
+        padding:
+            2.7mm 3.5mm !important;
+
+        border-radius:
+            3mm !important;
+
+        border-left-width:
+            1.4mm !important;
+
+        box-shadow:
+            none !important;
+
+        break-inside:
+            avoid !important;
+
+        page-break-inside:
+            avoid !important;
+    }
+
+
+    .label {
+
+        font-size:
+            7pt !important;
+
+        margin-bottom:
+            1mm !important;
+    }
+
+
+    .issuer-value {
+
+        font-size:
+            14pt !important;
+    }
+
+
+    .currency-value {
+
+        font-size:
+            13pt !important;
+    }
+
+
+    .tenor-value {
+
+        font-size:
+            13pt !important;
+    }
+
+
+    .coupon-value {
+
+        font-size:
+            16pt !important;
+    }
+
+
+    .strike-value {
+
+        font-size:
+            15pt !important;
+    }
+
+
+    .ki-value {
+
+        font-size:
+            14pt !important;
+    }
+
+
+    .ko-value {
+
+        font-size:
+            14pt !important;
+    }
+
+
+    .stock {
+
+        min-width:
+            0 !important;
+
+        padding:
+            1.3mm 2.3mm !important;
+
+        font-size:
+            10pt !important;
+
+        border-radius:
+            2mm !important;
+    }
+
+
+    .solve-tag {
+
+        margin-top:
+            .7mm !important;
+
+        padding:
+            .3mm 1.4mm !important;
+
+        font-size:
+            6pt !important;
+    }
+
+
+    .footer-note {
+
+        margin-top:
+            3mm !important;
+
+        padding-top:
+            2.5mm !important;
+
+        font-size:
+            6.5pt !important;
+    }
+
+}
+
 </style>
 
 </head>
@@ -774,6 +1076,17 @@ button:disabled {
             onclick="saveAsImage()">
 
             📷 下載成圖片
+
+        </button>
+
+
+        <!-- 新增：A4 列印 -->
+
+        <button
+            class="btn-print"
+            onclick="window.print()">
+
+            🖨️ A4 列印
 
         </button>
 
@@ -993,10 +1306,6 @@ function escapeHTML(value) {
 
 /* =====================================================
    BEST → 發行機構
-
-   GS (12.51%)
-   ↓
-   GS
 ===================================================== */
 
 function extractIssuer(text) {
@@ -1011,10 +1320,6 @@ function extractIssuer(text) {
 
     return String(text)
 
-        /*
-           移除最後面的 (...) 數值
-        */
-
         .replace(
             /\s*\([^)]*\)\s*$/,
             ""
@@ -1028,10 +1333,6 @@ function extractIssuer(text) {
 
 /* =====================================================
    BEST → 數值
-
-   GS (12.51%)
-   ↓
-   12.51%
 ===================================================== */
 
 function extractBestValue(text) {
@@ -1190,14 +1491,6 @@ function cleanCell(value) {
 
 /* =====================================================
    SPLIT ROW
-
-   Excel 有 TAB 時：
-   一定保留空白欄位
-
-   例如：
-   6 [TAB] [TAB] 1
-
-   中間空白不能消失
 ===================================================== */
 
 function splitRow(line) {
@@ -1217,11 +1510,6 @@ function splitRow(line) {
             );
 
     }
-
-
-    /*
-       沒有 TAB 時備用
-    */
 
 
     return line
@@ -1262,63 +1550,6 @@ function findFCNIndex(row) {
 
 /* =====================================================
    解析一列商品
-
-   重點：
-
-   不使用 Header 位置！
-
-   直接用 FCN 當基準。
-
-
-   例如：
-
-   GS (12.51%)
-   Coupon
-   FCN
-   USD
-   6
-   [空白]
-   1
-   70%
-   50%
-   AKI
-   100%
-   Daily
-   1
-   Yes
-   TSM
-   MU
-   NVDA
-
-
-   FCN = 基準位置
-
-
-   FCN 前 1：
-   Solve
-
-   FCN 前 2：
-   Best
-
-
-   FCN 後：
-
-   +1 Currency
-   +2 Tenor
-   +3 Coupon
-   +4 Coupon Period
-   +5 Strike
-   +6 KI
-   +7 KI Freq
-   +8 KO
-   +9 KO Freq
-   +10 KO Start
-   +11 Memory KO
-   +12 U1
-   +13 U2
-   +14 U3
-   +15 U4
-
 ===================================================== */
 
 function parseProductRow(row) {
@@ -1340,29 +1571,12 @@ function parseProductRow(row) {
 
 
 
-    /* =========================
-       前方
-    ========================= */
-
-
     const solveText =
         cleanCell(
             row[
                 fcnIndex - 1
             ]
         );
-
-
-    /*
-       FCN 前面第二格
-       就是最靠近 Solve 的 Best
-
-       有 Best30 + Best20 時
-       會自動拿 Best20
-
-       只有一個 Best 時
-       也一樣正確
-    */
 
 
     const bestText =
@@ -1372,11 +1586,6 @@ function parseProductRow(row) {
             ]
         );
 
-
-
-    /* =========================
-       基本資料
-    ========================= */
 
 
     let item = {
@@ -1517,19 +1726,6 @@ function parseProductRow(row) {
 
 
 
-    /* =================================================
-       最重要
-
-       GS (12.51%)
-
-       GS
-       → 發行機構
-
-       12.51%
-       → BestValue
-    ================================================= */
-
-
     item.Issuer =
         extractIssuer(
             bestText
@@ -1540,24 +1736,6 @@ function parseProductRow(row) {
         extractBestValue(
             bestText
         );
-
-
-
-    /* =================================================
-       Solve 決定補哪一欄
-
-       Coupon
-       → 12.51% 填 Coupon
-
-       Strike
-       → BestValue 填 Strike
-
-       KI
-       → BestValue 填 KI
-
-       KO
-       → BestValue 填 KO
-    ================================================= */
 
 
     item.SolveField =
@@ -1623,12 +1801,6 @@ function parseData(text) {
                 splitRow(
                     line
                 );
-
-
-            /*
-               只有真正含 FCN 的資料列
-               才處理
-            */
 
 
             const fcnIndex =
@@ -1877,8 +2049,6 @@ function generateQuote() {
             row.innerHTML = `
 
 
-                <!-- 發行機構 -->
-
                 <div class="cell">
 
 
@@ -1906,8 +2076,6 @@ function generateQuote() {
 
 
 
-                <!-- 幣別 -->
-
                 <div class="cell">
 
 
@@ -1934,8 +2102,6 @@ function generateQuote() {
                 </div>
 
 
-
-                <!-- 天期 -->
 
                 <div class="cell">
 
@@ -1970,8 +2136,6 @@ function generateQuote() {
 
 
 
-                <!-- Coupon -->
-
                 <div class="cell">
 
 
@@ -2004,8 +2168,6 @@ function generateQuote() {
                 </div>
 
 
-
-                <!-- Strike -->
 
                 <div class="cell">
 
@@ -2040,8 +2202,6 @@ function generateQuote() {
 
 
 
-                <!-- KI -->
-
                 <div class="cell">
 
 
@@ -2075,8 +2235,6 @@ function generateQuote() {
 
 
 
-                <!-- KO -->
-
                 <div class="cell">
 
 
@@ -2109,8 +2267,6 @@ function generateQuote() {
                 </div>
 
 
-
-                <!-- Stocks -->
 
                 <div
                     class="
