@@ -206,8 +206,6 @@ button:disabled {
 }
 
 
-/* 新增：A4 列印按鈕 */
-
 .btn-print {
 
     background: #2f6b57;
@@ -698,14 +696,14 @@ button:disabled {
 
 
 /* =====================================================
-   新增：A4 橫式列印
+   A4 直式・單頁列印
 ===================================================== */
 
 @page {
 
-    size: A4 landscape;
+    size: A4 portrait;
 
-    margin: 8mm;
+    margin: 6mm;
 }
 
 
@@ -718,13 +716,19 @@ button:disabled {
     }
 
 
+    html,
     body {
 
         margin: 0 !important;
 
         padding: 0 !important;
 
-        background: #ffffff !important;
+        width: 100% !important;
+
+        height: auto !important;
+
+        background:
+            #ffffff !important;
 
         -webkit-print-color-adjust:
             exact !important;
@@ -742,7 +746,8 @@ button:disabled {
 
         width: 100% !important;
 
-        max-width: none !important;
+        max-width:
+            none !important;
     }
 
 
@@ -750,139 +755,193 @@ button:disabled {
 
         width: 100% !important;
 
-        overflow: visible !important;
+        overflow:
+            visible !important;
 
         padding: 0 !important;
+
+        margin: 0 !important;
     }
 
 
     #quoteArea {
 
-        width: 281mm !important;
+        width: 198mm !important;
 
-        min-width: 0 !important;
+        min-width:
+            0 !important;
 
-        margin: 0 auto !important;
+        margin:
+            0 auto !important;
 
-        padding: 7mm !important;
+        padding:
+            4mm !important;
 
-        border-radius: 0 !important;
+        border-radius:
+            0 !important;
 
-        box-shadow: none !important;
+        box-shadow:
+            none !important;
 
-        overflow: visible !important;
+        overflow:
+            visible !important;
+
+        background:
+
+            radial-gradient(
+                circle at 85% 0%,
+                rgba(0,149,255,.25),
+                transparent 33%
+            ),
+
+            radial-gradient(
+                circle at 10% 100%,
+                rgba(0,115,210,.15),
+                transparent 30%
+            ),
+
+            linear-gradient(
+                135deg,
+                #061d45,
+                #073f76 55%,
+                #0069a9
+            ) !important;
     }
 
 
     .header {
 
-        margin-bottom:
-            4mm !important;
+        gap:
+            3mm !important;
 
         padding-bottom:
-            4mm !important;
+            2.5mm !important;
+
+        margin-bottom:
+            2.5mm !important;
     }
 
 
     .brand-small {
 
         font-size:
-            8pt !important;
+            6pt !important;
+
+        letter-spacing:
+            2px !important;
+
+        margin-bottom:
+            1mm !important;
     }
 
 
     .title {
 
         font-size:
-            23pt !important;
+            17pt !important;
+
+        letter-spacing:
+            1px !important;
     }
 
 
     .subtitle {
 
         font-size:
-            9pt !important;
+            6.5pt !important;
+
+        margin-top:
+            1mm !important;
     }
 
 
     .today {
 
         font-size:
-            18pt !important;
+            12pt !important;
     }
 
 
     .update {
 
         font-size:
-            7pt !important;
+            5pt !important;
     }
 
 
     .summary {
 
+        grid-template-columns:
+            repeat(4, 1fr) !important;
+
         gap:
-            2.5mm !important;
+            1.5mm !important;
 
         margin-bottom:
-            4mm !important;
+            2.5mm !important;
     }
 
 
     .summary-card {
 
+        min-width:
+            0 !important;
+
         padding:
-            2.5mm 4mm !important;
+            1.5mm 2mm !important;
 
         border-radius:
-            3mm !important;
+            2mm !important;
     }
 
 
     .summary-card span {
 
         font-size:
-            7.5pt !important;
+            5.5pt !important;
+
+        margin-bottom:
+            .5mm !important;
     }
 
 
     .summary-card strong {
 
         font-size:
-            15pt !important;
+            9.5pt !important;
     }
 
 
     .quote-list {
 
         gap:
-            2.2mm !important;
+            1.3mm !important;
     }
 
 
     .quote-row {
 
         grid-template-columns:
-            29mm
-            16mm
+            22mm
+            11mm
+            12mm
+            22mm
+            18mm
             17mm
-            29mm
-            25mm
-            23mm
-            23mm
+            17mm
             1fr !important;
 
         column-gap:
-            2.3mm !important;
+            1mm !important;
 
         padding:
-            2.7mm 3.5mm !important;
+            1.5mm 2mm !important;
 
         border-radius:
-            3mm !important;
+            2mm !important;
 
         border-left-width:
-            1.4mm !important;
+            1mm !important;
 
         box-shadow:
             none !important;
@@ -898,59 +957,73 @@ button:disabled {
     .label {
 
         font-size:
-            7pt !important;
+            5.2pt !important;
 
         margin-bottom:
-            1mm !important;
+            .4mm !important;
+    }
+
+
+    .value {
+
+        line-height:
+            1 !important;
     }
 
 
     .issuer-value {
 
         font-size:
-            14pt !important;
+            9.5pt !important;
     }
 
 
     .currency-value {
 
         font-size:
-            13pt !important;
+            8.5pt !important;
     }
 
 
     .tenor-value {
 
         font-size:
-            13pt !important;
+            8.5pt !important;
     }
 
 
     .coupon-value {
 
         font-size:
-            16pt !important;
+            11pt !important;
     }
 
 
     .strike-value {
 
         font-size:
-            15pt !important;
+            10pt !important;
     }
 
 
     .ki-value {
 
         font-size:
-            14pt !important;
+            9.5pt !important;
     }
 
 
     .ko-value {
 
         font-size:
-            14pt !important;
+            9.5pt !important;
+    }
+
+
+    .stocks {
+
+        gap:
+            .8mm !important;
     }
 
 
@@ -960,39 +1033,42 @@ button:disabled {
             0 !important;
 
         padding:
-            1.3mm 2.3mm !important;
+            .7mm 1.2mm !important;
 
         font-size:
-            10pt !important;
+            6.5pt !important;
 
         border-radius:
-            2mm !important;
+            1.2mm !important;
     }
 
 
     .solve-tag {
 
         margin-top:
-            .7mm !important;
+            .3mm !important;
 
         padding:
-            .3mm 1.4mm !important;
+            .2mm .8mm !important;
 
         font-size:
-            6pt !important;
+            4.3pt !important;
     }
 
 
     .footer-note {
 
         margin-top:
-            3mm !important;
+            2mm !important;
 
         padding-top:
-            2.5mm !important;
+            1.5mm !important;
 
         font-size:
-            6.5pt !important;
+            4.8pt !important;
+
+        line-height:
+            1.35 !important;
     }
 
 }
@@ -1079,8 +1155,6 @@ button:disabled {
 
         </button>
 
-
-        <!-- 新增：A4 列印 -->
 
         <button
             class="btn-print"
