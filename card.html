@@ -1,1565 +1,364 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>FCN 每日報價清單</title>
-
-<style>
-
-/* =====================================================
-   基本設定
-===================================================== */
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    margin: 0;
-    background: #edf2f7;
-    font-family:
-        "Microsoft JhengHei",
-        "PingFang TC",
-        Arial,
-        sans-serif;
-    color: #16324a;
-}
-
-.app {
-    max-width: 1550px;
-    margin: auto;
-    padding: 26px;
-}
-
-
-/* =====================================================
-   輸入區
-===================================================== */
-
-.control-panel {
-    background: #ffffff;
-    border-radius: 20px;
-    padding: 24px;
-    margin-bottom: 24px;
-
-    box-shadow:
-        0 8px 28px rgba(30, 55, 80, .10);
-}
-
-.control-title {
-    font-size: 28px;
-    font-weight: 900;
-    color: #0d3558;
-    margin-bottom: 8px;
-}
-
-.control-desc {
-    color: #647789;
-    font-size: 15px;
-    line-height: 1.8;
-    margin-bottom: 16px;
-}
-
-textarea {
-    width: 100%;
-    height: 220px;
-
-    border: 2px solid #d6e0e9;
-    border-radius: 14px;
-
-    padding: 15px;
-
-    font-size: 14px;
-    line-height: 1.6;
-
-    resize: vertical;
-    outline: none;
-
-    font-family:
-        Consolas,
-        "Microsoft JhengHei",
-        monospace;
-}
-
-textarea:focus {
-    border-color: #347eb5;
-}
-
-
-/* =====================================================
-   按鈕
-===================================================== */
-
-.buttons {
-    margin-top: 16px;
-
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-button {
-    border: 0;
-    border-radius: 11px;
-
-    padding: 12px 22px;
-
-    cursor: pointer;
-
-    font-size: 15px;
-    font-weight: 800;
-
-    transition: .2s;
-}
-
-.btn-main {
-    background: #0d4a79;
-    color: white;
-}
-
-.btn-main:hover {
-    background: #073659;
-}
-
-.btn-secondary {
-    background: #e8f0f6;
-    color: #19496d;
-}
-
-.btn-secondary:hover {
-    background: #d7e4ee;
-}
-
-.btn-gold {
-    background: #cfa348;
-    color: white;
-}
-
-
-/* =====================================================
-   報價主畫面
-===================================================== */
-
-#quoteArea {
-
-    background:
-        radial-gradient(
-            circle at 90% 8%,
-            rgba(54, 150, 221, .18),
-            transparent 28%
-        ),
-        linear-gradient(
-            135deg,
-            #062947,
-            #0c416b 55%,
-            #062947
-        );
-
-    border-radius: 22px;
-
-    padding: 30px;
-
-    overflow: hidden;
-
-    box-shadow:
-        0 12px 35px rgba(8, 42, 72, .20);
-}
-
-
-/* =====================================================
-   標題
-===================================================== */
-
-.header {
-
-    display: flex;
-
-    justify-content: space-between;
-    align-items: flex-end;
-
-    gap: 20px;
-
-    padding-bottom: 20px;
-    margin-bottom: 18px;
-
-    border-bottom:
-        1px solid rgba(255,255,255,.18);
-}
-
-.brand-small {
-
-    color: #d9ba6c;
-
-    letter-spacing: 3px;
-
-    font-size: 13px;
-
-    margin-bottom: 6px;
-}
-
-.title {
-
-    color: white;
-
-    font-size: 38px;
-
-    font-weight: 900;
-
-    letter-spacing: 2px;
-}
-
-.subtitle {
-
-    margin-top: 8px;
-
-    color: #b0cadc;
-
-    font-size: 15px;
-}
-
-.date-box {
-
-    text-align: right;
-}
-
-.today {
-
-    color: #f3cf76;
-
-    font-size: 29px;
-
-    font-weight: 900;
-}
-
-.update {
-
-    margin-top: 4px;
-
-    color: #9db9cc;
-
-    font-size: 12px;
-
-    letter-spacing: 1px;
-}
-
-
-/* =====================================================
-   摘要
-===================================================== */
-
-.summary {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 10px;
-
-    margin-bottom: 18px;
-}
-
-.summary-card {
-
-    min-width: 135px;
-
-    padding: 10px 16px;
-
-    border-radius: 12px;
-
-    background:
-        rgba(255,255,255,.08);
-
-    border:
-        1px solid rgba(255,255,255,.12);
-}
-
-.summary-card span {
-
-    color: #a9c4d7;
-
-    font-size: 12px;
-}
-
-.summary-card strong {
-
-    display: block;
-
-    margin-top: 3px;
-
-    font-size: 21px;
-
-    color: #f3cf76;
-
-    font-weight: 900;
-}
-
-
-/* =====================================================
-   每一列商品
-===================================================== */
-
-.quote-list {
-
-    display: grid;
-
-    gap: 12px;
-}
-
-
-.quote-row {
-
-    display: grid;
-
-    grid-template-columns:
-        75px
-        72px
-        70px
-        120px
-        115px
-        105px
-        105px
-        1fr;
-
-    align-items: center;
-
-    gap: 10px;
-
-    padding: 16px 18px;
-
-    background: rgba(255,255,255,.98);
-
-    border-radius: 16px;
-
-    border-left:
-        6px solid #d7aa4d;
-
-    box-shadow:
-        0 5px 15px rgba(0,0,0,.08);
-}
-
-
-.cell {
-
-    min-width: 0;
-}
-
-
-.label {
-
-    font-size: 12px;
-
-    font-weight: 700;
-
-    color: #81909e;
-
-    margin-bottom: 4px;
-}
-
-
-.value {
-
-    font-size: 21px;
-
-    font-weight: 900;
-
-    color: #17354f;
-
-    white-space: nowrap;
-}
-
-
-/* =====================================================
-   重點數值
-===================================================== */
-
-.bank-value {
-
-    font-size: 21px;
-
-    color: #194d74;
-}
-
-
-.currency-value {
-
-    font-size: 22px;
-}
-
-
-.tenor-value {
-
-    font-size: 22px;
-}
-
-
-/* Coupon 最醒目 */
-
-.coupon-value {
-
-    color: #cb8508;
-
-    font-size: 29px;
-
-    font-weight: 900;
-}
-
-
-/* Strike */
-
-.strike-value {
-
-    color: #08785a;
-
-    font-size: 25px;
-}
-
-
-/* KI */
-
-.ki-value {
-
-    color: #985127;
-
-    font-size: 23px;
-}
-
-
-/* KO */
-
-.ko-value {
-
-    color: #176eaa;
-
-    font-size: 23px;
-}
-
-
-/* =====================================================
-   標的
-===================================================== */
-
-.stocks {
-
-    display: flex;
-
-    flex-wrap: wrap;
-
-    gap: 7px;
-}
-
-.stock {
-
-    padding: 8px 12px;
-
-    border-radius: 9px;
-
-    background: #e9f1f8;
-
-    border:
-        1px solid #d0e0ec;
-
-    color: #163f60;
-
-    font-size: 18px;
-
-    font-weight: 900;
-}
-
-
-/* =====================================================
-   Solve 提示
-===================================================== */
-
-.solve-tag {
-
-    display: inline-block;
-
-    margin-top: 4px;
-
-    padding: 2px 6px;
-
-    border-radius: 5px;
-
-    background: #fff1cf;
-
-    color: #9b6c09;
-
-    font-size: 10px;
-
-    font-weight: 800;
-}
-
-
-/* =====================================================
-   無資料
-===================================================== */
-
-.empty {
-
-    padding: 60px 20px;
-
-    text-align: center;
-
-    border:
-        1px dashed rgba(255,255,255,.28);
-
-    border-radius: 15px;
-
-    color:
-        rgba(255,255,255,.68);
-}
-
-
-/* =====================================================
-   底部
-===================================================== */
-
-.footer-note {
-
-    margin-top: 18px;
-
-    padding-top: 14px;
-
-    border-top:
-        1px solid rgba(255,255,255,.13);
-
-    color: #99b7ca;
-
-    font-size: 12px;
-
-    line-height: 1.7;
-}
-
-
-/* =====================================================
-   手機
-===================================================== */
-
-@media(max-width: 1050px) {
-
-    .quote-row {
-
-        grid-template-columns:
-            repeat(4, 1fr);
-    }
-
-    .stocks-cell {
-
-        grid-column:
-            span 4;
-    }
-}
-
-
-@media(max-width: 650px) {
-
-    .app {
-
-        padding: 10px;
-    }
-
-    #quoteArea {
-
-        padding: 17px;
-    }
-
-    .header {
-
-        flex-direction: column;
-
-        align-items: flex-start;
-    }
-
-    .date-box {
-
-        text-align: left;
-    }
-
-    .title {
-
-        font-size: 28px;
-    }
-
-    .quote-row {
-
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-    .stocks-cell {
-
-        grid-column:
-            span 2;
-    }
-}
-
-
-/* =====================================================
-   列印
-===================================================== */
-
-@media print {
-
-    body {
-
-        background: white;
-    }
-
-    .control-panel {
-
-        display: none;
-    }
-
-    .app {
-
-        max-width: none;
-
-        padding: 0;
-    }
-
-    #quoteArea {
-
-        border-radius: 0;
-
-        box-shadow: none;
-
-        min-height: 100vh;
-    }
-}
-
-</style>
-</head>
-
-
-<body>
-
-<div class="app">
-
-
-<!-- ===================================================
-     貼資料區
-=================================================== -->
-
-<div class="control-panel">
-
-    <div class="control-title">
-        FCN 每日報價產生器
-    </div>
-
-    <div class="control-desc">
-
-        直接從原始 FCN Excel / Email 報價表複製後貼上。<br>
-
-        系統會自動讀取
-        <b>Best</b>、
-        <b>Solve</b>
-        以及後方商品條件。<br>
-
-        如果 Solve 是 Coupon、Strike、KI、KO 等，
-        會自動將 Best 括號內的數字填入正確欄位。
-
-    </div>
-
-
-    <textarea
-        id="pasteArea"
-        placeholder="直接從 Excel 選取報價表 → Ctrl+C → 貼在這裡">
-    </textarea>
-
-
-    <div class="buttons">
-
-        <button
-            class="btn-main"
-            onclick="generateQuote()">
-            生成每日報價
-        </button>
-
-        <button
-            class="btn-secondary"
-            onclick="loadExample()">
-            載入範例
-        </button>
-
-        <button
-            class="btn-secondary"
-            onclick="clearAll()">
-            清空
-        </button>
-
-        <button
-            class="btn-gold"
-            onclick="window.print()">
-            列印 / 存成 PDF
-        </button>
-
-    </div>
-
-</div>
-
-
-
-<!-- ===================================================
-     報價區
-=================================================== -->
-
-<div id="quoteArea">
-
-
-    <div class="header">
-
-        <div>
-
-            <div class="brand-small">
-                STRUCTURED PRODUCTS
-            </div>
-
-            <div class="title">
-                FCN 每日精選報價
-            </div>
-
-            <div class="subtitle">
-                精選條件｜快速比較｜掌握每日投資機會
-            </div>
-
-        </div>
-
-
-        <div class="date-box">
-
-            <div
-                class="today"
-                id="today">
-            </div>
-
-            <div class="update">
-                DAILY INDICATIVE TERMS
-            </div>
-
-        </div>
-
-    </div>
-
-
-
-    <div
-        class="summary"
-        id="summary">
-    </div>
-
-
-
-    <div
-        class="quote-list"
-        id="quoteList">
-
-        <div class="empty">
-
-            貼上 FCN 報價資料後<br>
-            按「生成每日報價」
-
-        </div>
-
-    </div>
-
-
-
-    <div class="footer-note">
-
-        ※ 本資料為每日商品條件整理，
-        僅供內部商品比較與業務溝通使用。<br>
-
-        ※ 實際交易條件、成交價格及相關內容，
-        仍應以交易當時之正式報價與相關文件為準。
-
-    </div>
-
-
-</div>
-
-</div>
-
-
-
 <script>
 
-
 /* =====================================================
-   今日日期
+   從 Best 抓發行機構
+   GS (12.51%) → GS
 ===================================================== */
-
-function setToday() {
-
-    const now = new Date();
-
-    const y =
-        now.getFullYear();
-
-    const m =
-        String(
-            now.getMonth() + 1
-        ).padStart(2, "0");
-
-    const d =
-        String(
-            now.getDate()
-        ).padStart(2, "0");
-
-
-    document
-        .getElementById("today")
-        .innerText =
-        `${y}.${m}.${d}`;
-}
-
-setToday();
-
-
-
-/* =====================================================
-   HTML 安全
-===================================================== */
-
-function escapeHTML(value) {
-
-    if (
-        value === undefined ||
-        value === null
-    ) {
-
-        return "";
-    }
-
-
-    return String(value)
-
-        .replace(/&/g, "&amp;")
-
-        .replace(/</g, "&lt;")
-
-        .replace(/>/g, "&gt;")
-
-        .replace(/"/g, "&quot;")
-
-        .replace(/'/g, "&#039;");
-}
-
-
-
-/* =====================================================
-   讀取 Best 括號中的內容
-
-   GS (12.51%)
-   → 12.51%
-
-   JPM (70.00%)
-   → 70.00%
-===================================================== */
-
-function extractBestValue(text) {
-
+function extractIssuer(text) {
     if (!text) return "";
-
-
-    const match =
-        String(text)
-        .match(/\(([^()]+)\)/);
-
-
-    if (!match) {
-
-        return "";
-    }
-
-
-    return match[1].trim();
-}
-
-
-
-/* =====================================================
-   抓銀行
-
-   GS (12.51%)
-   → GS
-
-   BAR (8.06%)
-   → BAR
-===================================================== */
-
-function extractBank(text) {
-
-    if (!text) return "";
-
 
     return String(text)
-
         .replace(/\(.*?\)/g, "")
-
         .trim();
 }
 
+
+/* =====================================================
+   從 Best 抓括號內數值
+   GS (12.51%) → 12.51%
+===================================================== */
+function extractBestValue(text) {
+    if (!text) return "";
+
+    const match = String(text).match(/\(([^()]+)\)/);
+
+    return match ? match[1].trim() : "";
+}
 
 
 /* =====================================================
    Header 標準化
 ===================================================== */
-
 function normalizeHeader(text) {
 
-    let h =
-        String(text || "")
-
-        .trim()
-
-        .toLowerCase()
-
+    let h = String(text || "")
         .replace(/\r/g, "")
+        .replace(/\n/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
 
-        .replace(/\n/g, "")
+    const map = {
+        "best (30 萬)": "Best30",
+        "best (30萬)": "Best30",
+        "best 30萬": "Best30",
+        "best30萬": "Best30",
 
-        .replace(/\s+/g, "");
+        "best (20 萬)": "Best20",
+        "best (20萬)": "Best20",
+        "best 20萬": "Best20",
+        "best20萬": "Best20",
 
-
-    const aliases = {
-
-
-        /* Best */
-
-        "best(30萬)":
-            "Best30",
-
-        "best30萬":
-            "Best30",
-
-        "best30":
-            "Best30",
-
-
-        "best(20萬)":
-            "Best20",
-
-        "best20萬":
-            "Best20",
-
-        "best20":
-            "Best20",
-
-
-        /* Solve */
-
-        "solve":
-            "Solve",
-
-
-        /* Type */
-
-        "type":
-            "Type",
-
-
-        /* Currency */
-
-        "currency":
-            "Currency",
-
-        "ccy":
-            "Currency",
-
-        "幣別":
-            "Currency",
-
-
-        /* Tenor */
-
-        "tenor(m)":
-            "Tenor",
-
-        "tenor":
-            "Tenor",
-
-        "tenorm":
-            "Tenor",
-
-        "天期":
-            "Tenor",
-
-
-        /* Coupon */
-
-        "coupon":
-            "Coupon",
-
-        "票息":
-            "Coupon",
-
-
-        /* Coupon Period */
-
-        "couponperiod":
-            "CouponPeriod",
-
-
-        /* Strike */
-
-        "strike":
-            "Strike",
-
-
-        /* KI */
-
-        "ki":
-            "KI",
-
-        "kifreq":
-            "KIFreq",
-
-
-        /* KO */
-
-        "ko":
-            "KO",
-
-        "kofreq":
-            "KOFreq",
-
-        "kostart":
-            "KOStart",
-
-
-        /* Memory */
-
-        "memoryko":
-            "MemoryKO",
-
-        "memory":
-            "MemoryKO",
-
-
-        /* Stocks */
-
-        "u1":
-            "U1",
-
-        "u2":
-            "U2",
-
-        "u3":
-            "U3",
-
-        "u4":
-            "U4"
-
+        "solve": "Solve",
+        "type": "Type",
+        "currency": "Currency",
+        "tenor (m)": "Tenor",
+        "tenor(m)": "Tenor",
+        "tenor": "Tenor",
+        "coupon": "Coupon",
+        "coupon period": "CouponPeriod",
+        "strike": "Strike",
+        "ki": "KI",
+        "ki freq": "KIFreq",
+        "ko": "KO",
+        "ko freq": "KOFreq",
+        "ko start": "KOStart",
+        "memory ko": "MemoryKO",
+        "u1": "U1",
+        "u2": "U2",
+        "u3": "U3",
+        "u4": "U4"
     };
 
-
-    return aliases[h] || text.trim();
+    return map[h] || text.trim();
 }
-
 
 
 /* =====================================================
    Solve 名稱標準化
-
-   不同報價可能寫：
-
-   Coupon
-   Strike
-   KI
-   KO
-   Tenor
-   Coupon Period
-   KO Start
-
-   都可以識別
 ===================================================== */
-
 function normalizeSolve(text) {
 
     if (!text) return "";
 
-
-    let s =
-        String(text)
-
-        .trim()
-
+    let s = String(text)
         .toLowerCase()
-
         .replace(/\s+/g, "")
-
         .replace(/_/g, "")
-
         .replace(/-/g, "");
 
-
-    const solveMap = {
-
-
-        "coupon":
-            "Coupon",
-
-        "票息":
-            "Coupon",
-
-
-        "strike":
-            "Strike",
-
-        "履約價":
-            "Strike",
-
-
-        "ki":
-            "KI",
-
-
-        "kifreq":
-            "KIFreq",
-
-
-        "ko":
-            "KO",
-
-
-        "kofreq":
-            "KOFreq",
-
-
-        "kostart":
-            "KOStart",
-
-
-        "tenor":
-            "Tenor",
-
-        "tenorm":
-            "Tenor",
-
-
-        "couponperiod":
-            "CouponPeriod",
-
-
-        "memoryko":
-            "MemoryKO",
-
-        "memory":
-            "MemoryKO"
-
+    const map = {
+        "coupon": "Coupon",
+        "strike": "Strike",
+        "ki": "KI",
+        "kifreq": "KIFreq",
+        "ko": "KO",
+        "kofreq": "KOFreq",
+        "kostart": "KOStart",
+        "tenor": "Tenor",
+        "couponperiod": "CouponPeriod",
+        "memoryko": "MemoryKO"
     };
 
-
-    return solveMap[s] || "";
+    return map[s] || "";
 }
-
 
 
 /* =====================================================
-   判斷標題列
+   判斷是否 Header
 ===================================================== */
-
 function looksLikeHeader(row) {
 
-    const text =
-        row
-        .join(" ")
-        .toLowerCase();
-
+    const text = row.join(" ").toLowerCase();
 
     const keywords = [
-
         "best",
-
         "solve",
-
         "type",
-
         "currency",
-
         "tenor",
-
         "coupon",
-
         "strike",
-
         "ki",
-
         "ko",
-
         "u1"
-
     ];
 
-
-    let found = 0;
-
+    let count = 0;
 
     keywords.forEach(k => {
-
-        if (
-            text.includes(k)
-        ) {
-
-            found++;
-        }
-
+        if (text.includes(k)) count++;
     });
 
-
-    return found >= 4;
+    return count >= 4;
 }
 
+
+/* =====================================================
+   乾淨切割一列
+   Excel / Outlook 複製都盡量兼容
+===================================================== */
+function splitRow(line) {
+
+    // 優先處理 Tab
+    if (line.includes("\t")) {
+
+        return line
+            .split("\t")
+            .map(v =>
+                String(v)
+                    .replace(/\r/g, "")
+                    .replace(/\n/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim()
+            );
+    }
+
+    // 備援：連續 2 個以上空白視為欄位分隔
+    return line
+        .trim()
+        .split(/\s{2,}/)
+        .map(v =>
+            String(v)
+                .replace(/\r/g, "")
+                .replace(/\n/g, " ")
+                .replace(/\s+/g, " ")
+                .trim()
+        );
+}
+
+
+/* =====================================================
+   修正欄數
+===================================================== */
+function normalizeRowLength(row, expectedLength) {
+
+    let result = [...row];
+
+    // 欄位太少 → 補空白
+    while (result.length < expectedLength) {
+        result.push("");
+    }
+
+    // 欄位太多 → 最後多出來的合併到最後一欄
+    if (result.length > expectedLength) {
+
+        const fixed = result.slice(0, expectedLength - 1);
+
+        fixed.push(
+            result
+                .slice(expectedLength - 1)
+                .join(" ")
+        );
+
+        result = fixed;
+    }
+
+    return result;
+}
 
 
 /* =====================================================
    解析資料
 ===================================================== */
-
 function parseData(text) {
 
-
-    let lines =
-        String(text)
-
-        .trim()
-
+    let rawLines = String(text)
+        .replace(/\u00A0/g, " ")
         .split(/\r?\n/)
+        .map(x => x.trimEnd());
 
-        .filter(
-            line =>
-            line.trim() !== ""
-        );
+    // 移除空白列
+    rawLines = rawLines.filter(line => line.trim() !== "");
 
-
-    if (!lines.length) {
-
-        return [];
-    }
+    if (!rawLines.length) return [];
 
 
-
-    /* 每一列切欄 */
-
-    let rows =
-        lines.map(line => {
-
-
-            /* Excel 複製一般是 TAB */
-
-            if (
-                line.includes("\t")
-            ) {
-
-                return line
-                    .split("\t")
-                    .map(
-                        v =>
-                        v.trim()
-                    );
-            }
-
-
-            /* 備援 CSV */
-
-            return line
-                .split(",")
-                .map(
-                    v =>
-                    v.trim()
-                );
-
-        });
-
-
-
-    /* =================================================
-       判斷是否包含 Header
-    ================================================= */
+    let rows = rawLines.map(splitRow);
 
 
     let headers = [];
 
+    if (looksLikeHeader(rows[0])) {
 
-    if (
-        looksLikeHeader(
-            rows[0]
-        )
-    ) {
-
-
-        headers =
-            rows.shift()
-            .map(
-                normalizeHeader
-            );
-
+        headers = rows.shift().map(normalizeHeader);
 
     } else {
 
-
-        /* 如果沒有 Header
-           使用你目前報價表順序
-        */
-
-
         headers = [
-
             "Best30",
-
             "Best20",
-
             "Solve",
-
             "Type",
-
             "Currency",
-
             "Tenor",
-
             "Coupon",
-
             "CouponPeriod",
-
             "Strike",
-
             "KI",
-
             "KIFreq",
-
             "KO",
-
             "KOFreq",
-
             "KOStart",
-
             "MemoryKO",
-
             "U1",
-
             "U2",
-
             "U3",
-
             "U4"
-
         ];
     }
 
 
+    return rows
+        .map(row => {
 
-    /* =================================================
-       每一列轉成 Object
-    ================================================= */
-
-
-    let data =
-        rows.map(row => {
-
+            row = normalizeRowLength(
+                row,
+                headers.length
+            );
 
             let obj = {};
 
-
-            headers.forEach(
-                (header, index) => {
-
-
-                    obj[header] =
-                        row[index] ?? "";
-
-                }
-            );
+            headers.forEach((header, i) => {
+                obj[header] = row[i] || "";
+            });
 
 
+            const bestText =
+                obj.Best30 ||
+                obj.Best20 ||
+                "";
 
-            /* =========================================
-               取得 Best
-            ========================================= */
+            const bestValue =
+                extractBestValue(bestText);
 
-
-            const best30 =
-                obj.Best30 || "";
-
-
-            const best20 =
-                obj.Best20 || "";
+            const issuer =
+                extractIssuer(bestText);
 
 
-
-            /*
-               優先抓 Best30
-
-               沒有的話再抓 Best20
-            */
-
-
-            let bestText =
-                best30 || best20;
-
-
-            let bestValue =
-                extractBestValue(
-                    bestText
-                );
-
-
-            let bank =
-                extractBank(
-                    bestText
-                );
-
-
-
-            obj.Bank =
-                bank;
-
-
-            obj.BestValue =
-                bestValue;
-
-
-
-            /* =========================================
-               最重要：
-
-               Solve 指向哪個欄位
-               就把 Best Value 補到哪裡
-            ========================================= */
+            obj.Issuer = issuer;
+            obj.BestValue = bestValue;
 
 
             const solveField =
-                normalizeSolve(
-                    obj.Solve
-                );
+                normalizeSolve(obj.Solve);
+
+            obj.SolveField = solveField;
 
 
-            if (
-                solveField &&
-                bestValue
-            ) {
+            // Solve 指向哪一欄，就補哪一欄
+            if (solveField && bestValue) {
 
-
-                /*
-                   原欄位如果空白
-                   → 補 Best
-
-                   即使不是 Coupon
-                   一樣可以
-                */
-
+                const original =
+                    String(
+                        obj[solveField] || ""
+                    ).trim();
 
                 if (
-                    !obj[solveField] ||
-                    obj[solveField]
-                        .trim() === "" ||
-                    obj[solveField]
-                        .toUpperCase() === "NA"
+                    original === "" ||
+                    original.toUpperCase() === "NA"
                 ) {
-
-
-                    obj[solveField] =
-                        bestValue;
-
+                    obj[solveField] = bestValue;
                 }
-
             }
 
 
-
-            obj.SolveField =
-                solveField;
-
-
             return obj;
+        })
+        .filter(item => {
 
+            // 過濾不是商品資料的雜訊列
+            return (
+                item.Type ||
+                item.Currency ||
+                item.U1 ||
+                item.Best30 ||
+                item.Best20
+            );
         });
-
-
-
-    return data;
 }
 
 
-
 /* =====================================================
-   產生股票標籤
+   顯示標的
 ===================================================== */
-
 function buildStocks(item) {
 
-
     const stocks = [
-
         item.U1,
-
         item.U2,
-
         item.U3,
-
         item.U4
-
     ].filter(v => {
-
         if (!v) return false;
 
+        const x = String(v).trim().toUpperCase();
 
-        const x =
-            String(v)
-            .trim()
-            .toUpperCase();
-
-
-        return (
-            x !== "" &&
-            x !== "NA" &&
-            x !== "-"
-        );
-
+        return x !== "" &&
+               x !== "NA" &&
+               x !== "-";
     });
 
-
-
     if (!stocks.length) {
-
-        return `
-            <span class="stock">
-                -
-            </span>
-        `;
+        return `<span class="stock">-</span>`;
     }
 
-
-
     return stocks
-
         .map(stock => `
-
             <span class="stock">
-
                 ${escapeHTML(stock)}
-
             </span>
-
         `)
-
         .join("");
 }
 
 
-
 /* =====================================================
-   Solve 提示
+   BEST 標示
 ===================================================== */
-
 function solveHint(item, field) {
 
-
-    if (
-        item.SolveField === field
-    ) {
-
+    if (item.SolveField === field) {
 
         return `
             <div class="solve-tag">
@@ -1568,564 +367,128 @@ function solveHint(item, field) {
         `;
     }
 
-
     return "";
 }
 
 
-
 /* =====================================================
-   生成報價
+   產生報價
 ===================================================== */
-
 function generateQuote() {
-
 
     const text =
         document
-        .getElementById(
-            "pasteArea"
-        )
-        .value;
-
-
+            .getElementById("pasteArea")
+            .value;
 
     if (!text.trim()) {
-
-
-        alert(
-            "請先貼上 FCN 報價資料"
-        );
-
-
+        alert("請先貼上 FCN 報價資料");
         return;
     }
 
-
-
-    const data =
-        parseData(text);
-
-
+    const data = parseData(text);
 
     if (!data.length) {
-
-
-        alert(
-            "沒有讀取到有效報價資料"
-        );
-
-
+        alert("沒有讀取到有效的 FCN 商品資料");
         return;
     }
 
-
-
     const list =
-        document
-        .getElementById(
-            "quoteList"
-        );
-
+        document.getElementById("quoteList");
 
     list.innerHTML = "";
 
 
+    data.forEach(item => {
 
-    data.forEach(
-        (item, index) => {
+        const row =
+            document.createElement("div");
 
-
-
-            const row =
-                document
-                .createElement(
-                    "div"
-                );
+        row.className = "quote-row";
 
 
-            row.className =
-                "quote-row";
+        row.innerHTML = `
 
-
-
-            row.innerHTML = `
-
-
-                <!-- 銀行 -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        銀行
-                    </div>
-
-                    <div class="
-                        value
-                        bank-value
-                    ">
-
-                        ${escapeHTML(
-                            item.Bank || "-"
-                        )}
-
-                    </div>
-
+            <div class="cell">
+                <div class="label">發行機構</div>
+                <div class="value bank-value">
+                    ${escapeHTML(item.Issuer || "-")}
                 </div>
-
-
-
-                <!-- 幣別 -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        幣別
-                    </div>
-
-                    <div class="
-                        value
-                        currency-value
-                    ">
-
-                        ${escapeHTML(
-                            item.Currency || "-"
-                        )}
-
-                    </div>
-
-                </div>
-
-
-
-                <!-- 天期 -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        天期
-                    </div>
-
-                    <div class="
-                        value
-                        tenor-value
-                    ">
-
-                        ${escapeHTML(
-                            item.Tenor || "-"
-                        )}${item.Tenor ? "M" : ""}
-
-                    </div>
-
-                    ${solveHint(
-                        item,
-                        "Tenor"
-                    )}
-
-                </div>
-
-
-
-                <!-- Coupon -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        年化 Coupon
-                    </div>
-
-                    <div class="
-                        value
-                        coupon-value
-                    ">
-
-                        ${escapeHTML(
-                            item.Coupon || "-"
-                        )}
-
-                    </div>
-
-                    ${solveHint(
-                        item,
-                        "Coupon"
-                    )}
-
-                </div>
-
-
-
-                <!-- Strike -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        Strike
-                    </div>
-
-                    <div class="
-                        value
-                        strike-value
-                    ">
-
-                        ${escapeHTML(
-                            item.Strike || "-"
-                        )}
-
-                    </div>
-
-                    ${solveHint(
-                        item,
-                        "Strike"
-                    )}
-
-                </div>
-
-
-
-                <!-- KI -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        KI
-                    </div>
-
-                    <div class="
-                        value
-                        ki-value
-                    ">
-
-                        ${escapeHTML(
-                            item.KI || "-"
-                        )}
-
-                    </div>
-
-                    ${solveHint(
-                        item,
-                        "KI"
-                    )}
-
-                </div>
-
-
-
-                <!-- KO -->
-
-                <div class="cell">
-
-                    <div class="label">
-                        KO
-                    </div>
-
-                    <div class="
-                        value
-                        ko-value
-                    ">
-
-                        ${escapeHTML(
-                            item.KO || "-"
-                        )}
-
-                    </div>
-
-                    ${solveHint(
-                        item,
-                        "KO"
-                    )}
-
-                </div>
-
-
-
-                <!-- 股票 -->
-
-                <div class="
-                    cell
-                    stocks-cell
-                ">
-
-                    <div class="label">
-
-                        連結標的
-
-                    </div>
-
-                    <div class="stocks">
-
-                        ${buildStocks(item)}
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-
-            list.appendChild(
-                row
-            );
-
-        }
-    );
-
-
-
-    buildSummary(
-        data
-    );
-}
-
-
-
-/* =====================================================
-   上方統計
-===================================================== */
-
-function buildSummary(data) {
-
-
-    const summary =
-        document
-        .getElementById(
-            "summary"
-        );
-
-
-
-    /* 幣別 */
-
-    const currencies = [
-
-        ...new Set(
-
-            data
-
-            .map(
-                x =>
-                x.Currency
-            )
-
-            .filter(Boolean)
-
-        )
-
-    ];
-
-
-
-    /* 天期 */
-
-    const tenors = [
-
-        ...new Set(
-
-            data
-
-            .map(
-                x =>
-                x.Tenor
-            )
-
-            .filter(Boolean)
-
-        )
-
-    ];
-
-
-
-    /* Coupon */
-
-    const coupons =
-
-        data
-
-        .map(x => {
-
-            return parseFloat(
-
-                String(
-                    x.Coupon || ""
-                )
-
-                .replace(
-                    /%/g,
-                    ""
-                )
-
-            );
-
-        })
-
-        .filter(
-            x =>
-            !isNaN(x)
-        );
-
-
-
-    const maxCoupon =
-
-        coupons.length
-
-        ? Math.max(
-            ...coupons
-        ).toFixed(2) + "%"
-
-        : "-";
-
-
-
-    summary.innerHTML = `
-
-
-        <div class="summary-card">
-
-            <span>
-                今日精選
-            </span>
-
-            <strong>
-                ${data.length} 組
-            </strong>
-
-        </div>
-
-
-
-        <div class="summary-card">
-
-            <span>
-                幣別
-            </span>
-
-            <strong>
-
-                ${
-                    currencies
-                    .join(" / ")
-                    ||
-                    "-"
-                }
-
-            </strong>
-
-        </div>
-
-
-
-        <div class="summary-card">
-
-            <span>
-                天期
-            </span>
-
-            <strong>
-
-                ${
-                    tenors
-                    .map(
-                        x =>
-                        x + "M"
-                    )
-                    .join(" / ")
-                    ||
-                    "-"
-                }
-
-            </strong>
-
-        </div>
-
-
-
-        <div class="summary-card">
-
-            <span>
-                最高 Coupon
-            </span>
-
-            <strong>
-                ${maxCoupon}
-            </strong>
-
-        </div>
-
-    `;
-}
-
-
-
-/* =====================================================
-   範例
-===================================================== */
-
-function loadExample() {
-
-
-const example =
-`Best (30萬)	Best (20萬)	Solve	Type	Currency	Tenor (M)	Coupon	Coupon Period	Strike	KI	KI Freq	KO	KO Freq	KO Start	Memory KO	U1	U2	U3
-GS (12.51%)	GS (12.51%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	NVDA
-BAR (8.06%)	BAR (8.06%)	Coupon	FCN	USD	6		1	60.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	NVDA
-JPM (70.00%)	JPM (70.00%)	Strike	FCN	USD	6	12.10%	1		50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	GOOGL
-UBS (50.00%)	UBS (50.00%)	KI	FCN	USD	6	9.85%	1	65.00%		AKI	100.00%	Daily	1	Yes	TSM	MU	AAPL
-GS (105.00%)	GS (105.00%)	KO	FCN	USD	6	12.54%	1	70.00%	50.00%	AKI		Daily	1	Yes	TSM	MU	AVGO`;
-
-
-    document
-        .getElementById(
-            "pasteArea"
-        )
-        .value =
-        example;
-
-
-    generateQuote();
-}
-
-
-
-/* =====================================================
-   清空
-===================================================== */
-
-function clearAll() {
-
-
-    document
-        .getElementById(
-            "pasteArea"
-        )
-        .value = "";
-
-
-    document
-        .getElementById(
-            "summary"
-        )
-        .innerHTML = "";
-
-
-    document
-        .getElementById(
-            "quoteList"
-        )
-        .innerHTML = `
-
-            <div class="empty">
-
-                貼上 FCN 報價資料後<br>
-
-                按「生成每日報價」
-
             </div>
 
+
+            <div class="cell">
+                <div class="label">幣別</div>
+                <div class="value currency-value">
+                    ${escapeHTML(item.Currency || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell">
+                <div class="label">天期</div>
+                <div class="value tenor-value">
+                    ${escapeHTML(item.Tenor || "-")}
+                    ${item.Tenor ? "M" : ""}
+                </div>
+
+                ${solveHint(item, "Tenor")}
+            </div>
+
+
+            <div class="cell">
+                <div class="label">年化 Coupon</div>
+                <div class="value coupon-value">
+                    ${escapeHTML(item.Coupon || "-")}
+                </div>
+
+                ${solveHint(item, "Coupon")}
+            </div>
+
+
+            <div class="cell">
+                <div class="label">Strike</div>
+                <div class="value strike-value">
+                    ${escapeHTML(item.Strike || "-")}
+                </div>
+
+                ${solveHint(item, "Strike")}
+            </div>
+
+
+            <div class="cell">
+                <div class="label">KI</div>
+                <div class="value ki-value">
+                    ${escapeHTML(item.KI || "-")}
+                </div>
+
+                ${solveHint(item, "KI")}
+            </div>
+
+
+            <div class="cell">
+                <div class="label">KO</div>
+                <div class="value ko-value">
+                    ${escapeHTML(item.KO || "-")}
+                </div>
+
+                ${solveHint(item, "KO")}
+            </div>
+
+
+            <div class="cell stocks-cell">
+                <div class="label">連結標的</div>
+
+                <div class="stocks">
+                    ${buildStocks(item)}
+                </div>
+            </div>
         `;
+
+        list.appendChild(row);
+    });
+
+    buildSummary(data);
 }
 
 </script>
-
-</body>
-</html>
