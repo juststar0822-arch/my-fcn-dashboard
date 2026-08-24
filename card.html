@@ -556,6 +556,32 @@ button:disabled {
 
 
 /* =====================================================
+   新增：AKI / EKI
+===================================================== */
+
+.ki-freq {
+
+    display: inline-block;
+
+    margin-top: 5px;
+
+    padding: 3px 8px;
+
+    border-radius: 6px;
+
+    background: #f4e7dc;
+
+    color: #8c4a20;
+
+    font-size: 11px;
+
+    font-weight: 900;
+
+    letter-spacing: .5px;
+}
+
+
+/* =====================================================
    KO
 ===================================================== */
 
@@ -1010,6 +1036,24 @@ button:disabled {
 
         font-size:
             9.5pt !important;
+    }
+
+
+    /* 新增：列印時 AKI / EKI */
+
+    .ki-freq {
+
+        margin-top:
+            .4mm !important;
+
+        padding:
+            .2mm .8mm !important;
+
+        border-radius:
+            1mm !important;
+
+        font-size:
+            4.8pt !important;
     }
 
 
@@ -2276,6 +2320,8 @@ function generateQuote() {
 
 
 
+                <!-- KI + AKI / EKI -->
+
                 <div class="cell">
 
 
@@ -2297,6 +2343,19 @@ function generateQuote() {
                         )}
 
                     </div>
+
+
+                    ${
+                        item.KIFreq
+
+                        ? `
+                            <div class="ki-freq">
+                                ${escapeHTML(item.KIFreq)}
+                            </div>
+                          `
+
+                        : ""
+                    }
 
 
                     ${solveHint(
@@ -2786,15 +2845,15 @@ function loadExample() {
 const example =
 `Best (20萬)	Solve	Type	Currency	Tenor (M)	Coupon	Coupon Period	Strike	KI	KI Freq	KO	KO Freq	KO Start	Memory KO	U1	U2	U3
 GS (12.51%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	NVDA
-BAR (8.06%)	Coupon	FCN	USD	6		1	60.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	NVDA
+BAR (8.06%)	Coupon	FCN	USD	6		1	60.00%	50.00%	EKI	100.00%	Daily	1	Yes	TSM	MU	NVDA
 JPM (12.10%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	GOOGL
-UBS (9.85%)	Coupon	FCN	USD	6		1	65.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	GOOGL
+UBS (9.85%)	Coupon	FCN	USD	6		1	65.00%	50.00%	EKI	100.00%	Daily	1	Yes	TSM	MU	GOOGL
 GS (12.54%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	AVGO
-BAR (10.44%)	Coupon	FCN	USD	6		1	65.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	AVGO
+BAR (10.44%)	Coupon	FCN	USD	6		1	65.00%	50.00%	EKI	100.00%	Daily	1	Yes	TSM	MU	AVGO
 JPM (12.06%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	AAPL
-UBS (9.84%)	Coupon	FCN	USD	6		1	65.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	AAPL
+UBS (9.84%)	Coupon	FCN	USD	6		1	65.00%	50.00%	EKI	100.00%	Daily	1	Yes	TSM	MU	AAPL
 NO (9.99%)	Coupon	FCN	USD	6		1	65.00%	50.00%	AKI	100.00%	Daily	1	Yes	TSM	MU	SOXX
-CG (11.33%)	Coupon	FCN	USD	6		1	70.00%	50.00%	AKI	100.00%	Daily	1	Yes	QQQ	SPY	SOXX`;
+CG (11.33%)	Coupon	FCN	USD	6		1	70.00%	50.00%	EKI	100.00%	Daily	1	Yes	QQQ	SPY	SOXX`;
 
 
     document
