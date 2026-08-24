@@ -6,6 +6,8 @@
 
 <title>FCN 每日報價清單</title>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 <style>
 
 * {
@@ -82,6 +84,17 @@ button {
     cursor: pointer;
     font-size: 15px;
     font-weight: 800;
+    transition: .2s;
+}
+
+button:hover {
+    transform: translateY(-1px);
+}
+
+button:disabled {
+    opacity: .6;
+    cursor: wait;
+    transform: none;
 }
 
 .btn-main {
@@ -104,6 +117,7 @@ button {
 ========================= */
 
 #quoteArea {
+    width: 100%;
     background:
         radial-gradient(circle at 90% 8%, rgba(54,150,221,.18), transparent 28%),
         linear-gradient(135deg, #062947, #0c416b 55%, #062947);
@@ -402,32 +416,6 @@ button {
     }
 }
 
-/* =========================
-   列印
-========================= */
-
-@media print {
-
-    body {
-        background: white;
-    }
-
-    .control-panel {
-        display: none;
-    }
-
-    .app {
-        max-width: none;
-        padding: 0;
-    }
-
-    #quoteArea {
-        border-radius: 0;
-        box-shadow: none;
-        min-height: 100vh;
-    }
-}
-
 </style>
 </head>
 
@@ -444,7 +432,7 @@ button {
         <div class="control-desc">
             直接從原始 FCN Excel 報價表複製後貼上。<br>
             例如 <b>GS (12.51%)</b>：
-            GS 會辨識為「發行機構」，12.51% 會依照 Solve 自動補回正確欄位。
+            GS = 發行機構；12.51% 會依照 Solve 自動補回正確欄位。
         </div>
 
         <textarea
@@ -473,8 +461,9 @@ button {
 
             <button
                 class="btn-gold"
-                onclick="window.print()">
-                列印 / 存成 PDF
+                id="saveImageBtn"
+                onclick="saveAsImage()">
+                📷 下載成圖片
             </button>
 
         </div>
@@ -600,7 +589,7 @@ function escapeHTML(value) {
 
 
 /* =====================================================
-   從 Best 抓括號中的數值
+   Best 內數值
 
    GS (12.51%)
    → 12.51%
@@ -614,7 +603,7 @@ function extractBestValue(text) {
 
     const match =
         String(text)
-        .match(/\(([^()]+)\)/);
+        .match(/$begin:math:text$\(\[\^\(\)\]\+\)$end:math:text$/);
 
     if (!match) {
         return "";
@@ -625,7 +614,7 @@ function extractBestValue(text) {
 
 
 /* =====================================================
-   從 Best 抓發行機構
+   發行機構
 
    GS (12.51%)
    → GS
@@ -638,13 +627,13 @@ function extractIssuer(text) {
     }
 
     return String(text)
-        .replace(/\([^()]*\)/g, "")
+        .replace(/$begin:math:text$\[\^\(\)\]\*$end:math:text$/g, "")
         .trim();
 }
 
 
 /* =====================================================
-   Header 標準化
+   Header
 ===================================================== */
 
 function normalizeHeader(text) {
@@ -671,7 +660,6 @@ function normalizeHeader(text) {
         "best20": "Best20",
 
         "solve": "Solve",
-
         "type": "Type",
 
         "currency": "Currency",
@@ -718,12 +706,7 @@ function normalizeHeader(text) {
 
 
 /* =====================================================
-   Solve 標準化
-
-   Solve = Coupon → 補 Coupon
-   Solve = Strike → 補 Strike
-   Solve = KI → 補 KI
-   Solve = KO → 補 KO
+   Solve
 ===================================================== */
 
 function normalizeSolve(text) {
@@ -748,13 +731,10 @@ function normalizeSolve(text) {
         "履約價": "Strike",
 
         "ki": "KI",
-
         "kifreq": "KIFreq",
 
         "ko": "KO",
-
         "kofreq": "KOFreq",
-
         "kostart": "KOStart",
 
         "tenor": "Tenor",
@@ -771,7 +751,7 @@ function normalizeSolve(text) {
 
 
 /* =====================================================
-   判斷是否 Header
+   Header 判斷
 ===================================================== */
 
 function looksLikeHeader(row) {
@@ -811,11 +791,7 @@ function looksLikeHeader(row) {
 
 
 /* =====================================================
-   切割 Excel 資料
-
-   最重要：
-   TAB 空白欄不能刪掉
-   否則資料會整個往左位移
+   切割 Excel
 ===================================================== */
 
 function splitRow(line) {
@@ -837,10 +813,6 @@ function splitRow(line) {
             });
     }
 
-    /*
-       沒有 TAB 才使用連續空格切割
-    */
-
     return line
         .trim()
         .split(/\s{2,}/)
@@ -857,7 +829,7 @@ function splitRow(line) {
 
 
 /* =====================================================
-   商品列判定
+   商品列
 ===================================================== */
 
 function looksLikeProductRow(row) {
@@ -867,25 +839,16 @@ function looksLikeProductRow(row) {
         .join(" ")
         .toUpperCase();
 
-    if (
-        text.includes("FCN")
-    ) {
-        return true;
-    }
-
-    if (
+    return (
+        text.includes("FCN") ||
         text.includes("USD") ||
         text.includes("JPY")
-    ) {
-        return true;
-    }
-
-    return false;
+    );
 }
 
 
 /* =====================================================
-   解析貼上資料
+   解析
 ===================================================== */
 
 function parseData(text) {
@@ -907,10 +870,6 @@ function parseData(text) {
     let rows =
         rawLines.map(splitRow);
 
-
-    /* =========================
-       找 Header
-    ========================= */
 
     const headerIndex =
         rows.findIndex(row =>
@@ -935,10 +894,6 @@ function parseData(text) {
             );
 
     } else {
-
-        /*
-           沒有標題列時使用預設順序
-        */
 
         headers = [
 
@@ -966,19 +921,11 @@ function parseData(text) {
     }
 
 
-    /* =========================
-       過濾非商品列
-    ========================= */
-
     rows =
         rows.filter(row =>
             looksLikeProductRow(row)
         );
 
-
-    /* =========================
-       每列轉成 Object
-    ========================= */
 
     return rows.map(row => {
 
@@ -998,13 +945,6 @@ function parseData(text) {
         );
 
 
-        /* =========================
-           Best 優先順序
-
-           先用 Best30
-           沒有才用 Best20
-        ========================= */
-
         let bestText =
             String(
                 obj.Best30 || ""
@@ -1021,16 +961,6 @@ function parseData(text) {
         }
 
 
-        /* =========================
-           GS (12.51%)
-
-           GS
-           → 發行機構
-
-           12.51%
-           → Solve 對應欄位數值
-        ========================= */
-
         obj.Issuer =
             extractIssuer(
                 bestText
@@ -1043,10 +973,6 @@ function parseData(text) {
             );
 
 
-        /* =========================
-           取得 Solve 欄位
-        ========================= */
-
         const solveField =
             normalizeSolve(
                 obj.Solve
@@ -1056,26 +982,6 @@ function parseData(text) {
         obj.SolveField =
             solveField;
 
-
-        /* =========================
-           核心邏輯
-
-           不猜哪個欄位空白。
-
-           直接看 Solve：
-
-           Solve = Coupon
-           → BestValue 填 Coupon
-
-           Solve = Strike
-           → BestValue 填 Strike
-
-           Solve = KI
-           → BestValue 填 KI
-
-           Solve = KO
-           → BestValue 填 KO
-        ========================= */
 
         if (
             solveField &&
@@ -1096,7 +1002,7 @@ function parseData(text) {
 
 
 /* =====================================================
-   股票標的
+   股票
 ===================================================== */
 
 function buildStocks(item) {
@@ -1152,7 +1058,7 @@ function buildStocks(item) {
 
 
 /* =====================================================
-   哪一個欄位是 BEST 報價
+   BEST
 ===================================================== */
 
 function solveHint(item, field) {
@@ -1173,7 +1079,7 @@ function solveHint(item, field) {
 
 
 /* =====================================================
-   生成報價畫面
+   生成報價
 ===================================================== */
 
 function generateQuote() {
@@ -1240,9 +1146,6 @@ function generateQuote() {
 
         row.innerHTML = `
 
-
-            <!-- 發行機構 -->
-
             <div class="cell">
 
                 <div class="label">
@@ -1263,8 +1166,6 @@ function generateQuote() {
             </div>
 
 
-            <!-- 幣別 -->
-
             <div class="cell">
 
                 <div class="label">
@@ -1284,8 +1185,6 @@ function generateQuote() {
 
             </div>
 
-
-            <!-- 天期 -->
 
             <div class="cell">
 
@@ -1314,8 +1213,6 @@ function generateQuote() {
             </div>
 
 
-            <!-- Coupon -->
-
             <div class="cell">
 
                 <div class="label">
@@ -1340,8 +1237,6 @@ function generateQuote() {
 
             </div>
 
-
-            <!-- Strike -->
 
             <div class="cell">
 
@@ -1368,8 +1263,6 @@ function generateQuote() {
             </div>
 
 
-            <!-- KI -->
-
             <div class="cell">
 
                 <div class="label">
@@ -1395,8 +1288,6 @@ function generateQuote() {
             </div>
 
 
-            <!-- KO -->
-
             <div class="cell">
 
                 <div class="label">
@@ -1421,8 +1312,6 @@ function generateQuote() {
 
             </div>
 
-
-            <!-- 連結標的 -->
 
             <div class="
                 cell
@@ -1455,7 +1344,7 @@ function generateQuote() {
 
 
 /* =====================================================
-   上方統計
+   摘要
 ===================================================== */
 
 function buildSummary(data) {
@@ -1531,7 +1420,6 @@ function buildSummary(data) {
 
     summary.innerHTML = `
 
-
         <div class="summary-card">
 
             <span>
@@ -1605,7 +1493,207 @@ function buildSummary(data) {
 
 
 /* =====================================================
-   範例資料
+   下載 PNG
+===================================================== */
+
+async function saveAsImage() {
+
+    const quoteArea =
+        document.getElementById(
+            "quoteArea"
+        );
+
+
+    const button =
+        document.getElementById(
+            "saveImageBtn"
+        );
+
+
+    const rows =
+        quoteArea.querySelectorAll(
+            ".quote-row"
+        );
+
+
+    if (
+        !rows.length
+    ) {
+
+        alert(
+            "請先生成 FCN 每日報價"
+        );
+
+        return;
+    }
+
+
+    const oldText =
+        button.innerHTML;
+
+
+    button.disabled =
+        true;
+
+
+    button.innerHTML =
+        "圖片產生中...";
+
+
+    try {
+
+
+        /*
+           等待瀏覽器排版穩定
+        */
+
+        await new Promise(
+            resolve =>
+            setTimeout(
+                resolve,
+                150
+            )
+        );
+
+
+        /*
+           scale 2.5
+           圖片會比較清楚
+        */
+
+        const canvas =
+            await html2canvas(
+                quoteArea,
+                {
+
+                    scale: 2.5,
+
+                    useCORS: true,
+
+                    allowTaint: false,
+
+                    backgroundColor:
+                        "#062947",
+
+                    logging: false,
+
+                    scrollX: 0,
+
+                    scrollY: 0,
+
+                    width:
+                        quoteArea.scrollWidth,
+
+                    height:
+                        quoteArea.scrollHeight,
+
+                    windowWidth:
+                        quoteArea.scrollWidth,
+
+                    windowHeight:
+                        quoteArea.scrollHeight
+
+                }
+            );
+
+
+        const imageURL =
+            canvas.toDataURL(
+                "image/png",
+                1.0
+            );
+
+
+        const now =
+            new Date();
+
+
+        const y =
+            now.getFullYear();
+
+
+        const m =
+            String(
+                now.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const d =
+            String(
+                now.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+
+        const link =
+            document
+            .createElement(
+                "a"
+            );
+
+
+        link.download =
+            `FCN每日報價_${y}${m}${d}.png`;
+
+
+        link.href =
+            imageURL;
+
+
+        document.body
+            .appendChild(
+                link
+            );
+
+
+        link.click();
+
+
+        document.body
+            .removeChild(
+                link
+            );
+
+
+    }
+
+    catch(error) {
+
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            "圖片產生失敗，請確認網路連線後再試一次。"
+        );
+
+
+    }
+
+    finally {
+
+
+        button.disabled =
+            false;
+
+
+        button.innerHTML =
+            oldText;
+
+    }
+
+}
+
+
+/* =====================================================
+   範例
 ===================================================== */
 
 function loadExample() {
