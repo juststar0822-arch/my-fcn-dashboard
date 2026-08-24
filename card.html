@@ -555,17 +555,31 @@ button:disabled {
 }
 
 
-/* =====================================================
-   新增：AKI / EKI
-===================================================== */
+/* KI 數字 + AKI / EKI 並排 */
+
+.ki-line {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 7px;
+
+    flex-wrap: nowrap;
+}
+
+
+/* AKI / EKI */
 
 .ki-freq {
 
-    display: inline-block;
+    display: inline-flex;
 
-    margin-top: 5px;
+    align-items: center;
 
-    padding: 3px 8px;
+    justify-content: center;
+
+    padding: 3px 7px;
 
     border-radius: 6px;
 
@@ -578,6 +592,8 @@ button:disabled {
     font-weight: 900;
 
     letter-spacing: .5px;
+
+    margin-top: 0;
 }
 
 
@@ -1039,12 +1055,26 @@ button:disabled {
     }
 
 
-    /* 新增：列印時 AKI / EKI */
+    .ki-line {
+
+        display:
+            flex !important;
+
+        align-items:
+            center !important;
+
+        gap:
+            1mm !important;
+
+        flex-wrap:
+            nowrap !important;
+    }
+
 
     .ki-freq {
 
         margin-top:
-            .4mm !important;
+            0 !important;
 
         padding:
             .2mm .8mm !important;
@@ -2332,30 +2362,40 @@ function generateQuote() {
                     </div>
 
 
-                    <div
-                        class="
-                            value
-                            ki-value
-                        ">
+                    <div class="ki-line">
 
-                        ${escapeHTML(
-                            item.KI || "-"
-                        )}
+
+                        <div
+                            class="
+                                value
+                                ki-value
+                            ">
+
+                            ${escapeHTML(
+                                item.KI || "-"
+                            )}
+
+                        </div>
+
+
+                        ${
+                            item.KIFreq
+
+                            ? `
+                                <div class="ki-freq">
+
+                                    ${escapeHTML(
+                                        item.KIFreq
+                                    )}
+
+                                </div>
+                              `
+
+                            : ""
+                        }
+
 
                     </div>
-
-
-                    ${
-                        item.KIFreq
-
-                        ? `
-                            <div class="ki-freq">
-                                ${escapeHTML(item.KIFreq)}
-                            </div>
-                          `
-
-                        : ""
-                    }
 
 
                     ${solveHint(
