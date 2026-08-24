@@ -1,357 +1,913 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2026 信用卡管家 - 記帳完全體</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap');
-        body { font-family: 'Noto Sans TC', sans-serif; background-color: #f8fafc; padding-bottom: 120px; }
-        .mode-btn-active { border-color: #4f46e5 !important; background-color: #eef2ff !important; color: #4f46e5 !important; font-weight: bold; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .card-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04), 0 8px 10px -6px rgba(0, 0, 0, 0.04); }
-        .tag-pill.active { background-color: #4f46e5; color: white; border-color: #4f46e5; }
-        .summary-gradient { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCN 每日報價清單</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        font-family: "Microsoft JhengHei", "PingFang TC", Arial, sans-serif;
+        background: #eef3f8;
+        color: #17324d;
+    }
+
+    .app {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 28px;
+    }
+
+    .control-panel {
+        background: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 30px rgba(24, 62, 98, .10);
+    }
+
+    .control-title {
+        font-size: 26px;
+        font-weight: 800;
+        margin-bottom: 8px;
+        color: #0b3157;
+    }
+
+    .control-desc {
+        font-size: 15px;
+        color: #6b7d90;
+        line-height: 1.7;
+        margin-bottom: 16px;
+    }
+
+    textarea {
+        width: 100%;
+        height: 180px;
+        resize: vertical;
+        border: 2px solid #d8e2ed;
+        border-radius: 14px;
+        padding: 15px;
+        font-size: 14px;
+        line-height: 1.6;
+        outline: none;
+        font-family: Consolas, "Microsoft JhengHei", monospace;
+    }
+
+    textarea:focus {
+        border-color: #2878b8;
+    }
+
+    .buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+    }
+
+    button {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 22px;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: .2s;
+    }
+
+    .btn-main {
+        background: #0d4778;
+        color: white;
+    }
+
+    .btn-main:hover {
+        background: #082f53;
+    }
+
+    .btn-second {
+        background: #e8f0f7;
+        color: #17476f;
+    }
+
+    .btn-second:hover {
+        background: #d7e6f3;
+    }
+
+    .btn-gold {
+        background: #d5a94f;
+        color: white;
+    }
+
+    /* =========================
+       報價版面
+    ========================== */
+
+    #quoteArea {
+        background:
+            radial-gradient(circle at 90% 10%, rgba(52,145,211,.15), transparent 30%),
+            linear-gradient(135deg, #082a48, #0d416c 55%, #082a48);
+        border-radius: 22px;
+        padding: 30px;
+        overflow: hidden;
+        box-shadow: 0 12px 35px rgba(8,42,72,.20);
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255,255,255,.20);
+        margin-bottom: 20px;
+    }
+
+    .brand-small {
+        font-size: 14px;
+        letter-spacing: 3px;
+        color: #d5b66a;
+        margin-bottom: 5px;
+    }
+
+    .title {
+        font-size: 36px;
+        font-weight: 900;
+        color: white;
+        letter-spacing: 2px;
+    }
+
+    .subtitle {
+        margin-top: 8px;
+        font-size: 15px;
+        color: #a8c6df;
+    }
+
+    .date-box {
+        text-align: right;
+        color: white;
+    }
+
+    .date-box .today {
+        font-size: 28px;
+        font-weight: 800;
+        color: #f1cc72;
+    }
+
+    .date-box .update {
+        font-size: 13px;
+        color: #9eb9cd;
+        margin-top: 5px;
+    }
+
+    .summary {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 18px;
+        flex-wrap: wrap;
+    }
+
+    .summary-card {
+        background: rgba(255,255,255,.08);
+        border: 1px solid rgba(255,255,255,.12);
+        border-radius: 12px;
+        padding: 10px 16px;
+        color: white;
+    }
+
+    .summary-card span:first-child {
+        color: #a8c6df;
+        font-size: 12px;
+    }
+
+    .summary-card strong {
+        display: block;
+        font-size: 20px;
+        margin-top: 3px;
+        color: #f1cc72;
+    }
+
+    .quote-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .quote-row {
+        background: rgba(255,255,255,.97);
+        border-radius: 16px;
+        padding: 15px 18px;
+        display: grid;
+        grid-template-columns:
+            72px
+            78px
+            78px
+            110px
+            110px
+            90px
+            110px
+            1fr;
+        align-items: center;
+        gap: 10px;
+        border-left: 5px solid #d8ad55;
+        box-shadow: 0 5px 14px rgba(0,0,0,.08);
+    }
+
+    .cell {
+        min-width: 0;
+    }
+
+    .label {
+        font-size: 11px;
+        color: #8796a5;
+        margin-bottom: 4px;
+    }
+
+    .value {
+        font-size: 16px;
+        font-weight: 800;
+        color: #17324d;
+    }
+
+    .coupon .value {
+        color: #c17b05;
+        font-size: 20px;
+    }
+
+    .strike .value {
+        color: #137454;
+        font-size: 18px;
+    }
+
+    .ko .value {
+        color: #1769aa;
+    }
+
+    .stocks {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+
+    .stock {
+        background: #e9f1f8;
+        color: #153c60;
+        border: 1px solid #d4e1ec;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 13px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .stock.hot {
+        background: #fff4d7;
+        border-color: #ecd394;
+        color: #996716;
+    }
+
+    .footer-note {
+        color: #9eb9cd;
+        font-size: 12px;
+        margin-top: 18px;
+        border-top: 1px solid rgba(255,255,255,.14);
+        padding-top: 15px;
+        line-height: 1.7;
+    }
+
+    .empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: rgba(255,255,255,.65);
+        border: 1px dashed rgba(255,255,255,.25);
+        border-radius: 14px;
+    }
+
+    @media(max-width: 1000px) {
+        .quote-row {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .stocks {
+            grid-column: span 4;
+        }
+    }
+
+    @media(max-width: 600px) {
+        .app {
+            padding: 12px;
+        }
+
+        #quoteArea {
+            padding: 18px;
+        }
+
+        .header {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .date-box {
+            text-align: left;
+        }
+
+        .title {
+            font-size: 28px;
+        }
+
+        .quote-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .stocks {
+            grid-column: span 2;
+        }
+    }
+
+    @media print {
+        body {
+            background: white;
+        }
+
+        .control-panel {
+            display: none;
+        }
+
+        .app {
+            padding: 0;
+            max-width: none;
+        }
+
+        #quoteArea {
+            border-radius: 0;
+            box-shadow: none;
+            min-height: 100vh;
+        }
+    }
+</style>
 </head>
+
 <body>
 
-    <!-- Header & 統計看板 -->
-    <header class="bg-slate-900 text-white sticky top-0 z-50 shadow-lg">
-        <div class="max-w-md mx-auto p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-xl font-black italic tracking-tighter">CARD NAVI <span class="text-indigo-400">2026</span></h1>
-                <div class="flex gap-4">
-                    <button onclick="toggleModal('historyModal')"><i class="fa-solid fa-clock-rotate-left text-lg"></i></button>
-                    <button onclick="resetAllData()"><i class="fa-solid fa-trash-can text-lg text-rose-400"></i></button>
-                </div>
-            </div>
-            
-            <!-- 本月回饋統計看板 -->
-            <div class="summary-gradient rounded-3xl p-5 shadow-inner flex justify-between items-center">
-                <div>
-                    <p class="text-[10px] opacity-70 font-bold uppercase tracking-widest">本月預計總回饋</p>
-                    <p id="totalMonthlyReward" class="text-3xl font-black">$ 0</p>
-                </div>
-                <div class="text-right border-l border-white/20 pl-5">
-                    <p class="text-[10px] opacity-70 font-bold uppercase tracking-widest">本月總消費</p>
-                    <p id="totalMonthlySpent" class="text-xl font-bold text-indigo-200">$ 0</p>
-                </div>
-            </div>
+<div class="app">
 
-            <!-- 智慧搜尋 -->
-            <div class="relative mt-4">
-                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"></i>
-                <input type="text" id="searchInput" oninput="renderCards()" placeholder="搜尋：淘寶、中油、日本..." 
-                    class="w-full bg-slate-800 border-none rounded-2xl py-3 pl-11 pr-4 text-white placeholder-slate-500 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-sm">
-            </div>
-        </div>
-    </header>
+    <div class="control-panel">
 
-    <main class="max-w-md mx-auto p-4 space-y-4">
-        
-        <!-- 分類標籤 -->
-        <div class="flex gap-2 overflow-x-auto no-scrollbar py-2">
-            <button onclick="setFilter('all')" id="tag-all" class="tag-pill active border px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">全部</button>
-            <button onclick="setFilter('支付')" id="tag-支付" class="tag-pill border px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">📱 支付</button>
-            <button onclick="setFilter('美食')" id="tag-美食" class="tag-pill border px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">🛵 美食</button>
-            <button onclick="setFilter('網購')" id="tag-網購" class="tag-pill border px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">🛒 網購</button>
-            <button onclick="setFilter('旅遊')" id="tag-旅遊" class="tag-pill border px-4 py-1.5 rounded-full text-xs whitespace-nowrap bg-white text-slate-600">✈️ 旅遊</button>
+        <div class="control-title">
+            FCN 每日報價產生器
         </div>
 
-        <!-- 模式切換器 -->
-        <div class="bg-white rounded-[32px] shadow-sm border border-gray-100 p-5 card-shadow space-y-4">
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-2">國泰 CUBE 模式</p>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar" id="cubeModes">
-                    <button onclick="setMode('cube', '玩數位')" id="btn-cube-玩數位" class="cube-btn mode-btn-active border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">玩數位</button>
-                    <button onclick="setMode('cube', '樂饗購')" id="btn-cube-樂饗購" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">樂饗購</button>
-                    <button onclick="setMode('cube', '趣旅行')" id="btn-cube-趣旅行" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">趣旅行</button>
-                    <button onclick="setMode('cube', '集精選')" id="btn-cube-集精選" class="cube-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">集精選</button>
-                </div>
-            </div>
-            <div>
-                <p class="text-[10px] font-black text-slate-400 uppercase mb-2">玉山 Unicard 模式</p>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar" id="uniModes">
-                    <button onclick="setMode('unicard', '簡單選')" id="btn-unicard-簡單選" class="uni-btn mode-btn-active border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">簡單選</button>
-                    <button onclick="setMode('unicard', '任意選')" id="btn-unicard-任意選" class="uni-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">任意選</button>
-                    <button onclick="setMode('unicard', '訂製選')" id="btn-unicard-訂製選" class="uni-btn border px-3 py-1 rounded-full text-[10px] whitespace-nowrap">訂製選</button>
-                </div>
-            </div>
+        <div class="control-desc">
+            直接從 Excel 複製 FCN 報價資料貼到下方即可。<br>
+            支援「有標題列」或直接貼資料列。
         </div>
 
-        <!-- 卡片清單 -->
-        <div id="cardList" class="space-y-4"></div>
-    </main>
+        <textarea id="pasteArea"
+placeholder="可直接從 Excel 複製貼上，例如：
 
-    <!-- 歷史紀錄 Modal -->
-    <div id="historyModal" class="fixed inset-0 z-[60] hidden">
-        <div class="fixed inset-0 bg-black/50 backdrop-blur-sm" onclick="toggleModal('historyModal')"></div>
-        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-[40px] p-8 shadow-2xl h-[70vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-slate-800 tracking-tight italic">消費歷史清單</h3>
-                <button onclick="toggleModal('historyModal')" class="text-slate-300 text-2xl"><i class="fa-solid fa-circle-xmark"></i></button>
-            </div>
-            <div id="historyItems" class="space-y-3">
-                <!-- 歷史項目 -->
-            </div>
+日期	Type	Currency	Tenor (M)	Coupon	Coupon Period	Strike	KI	KI Freq	KO	KO Freq	KO Start	Memory KO	U1	U2	U3
+6/16	FCN	USD	8	12.00%	1	42.15%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	PLTR
+6/16	FCN	USD	8	12.00%	1	43.63%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	GOOGL"></textarea>
+
+        <div class="buttons">
+            <button class="btn-main" onclick="generateQuote()">
+                生成每日報價
+            </button>
+
+            <button class="btn-second" onclick="loadExample()">
+                載入範例
+            </button>
+
+            <button class="btn-second" onclick="clearAll()">
+                清空
+            </button>
+
+            <button class="btn-gold" onclick="window.print()">
+                列印 / 存成 PDF
+            </button>
         </div>
+
     </div>
 
-    <!-- 試算 Modal -->
-    <div id="expenseModal" class="fixed inset-0 z-[60] hidden">
-        <div class="fixed inset-0 bg-black/40 backdrop-blur-sm" onclick="closeModal()"></div>
-        <div class="absolute bottom-0 w-full max-w-md left-1/2 -translate-x-1/2 bg-white rounded-t-[40px] p-8 shadow-2xl">
-            <div class="flex justify-between items-center mb-6">
-                <h3 id="modalCardName" class="text-xl font-black text-slate-800"></h3>
-                <button onclick="closeModal()"><i class="fa-solid fa-circle-xmark text-slate-300 text-2xl"></i></button>
-            </div>
-            <div class="space-y-6">
-                <input type="number" id="inputAmount" oninput="calculateReward()" placeholder="輸入金額" class="w-full bg-gray-50 border-none rounded-3xl py-6 px-6 text-4xl font-black outline-none focus:ring-4 focus:ring-indigo-100">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-indigo-600 rounded-3xl p-5 text-white shadow-lg">
-                        <p class="text-[10px] opacity-60 font-bold uppercase mb-1">預估本次回饋</p>
-                        <p id="calcResult" class="text-2xl font-black">$ 0</p>
-                    </div>
-                    <div class="bg-slate-900 rounded-3xl p-5 text-white shadow-lg">
-                        <p class="text-[10px] opacity-60 font-bold uppercase mb-1">本月剩餘額度</p>
-                        <p id="modalRemaining" class="text-xl font-bold text-indigo-400">0</p>
-                    </div>
+
+    <div id="quoteArea">
+
+        <div class="header">
+
+            <div>
+                <div class="brand-small">
+                    STRUCTURED PRODUCTS
                 </div>
-                <button onclick="saveExpense()" class="w-full bg-slate-800 text-white py-5 rounded-[24px] font-black text-lg active:scale-95 transition-all">確認記帳</button>
+
+                <div class="title">
+                    FCN 每日報價清單
+                </div>
+
+                <div class="subtitle">
+                    精選條件｜快速比較｜掌握每日投資機會
+                </div>
+            </div>
+
+            <div class="date-box">
+                <div class="today" id="today"></div>
+                <div class="update">DAILY INDICATIVE TERMS</div>
+            </div>
+
+        </div>
+
+
+        <div class="summary" id="summary"></div>
+
+
+        <div class="quote-list" id="quoteList">
+            <div class="empty">
+                將 FCN 商品報價貼到上方後，按「生成每日報價」
             </div>
         </div>
+
+
+        <div class="footer-note">
+            ※ 本頁資料僅供內部報價整理與商品條件比較使用，實際成交條件仍以交易時最終報價及相關文件為準。
+        </div>
+
     </div>
 
-    <script>
-        let logs = JSON.parse(localStorage.getItem('my_card_logs_2026')) || [];
-        let currentTargetCard = null;
-        let recommendedMode = null;
-        let activeFilter = 'all';
+</div>
 
-        const cardData = {
-            legend: {
-                name: "星展傳說對決卡", bank: "星展", color: "slate-700", cap: 11363, note: "LINE Pay/外送 10% (加碼上限1000)",
-                activeMode: "精選加碼",
-                modes: { "精選加碼": { rate: 10, cat: "支付,美食", details: "LINE Pay、街口、UberEats、Foodpanda、Netflix、Disney+、遊戲儲值" } }
-            },
-            richart: {
-                name: "台新 Richart 整合卡", bank: "台新", color: "rose-500", cap: 30303, note: "數位 3.8% (GoGo) | 海外 3% (FlyGo)",
-                activeMode: "數位加碼",
-                modes: {
-                    "數位加碼": { rate: 3.8, cat: "支付,網購", details: "LINE Pay、全支付、全家(FamiPay)、蝦皮、momo、酷澎、淘寶" },
-                    "海外/交通": { rate: 3, cat: "旅遊,生活", details: "海外實體商店、航空公司、機票、高鐵、中油" }
-                }
-            },
-            unicard: {
-                name: "玉山 Unicard", bank: "玉山", color: "emerald-600", cap: 28571, note: "基本 1% + 加碼 (上限 $1000)",
-                activeMode: "簡單選",
-                modes: {
-                    "簡單選": { rate: 3, cat: "生活", details: "全台一般消費 (+2%加碼)" },
-                    "任意選": { rate: 3.5, cat: "生活", details: "特店 8 家 (+2.5%加碼)" },
-                    "訂製選": { rate: 4.5, cat: "支付,網購", details: "LINE Pay、全家、momo、酷澎 (+3.5%加碼)" }
-                }
-            },
-            cube: {
-                name: "國泰 CUBE 卡", bank: "國泰", color: "orange-500", cap: Infinity, note: "3% 無上限，每日需手動切換",
-                activeMode: "玩數位",
-                modes: {
-                    "玩數位": { rate: 3, cat: "網購", details: "蝦皮、momo、酷澎、AppStore、GooglePlay" },
-                    "樂饗購": { rate: 3, cat: "美食", details: "百貨、全台餐廳、新光三越、SOGO、UberEats" },
-                    "趣旅行": { rate: 3, cat: "旅遊", details: "海外實體、全球飯店、機票、Uber、高鐵" },
-                    "集精選": { rate: 3, cat: "生活", details: "7-11、全聯、中油、停車大聲公" }
-                }
-            },
-            jcb: {
-                name: "富邦 JCB (J卡)", bank: "富邦", color: "sky-500", cap: 20000, note: "日韓實體 3% (加碼需登錄)",
-                activeMode: "日韓旅遊",
-                modes: { "日韓旅遊": { rate: 3, cat: "旅遊,支付", details: "日本/韓國實體商店、LINE Pay 指定特店" } }
-            },
-            eco: {
-                name: "星展永續卡", bank: "星展", color: "green-600", cap: Infinity, note: "1.5% 保底回饋",
-                activeMode: "一般",
-                modes: { "一般": { rate: 1.5, cat: "生活", details: "國內外一般消費、保險費" } }
-            }
-        };
 
-        function setMode(cardKey, modeName) {
-            cardData[cardKey].activeMode = modeName;
-            const groupClass = cardKey === 'cube' ? 'cube-btn' : 'uni-btn';
-            document.querySelectorAll('.' + groupClass).forEach(btn => btn.classList.remove('mode-btn-active'));
-            document.getElementById(`btn-${cardKey}-${modeName}`).classList.add('mode-btn-active');
-            
-            if (cardKey === 'unicard') {
-                const bonusRates = { "簡單選": 0.02, "任意選": 0.025, "訂製選": 0.035 };
-                cardData.unicard.cap = Math.floor(1000 / bonusRates[modeName]);
-            }
-            renderCards();
+<script>
+
+/* =====================================================
+   預設欄位順序
+   依照你照片中的報價格式
+===================================================== */
+
+const defaultColumns = [
+    "日期",
+    "Type",
+    "Currency",
+    "Tenor",
+    "Coupon",
+    "CouponPeriod",
+    "Strike",
+    "KI",
+    "KIFreq",
+    "KO",
+    "KOFreq",
+    "KOStart",
+    "MemoryKO",
+    "U1",
+    "U2",
+    "U3",
+    "U4"
+];
+
+
+/* =====================================================
+   日期
+===================================================== */
+
+function setToday() {
+
+    const now = new Date();
+
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, "0");
+    const d = String(now.getDate()).padStart(2, "0");
+
+    document.getElementById("today").innerText =
+        `${y}.${m}.${d}`;
+
+}
+
+setToday();
+
+
+/* =====================================================
+   判斷是否為標題列
+===================================================== */
+
+function isHeaderRow(row) {
+
+    const text = row
+        .join(" ")
+        .toLowerCase();
+
+    const keywords = [
+        "date",
+        "日期",
+        "type",
+        "currency",
+        "curr",
+        "tenor",
+        "coupon",
+        "strike",
+        "memory",
+        "u1"
+    ];
+
+    return keywords.filter(k => text.includes(k)).length >= 3;
+
+}
+
+
+/* =====================================================
+   清理標題名稱
+===================================================== */
+
+function normalizeHeader(header) {
+
+    let h = header
+        .trim()
+        .replace(/\s+/g, "")
+        .replace(/\(.*?\)/g, "")
+        .toLowerCase();
+
+    const mapping = {
+
+        "日期": "日期",
+        "date": "日期",
+
+        "type": "Type",
+
+        "currency": "Currency",
+        "ccy": "Currency",
+
+        "tenor": "Tenor",
+        "tenorm": "Tenor",
+
+        "coupon": "Coupon",
+
+        "couponperiod": "CouponPeriod",
+        "period": "CouponPeriod",
+
+        "strike": "Strike",
+
+        "ki": "KI",
+
+        "kifreq": "KIFreq",
+
+        "ko": "KO",
+
+        "kofreq": "KOFreq",
+
+        "kostart": "KOStart",
+
+        "memoryko": "MemoryKO",
+        "memory": "MemoryKO",
+
+        "u1": "U1",
+        "u2": "U2",
+        "u3": "U3",
+        "u4": "U4"
+
+    };
+
+    return mapping[h] || header;
+
+}
+
+
+/* =====================================================
+   解析貼上的 Excel 資料
+===================================================== */
+
+function parseData(text) {
+
+    let lines = text
+        .trim()
+        .split(/\r?\n/)
+        .filter(line => line.trim() !== "");
+
+    if (!lines.length) return [];
+
+    let rows = lines.map(line => {
+
+        // Excel 貼上通常是 TAB
+        if (line.includes("\t")) {
+            return line.split("\t").map(v => v.trim());
         }
 
-        function setFilter(cat) {
-            activeFilter = cat;
-            document.querySelectorAll('.tag-pill').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('tag-' + cat).classList.add('active');
-            renderCards();
-        }
+        // 也支援逗號
+        return line.split(",").map(v => v.trim());
 
-        function renderCards() {
-            const list = document.getElementById('cardList');
-            const searchTxt = document.getElementById('searchInput').value.toLowerCase();
-            list.innerHTML = '';
+    });
 
-            let sortedKeys = Object.keys(cardData).sort((a,b) => getBestRate(b, searchTxt, activeFilter) - getBestRate(a, searchTxt, activeFilter));
+    let headers = defaultColumns;
 
-            sortedKeys.forEach((key, index) => {
-                const card = cardData[key];
-                let bestMode = findBestMode(key, searchTxt, activeFilter);
-                if (!bestMode) return;
+    if (isHeaderRow(rows[0])) {
 
-                const activeData = card.modes[bestMode];
-                const used = getMonthlyUsed(key);
-                const remaining = card.cap === Infinity ? '無上限' : Math.max(0, card.cap - used);
+        headers =
+            rows.shift()
+                .map(normalizeHeader);
 
-                const cardDiv = document.createElement('div');
-                cardDiv.className = `bg-white rounded-[32px] p-6 relative transition-all card-shadow border border-gray-50 ${index === 0 && (searchTxt || activeFilter !== 'all') ? 'ring-4 ring-indigo-500/10 scale-[1.02]' : ''}`;
-                cardDiv.innerHTML = `
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-lg font-black text-slate-800">${card.name}</h2>
-                            <p class="text-[9px] text-slate-400 font-bold uppercase tracking-widest">${card.bank}</p>
-                        </div>
-                        <div class="text-right">
-                            <span class="text-3xl font-black text-${card.color}">${activeData.rate}%</span>
-                        </div>
-                    </div>
-                    <div class="bg-gray-50 rounded-2xl p-4 border border-gray-100/50">
-                        <p class="text-[11px] text-slate-600 font-bold leading-relaxed italic"><i class="fa-solid fa-location-crosshairs text-indigo-500 mr-2"></i>${activeData.details}</p>
-                    </div>
-                    <div class="flex justify-between items-center mt-4">
-                        <span class="text-[10px] text-slate-400 font-bold">REMAIN: <span class="text-slate-800 font-black">$ ${remaining.toLocaleString()}</span></span>
-                        <button onclick="openModal('${key}', '${bestMode}')" class="bg-slate-900 text-white px-5 py-2 rounded-xl font-bold text-xs">記帳試算</button>
-                    </div>
-                `;
-                list.appendChild(cardDiv);
-            });
-            updateSummary看板();
-        }
+    }
 
-        function getMonthlyUsed(key) {
-            const now = new Date();
-            return logs.filter(l => l.cardKey === key && new Date(l.date).getMonth() === now.getMonth() && new Date(l.date).getFullYear() === now.getFullYear())
-                       .reduce((s, l) => s + parseFloat(l.amount), 0);
-        }
+    return rows.map(row => {
 
-        function updateSummary看板() {
-            const now = new Date();
-            const monthlyLogs = logs.filter(l => new Date(l.date).getMonth() === now.getMonth() && new Date(l.date).getFullYear() === now.getFullYear());
-            const totalSpent = monthlyLogs.reduce((s, l) => s + parseFloat(l.amount), 0);
-            const totalReward = monthlyLogs.reduce((s, l) => s + parseFloat(l.reward), 0);
-            document.getElementById('totalMonthlyReward').innerText = '$ ' + totalReward.toLocaleString();
-            document.getElementById('totalMonthlySpent').innerText = '$ ' + totalSpent.toLocaleString();
-        }
+        let obj = {};
 
-        function findBestMode(key, txt, filter) {
-            const card = cardData[key];
-            let best = card.activeMode;
-            let max = -1;
-            for (let m in card.modes) {
-                const mode = card.modes[m];
-                const matchTxt = !txt || mode.details.toLowerCase().includes(txt);
-                const matchFilter = filter === 'all' || mode.cat.includes(filter);
-                if (matchTxt && matchFilter) {
-                    if (mode.rate > max) { max = mode.rate; best = m; }
-                }
-            }
-            return max === -1 && filter !== 'all' ? null : best;
-        }
+        headers.forEach((header, index) => {
+            obj[header] = row[index] ?? "";
+        });
 
-        function getBestRate(key, txt, filter) {
-            const modeName = findBestMode(key, txt, filter);
-            return modeName ? cardData[key].modes[modeName].rate : -1;
-        }
+        return obj;
 
-        function openModal(key, mode) {
-            currentTargetCard = key; recommendedMode = mode;
-            document.getElementById('modalCardName').innerText = cardData[key].name;
-            document.getElementById('inputAmount').value = '';
-            document.getElementById('calcResult').innerText = '$ 0';
-            const used = getMonthlyUsed(key);
-            document.getElementById('modalRemaining').innerText = cardData[key].cap === Infinity ? '無上限' : '$ ' + (cardData[key].cap - used).toLocaleString();
-            document.getElementById('expenseModal').classList.remove('hidden');
-        }
+    });
 
-        function calculateReward() {
-            const amt = document.getElementById('inputAmount').value || 0;
-            const rate = cardData[currentTargetCard].modes[recommendedMode].rate;
-            document.getElementById('calcResult').innerText = '$ ' + Math.floor(amt * rate / 100).toLocaleString();
-        }
+}
 
-        function saveExpense() {
-            const amt = document.getElementById('inputAmount').value;
-            if(!amt || amt <= 0) return;
-            const rate = cardData[currentTargetCard].modes[recommendedMode].rate;
-            const reward = Math.floor(amt * rate / 100);
-            
-            logs.unshift({
-                id: Date.now(),
-                cardKey: currentTargetCard,
-                cardName: cardData[currentTargetCard].name,
-                amount: amt,
-                reward: reward,
-                date: new Date().toISOString()
-            });
-            localStorage.setItem('my_card_logs_2026', JSON.stringify(logs));
-            closeModal(); renderCards();
-        }
 
-        function toggleModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.toggle('hidden');
-            if (id === 'historyModal') renderHistory();
-        }
+/* =====================================================
+   商品標的
+===================================================== */
 
-        function renderHistory() {
-            const container = document.getElementById('historyItems');
-            container.innerHTML = '';
-            if (logs.length === 0) container.innerHTML = '<p class="text-center text-slate-400 py-10">尚無記帳紀錄</p>';
-            
-            logs.forEach(log => {
-                const item = document.createElement('div');
-                item.className = "flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-gray-100";
-                item.innerHTML = `
-                    <div>
-                        <p class="font-black text-slate-800 text-sm">${log.cardName}</p>
-                        <p class="text-[10px] text-slate-400">${new Date(log.date).toLocaleString()} | $${log.amount}</p>
-                    </div>
-                    <div class="flex items-center gap-4">
-                        <span class="text-indigo-600 font-black">+$${log.reward}</span>
-                        <button onclick="deleteLog(${log.id})" class="text-rose-400 p-2"><i class="fa-solid fa-trash-can"></i></button>
-                    </div>
-                `;
-                container.appendChild(item);
-            });
-        }
+function buildStocks(item) {
 
-        function deleteLog(id) {
-            logs = logs.filter(l => l.id !== id);
-            localStorage.setItem('my_card_logs_2026', JSON.stringify(logs));
-            renderHistory();
-            renderCards();
-        }
+    const stockList = [
+        item.U1,
+        item.U2,
+        item.U3,
+        item.U4
+    ].filter(v =>
+        v &&
+        v !== "-" &&
+        v.toUpperCase() !== "NA"
+    );
 
-        function resetAllData() {
-            if(confirm('確定要清空所有記帳紀錄嗎？此動作無法復原。')) {
-                logs = [];
-                localStorage.removeItem('my_card_logs_2026');
-                renderCards();
-                alert('已成功重置');
-            }
-        }
+    if (!stockList.length) {
+        return `<span class="stock">－</span>`;
+    }
 
-        function closeModal() { document.getElementById('expenseModal').classList.add('hidden'); }
-        window.onload = renderCards;
-    </script>
+    return stockList
+        .map((stock, index) => {
+
+            const hotClass =
+                index === 0
+                ? "hot"
+                : "";
+
+            return `
+                <span class="stock ${hotClass}">
+                    ${escapeHTML(stock)}
+                </span>
+            `;
+
+        })
+        .join("");
+
+}
+
+
+/* =====================================================
+   HTML 安全
+===================================================== */
+
+function escapeHTML(value) {
+
+    if (value === undefined || value === null) return "";
+
+    return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+}
+
+
+/* =====================================================
+   產生報價
+===================================================== */
+
+function generateQuote() {
+
+    const text =
+        document
+            .getElementById("pasteArea")
+            .value;
+
+    if (!text.trim()) {
+        alert("請先貼上 FCN 報價資料");
+        return;
+    }
+
+    const data = parseData(text);
+
+    const list =
+        document.getElementById("quoteList");
+
+    list.innerHTML = "";
+
+
+    data.forEach((item, index) => {
+
+        const row =
+            document.createElement("div");
+
+        row.className = "quote-row";
+
+        row.innerHTML = `
+
+            <div class="cell">
+                <div class="label">幣別</div>
+                <div class="value">
+                    ${escapeHTML(item.Currency || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell">
+                <div class="label">天期</div>
+                <div class="value">
+                    ${escapeHTML(item.Tenor || "-")}M
+                </div>
+            </div>
+
+
+            <div class="cell coupon">
+                <div class="label">年化 Coupon</div>
+                <div class="value">
+                    ${escapeHTML(item.Coupon || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell strike">
+                <div class="label">Strike</div>
+                <div class="value">
+                    ${escapeHTML(item.Strike || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell">
+                <div class="label">KI</div>
+                <div class="value">
+                    ${escapeHTML(item.KI || "NA")}
+                </div>
+            </div>
+
+
+            <div class="cell ko">
+                <div class="label">KO</div>
+                <div class="value">
+                    ${escapeHTML(item.KO || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell">
+                <div class="label">KO 頻率</div>
+                <div class="value">
+                    ${escapeHTML(item.KOFreq || "-")}
+                </div>
+            </div>
+
+
+            <div class="cell">
+                <div class="label">連結標的</div>
+
+                <div class="stocks">
+                    ${buildStocks(item)}
+                </div>
+            </div>
+
+        `;
+
+        list.appendChild(row);
+
+    });
+
+
+    buildSummary(data);
+
+}
+
+
+/* =====================================================
+   上方統計
+===================================================== */
+
+function buildSummary(data) {
+
+    const summary =
+        document.getElementById("summary");
+
+    const currencies =
+        [...new Set(
+            data
+                .map(x => x.Currency)
+                .filter(Boolean)
+        )];
+
+    const tenors =
+        [...new Set(
+            data
+                .map(x => x.Tenor)
+                .filter(Boolean)
+        )];
+
+    const coupons =
+        data
+            .map(x =>
+                parseFloat(
+                    String(x.Coupon)
+                    .replace("%", "")
+                )
+            )
+            .filter(x => !isNaN(x));
+
+    const maxCoupon =
+        coupons.length
+            ? Math.max(...coupons).toFixed(2) + "%"
+            : "-";
+
+
+    summary.innerHTML = `
+
+        <div class="summary-card">
+            <span>今日報價</span>
+            <strong>${data.length} 組</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>幣別</span>
+            <strong>${currencies.join(" / ") || "-"}</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>天期</span>
+            <strong>${tenors.map(x => x + "M").join(" / ") || "-"}</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>最高 Coupon</span>
+            <strong>${maxCoupon}</strong>
+        </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   範例資料
+===================================================== */
+
+function loadExample() {
+
+const example =
+`日期	Type	Currency	Tenor (M)	Coupon	Coupon Period	Strike	KI	KI Freq	KO	KO Freq	KO Start	Memory KO	U1	U2	U3
+6/16	FCN	USD	8	12.00%	1	42.15%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	PLTR
+6/16	FCN	USD	8	12.00%	1	43.63%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	GOOGL
+6/16	FCN	USD	8	12.00%	1	41.79%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	ORCL
+6/16	FCN	USD	8	12.00%	1	43.16%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	ADBE
+6/16	FCN	USD	8	12.00%	1	43.72%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	META
+6/16	FCN	USD	6	12.00%	1	46.08%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	PLTR
+6/16	FCN	USD	6	12.00%	1	47.68%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	GOOGL
+6/16	FCN	USD	6	12.00%	1	46.15%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	ORCL
+6/16	FCN	USD	6	12.00%	1	47.77%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	ADBE
+6/16	FCN	USD	6	12.00%	1	47.85%	NA	NA	100.00%	Daily	1	Yes	TSM	MU	META`;
+
+    document
+        .getElementById("pasteArea")
+        .value = example;
+
+    generateQuote();
+
+}
+
+
+/* =====================================================
+   清空
+===================================================== */
+
+function clearAll() {
+
+    document
+        .getElementById("pasteArea")
+        .value = "";
+
+    document
+        .getElementById("quoteList")
+        .innerHTML = `
+            <div class="empty">
+                將 FCN 商品報價貼到上方後，按「生成每日報價」
+            </div>
+        `;
+
+    document
+        .getElementById("summary")
+        .innerHTML = "";
+
+}
+
+</script>
+
 </body>
 </html>
