@@ -1,1596 +1,2363 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>榮譽榜生成器</title>
-
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@900&display=swap');
-
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
-            background: #111827;
-            color: #333;
-            padding-bottom: 80px;
-            overflow-x: hidden;
-        }
-
-        /* =========================
-           控制區：原功能保留
-        ========================= */
-
-        .control-panel {
-            background: #1f2937;
-            border-bottom: 1px solid #374151;
-            color: white;
-            padding: 20px;
-            margin-bottom: 10px;
-        }
-
-        .list-panel {
-            background: #172033;
-            padding: 10px 20px 20px;
-            color: white;
-        }
-
-        .item-card {
-            background: #283548;
-            border-left: 4px solid #3b82f6;
-            padding: 10px;
-            margin-bottom: 8px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        label {
-            color: #cbd5e1;
-            font-size: 0.85rem;
-            margin-bottom: 4px;
-            display: block;
-        }
-
-        input,
-        select {
-            background: #334155;
-            color: white;
-            border: 1px solid #475569;
-            padding: 10px;
-            border-radius: 6px;
-            width: 100%;
-            font-size: 1rem;
-            outline: none;
-        }
-
-        input:focus,
-        select:focus {
-            border-color: #60a5fa;
-            box-shadow: 0 0 0 2px rgba(96,165,250,.15);
-        }
-
-        /* =========================
-           預覽區
-        ========================= */
-
-        #preview-container {
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            overflow: hidden;
-            background:
-                radial-gradient(circle at 50% 0%, #26364f 0, #111827 55%, #090f1a 100%);
-            padding-top: 18px;
-            padding-bottom: 20px;
-            min-height: 600px;
-        }
-
-        /* =========================
-           16:9 榮譽榜主體
-           1600 x 900
-        ========================= */
-
-        .certificate {
-            width: 1600px;
-            height: 900px;
-            position: relative;
-            overflow: hidden;
-            flex-shrink: 0;
-            transform-origin: top center;
-
-            background:
-                linear-gradient(135deg, rgba(255,255,255,.98), rgba(244,249,255,.98)),
-                #ffffff;
-
-            border: 8px solid #0b4f9c;
-            box-shadow:
-                0 30px 70px rgba(0,0,0,.42),
-                inset 0 0 0 3px #7cb8ff;
-
-            font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
-        }
-
-        /* 淺藍底紋 */
-        .certificate::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background:
-                radial-gradient(circle at 80% 12%, rgba(47,128,237,.13), transparent 28%),
-                radial-gradient(circle at 20% 80%, rgba(0,102,204,.08), transparent 30%),
-                repeating-linear-gradient(
-                    -45deg,
-                    rgba(30,115,210,.025) 0px,
-                    rgba(30,115,210,.025) 2px,
-                    transparent 2px,
-                    transparent 13px
-                );
-            z-index: 0;
-        }
-
-        /* 金色外框 */
-        .gold-frame {
-            position: absolute;
-            inset: 20px;
-            border: 3px solid #d6ac52;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        .blue-frame {
-            position: absolute;
-            inset: 31px;
-            border: 2px solid rgba(27, 106, 194, .65);
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        /* 四角裝飾 */
-        .corner-deco {
-            position: absolute;
-            width: 105px;
-            height: 105px;
-            z-index: 4;
-            pointer-events: none;
-        }
-
-        .corner-deco::before,
-        .corner-deco::after {
-            content: "";
-            position: absolute;
-            background: #1c66b1;
-        }
-
-        .corner-deco::before {
-            width: 100%;
-            height: 10px;
-        }
-
-        .corner-deco::after {
-            width: 10px;
-            height: 100%;
-        }
-
-        .corner-tl {
-            top: 26px;
-            left: 26px;
-        }
-
-        .corner-tr {
-            top: 26px;
-            right: 26px;
-            transform: rotate(90deg);
-        }
-
-        .corner-bl {
-            bottom: 26px;
-            left: 26px;
-            transform: rotate(-90deg);
-        }
-
-        .corner-br {
-            bottom: 26px;
-            right: 26px;
-            transform: rotate(180deg);
-        }
-
-        /* 右上藍色幾何 */
-        .top-blue-shape {
-            position: absolute;
-            right: -140px;
-            top: -155px;
-            width: 690px;
-            height: 350px;
-            background: linear-gradient(135deg, #41a8ff 0%, #0757b6 55%, #083678 100%);
-            transform: rotate(12deg);
-            border-radius: 0 0 0 70%;
-            z-index: 1;
-        }
-
-        .top-gold-line {
-            position: absolute;
-            top: 77px;
-            right: 0;
-            width: 540px;
-            height: 9px;
-            background: linear-gradient(90deg, transparent, #f3c767, #fff1aa);
-            transform: rotate(9deg);
-            z-index: 2;
-        }
-
-        /* 左下波浪 */
-        .wave-area {
-            position: absolute;
-            left: -120px;
-            bottom: -250px;
-            width: 930px;
-            height: 650px;
-            z-index: 1;
-            transform: rotate(-8deg);
-        }
-
-        .wave1,
-        .wave2,
-        .wave3 {
-            position: absolute;
-            border-radius: 50%;
-        }
-
-        .wave1 {
-            width: 900px;
-            height: 340px;
-            background: linear-gradient(90deg, #003d88, #0070d9, #36a9ff);
-            bottom: 110px;
-            left: 0;
-            transform: rotate(13deg);
-        }
-
-        .wave2 {
-            width: 820px;
-            height: 230px;
-            background: linear-gradient(90deg, #074f9d, #0d8ee9);
-            bottom: 50px;
-            left: 30px;
-            transform: rotate(4deg);
-        }
-
-        .wave3 {
-            width: 770px;
-            height: 105px;
-            background: linear-gradient(90deg, #f0b83c, #ffe394, #d89c20);
-            bottom: 222px;
-            left: 8px;
-            transform: rotate(11deg);
-        }
-
-        /* 金融城市剪影 */
-        .city-silhouette {
-            position: absolute;
-            left: 340px;
-            bottom: 120px;
-            width: 430px;
-            height: 240px;
-            opacity: .08;
-            z-index: 2;
-            display: flex;
-            align-items: flex-end;
-            gap: 14px;
-        }
-
-        .city-silhouette span {
-            display: block;
-            background: #006bc8;
-            width: 38px;
-            border-radius: 3px 3px 0 0;
-        }
-
-        .city-silhouette span:nth-child(1) { height: 90px; }
-        .city-silhouette span:nth-child(2) { height: 145px; }
-        .city-silhouette span:nth-child(3) { height: 110px; }
-        .city-silhouette span:nth-child(4) { height: 205px; }
-        .city-silhouette span:nth-child(5) { height: 125px; }
-        .city-silhouette span:nth-child(6) { height: 178px; }
-        .city-silhouette span:nth-child(7) { height: 100px; }
-        .city-silhouette span:nth-child(8) { height: 155px; }
-
-        /* =========================
-           左側賀＋獎盃
-        ========================= */
-
-        .left-zone {
-            position: absolute;
-            left: 58px;
-            top: 55px;
-            width: 490px;
-            height: 790px;
-            z-index: 10;
-        }
-
-        .laurel-area {
-            position: relative;
-            width: 390px;
-            height: 330px;
-            margin-left: 8px;
-        }
-
-        .laurel-ring {
-            position: absolute;
-            left: 20px;
-            top: 28px;
-            width: 330px;
-            height: 285px;
-            border: 16px solid #d9a834;
-            border-left-color: transparent;
-            border-right-color: transparent;
-            border-radius: 50%;
-            opacity: .98;
-        }
-
-        .laurel-leaf {
-            position: absolute;
-            width: 24px;
-            height: 60px;
-            background: linear-gradient(180deg, #f6d66e, #c38b13);
-            border-radius: 100% 0 100% 0;
-        }
-
-        .l1 { left: 45px; top: 70px; transform: rotate(-48deg); }
-        .l2 { left: 25px; top: 125px; transform: rotate(-65deg); }
-        .l3 { left: 20px; top: 186px; transform: rotate(-82deg); }
-        .l4 { left: 58px; top: 235px; transform: rotate(-110deg); }
-
-        .r1 { right: 70px; top: 70px; transform: rotate(48deg) scaleX(-1); }
-        .r2 { right: 48px; top: 125px; transform: rotate(65deg) scaleX(-1); }
-        .r3 { right: 43px; top: 186px; transform: rotate(82deg) scaleX(-1); }
-        .r4 { right: 80px; top: 235px; transform: rotate(110deg) scaleX(-1); }
-
-        .big-congrats {
-            position: absolute;
-            top: 35px;
-            left: 75px;
-            width: 220px;
-            text-align: center;
-            font-size: 190px;
-            font-family: 'Noto Serif TC', serif;
-            font-weight: 900;
-            color: #0750a5;
-            line-height: 1;
-            text-shadow:
-                4px 5px 0 rgba(0,59,130,.12),
-                0 0 3px #ffffff;
-        }
-
-        .honor-ribbon {
-            position: absolute;
-            left: 34px;
-            top: 270px;
-            width: 320px;
-            height: 68px;
-            border-radius: 10px;
-            background: linear-gradient(180deg, #1688ed 0%, #0754ad 50%, #06397e 100%);
-            box-shadow:
-                0 8px 18px rgba(0,56,130,.22),
-                inset 0 2px 0 rgba(255,255,255,.5);
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 39px;
-            font-weight: 900;
-            letter-spacing: 10px;
-        }
-
-        .honor-ribbon::before,
-        .honor-ribbon::after {
-            content: "";
-            position: absolute;
-            top: 14px;
-            width: 75px;
-            height: 54px;
-            background: #064794;
-            z-index: -1;
-        }
-
-        .honor-ribbon::before {
-            left: -47px;
-            transform: skewY(-18deg);
-        }
-
-        .honor-ribbon::after {
-            right: -47px;
-            transform: skewY(18deg);
-        }
-
-        /* SVG 獎盃 */
-        .trophy-wrap {
-            position: absolute;
-            left: 22px;
-            bottom: 35px;
-            width: 430px;
-            height: 430px;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            z-index: 15;
-        }
-
-        .trophy-svg {
-            width: 400px;
-            height: 400px;
-            filter: drop-shadow(0 18px 15px rgba(0,0,0,.24));
-        }
-
-        .trophy-platform {
-            position: absolute;
-            bottom: 0;
-            left: 8px;
-            width: 420px;
-            height: 80px;
-            border-radius: 50%;
-            background:
-                radial-gradient(ellipse at center, #ffffff 0%, #d4ecff 56%, #338be3 57%, #0754ad 77%, #073978 100%);
-            box-shadow: 0 9px 25px rgba(0,60,130,.2);
-            z-index: -1;
-        }
-
-        /* =========================
-           右側資訊區
-        ========================= */
-
-        .right-zone {
-            position: absolute;
-            left: 545px;
-            right: 78px;
-            top: 62px;
-            bottom: 55px;
-            z-index: 10;
-        }
-
-        .field-date {
-            position: absolute;
-            left: 0;
-            top: 0;
-            font-size: 48px;
-            font-weight: 900;
-            color: #0c4594;
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .calendar-icon {
-            width: 48px;
-            height: 48px;
-            border: 4px solid #1774d3;
-            border-radius: 8px;
-            position: relative;
-        }
-
-        .calendar-icon::before {
-            content: "";
-            position: absolute;
-            left: 5px;
-            right: 5px;
-            top: 11px;
-            height: 4px;
-            background: #1774d3;
-        }
-
-        .calendar-icon::after {
-            content: "";
-            position: absolute;
-            left: 11px;
-            right: 11px;
-            bottom: 8px;
-            height: 11px;
-            border-top: 4px solid #1774d3;
-            border-bottom: 4px solid #1774d3;
-        }
-
-        .date-line {
-            position: absolute;
-            left: 62px;
-            top: 63px;
-            width: 330px;
-            height: 4px;
-            background: linear-gradient(90deg, #176dc7, #3ba6ff);
-        }
-
-        .date-line::after {
-            content: "";
-            position: absolute;
-            right: -8px;
-            top: -6px;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: #1a6bc2;
-        }
-
-        .name-area {
-            position: absolute;
-            right: 85px;
-            top: -10px;
-            width: 720px;
-            text-align: center;
-        }
-
-        .name-text {
-            font-size: 132px;
-            line-height: 1.02;
-            font-weight: 900;
-            letter-spacing: 12px;
-            color: #0d3985;
-            text-shadow:
-                0 5px 0 rgba(13,57,133,.11),
-                2px 2px 0 #fff;
-            white-space: nowrap;
-        }
-
-        .title-line-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 25px;
-            margin-top: 4px;
-        }
-
-        .short-line {
-            width: 120px;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #075bb5);
-        }
-
-        .short-line.right {
-            background: linear-gradient(90deg, #075bb5, transparent);
-        }
-
-        .title-text {
-            font-size: 50px;
-            font-weight: 900;
-            color: #103a80;
-            white-space: nowrap;
-            letter-spacing: 5px;
-        }
-
-        /* 共計筆數徽章 */
-        .count-badge {
-            position: absolute;
-            right: 0;
-            top: 125px;
-            width: 145px;
-            height: 145px;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at 40% 25%, #147eee, #063d96 60%, #052f74);
-            border: 9px solid #e8bd55;
-            box-shadow:
-                0 7px 15px rgba(0,50,120,.18),
-                inset 0 0 0 4px rgba(255,255,255,.16);
-            color: #fff;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .count-small {
-            font-size: 26px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .count-num {
-            font-size: 58px;
-            line-height: .95;
-            font-weight: 900;
-        }
-
-        .count-unit {
-            font-size: 23px;
-            font-weight: 700;
-        }
-
-        /* 共用區塊標題 */
-        .section-title-wrap {
-            position: absolute;
-            left: 205px;
-            width: 500px;
-            height: 58px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .section-title-wrap::before,
-        .section-title-wrap::after {
-            content: "";
-            position: absolute;
-            top: 29px;
-            width: 260px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, #4e8fd0);
-        }
-
-        .section-title-wrap::before {
-            left: -255px;
-        }
-
-        .section-title-wrap::after {
-            right: -255px;
-            transform: scaleX(-1);
-        }
-
-        .section-title {
-            min-width: 350px;
-            height: 55px;
-            padding: 0 55px;
-            background: linear-gradient(180deg, #1981ec, #064ca9 55%, #073984);
-            clip-path: polygon(6% 0, 94% 0, 100% 50%, 94% 100%, 6% 100%, 0 50%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #fff;
-            font-size: 35px;
-            font-weight: 900;
-            letter-spacing: 4px;
-            text-shadow: 0 2px 2px rgba(0,0,0,.18);
-            border-top: 2px solid rgba(255,255,255,.4);
-        }
-
-        .section-product-title {
-            top: 277px;
-        }
-
-        .section-amount-title {
-            top: 435px;
-        }
-
-        /* 商品標籤 */
-        .product-zone {
-            position: absolute;
-            top: 345px;
-            left: 60px;
-            right: 120px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 72px;
-        }
-
-        .product-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 14px;
-            justify-content: center;
-        }
-
-        .product-box {
-            min-width: 190px;
-            height: 68px;
-            padding: 0 28px;
-            border: 3px solid #1971cd;
-            border-radius: 18px;
-            background:
-                linear-gradient(180deg, rgba(255,255,255,.99), rgba(238,247,255,.98));
-            box-shadow:
-                0 6px 14px rgba(10,75,150,.13),
-                inset 0 1px 0 white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 35px;
-            font-weight: 900;
-            color: #103e86;
-            white-space: nowrap;
-        }
-
-        /* 金額區 */
-        .amount-zone {
-            position: absolute;
-            top: 505px;
-            left: 25px;
-            right: 40px;
-            min-height: 145px;
-
-            border: 3px solid #3d84d1;
-            border-radius: 28px;
-            background:
-                linear-gradient(180deg, rgba(255,255,255,.98), rgba(247,251,255,.98));
-
-            display: flex;
-            align-items: stretch;
-            justify-content: center;
-            overflow: hidden;
-            box-shadow: 0 7px 20px rgba(0,70,140,.08);
-        }
-
-        .amount-item {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 22px;
-            padding: 15px 35px;
-            position: relative;
-        }
-
-        .amount-item + .amount-item::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 25px;
-            bottom: 25px;
-            width: 2px;
-            background: #2f79c7;
-            opacity: .65;
-        }
-
-        .amount-number {
-            font-size: 91px;
-            line-height: 1;
-            font-weight: 900;
-            color: #c61320;
-            font-family: Arial, 'Microsoft JhengHei', sans-serif;
-            letter-spacing: -2px;
-        }
-
-        .amount-meta {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-        }
-
-        .amount-wan {
-            font-size: 39px;
-            font-weight: 900;
-            color: #103e86;
-            line-height: 1.2;
-        }
-
-        .amount-currency {
-            font-size: 31px;
-            font-weight: 900;
-            color: #103e86;
-            margin-top: 2px;
-        }
-
-        /* 手收獎金 */
-        .stats-zone {
-            position: absolute;
-            left: -90px;
-            right: 0;
-            bottom: 0;
-            height: 155px;
-            border: 3px solid #397dcc;
-            border-radius: 28px;
-            background: rgba(255,255,255,.98);
-            box-shadow: 0 8px 20px rgba(0,70,140,.1);
-            display: flex;
-            overflow: hidden;
-        }
-
-        .stat-card {
-            width: 50%;
-            display: flex;
-            align-items: center;
-            padding: 20px 40px;
-            gap: 25px;
-            position: relative;
-        }
-
-        .stat-card + .stat-card::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 22px;
-            bottom: 22px;
-            width: 2px;
-            background: #75a7da;
-        }
-
-        .stat-icon {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #2998fa, #0751ad 75%);
-            box-shadow:
-                0 5px 10px rgba(0,65,140,.22),
-                inset 0 1px 0 rgba(255,255,255,.5);
-            color: white;
-            font-size: 48px;
-        }
-
-        .stat-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .stat-label {
-            font-size: 33px;
-            font-weight: 900;
-            color: #0d3b84;
-            line-height: 1.1;
-            margin-bottom: 3px;
-        }
-
-        .stat-value-row {
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            white-space: nowrap;
-        }
-
-        .stat-value {
-            font-family: Arial, 'Microsoft JhengHei', sans-serif;
-            font-size: 66px;
-            line-height: 1;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: #0c4190;
-        }
-
-        .bonus-card .stat-value,
-        .bonus-card .stat-label {
-            color: #c41520;
-        }
-
-        .stat-unit {
-            font-size: 30px;
-            font-weight: 900;
-            color: #174988;
-        }
-
-        .bonus-card .stat-unit {
-            color: #b81720;
-        }
-
-        /* =========================
-           生成結果
-        ========================= */
-
-        #result-area {
-            text-align: center;
-            margin-top: 20px;
-            padding: 10px;
-            display: none;
-        }
-
-        #final-img {
-            display: block;
-            width: min(96vw, 1200px);
-            height: auto;
-            margin: 0 auto;
-            border: 3px solid #3b82f6;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0,0,0,.35);
-        }
-
-        @media (max-width: 640px) {
-            .control-panel {
-                padding: 14px;
-            }
-
-            .list-panel {
-                padding: 10px 14px 18px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>榮譽榜生成器</title>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<style>
+
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    background:#0b1220;
+    font-family:
+        "Microsoft JhengHei",
+        "PingFang TC",
+        Arial,
+        sans-serif;
+    overflow-x:hidden;
+    padding-bottom:80px;
+}
+
+/* =====================================================
+   輸入區
+===================================================== */
+
+.control-panel{
+    background:#182235;
+    border-bottom:1px solid #334155;
+    color:white;
+    padding:20px;
+}
+
+.list-panel{
+    background:#101827;
+    color:white;
+    padding:12px 20px 20px;
+}
+
+label{
+    color:#cbd5e1;
+    display:block;
+    font-size:.85rem;
+    margin-bottom:4px;
+}
+
+input,
+select{
+    width:100%;
+    padding:10px;
+    border-radius:7px;
+    background:#293649;
+    border:1px solid #475569;
+    color:white;
+    font-size:1rem;
+    outline:none;
+}
+
+.item-card{
+    background:#233149;
+    border-left:4px solid #3b82f6;
+    padding:10px;
+    border-radius:7px;
+    margin-bottom:8px;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+/* =====================================================
+   預覽
+===================================================== */
+
+#preview-container{
+
+    width:100%;
+
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+
+    overflow:hidden;
+
+    padding-top:20px;
+    padding-bottom:30px;
+
+    background:
+        radial-gradient(
+            circle at 50% 0%,
+            #263957,
+            #111827 55%,
+            #080d16
+        );
+}
+
+/* =====================================================
+   1600 × 900
+===================================================== */
+
+.certificate{
+
+    width:1600px;
+    height:900px;
+
+    flex-shrink:0;
+    transform-origin:top center;
+
+    position:relative;
+
+    overflow:hidden;
+
+    background:#f8fbff;
+
+    box-shadow:
+        0 30px 70px rgba(0,0,0,.4);
+}
+
+/* =====================================================
+   SVG 背景層
+===================================================== */
+
+.poster-bg{
+
+    position:absolute;
+
+    inset:0;
+
+    width:1600px;
+    height:900px;
+
+    z-index:1;
+}
+
+/* =====================================================
+   所有文字內容
+===================================================== */
+
+.poster-content{
+
+    position:absolute;
+
+    inset:0;
+
+    z-index:10;
+}
+
+/* =====================================================
+   日期
+===================================================== */
+
+.date-area{
+
+    position:absolute;
+
+    left:545px;
+    top:70px;
+
+    width:330px;
+
+    display:flex;
+    align-items:center;
+
+    gap:15px;
+
+    color:#175baa;
+}
+
+.date-icon{
+
+    width:45px;
+    height:45px;
+
+    border:4px solid #1977d3;
+
+    border-radius:8px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    font-weight:900;
+    font-size:23px;
+}
+
+.date-text{
+
+    font-size:46px;
+    font-weight:900;
+
+    letter-spacing:1px;
+
+    white-space:nowrap;
+}
+
+/* =====================================================
+   姓名
+===================================================== */
+
+.person-area{
+
+    position:absolute;
+
+    left:810px;
+    top:75px;
+
+    width:570px;
+
+    text-align:center;
+}
+
+.person-name{
+
+    color:#103b88;
+
+    font-size:118px;
+    font-weight:900;
+
+    line-height:.98;
+
+    letter-spacing:7px;
+
+    white-space:nowrap;
+
+    text-shadow:
+        0 5px 0 rgba(8,50,120,.1);
+}
+
+.person-title-wrap{
+
+    margin-top:16px;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    gap:18px;
+}
+
+.person-title-line{
+
+    width:90px;
+    height:3px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #3e81c5
+        );
+}
+
+.person-title-line.right{
+
+    transform:scaleX(-1);
+}
+
+.person-title{
+
+    color:#123d85;
+
+    font-size:43px;
+    font-weight:900;
+
+    letter-spacing:5px;
+
+    white-space:nowrap;
+}
+
+/* =====================================================
+   共計
+===================================================== */
+
+.count-badge{
+
+    position:absolute;
+
+    right:76px;
+    top:172px;
+
+    width:138px;
+    height:138px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+
+    background:
+        radial-gradient(
+            circle at 40% 25%,
+            #2184ee,
+            #0b4cb1 55%,
+            #062d75
+        );
+
+    border:9px solid #e0b94c;
+
+    box-shadow:
+        0 10px 20px rgba(0,62,150,.2),
+        inset 0 0 0 3px rgba(255,255,255,.18);
+}
+
+.count-label{
+
+    font-size:24px;
+    font-weight:800;
+
+    line-height:1;
+}
+
+.count-number{
+
+    font-size:58px;
+    font-weight:900;
+
+    line-height:1;
+}
+
+.count-unit{
+
+    margin-top:2px;
+
+    font-size:21px;
+    font-weight:800;
+}
+
+/* =====================================================
+   成交商品
+===================================================== */
+
+.product-section{
+
+    position:absolute;
+
+    left:620px;
+    top:330px;
+
+    width:840px;
+}
+
+.section-title{
+
+    margin:0 auto 18px;
+
+    width:365px;
+    height:58px;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    color:white;
+
+    font-size:34px;
+    font-weight:900;
+
+    letter-spacing:4px;
+
+    background:
+        linear-gradient(
+            180deg,
+            #2189ee 0%,
+            #0860c8 48%,
+            #073b88 100%
+        );
+
+    clip-path:
+        polygon(
+            7% 0,
+            93% 0,
+            100% 50%,
+            93% 100%,
+            7% 100%,
+            0 50%
+        );
+
+    box-shadow:
+        0 6px 13px rgba(0,66,160,.16);
+}
+
+.product-list{
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    flex-wrap:wrap;
+
+    gap:14px;
+}
+
+.product-box{
+
+    min-width:190px;
+
+    padding:12px 27px;
+
+    border-radius:15px;
+
+    border:3px solid #2478ce;
+
+    background:
+        linear-gradient(
+            180deg,
+            #ffffff,
+            #f1f8ff
+        );
+
+    color:#133f84;
+
+    font-size:32px;
+    font-weight:900;
+
+    line-height:1.05;
+
+    text-align:center;
+
+    white-space:nowrap;
+
+    box-shadow:
+        0 7px 15px rgba(0,70,160,.1),
+        inset 0 2px 0 white;
+}
+
+/* =====================================================
+   成交金額
+===================================================== */
+
+.amount-section{
+
+    position:absolute;
+
+    left:605px;
+    top:478px;
+
+    width:870px;
+}
+
+.amount-title{
+
+    margin-bottom:15px;
+}
+
+.amount-panel{
+
+    height:150px;
+
+    display:flex;
+
+    border-radius:25px;
+
+    border:3px solid #5594d3;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.98),
+            rgba(247,251,255,.98)
+        );
+
+    box-shadow:
+        0 9px 20px rgba(0,65,145,.08);
+
+    overflow:hidden;
+}
+
+.amount-item{
+
+    flex:1;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    gap:22px;
+
+    min-width:0;
+
+    padding:12px 28px;
+
+    position:relative;
+}
+
+.amount-item + .amount-item::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:0;
+    top:27px;
+    bottom:27px;
+
+    width:2px;
+
+    background:#90afd1;
+}
+
+.amount-value{
+
+    color:#d31b25;
+
+    font-family:Arial,sans-serif;
+
+    font-size:88px;
+    font-weight:900;
+
+    line-height:1;
+
+    letter-spacing:-2px;
+
+    white-space:nowrap;
+}
+
+.amount-detail{
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:flex-start;
+}
+
+.amount-wan{
+
+    color:#123d85;
+
+    font-size:38px;
+    font-weight:900;
+
+    line-height:1;
+}
+
+.amount-currency{
+
+    color:#123d85;
+
+    font-size:30px;
+    font-weight:900;
+
+    line-height:1;
+
+    margin-top:8px;
+}
+
+/* =====================================================
+   手收獎金
+===================================================== */
+
+.stats-panel{
+
+    position:absolute;
+
+    left:490px;
+    right:70px;
+    bottom:55px;
+
+    height:155px;
+
+    border-radius:26px;
+
+    border:3px solid #4e8bcf;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(255,255,255,.99),
+            rgba(245,250,255,.99)
+        );
+
+    box-shadow:
+        0 10px 25px rgba(0,64,145,.13);
+
+    display:grid;
+
+    grid-template-columns:1fr 1fr;
+
+    overflow:hidden;
+}
+
+.stat-box{
+
+    padding:22px 40px;
+
+    display:grid;
+
+    grid-template-columns:90px 1fr;
+
+    gap:20px;
+
+    align-items:center;
+
+    min-width:0;
+}
+
+.stat-box + .stat-box{
+
+    border-left:2px solid #9cbbd8;
+}
+
+.stat-icon-circle{
+
+    width:82px;
+    height:82px;
+
+    border-radius:50%;
+
+    display:flex;
+
+    justify-content:center;
+    align-items:center;
+
+    background:
+        linear-gradient(
+            145deg,
+            #4ab7f4,
+            #0c63c4 60%,
+            #08428f
+        );
+
+    box-shadow:
+        0 7px 15px rgba(0,60,145,.18),
+        inset 0 2px 2px rgba(255,255,255,.5);
+}
+
+.stat-icon-svg{
+
+    width:49px;
+    height:49px;
+}
+
+.stat-text{
+
+    min-width:0;
+}
+
+.stat-label{
+
+    font-size:30px;
+    font-weight:900;
+
+    color:#143f85;
+
+    line-height:1;
+
+    margin-bottom:8px;
+}
+
+.stat-value-line{
+
+    display:flex;
+
+    align-items:baseline;
+
+    gap:8px;
+
+    white-space:nowrap;
+}
+
+.stat-value{
+
+    color:#1450a4;
+
+    font-family:Arial,sans-serif;
+
+    font-size:59px;
+    font-weight:900;
+
+    line-height:1;
+
+    letter-spacing:-1px;
+}
+
+.stat-unit{
+
+    color:#245796;
+
+    font-size:27px;
+    font-weight:900;
+}
+
+.bonus-stat .stat-label,
+.bonus-stat .stat-value,
+.bonus-stat .stat-unit{
+
+    color:#c61d28;
+}
+
+/* =====================================================
+   最終生成圖
+===================================================== */
+
+#result-area{
+
+    display:none;
+
+    padding:15px;
+
+    text-align:center;
+}
+
+#final-img{
+
+    width:min(96vw,1200px);
+
+    height:auto;
+
+    display:block;
+
+    margin:0 auto;
+
+    border-radius:13px;
+
+    border:3px solid #3b82f6;
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.35);
+}
+
+</style>
 </head>
 
 <body>
 
 <div id="app">
 
-    <!-- =========================
-         控制面板
-    ========================== -->
-    <div class="control-panel">
-
-        <h2 class="text-xl font-bold text-center mb-4 text-blue-300">
-            🏆 榮譽榜生成器
-        </h2>
-
-        <div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
-
-            <div>
-                <label>日期</label>
-                <input type="date" v-model="globalDate">
-            </div>
-
-            <div>
-                <label>業代</label>
-                <select v-model="repIndex">
-                    <option
-                        v-for="(rep, index) in repList"
-                        :key="index"
-                        :value="index"
-                    >
-                        {{ rep.name }}
-                    </option>
-                </select>
-            </div>
-
-        </div>
-
-
-        <!-- 新增成交 -->
-        <div class="bg-gray-800 p-3 rounded-lg mb-4">
-
-            <h3 class="text-sm font-bold text-gray-400 mb-2">
-                新增成交紀錄
-            </h3>
-
-            <div class="grid grid-cols-2 gap-3 mb-2">
-
-                <div>
-                    <label>商品</label>
-                    <select
-                        v-model="form.productType"
-                        @change="handleProductChange"
-                    >
-                        <option value="FCN">FCN</option>
-                        <option value="U6">元元致富 U6</option>
-                        <option value="U5">元元致富 U5</option>
-                        <option value="T6">元元致富 T6</option>
-                        <option value="T5">元元致富 T5</option>
-                        <option value="INS">保險</option>
-                        <option value="BOND">海外債</option>
-                        <option value="fund">基金</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label>BP</label>
-                    <input
-                        type="number"
-                        v-model="form.bp"
-                        :disabled="isFixedBP"
-                    >
-                </div>
-
-            </div>
-
-
-            <div class="grid grid-cols-3 gap-2 mb-2">
-
-                <div>
-                    <label>幣別</label>
-
-                    <select
-                        v-model="form.currency"
-                        @change="updateExRate"
-                    >
-                        <option value="USD">USD</option>
-                        <option value="JPY">JPY</option>
-                        <option value="TWD">TWD</option>
-                    </select>
-                </div>
-
-                <div class="relative">
-
-                    <label>
-                        匯率
-                        <span
-                            v-if="loadingRate"
-                            class="text-yellow-500 animate-pulse text-xs"
-                        >
-                            ...
-                        </span>
-                    </label>
-
-                    <input
-                        type="number"
-                        v-model="form.exRate"
-                        step="0.01"
-                    >
+<!-- ===================================================
+     控制區
+=================================================== -->
 
-                </div>
+<div class="control-panel">
 
+<h2 class="text-xl font-bold text-center mb-4 text-blue-300">
+🏆 榮譽榜生成器
+</h2>
 
-                <div>
-                    <label>金額</label>
 
-                    <input
-                        type="number"
-                        v-model="form.amount"
-                        class="text-yellow-400 font-bold"
-                    >
-                </div>
+<div class="grid grid-cols-2 gap-3 mb-4 border-b border-gray-600 pb-4">
 
-            </div>
+<div>
 
+<label>日期</label>
 
-            <button
-                @click="addToCart"
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded mt-2 active:scale-95 transition"
-            >
-                ➕ 加入清單
-            </button>
+<input
+type="date"
+v-model="globalDate">
 
-        </div>
+</div>
 
-    </div>
 
+<div>
 
-    <!-- =========================
-         已加入清單
-    ========================== -->
-    <div
-        class="list-panel"
-        v-if="cart.length > 0"
-    >
+<label>業代</label>
 
-        <h3 class="text-sm font-bold text-gray-400 mb-2">
-            已加入 {{ cart.length }} 筆
-        </h3>
+<select v-model="repIndex">
 
+<option
+v-for="(rep,index) in repList"
+:key="index"
+:value="index">
 
-        <div
-            v-for="(item, idx) in cart"
-            :key="idx"
-            class="item-card"
-        >
+{{ rep.name }}
 
-            <div>
+</option>
 
-                <span class="font-bold text-blue-300 mr-2">
-                    {{ item.productType }}
-                </span>
+</select>
 
-                <span class="text-gray-300">
-                    {{ item.currency }}
-                    {{ formatNumber(item.amount) }}
-                </span>
+</div>
 
-            </div>
+</div>
 
-            <button
-                @click="removeFromCart(idx)"
-                class="text-red-400 font-bold px-2"
-            >
-                ✕
-            </button>
 
-        </div>
+<div class="bg-gray-800 p-3 rounded-lg mb-4">
 
+<h3 class="text-sm font-bold text-gray-400 mb-2">
+新增成交紀錄
+</h3>
 
-        <div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
 
-            <div class="flex justify-between font-bold mb-1">
-                <span class="text-gray-300">
-                    總手收
-                </span>
+<div class="grid grid-cols-2 gap-3 mb-2">
 
-                <span class="text-white">
-                    NT$ {{ formatNumber(totalRevenue) }}
-                </span>
-            </div>
+<div>
 
+<label>商品</label>
 
-            <div class="flex justify-between font-bold">
+<select
+v-model="form.productType"
+@change="handleProductChange">
 
-                <span class="text-gray-300">
-                    總獎金
-                </span>
+<option value="FCN">FCN</option>
 
-                <span class="text-yellow-400">
-                    NT$ {{ formatNumber(totalBonus) }}
-                </span>
+<option value="U6">
+元元致富 U6
+</option>
 
-            </div>
+<option value="U5">
+元元致富 U5
+</option>
 
-        </div>
+<option value="T6">
+元元致富 T6
+</option>
 
+<option value="T5">
+元元致富 T5
+</option>
 
-        <button
-            @click="generateImage"
-            class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow mt-4 active:scale-95 transition text-lg"
-        >
-            生成圖片（長按儲存）
-        </button>
+<option value="INS">
+保險
+</option>
 
-    </div>
+<option value="BOND">
+海外債
+</option>
 
+<option value="fund">
+基金
+</option>
 
-    <div
-        class="list-panel text-center text-gray-500 py-4"
-        v-else
-    >
-        請先輸入並加入清單
-    </div>
+</select>
 
+</div>
 
-    <!-- =========================
-         輸出圖片
-    ========================== -->
-    <div id="result-area">
 
-        <p class="text-blue-300 font-bold mb-2 animate-bounce">
-            👇 長按圖片儲存 👇
-        </p>
+<div>
 
-        <img
-            id="final-img"
-            alt="長按儲存"
-        >
+<label>BP</label>
 
-    </div>
+<input
+type="number"
+v-model="form.bp"
+:disabled="isFixedBP">
 
+</div>
 
-    <!-- =========================
-         16:9 榮譽榜預覽
-    ========================== -->
-    <div id="preview-container">
+</div>
 
-        <div
-            id="certificate-node"
-            class="certificate"
-            :style="scaleStyle"
-        >
 
-            <!-- 背景 -->
-            <div class="gold-frame"></div>
-            <div class="blue-frame"></div>
+<div class="grid grid-cols-3 gap-2 mb-2">
 
-            <div class="corner-deco corner-tl"></div>
-            <div class="corner-deco corner-tr"></div>
-            <div class="corner-deco corner-bl"></div>
-            <div class="corner-deco corner-br"></div>
+<div>
 
-            <div class="top-blue-shape"></div>
-            <div class="top-gold-line"></div>
+<label>幣別</label>
 
-            <div class="wave-area">
-                <div class="wave3"></div>
-                <div class="wave1"></div>
-                <div class="wave2"></div>
-            </div>
+<select
+v-model="form.currency"
+@change="updateExRate">
 
+<option value="USD">USD</option>
 
-            <!-- 城市 -->
-            <div class="city-silhouette">
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
+<option value="JPY">JPY</option>
 
+<option value="TWD">TWD</option>
 
-            <!-- =========================
-                 左側
-            ========================== -->
-            <div class="left-zone">
+</select>
 
-                <div class="laurel-area">
+</div>
 
-                    <div class="laurel-ring"></div>
 
-                    <div class="laurel-leaf l1"></div>
-                    <div class="laurel-leaf l2"></div>
-                    <div class="laurel-leaf l3"></div>
-                    <div class="laurel-leaf l4"></div>
-
-                    <div class="laurel-leaf r1"></div>
-                    <div class="laurel-leaf r2"></div>
-                    <div class="laurel-leaf r3"></div>
-                    <div class="laurel-leaf r4"></div>
-
-                    <div class="big-congrats">
-                        賀
-                    </div>
-
-                    <div class="honor-ribbon">
-                        榮譽榜
-                    </div>
-
-                </div>
-
-
-                <!-- 獎盃 -->
-                <div class="trophy-wrap">
-
-                    <div class="trophy-platform"></div>
-
-                    <svg
-                        class="trophy-svg"
-                        viewBox="0 0 500 500"
-                        xmlns="http://www.w3.org/2000/svg"
-                    >
-
-                        <defs>
-
-                            <linearGradient
-                                id="goldCup"
-                                x1="0"
-                                y1="0"
-                                x2="1"
-                                y2="1"
-                            >
-                                <stop offset="0%" stop-color="#fff4a3"/>
-                                <stop offset="18%" stop-color="#d79d17"/>
-                                <stop offset="40%" stop-color="#fff0a2"/>
-                                <stop offset="62%" stop-color="#b87a0c"/>
-                                <stop offset="82%" stop-color="#f6cf59"/>
-                                <stop offset="100%" stop-color="#875700"/>
-                            </linearGradient>
-
-                            <linearGradient
-                                id="goldBright"
-                                x1="0"
-                                y1="0"
-                                x2="0"
-                                y2="1"
-                            >
-                                <stop offset="0%" stop-color="#fff5a9"/>
-                                <stop offset="45%" stop-color="#e7aa23"/>
-                                <stop offset="100%" stop-color="#9b6504"/>
-                            </linearGradient>
-
-                        </defs>
-
-
-                        <!-- 左耳 -->
-                        <path
-                            d="M135 105
-                               C70 80,45 125,60 180
-                               C72 225,115 243,150 220
-                               L150 185
-                               C125 198,99 190,90 165
-                               C82 142,94 120,135 128 Z"
-                            fill="none"
-                            stroke="url(#goldCup)"
-                            stroke-width="23"
-                            stroke-linecap="round"
-                        />
-
-
-                        <!-- 右耳 -->
-                        <path
-                            d="M365 105
-                               C430 80,455 125,440 180
-                               C428 225,385 243,350 220
-                               L350 185
-                               C375 198,401 190,410 165
-                               C418 142,406 120,365 128 Z"
-                            fill="none"
-                            stroke="url(#goldCup)"
-                            stroke-width="23"
-                            stroke-linecap="round"
-                        />
-
-
-                        <!-- 杯身 -->
-                        <path
-                            d="M130 90
-                               L370 90
-                               L350 190
-                               C335 260,300 290,250 290
-                               C200 290,165 260,150 190
-                               Z"
-                            fill="url(#goldCup)"
-                            stroke="#9b6807"
-                            stroke-width="5"
-                        />
-
-
-                        <!-- 杯口 -->
-                        <ellipse
-                            cx="250"
-                            cy="93"
-                            rx="124"
-                            ry="27"
-                            fill="#ffe992"
-                            stroke="#a46b05"
-                            stroke-width="5"
-                        />
-
-
-                        <ellipse
-                            cx="250"
-                            cy="96"
-                            rx="105"
-                            ry="16"
-                            fill="#b77a0b"
-                            opacity=".6"
-                        />
-
-
-                        <!-- 柱 -->
-                        <path
-                            d="M220 270
-                               Q250 292 280 270
-                               L278 350
-                               L222 350
-                               Z"
-                            fill="url(#goldBright)"
-                            stroke="#9e6600"
-                            stroke-width="5"
-                        />
-
-
-                        <!-- 頸 -->
-                        <ellipse
-                            cx="250"
-                            cy="350"
-                            rx="54"
-                            ry="18"
-                            fill="url(#goldBright)"
-                            stroke="#9a6500"
-                            stroke-width="4"
-                        />
-
-
-                        <!-- 底座金 -->
-                        <path
-                            d="M185 345
-                               L315 345
-                               L345 390
-                               L155 390
-                               Z"
-                            fill="url(#goldCup)"
-                            stroke="#9c6803"
-                            stroke-width="5"
-                        />
+<div>
 
+<label>
 
-                        <!-- 黑底座 -->
-                        <path
-                            d="M135 388
-                               L365 388
-                               L390 438
-                               L110 438
-                               Z"
-                            fill="#12202f"
-                            stroke="#07111d"
-                            stroke-width="6"
-                        />
+匯率
 
+<span
+v-if="loadingRate"
+class="text-yellow-500 animate-pulse text-xs">
 
-                        <!-- 金牌 -->
-                        <rect
-                            x="194"
-                            y="400"
-                            width="112"
-                            height="28"
-                            rx="4"
-                            fill="#dfa936"
-                            stroke="#fce086"
-                            stroke-width="2"
-                        />
+...
 
-                    </svg>
+</span>
 
-                </div>
+</label>
 
-            </div>
+<input
+type="number"
+v-model="form.exRate"
+step="0.01">
 
+</div>
 
-            <!-- =========================
-                 右側
-            ========================== -->
-            <div class="right-zone">
 
-                <!-- 日期 -->
-                <div class="field-date">
+<div>
 
-                    <span class="calendar-icon"></span>
+<label>金額</label>
 
-                    <span>
-                        {{ rocDate }}
-                    </span>
+<input
+type="number"
+v-model="form.amount"
+class="text-yellow-400 font-bold">
 
-                </div>
+</div>
 
-                <div class="date-line"></div>
+</div>
 
 
-                <!-- 姓名 -->
-                <div class="name-area">
+<button
+@click="addToCart"
+class="w-full bg-blue-600 text-white font-bold py-2 rounded mt-2">
 
-                    <div class="name-text">
-                        {{ currentRep.name }}
-                    </div>
+➕ 加入清單
 
-                    <div class="title-line-wrap">
+</button>
 
-                        <div class="short-line"></div>
+</div>
 
-                        <div class="title-text">
-                            {{ currentRep.title }}
-                        </div>
+</div>
 
-                        <div class="short-line right"></div>
 
-                    </div>
+<!-- ===================================================
+     清單
+=================================================== -->
 
-                </div>
+<div
+class="list-panel"
+v-if="cart.length > 0">
 
+<h3 class="text-sm font-bold text-gray-400 mb-2">
 
-                <!-- 筆數 -->
-                <div class="count-badge">
+已加入 {{ cart.length }} 筆
 
-                    <div class="count-small">
-                        共計
-                    </div>
+</h3>
 
-                    <div class="count-num">
-                        {{ cart.length }}
-                    </div>
 
-                    <div class="count-unit">
-                        筆
-                    </div>
+<div
+v-for="(item,idx) in cart"
+:key="idx"
+class="item-card">
 
-                </div>
+<div>
 
+<span class="font-bold text-blue-300 mr-2">
 
-                <!-- 商品標題 -->
-                <div class="section-title-wrap section-product-title">
+{{ item.productType }}
 
-                    <div class="section-title">
-                        成交商品
-                    </div>
+</span>
 
-                </div>
+<span class="text-gray-300">
 
+{{ item.currency }}
 
-                <!-- 商品 -->
-                <div class="product-zone">
+{{ formatNumber(item.amount) }}
 
-                    <div class="product-list">
+</span>
 
-                        <div
-                            v-for="prod in finalProductList"
-                            :key="prod"
-                            class="product-box"
-                        >
-                            {{ prod }}
-                        </div>
+</div>
 
-                    </div>
 
-                </div>
+<button
+@click="removeFromCart(idx)"
+class="text-red-400 font-bold px-2">
 
+✕
 
-                <!-- 金額標題 -->
-                <div class="section-title-wrap section-amount-title">
+</button>
 
-                    <div class="section-title">
-                        成交金額
-                    </div>
+</div>
 
-                </div>
 
+<div class="bg-gray-700 p-3 rounded mt-4 border border-gray-500 text-sm">
 
-                <!-- 金額 -->
-                <div class="amount-zone">
+<div class="flex justify-between font-bold mb-1">
 
-                    <div
-                        v-for="item in finalAmountList"
-                        :key="item.curr"
-                        class="amount-item"
-                    >
+<span class="text-gray-300">
 
-                        <div
-                            class="amount-number"
-                            :style="{ fontSize: amountFontSize }"
-                        >
-                            {{ item.val }}
-                        </div>
+總手收
 
-                        <div class="amount-meta">
+</span>
 
-                            <div
-                                v-if="item.isWan"
-                                class="amount-wan"
-                            >
-                                萬
-                            </div>
+<span class="text-white">
 
-                            <div class="amount-currency">
-                                {{ item.curr }}
-                            </div>
+NT$ {{ formatNumber(totalRevenue) }}
 
-                        </div>
+</span>
 
-                    </div>
+</div>
 
-                </div>
 
+<div class="flex justify-between font-bold">
 
-                <!-- 手收獎金 -->
-                <div class="stats-zone">
+<span class="text-gray-300">
 
-                    <!-- 手收 -->
-                    <div class="stat-card">
+總獎金
 
-                        <div class="stat-icon">
-                            💰
-                        </div>
+</span>
 
-                        <div class="stat-content">
+<span class="text-yellow-400">
 
-                            <div class="stat-label">
-                                手收
-                            </div>
+NT$ {{ formatNumber(totalBonus) }}
 
-                            <div class="stat-value-row">
+</span>
 
-                                <span class="stat-value">
-                                    {{ formatNumber(totalRevenue) }}
-                                </span>
+</div>
 
-                                <span class="stat-unit">
-                                    元
-                                </span>
+</div>
 
-                            </div>
 
-                        </div>
+<button
+@click="generateImage"
+class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg shadow mt-4 text-lg">
 
-                    </div>
+生成圖片（長按儲存）
 
+</button>
 
-                    <!-- 獎金 -->
-                    <div class="stat-card bonus-card">
+</div>
 
-                        <div class="stat-icon">
-                            🎁
-                        </div>
 
-                        <div class="stat-content">
+<div
+v-else
+class="list-panel text-center text-gray-500 py-4">
 
-                            <div class="stat-label">
-                                獎金
-                            </div>
+請先輸入並加入清單
 
-                            <div class="stat-value-row">
+</div>
 
-                                <span class="stat-value">
-                                    {{ formatNumber(totalBonus) }}
-                                </span>
 
-                                <span class="stat-unit">
-                                    元
-                                </span>
+<!-- ===================================================
+     生成完成
+=================================================== -->
 
-                            </div>
+<div id="result-area">
 
-                        </div>
+<p class="text-blue-300 font-bold mb-2">
 
-                    </div>
+👇 長按圖片儲存 👇
 
-                </div>
+</p>
 
-            </div>
+<img
+id="final-img"
+alt="長按儲存">
 
-        </div>
+</div>
 
-    </div>
+
+<!-- ===================================================
+     海報
+=================================================== -->
+
+<div id="preview-container">
+
+
+<div
+id="certificate-node"
+class="certificate"
+:style="scaleStyle">
+
+
+<!-- ===================================================
+     SVG 專業背景
+=================================================== -->
+
+<svg
+class="poster-bg"
+viewBox="0 0 1600 900"
+xmlns="http://www.w3.org/2000/svg">
+
+
+<defs>
+
+
+<!-- 白藍底 -->
+
+<linearGradient
+id="bgGradient"
+x1="0"
+y1="0"
+x2="1"
+y2="1">
+
+<stop
+offset="0%"
+stop-color="#ffffff"/>
+
+<stop
+offset="55%"
+stop-color="#f7fbff"/>
+
+<stop
+offset="100%"
+stop-color="#eaf5ff"/>
+
+</linearGradient>
+
+
+<!-- 深藍 -->
+
+<linearGradient
+id="navyGradient"
+x1="0"
+y1="0"
+x2="1"
+y2="1">
+
+<stop
+offset="0%"
+stop-color="#082d70"/>
+
+<stop
+offset="45%"
+stop-color="#0758b6"/>
+
+<stop
+offset="100%"
+stop-color="#148fe6"/>
+
+</linearGradient>
+
+
+<!-- 藍亮 -->
+
+<linearGradient
+id="blueGradient"
+x1="0"
+y1="0"
+x2="1"
+y2="0">
+
+<stop
+offset="0%"
+stop-color="#064087"/>
+
+<stop
+offset="45%"
+stop-color="#0873d5"/>
+
+<stop
+offset="100%"
+stop-color="#34b0fa"/>
+
+</linearGradient>
+
+
+<!-- 金色 -->
+
+<linearGradient
+id="goldGradient"
+x1="0"
+y1="0"
+x2="1"
+y2="1">
+
+<stop
+offset="0%"
+stop-color="#fff3a4"/>
+
+<stop
+offset="17%"
+stop-color="#d39a1a"/>
+
+<stop
+offset="40%"
+stop-color="#ffe57d"/>
+
+<stop
+offset="65%"
+stop-color="#ba7b05"/>
+
+<stop
+offset="85%"
+stop-color="#ffdd62"/>
+
+<stop
+offset="100%"
+stop-color="#925e00"/>
+
+</linearGradient>
+
+
+<linearGradient
+id="goldLine"
+x1="0"
+y1="0"
+x2="1"
+y2="0">
+
+<stop
+offset="0%"
+stop-color="#a66b00"/>
+
+<stop
+offset="45%"
+stop-color="#f2c95b"/>
+
+<stop
+offset="75%"
+stop-color="#fff0a5"/>
+
+<stop
+offset="100%"
+stop-color="#be8415"/>
+
+</linearGradient>
+
+
+<!-- 光 -->
+
+<radialGradient
+id="glow">
+
+<stop
+offset="0%"
+stop-color="#ffffff"
+stop-opacity="1"/>
+
+<stop
+offset="20%"
+stop-color="#d5efff"
+stop-opacity=".8"/>
+
+<stop
+offset="100%"
+stop-color="#78c6ff"
+stop-opacity="0"/>
+
+</radialGradient>
+
+
+<!-- 陰影 -->
+
+<filter
+id="shadow"
+x="-30%"
+y="-30%"
+width="160%"
+height="160%">
+
+<feDropShadow
+dx="0"
+dy="12"
+stdDeviation="11"
+flood-color="#002d67"
+flood-opacity=".25"/>
+
+</filter>
+
+
+<filter
+id="smallShadow"
+x="-30%"
+y="-30%"
+width="160%"
+height="160%">
+
+<feDropShadow
+dx="0"
+dy="5"
+stdDeviation="5"
+flood-color="#002e70"
+flood-opacity=".18"/>
+
+</filter>
+
+
+<!-- 圖案 -->
+
+<pattern
+id="dots"
+width="25"
+height="25"
+patternUnits="userSpaceOnUse">
+
+<circle
+cx="4"
+cy="4"
+r="2"
+fill="#3187d7"
+opacity=".14"/>
+
+</pattern>
+
+
+</defs>
+
+
+<!-- 底 -->
+
+<rect
+width="1600"
+height="900"
+fill="url(#bgGradient)"/>
+
+
+<!-- 淺光 -->
+
+<ellipse
+cx="1110"
+cy="245"
+rx="470"
+ry="300"
+fill="#8ecfff"
+opacity=".08"/>
+
+
+<!-- 點陣 -->
+
+<rect
+x="1010"
+y="105"
+width="500"
+height="420"
+fill="url(#dots)"
+opacity=".65"/>
+
+
+<!-- 外框 -->
+
+<rect
+x="15"
+y="15"
+width="1570"
+height="870"
+rx="8"
+fill="none"
+stroke="#0755a8"
+stroke-width="9"/>
+
+<rect
+x="32"
+y="32"
+width="1536"
+height="836"
+rx="4"
+fill="none"
+stroke="#e1ba51"
+stroke-width="3"/>
+
+<rect
+x="42"
+y="42"
+width="1516"
+height="816"
+rx="3"
+fill="none"
+stroke="#2c83d2"
+stroke-width="2"
+opacity=".7"/>
+
+
+<!-- 左上角 -->
+
+<path
+d="
+M44 110
+L44 48
+L108 48
+"
+fill="none"
+stroke="#d7ad3e"
+stroke-width="8"/>
+
+
+<path
+d="
+M44 145
+L44 58
+L132 58
+"
+fill="none"
+stroke="#0c5aae"
+stroke-width="5"/>
+
+
+<!-- 右下角 -->
+
+<path
+d="
+M1556 790
+L1556 856
+L1490 856
+"
+fill="none"
+stroke="#d7ad3e"
+stroke-width="8"/>
+
+
+<!-- 右上藍面 -->
+
+<path
+d="
+M1055 0
+H1600
+V215
+C1480 184
+1380 162
+1250 130
+C1180 112
+1110 83
+1055 0Z
+"
+fill="url(#navyGradient)"/>
+
+
+<!-- 亮藍第二層 -->
+
+<path
+d="
+M1230 0
+H1600
+V125
+C1470 112
+1375 88
+1230 0Z
+"
+fill="#29a5f4"
+opacity=".65"/>
+
+
+<!-- 右上金線 -->
+
+<path
+d="
+M1100 35
+C1280 64
+1400 100
+1595 125
+"
+fill="none"
+stroke="url(#goldLine)"
+stroke-width="8"/>
+
+
+<!-- 左下大藍波浪 -->
+
+<path
+d="
+M0 650
+C170 590
+330 610
+520 720
+C610 770
+705 830
+800 900
+H0
+Z
+"
+fill="url(#blueGradient)"/>
+
+
+<!-- 第二層 -->
+
+<path
+d="
+M0 720
+C170 660
+360 680
+590 825
+C640 855
+670 877
+705 900
+H0
+Z
+"
+fill="#064189"
+opacity=".92"/>
+
+
+<!-- 金波 -->
+
+<path
+d="
+M0 612
+C170 555
+330 570
+540 690
+"
+fill="none"
+stroke="url(#goldLine)"
+stroke-width="22"
+opacity=".95"/>
+
+
+<path
+d="
+M0 627
+C180 570
+330 590
+545 704
+"
+fill="none"
+stroke="#fff0a3"
+stroke-width="4"
+opacity=".75"/>
+
+
+<!-- 城市 -->
+
+<g
+fill="#1783d2"
+opacity=".075">
+
+<rect x="420" y="470" width="36" height="180"/>
+
+<rect x="465" y="425" width="48" height="225"/>
+
+<rect x="522" y="490" width="35" height="160"/>
+
+<rect x="565" y="378" width="53" height="272"/>
+
+<rect x="628" y="448" width="42" height="202"/>
+
+<rect x="679" y="410" width="53" height="240"/>
+
+<rect x="742" y="500" width="40" height="150"/>
+
+</g>
+
+
+<!-- 金融上升箭頭 -->
+
+<path
+d="
+M1400 560
+C1450 520 1490 470 1520 410
+"
+fill="none"
+stroke="#4ca2ea"
+stroke-width="12"
+opacity=".12"/>
+
+<path
+d="
+M1495 416
+L1530 395
+L1534 437
+"
+fill="#4ca2ea"
+opacity=".12"/>
+
+
+<!-- ===================================================
+     桂冠
+=================================================== -->
+
+<g
+transform="translate(85 72)"
+filter="url(#smallShadow)">
+
+
+<!-- 左葉 -->
+
+<g
+fill="url(#goldGradient)">
+
+<ellipse
+cx="78"
+cy="76"
+rx="13"
+ry="36"
+transform="rotate(-35 78 76)"/>
+
+<ellipse
+cx="50"
+cy="130"
+rx="13"
+ry="35"
+transform="rotate(-49 50 130)"/>
+
+<ellipse
+cx="40"
+cy="191"
+rx="13"
+ry="35"
+transform="rotate(-67 40 191)"/>
+
+<ellipse
+cx="50"
+cy="250"
+rx="13"
+ry="35"
+transform="rotate(-83 50 250)"/>
+
+<ellipse
+cx="84"
+cy="299"
+rx="13"
+ry="35"
+transform="rotate(-112 84 299)"/>
+
+</g>
+
+
+<!-- 右葉 -->
+
+<g
+fill="url(#goldGradient)">
+
+<ellipse
+cx="292"
+cy="76"
+rx="13"
+ry="36"
+transform="rotate(35 292 76)"/>
+
+<ellipse
+cx="320"
+cy="130"
+rx="13"
+ry="35"
+transform="rotate(49 320 130)"/>
+
+<ellipse
+cx="330"
+cy="191"
+rx="13"
+ry="35"
+transform="rotate(67 330 191)"/>
+
+<ellipse
+cx="320"
+cy="250"
+rx="13"
+ry="35"
+transform="rotate(83 320 250)"/>
+
+<ellipse
+cx="286"
+cy="299"
+rx="13"
+ry="35"
+transform="rotate(112 286 299)"/>
+
+</g>
+
+
+<!-- 賀 -->
+
+<text
+x="185"
+y="260"
+text-anchor="middle"
+font-size="205"
+font-weight="900"
+fill="#103d88"
+font-family="KaiTi, Microsoft JhengHei, serif">
+
+賀
+
+</text>
+
+
+<!-- 星 -->
+
+<g
+fill="#e3b238">
+
+<path
+d="M180 5 l7 18 18 7 -18 7 -7 18 -7-18 -18-7 18-7z"/>
+
+<path
+d="M8 215 l6 15 15 6 -15 6 -6 15 -6-15 -15-6 15-6z"
+transform="translate(15 -15)"/>
+
+<path
+d="M350 215 l6 15 15 6 -15 6 -6 15 -6-15 -15-6 15-6z"
+transform="translate(-15 -15)"/>
+
+</g>
+
+
+<!-- 榮譽榜 ribbon -->
+
+<path
+d="
+M15 298
+L75 315
+L75 365
+L14 380
+L30 340
+Z
+"
+fill="#083b83"/>
+
+
+<path
+d="
+M355 298
+L295 315
+L295 365
+L356 380
+L340 340
+Z
+"
+fill="#083b83"/>
+
+
+<rect
+x="55"
+y="305"
+width="260"
+height="65"
+rx="9"
+fill="url(#navyGradient)"
+stroke="#62aaf0"
+stroke-width="5"/>
+
+
+<text
+x="185"
+y="350"
+text-anchor="middle"
+fill="#ffffff"
+font-size="35"
+font-weight="900"
+letter-spacing="8">
+
+榮譽榜
+
+</text>
+
+
+</g>
+
+
+<!-- ===================================================
+     金色獎盃
+=================================================== -->
+
+<g
+transform="translate(85 405)"
+filter="url(#shadow)">
+
+
+<!-- 平台 -->
+
+<ellipse
+cx="195"
+cy="405"
+rx="205"
+ry="45"
+fill="#d8edff"/>
+
+<ellipse
+cx="195"
+cy="397"
+rx="175"
+ry="34"
+fill="#125cb0"
+stroke="#efc45b"
+stroke-width="4"/>
+
+<ellipse
+cx="195"
+cy="391"
+rx="150"
+ry="24"
+fill="#ffffff"
+opacity=".35"/>
+
+
+<!-- 左把手 -->
+
+<path
+d="
+M83 68
+C17 35
+-15 81
+4 143
+C19 193
+62 215
+105 185
+"
+fill="none"
+stroke="url(#goldGradient)"
+stroke-width="28"
+stroke-linecap="round"/>
+
+
+<!-- 右把手 -->
+
+<path
+d="
+M307 68
+C373 35
+405 81
+386 143
+C371 193
+328 215
+285 185
+"
+fill="none"
+stroke="url(#goldGradient)"
+stroke-width="28"
+stroke-linecap="round"/>
+
+
+<!-- 杯身 -->
+
+<path
+d="
+M72 52
+H318
+L295 168
+C280 245
+246 277
+195 277
+C144 277
+110 245
+95 168
+Z
+"
+fill="url(#goldGradient)"
+stroke="#a66e05"
+stroke-width="5"/>
+
+
+<!-- 杯口 -->
+
+<ellipse
+cx="195"
+cy="54"
+rx="126"
+ry="27"
+fill="#ffe882"
+stroke="#a76d05"
+stroke-width="5"/>
+
+
+<ellipse
+cx="195"
+cy="56"
+rx="105"
+ry="15"
+fill="#ad7508"
+opacity=".45"/>
+
+
+<!-- 光 -->
+
+<ellipse
+cx="145"
+cy="130"
+rx="26"
+ry="100"
+fill="#ffffff"
+opacity=".25"
+transform="rotate(12 145 130)"/>
+
+
+<!-- 柱 -->
+
+<path
+d="
+M165 260
+Q195 285 225 260
+L222 338
+L168 338
+Z
+"
+fill="url(#goldGradient)"
+stroke="#a16b04"
+stroke-width="5"/>
+
+
+<!-- 金座 -->
+
+<ellipse
+cx="195"
+cy="336"
+rx="60"
+ry="18"
+fill="url(#goldGradient)"
+stroke="#a26b03"
+stroke-width="4"/>
+
+
+<path
+d="
+M130 337
+H260
+L292 380
+H98
+Z
+"
+fill="url(#goldGradient)"
+stroke="#9e6803"
+stroke-width="5"/>
+
+
+<!-- 黑座 -->
+
+<path
+d="
+M80 377
+H310
+L330 422
+H60
+Z
+"
+fill="#152231"
+stroke="#08121f"
+stroke-width="6"/>
+
+
+<!-- 金牌 -->
+
+<rect
+x="142"
+y="390"
+width="108"
+height="28"
+rx="4"
+fill="#d5a433"
+stroke="#f4d76e"
+stroke-width="2"/>
+
+
+<!-- 星光 -->
+
+<circle
+cx="66"
+cy="20"
+r="78"
+fill="url(#glow)"
+opacity=".4"/>
+
+<circle
+cx="325"
+cy="140"
+r="75"
+fill="url(#glow)"
+opacity=".3"/>
+
+
+</g>
+
+
+<!-- 中間淡分隔線 -->
+
+<line
+x1="565"
+y1="319"
+x2="1470"
+y2="319"
+stroke="#76a8d7"
+stroke-width="2"
+opacity=".45"/>
+
+
+<line
+x1="565"
+y1="465"
+x2="1470"
+y2="465"
+stroke="#76a8d7"
+stroke-width="2"
+opacity=".4"/>
+
+
+<!-- 裝飾光點 -->
+
+<circle
+cx="545"
+cy="625"
+r="85"
+fill="url(#glow)"
+opacity=".2"/>
+
+<circle
+cx="1530"
+cy="725"
+r="130"
+fill="url(#glow)"
+opacity=".18"/>
+
+
+</svg>
+
+
+<!-- ===================================================
+     動態資料
+=================================================== -->
+
+<div class="poster-content">
+
+
+<!-- 日期 -->
+
+<div class="date-area">
+
+<div class="date-icon">
+▣
+</div>
+
+<div class="date-text">
+{{ rocDate }}
+</div>
+
+</div>
+
+
+<!-- 姓名 -->
+
+<div class="person-area">
+
+<div class="person-name">
+
+{{ currentRep.name }}
+
+</div>
+
+
+<div class="person-title-wrap">
+
+<div class="person-title-line"></div>
+
+<div class="person-title">
+
+{{ currentRep.title }}
+
+</div>
+
+<div class="person-title-line right"></div>
+
+</div>
+
+</div>
+
+
+<!-- 共計 -->
+
+<div class="count-badge">
+
+<div class="count-label">
+
+共計
+
+</div>
+
+<div class="count-number">
+
+{{ cart.length }}
+
+</div>
+
+<div class="count-unit">
+
+筆
+
+</div>
+
+</div>
+
+
+<!-- 商品 -->
+
+<div class="product-section">
+
+
+<div class="section-title">
+
+成交商品
+
+</div>
+
+
+<div class="product-list">
+
+<div
+v-for="prod in finalProductList"
+:key="prod"
+class="product-box">
+
+{{ prod }}
+
+</div>
+
+</div>
+
+
+</div>
+
+
+<!-- 金額 -->
+
+<div class="amount-section">
+
+
+<div class="section-title amount-title">
+
+成交金額
+
+</div>
+
+
+<div class="amount-panel">
+
+
+<div
+v-for="item in finalAmountList"
+:key="item.curr"
+class="amount-item">
+
+
+<div
+class="amount-value"
+:style="{fontSize:amountFontSize}">
+
+{{ item.val }}
+
+</div>
+
+
+<div class="amount-detail">
+
+
+<div
+v-if="item.isWan"
+class="amount-wan">
+
+萬
+
+</div>
+
+
+<div class="amount-currency">
+
+{{ item.curr }}
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+<!-- 手收獎金 -->
+
+<div class="stats-panel">
+
+
+<div class="stat-box">
+
+
+<div class="stat-icon-circle">
+
+
+<svg
+class="stat-icon-svg"
+viewBox="0 0 64 64">
+
+
+<circle
+cx="32"
+cy="22"
+r="15"
+fill="none"
+stroke="#fff"
+stroke-width="5"/>
+
+
+<text
+x="32"
+y="29"
+text-anchor="middle"
+font-size="22"
+font-weight="900"
+fill="#fff">
+
+$
+
+</text>
+
+
+<path
+d="
+M10 47
+C18 38 25 41 32 46
+C40 37 50 37 55 42
+C49 51 42 55 30 57
+C22 58 16 55 10 52
+Z
+"
+fill="#fff"/>
+
+
+</svg>
+
+
+</div>
+
+
+<div class="stat-text">
+
+
+<div class="stat-label">
+
+手收
+
+</div>
+
+
+<div class="stat-value-line">
+
+
+<div class="stat-value">
+
+{{ formatNumber(totalRevenue) }}
+
+</div>
+
+
+<div class="stat-unit">
+
+元
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+<div class="stat-box bonus-stat">
+
+
+<div class="stat-icon-circle">
+
+
+<svg
+class="stat-icon-svg"
+viewBox="0 0 64 64">
+
+
+<rect
+x="10"
+y="26"
+width="44"
+height="31"
+rx="4"
+fill="#fff"/>
+
+
+<rect
+x="29"
+y="26"
+width="6"
+height="31"
+fill="#1972ce"/>
+
+
+<rect
+x="7"
+y="20"
+width="50"
+height="10"
+rx="3"
+fill="#fff"/>
+
+
+<path
+d="
+M31 20
+C19 17 17 5 23 4
+C29 3 33 10 32 19
+"
+fill="none"
+stroke="#fff"
+stroke-width="5"/>
+
+
+<path
+d="
+M33 20
+C45 17 47 5 41 4
+C35 3 31 10 32 19
+"
+fill="none"
+stroke="#fff"
+stroke-width="5"/>
+
+
+</svg>
+
+
+</div>
+
+
+<div class="stat-text">
+
+
+<div class="stat-label">
+
+獎金
+
+</div>
+
+
+<div class="stat-value-line">
+
+
+<div class="stat-value">
+
+{{ formatNumber(totalBonus) }}
+
+</div>
+
+
+<div class="stat-unit">
+
+元
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+</div>
+
 
 </div>
 
@@ -1608,889 +2375,1002 @@ const {
 
 createApp({
 
-    setup() {
+setup(){
 
-        const windowWidth = ref(window.innerWidth);
 
-        const loadingRate = ref(false);
+const windowWidth =
+ref(window.innerWidth);
 
-        const globalDate = ref(
-            new Date().toISOString().split('T')[0]
+
+const loadingRate =
+ref(false);
+
+
+const globalDate =
+ref(
+    new Date()
+    .toISOString()
+    .split("T")[0]
+);
+
+
+const repIndex =
+ref(4);
+
+
+const cart =
+ref([]);
+
+
+const form =
+reactive({
+
+    productType:"FCN",
+
+    currency:"USD",
+
+    exRate:32.5,
+
+    amount:20000,
+
+    bp:50
+
+});
+
+
+const liveRates = {
+
+    USD:32.5,
+
+    JPY:0.22,
+
+    TWD:1
+
+};
+
+
+/* =====================================================
+   預覽縮放
+===================================================== */
+
+const scaleStyle =
+computed(()=>{
+
+
+    const scale =
+    Math.min(
+        (windowWidth.value - 16) / 1600,
+        1
+    );
+
+
+    return {
+
+        transform:
+        `scale(${scale})`,
+
+        marginBottom:
+        `-${900 * (1-scale)}px`
+
+    };
+
+});
+
+
+onMounted(async()=>{
+
+
+    window.addEventListener(
+        "resize",
+        ()=>{
+            windowWidth.value =
+            window.innerWidth;
+        }
+    );
+
+
+    await fetchLiveRates();
+
+
+});
+
+
+/* =====================================================
+   匯率
+===================================================== */
+
+const fetchLiveRates =
+async()=>{
+
+
+    loadingRate.value =
+    true;
+
+
+    try{
+
+
+        const res =
+        await fetch(
+            "https://api.exchangerate-api.com/v4/latest/TWD"
         );
 
-        const repIndex = ref(4);
 
-        const cart = ref([]);
-
-
-        const form = reactive({
-
-            productType: 'FCN',
-
-            currency: 'USD',
-
-            exRate: 32.5,
-
-            amount: 20000,
-
-            bp: 50
-
-        });
+        const data =
+        await res.json();
 
 
-        const liveRates = {
-
-            USD: 32.5,
-
-            JPY: 0.22,
-
-            TWD: 1.0
-
-        };
+        if(
+            data &&
+            data.rates
+        ){
 
 
-        /* =========================
-           預覽縮放
-        ========================== */
-
-        const scaleStyle = computed(() => {
-
-            const targetWidth = 1600;
-
-            const padding = 20;
-
-            const scale = Math.min(
-                (windowWidth.value - padding) / targetWidth,
-                1
+            liveRates.USD =
+            parseFloat(
+                (1/data.rates.USD)
+                .toFixed(2)
             );
+
+
+            liveRates.JPY =
+            parseFloat(
+                (1/data.rates.JPY)
+                .toFixed(4)
+            );
+
+
+            updateExRate();
+
+
+        }
+
+
+    }catch(e){}
+
+
+    loadingRate.value =
+    false;
+
+
+};
+
+
+/* =====================================================
+   業代
+===================================================== */
+
+const repList = [
+
+{name:"吳坤達",title:"業務協理"},
+
+{name:"賴婉甄",title:"業務協理"},
+
+{name:"陳雅鈴",title:"業務經理"},
+
+{name:"林佳瑩",title:"業務高專"},
+
+{name:"黃思婷",title:"業務協理"},
+
+{name:"賴秋萍",title:"業務協理"},
+
+{name:"王淑濱",title:"業務經理"},
+
+{name:"賴美華",title:"業務經理"},
+
+{name:"王淑卿",title:"業務經理"},
+
+{name:"丁心梅",title:"業務襄理"},
+
+{name:"王鵬飛",title:"業務經理"},
+
+{name:"羅金蘭",title:"業務副理"},
+
+{name:"陳翰泰",title:"業務員"},
+
+{name:"王郁茹",title:"業務襄理"},
+
+{name:"曾沛涵",title:"業務高專"}
+
+];
+
+
+const currentRep =
+computed(()=>{
+
+    return repList[
+        repIndex.value
+    ];
+
+});
+
+
+/* =====================================================
+   日期
+===================================================== */
+
+const rocDate =
+computed(()=>{
+
+
+    const d =
+    new Date(
+        globalDate.value +
+        "T00:00:00"
+    );
+
+
+    return (
+
+        `${d.getFullYear()-1911}/` +
+
+        `${d.getMonth()+1}/` +
+
+        `${d.getDate()}`
+
+    );
+
+
+});
+
+
+/* =====================================================
+   匯率
+===================================================== */
+
+const updateExRate =
+()=>{
+
+
+    form.exRate =
+    liveRates[
+        form.currency
+    ] || 1;
+
+
+};
+
+
+/* =====================================================
+   BP
+===================================================== */
+
+const isFixedBP =
+computed(()=>{
+
+
+    return [
+
+        "U6",
+        "U5",
+        "T6",
+        "T5"
+
+    ].includes(
+        form.productType
+    );
+
+
+});
+
+
+const handleProductChange =
+()=>{
+
+
+    if(
+        [
+            "U6",
+            "U5",
+            "T6",
+            "T5"
+        ]
+        .includes(
+            form.productType
+        )
+    ){
+
+
+        form.bp = 600;
+
+
+    }
+
+    else if(
+        form.productType === "FCN"
+    ){
+
+
+        form.bp = 50;
+
+
+    }
+
+    else if(
+        form.productType === "fund"
+    ){
+
+
+        form.bp = 100;
+
+
+    }
+
+    else if(
+        form.productType === "INS"
+    ){
+
+
+        form.bp = 100;
+
+
+    }
+
+
+};
+
+
+/* =====================================================
+   手收
+===================================================== */
+
+const calculatedRevenue =
+computed(()=>{
+
+
+    return Math.round(
+
+        form.amount *
+
+        form.exRate *
+
+        (form.bp/10000)
+
+    );
+
+
+});
+
+
+/* =====================================================
+   獎金
+===================================================== */
+
+const calculatedBonus =
+computed(()=>{
+
+
+    let rate = 0;
+
+
+    if(
+        form.productType === "FCN"
+    ){
+
+
+        rate = 30;
+
+
+    }
+
+    else if(
+        form.productType === "fund"
+    ){
+
+
+        rate = 30;
+
+
+    }
+
+    else if(
+        [
+            "U6",
+            "U5",
+            "T6",
+            "T5"
+        ]
+        .includes(
+            form.productType
+        )
+    ){
+
+
+        rate = 38;
+
+
+    }
+
+    else if(
+        form.productType === "BOND"
+    ){
+
+
+        rate = 25;
+
+
+    }
+
+    else if(
+        form.productType === "INS"
+    ){
+
+
+        rate = 38;
+
+
+    }
+
+
+    return Math.round(
+
+        calculatedRevenue.value *
+
+        (rate/100)
+
+    );
+
+
+});
+
+
+/* =====================================================
+   加入清單
+===================================================== */
+
+const addToCart =
+()=>{
+
+
+    cart.value.push({
+
+
+        productType:
+        form.productType,
+
+
+        currency:
+        form.currency,
+
+
+        amount:
+        Number(form.amount),
+
+
+        bp:
+        Number(form.bp),
+
+
+        exRate:
+        Number(form.exRate),
+
+
+        revenue:
+        calculatedRevenue.value,
+
+
+        bonus:
+        calculatedBonus.value
+
+
+    });
+
+
+};
+
+
+const removeFromCart =
+(idx)=>{
+
+
+    cart.value.splice(
+        idx,
+        1
+    );
+
+
+};
+
+
+/* =====================================================
+   總計
+===================================================== */
+
+const totalRevenue =
+computed(()=>{
+
+
+    return cart.value.reduce(
+
+        (sum,item)=>
+        sum + item.revenue,
+
+        0
+
+    );
+
+
+});
+
+
+const totalBonus =
+computed(()=>{
+
+
+    return cart.value.reduce(
+
+        (sum,item)=>
+        sum + item.bonus,
+
+        0
+
+    );
+
+
+});
+
+
+/* =====================================================
+   商品
+===================================================== */
+
+const finalProductList =
+computed(()=>{
+
+
+    if(
+        cart.value.length === 0
+    ){
+
+
+        return ["FCN"];
+
+
+    }
+
+
+    const types = [
+
+        ...new Set(
+
+            cart.value.map(
+                i=>i.productType
+            )
+
+        )
+
+    ];
+
+
+    const map = {
+
+
+        FCN:"FCN",
+
+        U6:"元元致富U6",
+
+        U5:"元元致富U5",
+
+        T6:"元元致富T6",
+
+        T5:"元元致富T5",
+
+        INS:"保險",
+
+        BOND:"海外債",
+
+        fund:"基金"
+
+
+    };
+
+
+    return types.map(
+        t=>map[t]
+    );
+
+
+});
+
+
+/* =====================================================
+   金額
+===================================================== */
+
+const finalAmountList =
+computed(()=>{
+
+
+    const source =
+
+    cart.value.length
+
+    ?
+
+    cart.value
+
+    :
+
+    [{
+
+        currency:
+        form.currency,
+
+        amount:
+        Number(form.amount)
+
+    }];
+
+
+    const sums = {};
+
+
+    source.forEach(
+        item=>{
+
+
+            if(
+                !sums[item.currency]
+            ){
+
+
+                sums[item.currency]=0;
+
+
+            }
+
+
+            sums[item.currency] +=
+            Number(item.amount);
+
+
+        }
+    );
+
+
+    return Object
+    .keys(sums)
+    .map(curr=>{
+
+
+        const num =
+        sums[curr];
+
+
+        if(
+            num >= 10000
+        ){
+
 
             return {
 
-                transform: `scale(${scale})`,
 
-                marginBottom:
-                    `-${900 * (1 - scale)}px`
+                val:
+                parseFloat(
+                    (num/10000)
+                    .toFixed(2)
+                ),
 
-            };
 
-        });
+                curr,
 
 
-        onMounted(async () => {
+                isWan:true
 
-            window.addEventListener(
-                'resize',
-                () => {
-                    windowWidth.value = window.innerWidth;
-                }
-            );
-
-            await fetchLiveRates();
-
-        });
-
-
-        /* =========================
-           匯率
-        ========================== */
-
-        const fetchLiveRates = async () => {
-
-            loadingRate.value = true;
-
-            try {
-
-                const res = await fetch(
-                    'https://api.exchangerate-api.com/v4/latest/TWD'
-                );
-
-                const data = await res.json();
-
-
-                if (data && data.rates) {
-
-                    liveRates.USD =
-                        parseFloat(
-                            (1 / data.rates.USD).toFixed(2)
-                        );
-
-                    liveRates.JPY =
-                        parseFloat(
-                            (1 / data.rates.JPY).toFixed(4)
-                        );
-
-                    updateExRate();
-
-                }
-
-            }
-            catch (e) {
-
-                console.log(
-                    '匯率更新失敗，使用預設匯率'
-                );
-
-            }
-
-            loadingRate.value = false;
-
-        };
-
-
-        /* =========================
-           業代
-        ========================== */
-
-        const repList = [
-
-            {
-                name: '吳坤達',
-                title: '業務協理'
-            },
-
-            {
-                name: '賴婉甄',
-                title: '業務協理'
-            },
-
-            {
-                name: '陳雅鈴',
-                title: '業務經理'
-            },
-
-            {
-                name: '林佳瑩',
-                title: '業務高專'
-            },
-
-            {
-                name: '黃思婷',
-                title: '業務協理'
-            },
-
-            {
-                name: '賴秋萍',
-                title: '業務協理'
-            },
-
-            {
-                name: '王淑濱',
-                title: '業務經理'
-            },
-
-            {
-                name: '賴美華',
-                title: '業務經理'
-            },
-
-            {
-                name: '王淑卿',
-                title: '業務經理'
-            },
-
-            {
-                name: '丁心梅',
-                title: '業務襄理'
-            },
-
-            {
-                name: '王鵬飛',
-                title: '業務經理'
-            },
-
-            {
-                name: '羅金蘭',
-                title: '業務副理'
-            },
-
-            {
-                name: '陳翰泰',
-                title: '業務員'
-            },
-
-            {
-                name: '王郁茹',
-                title: '業務襄理'
-            },
-
-            {
-                name: '曾沛涵',
-                title: '業務高專'
-            }
-
-        ];
-
-
-        const currentRep = computed(() => {
-
-            return repList[repIndex.value];
-
-        });
-
-
-        /* =========================
-           民國日期
-        ========================== */
-
-        const rocDate = computed(() => {
-
-            const d = new Date(
-                globalDate.value + 'T00:00:00'
-            );
-
-            return (
-                `${d.getFullYear() - 1911}/` +
-                `${d.getMonth() + 1}/` +
-                `${d.getDate()}`
-            );
-
-        });
-
-
-        /* =========================
-           匯率更新
-        ========================== */
-
-        const updateExRate = () => {
-
-            form.exRate =
-                liveRates[form.currency] || 1;
-
-        };
-
-
-        /* =========================
-           固定 BP 商品
-        ========================== */
-
-        const isFixedBP = computed(() => {
-
-            return [
-                'U6',
-                'U5',
-                'T6',
-                'T5'
-            ].includes(form.productType);
-
-        });
-
-
-        const handleProductChange = () => {
-
-            if (
-                ['U6','U5','T6','T5']
-                .includes(form.productType)
-            ) {
-
-                form.bp = 600;
-
-            }
-
-            else if (
-                form.productType === 'FCN'
-            ) {
-
-                form.bp = 50;
-
-            }
-
-            else if (
-                form.productType === 'fund'
-            ) {
-
-                form.bp = 100;
-
-            }
-
-            else if (
-                form.productType === 'INS'
-            ) {
-
-                form.bp = 100;
-
-            }
-
-        };
-
-
-        /* =========================
-           手收
-        ========================== */
-
-        const calculatedRevenue = computed(() => {
-
-            return Math.round(
-
-                form.amount *
-
-                form.exRate *
-
-                (form.bp / 10000)
-
-            );
-
-        });
-
-
-        /* =========================
-           獎金
-        ========================== */
-
-        const calculatedBonus = computed(() => {
-
-            let rate = 0;
-
-
-            if (
-                form.productType === 'FCN'
-            ) {
-
-                rate = 30;
-
-            }
-
-            else if (
-                form.productType === 'fund'
-            ) {
-
-                rate = 30;
-
-            }
-
-            else if (
-                ['U6','U5','T6','T5']
-                .includes(form.productType)
-            ) {
-
-                rate = 38;
-
-            }
-
-            else if (
-                form.productType === 'BOND'
-            ) {
-
-                rate = 25;
-
-            }
-
-            else if (
-                form.productType === 'INS'
-            ) {
-
-                rate = 38;
-
-            }
-
-
-            return Math.round(
-
-                calculatedRevenue.value *
-
-                (rate / 100)
-
-            );
-
-        });
-
-
-        /* =========================
-           加入清單
-        ========================== */
-
-        const addToCart = () => {
-
-            cart.value.push({
-
-                productType:
-                    form.productType,
-
-                currency:
-                    form.currency,
-
-                amount:
-                    Number(form.amount),
-
-                bp:
-                    Number(form.bp),
-
-                exRate:
-                    Number(form.exRate),
-
-                revenue:
-                    calculatedRevenue.value,
-
-                bonus:
-                    calculatedBonus.value
-
-            });
-
-        };
-
-
-        const removeFromCart = (idx) => {
-
-            cart.value.splice(idx, 1);
-
-        };
-
-
-        /* =========================
-           總手收
-        ========================== */
-
-        const totalRevenue = computed(() => {
-
-            return cart.value.reduce(
-
-                (sum, item) =>
-                    sum + item.revenue,
-
-                0
-
-            );
-
-        });
-
-
-        /* =========================
-           總獎金
-        ========================== */
-
-        const totalBonus = computed(() => {
-
-            return cart.value.reduce(
-
-                (sum, item) =>
-                    sum + item.bonus,
-
-                0
-
-            );
-
-        });
-
-
-        /* =========================
-           商品文字
-        ========================== */
-
-        const finalProductList = computed(() => {
-
-            if (
-                cart.value.length === 0
-            ) {
-
-                return ['FCN'];
-
-            }
-
-
-            const types = [
-
-                ...new Set(
-
-                    cart.value.map(
-                        i => i.productType
-                    )
-
-                )
-
-            ];
-
-
-            const map = {
-
-                FCN:
-                    'FCN',
-
-                U6:
-                    '元元致富U6',
-
-                U5:
-                    '元元致富U5',
-
-                T6:
-                    '元元致富T6',
-
-                T5:
-                    '元元致富T5',
-
-                INS:
-                    '保險',
-
-                BOND:
-                    '海外債',
-
-                fund:
-                    '基金'
 
             };
 
 
-            return types.map(
-                t => map[t]
-            );
-
-        });
-
-
-        /* =========================
-           金額顯示
-        ========================== */
-
-        const finalAmountList = computed(() => {
-
-            let source = [];
-
-
-            if (
-                cart.value.length === 0
-            ) {
-
-                source = [
-
-                    {
-                        currency:
-                            form.currency,
-
-                        amount:
-                            Number(form.amount)
-                    }
-
-                ];
-
-            }
-            else {
-
-                source =
-                    cart.value;
-
-            }
-
-
-            const sums = {};
-
-
-            source.forEach(item => {
-
-                const curr =
-                    item.currency;
-
-                if (
-                    !sums[curr]
-                ) {
-
-                    sums[curr] = 0;
-
-                }
-
-                sums[curr] +=
-                    Number(item.amount);
-
-            });
-
-
-            return Object.keys(sums).map(
-
-                curr => {
-
-                    const num =
-                        sums[curr];
-
-
-                    if (
-                        num >= 10000
-                    ) {
-
-                        return {
-
-                            val:
-                                parseFloat(
-                                    (num / 10000)
-                                    .toFixed(2)
-                                ),
-
-                            curr:
-                                curr,
-
-                            isWan:
-                                true
-
-                        };
-
-                    }
-
-
-                    return {
-
-                        val:
-                            formatNumber(num),
-
-                        curr:
-                            curr,
-
-                        isWan:
-                            false
-
-                    };
-
-                }
-
-            );
-
-        });
-
-
-        /* =========================
-           金額字體大小
-        ========================== */
-
-        const amountFontSize = computed(() => {
-
-            const count =
-                finalAmountList.value.length;
-
-
-            if (
-                count >= 3
-            ) {
-
-                return '60px';
-
-            }
-
-
-            if (
-                count === 2
-            ) {
-
-                return '78px';
-
-            }
-
-
-            return '96px';
-
-        });
-
-
-        /* =========================
-           千分位
-        ========================== */
-
-        const formatNumber = (num) => {
-
-            const n =
-                Number(num) || 0;
-
-            return n.toLocaleString(
-                'zh-TW'
-            );
-
-        };
-
-
-        /* =========================
-           生成圖片
-        ========================== */
-
-        const generateImage = async () => {
-
-            window.scrollTo(
-                0,
-                0
-            );
-
-
-            const element =
-                document.getElementById(
-                    'certificate-node'
-                );
-
-
-            const originalTransform =
-                element.style.transform;
-
-
-            const originalMarginBottom =
-                element.style.marginBottom;
-
-
-            element.style.transform =
-                'scale(1)';
-
-
-            element.style.marginBottom =
-                '0';
-
-
-            try {
-
-                const canvas =
-                    await html2canvas(
-                        element,
-                        {
-
-                            scale: 2,
-
-                            backgroundColor:
-                                '#ffffff',
-
-                            useCORS:
-                                true,
-
-                            allowTaint:
-                                true,
-
-                            scrollX:
-                                0,
-
-                            scrollY:
-                                0,
-
-                            width:
-                                1600,
-
-                            height:
-                                900,
-
-                            windowWidth:
-                                1600,
-
-                            windowHeight:
-                                900
-
-                        }
-                    );
-
-
-                const img =
-                    document.getElementById(
-                        'final-img'
-                    );
-
-
-                img.src =
-                    canvas.toDataURL(
-                        'image/png',
-                        1.0
-                    );
-
-
-                document
-                    .getElementById(
-                        'result-area'
-                    )
-                    .style
-                    .display =
-                    'block';
-
-
-                setTimeout(
-                    () => {
-
-                        document
-                            .getElementById(
-                                'result-area'
-                            )
-                            .scrollIntoView({
-
-                                behavior:
-                                    'smooth',
-
-                                block:
-                                    'start'
-
-                            });
-
-                    },
-
-                    100
-                );
-
-            }
-
-            catch (error) {
-
-                console.error(
-                    '圖片生成失敗',
-                    error
-                );
-
-                alert(
-                    '圖片生成失敗，請重新嘗試'
-                );
-
-            }
-
-            finally {
-
-                element.style.transform =
-                    originalTransform;
-
-
-                element.style.marginBottom =
-                    originalMarginBottom;
-
-            }
-
-        };
+        }
 
 
         return {
 
-            repList,
 
-            repIndex,
+            val:
+            formatNumber(num),
 
-            globalDate,
 
-            form,
+            curr,
 
-            cart,
 
-            currentRep,
+            isWan:false
 
-            rocDate,
-
-            isFixedBP,
-
-            loadingRate,
-
-            updateExRate,
-
-            handleProductChange,
-
-            calculatedRevenue,
-
-            calculatedBonus,
-
-            addToCart,
-
-            removeFromCart,
-
-            totalRevenue,
-
-            totalBonus,
-
-            finalProductList,
-
-            finalAmountList,
-
-            amountFontSize,
-
-            formatNumber,
-
-            generateImage,
-
-            scaleStyle
 
         };
 
+
+    });
+
+
+});
+
+
+/* =====================================================
+   金額大小
+===================================================== */
+
+const amountFontSize =
+computed(()=>{
+
+
+    const count =
+    finalAmountList.value.length;
+
+
+    if(
+        count >= 3
+    ){
+
+
+        return "54px";
+
+
     }
 
-}).mount('#app');
+
+    if(
+        count === 2
+    ){
+
+
+        return "72px";
+
+
+    }
+
+
+    return "91px";
+
+
+});
+
+
+/* =====================================================
+   千分位
+===================================================== */
+
+const formatNumber =
+(num)=>{
+
+
+    return (
+        Number(num)||0
+    ).toLocaleString(
+        "zh-TW"
+    );
+
+
+};
+
+
+/* =====================================================
+   生成圖片
+===================================================== */
+
+const generateImage =
+async()=>{
+
+
+    window.scrollTo(
+        0,
+        0
+    );
+
+
+    const element =
+    document.getElementById(
+        "certificate-node"
+    );
+
+
+    const originalTransform =
+    element.style.transform;
+
+
+    const originalMargin =
+    element.style.marginBottom;
+
+
+    element.style.transform =
+    "none";
+
+
+    element.style.marginBottom =
+    "0";
+
+
+    /*
+    等待瀏覽器真正完成字型與 SVG 排版
+    避免 html2canvas 擷取時跑位
+    */
+
+    if(
+        document.fonts &&
+        document.fonts.ready
+    ){
+
+
+        await document.fonts.ready;
+
+
+    }
+
+
+    await new Promise(
+        resolve=>
+        requestAnimationFrame(
+            ()=>requestAnimationFrame(resolve)
+        )
+    );
+
+
+    try{
+
+
+        const canvas =
+        await html2canvas(
+
+            element,
+
+            {
+
+                scale:2,
+
+                width:1600,
+
+                height:900,
+
+                backgroundColor:
+                "#ffffff",
+
+                useCORS:true,
+
+                allowTaint:true,
+
+                scrollX:0,
+
+                scrollY:0,
+
+                logging:false
+
+            }
+
+        );
+
+
+        const img =
+        document.getElementById(
+            "final-img"
+        );
+
+
+        img.src =
+        canvas.toDataURL(
+            "image/png",
+            1
+        );
+
+
+        document
+        .getElementById(
+            "result-area"
+        )
+        .style
+        .display =
+        "block";
+
+
+        setTimeout(
+            ()=>{
+
+
+                document
+                .getElementById(
+                    "result-area"
+                )
+                .scrollIntoView({
+
+                    behavior:
+                    "smooth",
+
+                    block:
+                    "start"
+
+                });
+
+
+            },
+            100
+        );
+
+
+    }
+
+    catch(error){
+
+
+        console.error(
+            error
+        );
+
+
+        alert(
+            "圖片生成失敗，請重新嘗試"
+        );
+
+
+    }
+
+
+    element.style.transform =
+    originalTransform;
+
+
+    element.style.marginBottom =
+    originalMargin;
+
+
+};
+
+
+return{
+
+
+    repList,
+
+    repIndex,
+
+    globalDate,
+
+    form,
+
+    cart,
+
+    currentRep,
+
+    rocDate,
+
+    isFixedBP,
+
+    loadingRate,
+
+    updateExRate,
+
+    handleProductChange,
+
+    calculatedRevenue,
+
+    calculatedBonus,
+
+    addToCart,
+
+    removeFromCart,
+
+    totalRevenue,
+
+    totalBonus,
+
+    finalProductList,
+
+    finalAmountList,
+
+    amountFontSize,
+
+    formatNumber,
+
+    generateImage,
+
+    scaleStyle
+
+
+};
+
+
+}
+
+
+}).mount("#app");
 
 </script>
 
