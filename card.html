@@ -51,7 +51,7 @@ body {
 }
 
 .layout {
-  max-width: 1280px;
+  max-width: 1320px;
   margin: 25px auto;
   padding: 0 15px;
   display: grid;
@@ -68,7 +68,7 @@ body {
 }
 
 .panel-title {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: bold;
   color: var(--navy);
   border-left: 4px solid var(--gold);
@@ -78,7 +78,7 @@ body {
 
 label {
   display: block;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: bold;
   margin: 15px 0 7px;
 }
@@ -90,7 +90,7 @@ input, select {
   border-radius: 7px;
   background: white;
   color: var(--text);
-  font-size: 15px;
+  font-size: 16px;
 }
 
 input:focus, select:focus {
@@ -105,7 +105,7 @@ input:disabled {
 }
 
 .hint {
-  font-size: 11px;
+  font-size: 12px;
   color: #8290a0;
   line-height: 1.6;
   margin-top: 7px;
@@ -116,12 +116,13 @@ button {
   border-radius: 7px;
   padding: 13px 16px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: bold;
 }
 
 button:disabled {
   opacity: .6;
+  cursor: wait;
 }
 
 .btn-navy {
@@ -139,7 +140,8 @@ button:disabled {
   color: var(--navy);
 }
 
-.actions, .download-actions {
+.actions,
+.download-actions {
   display: flex;
   gap: 10px;
   margin-top: 20px;
@@ -150,7 +152,7 @@ button:disabled {
   flex: 1;
 }
 
-/* ===== A4 報告 ===== */
+/* ===== A4 報告版型 ===== */
 
 .report-area {
   min-width: 0;
@@ -176,43 +178,42 @@ button:disabled {
 .report-cover {
   background: linear-gradient(120deg, #142b49, #284c72);
   color: white;
-  padding: 25px 30px 20px;
+  padding: 20px 28px 16px;
   flex-shrink: 0;
-  position: relative;
 }
 
 .report-tag {
   color: #d6bc87;
-  font-size: 10px;
-  letter-spacing: 2.5px;
-  margin-bottom: 10px;
+  font-size: 12px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
 }
 
 .report-cover h2 {
-  font-size: 25px;
-  letter-spacing: 2px;
+  font-size: 30px;
+  letter-spacing: 1px;
   margin: 0;
 }
 
 .report-subtitle {
-  margin-top: 9px;
+  margin-top: 8px;
   color: #dbe5f0;
-  font-size: 12px;
+  font-size: 15px;
 }
 
 .report-meta {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 18px;
-  padding-top: 12px;
+  margin-top: 15px;
+  padding-top: 10px;
   border-top: 1px solid rgba(255,255,255,.2);
-  font-size: 11px;
+  font-size: 14px;
   color: #e0e8f0;
 }
 
 .report-content {
-  padding: 19px 27px 12px;
+  padding: 15px 24px 10px;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -223,16 +224,16 @@ button:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 15px;
+  font-size: 19px;
   font-weight: bold;
   color: var(--navy);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 .section-heading::before {
   content: "";
   width: 4px;
-  height: 19px;
+  height: 20px;
   background: var(--gold);
   border-radius: 3px;
 }
@@ -246,27 +247,27 @@ button:disabled {
 .overview-item {
   background: #f5f7fa;
   border: 1px solid #e8edf2;
-  padding: 13px 8px;
+  padding: 10px 8px;
   border-radius: 8px;
   text-align: center;
 }
 
 .overview-label {
-  font-size: 11px;
+  font-size: 14px;
   color: #728095;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .overview-value {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
   color: var(--navy);
   overflow-wrap: anywhere;
 }
 
 .hero-saving {
-  margin-top: 16px;
-  padding: 18px;
+  margin-top: 12px;
+  padding: 14px;
   background: linear-gradient(120deg, #f8f4ec, #f3e8d5);
   border: 1px solid #e6d5b4;
   border-radius: 10px;
@@ -274,29 +275,29 @@ button:disabled {
 }
 
 .hero-label {
-  font-size: 15px;
+  font-size: 18px;
   color: #7b6647;
   font-weight: bold;
 }
 
 .hero-value {
-  font-size: 36px;
+  font-size: 42px;
   font-weight: bold;
   color: #9a7133;
-  margin: 9px 0;
+  margin: 7px 0;
 }
 
 .hero-desc {
-  font-size: 10px;
+  font-size: 13px;
   color: #8d7b61;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 .comparison {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .compare-card {
@@ -314,8 +315,8 @@ button:disabled {
   background: #eaf0f6;
   color: var(--navy);
   text-align: center;
-  padding: 13px 7px;
-  font-size: 15px;
+  padding: 12px 6px;
+  font-size: 18px;
   font-weight: bold;
 }
 
@@ -325,17 +326,17 @@ button:disabled {
 }
 
 .compare-inner {
-  padding: 11px;
+  padding: 10px;
 }
 
 .data-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  padding: 9px 0;
+  gap: 6px;
+  padding: 7px 0;
   border-bottom: 1px solid #edf0f4;
-  font-size: 11px;
+  font-size: 15px;
 }
 
 .data-row span:first-child {
@@ -350,54 +351,59 @@ button:disabled {
 .data-total {
   background: #f7f9fc;
   border-radius: 7px;
-  padding: 12px 8px;
-  margin-top: 10px;
+  padding: 9px 7px;
+  margin-top: 7px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 7px;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 17px;
 }
 
-.red { color: var(--red); }
-.green { color: var(--green); }
+.red {
+  color: var(--red);
+}
+
+.green {
+  color: var(--green);
+}
 
 .conclusion {
-  margin-top: 16px;
-  padding: 14px 16px;
+  margin-top: 12px;
+  padding: 12px 14px;
   border-left: 4px solid var(--gold);
   background: #f7f9fc;
   border-radius: 0 8px 8px 0;
 }
 
 .conclusion h3 {
-  margin: 0 0 8px;
+  margin: 0 0 7px;
   color: var(--navy);
-  font-size: 15px;
+  font-size: 18px;
 }
 
 .conclusion p {
   margin: 0;
-  line-height: 1.7;
-  font-size: 11px;
+  line-height: 1.6;
+  font-size: 14px;
   color: #526176;
 }
 
 .disclaimer {
   margin-top: auto;
-  padding-top: 12px;
+  padding-top: 8px;
   border-top: 1px solid var(--line);
   color: #798595;
-  font-size: 9px;
-  line-height: 1.65;
+  font-size: 11px;
+  line-height: 1.5;
 }
 
 .report-footer {
   background: #f3f6f9;
-  padding: 12px;
+  padding: 8px;
   text-align: center;
-  font-size: 10px;
+  font-size: 12px;
   color: #8592a2;
   letter-spacing: 1px;
   flex-shrink: 0;
@@ -572,6 +578,7 @@ button:disabled {
     <div class="section-heading">投資概況</div>
 
     <div class="overview">
+
       <div class="overview-item">
         <div class="overview-label">投資標的</div>
         <div class="overview-value" id="overviewStock"></div>
@@ -586,6 +593,7 @@ button:disabled {
         <div class="overview-label">預估全年配息</div>
         <div class="overview-value" id="overviewDividend"></div>
       </div>
+
     </div>
 
     <div class="hero-saving">
@@ -597,7 +605,7 @@ button:disabled {
       </div>
     </div>
 
-    <div class="section-heading" style="margin-top:18px;">
+    <div class="section-heading" style="margin-top:15px;">
       兩種投資方式比較
     </div>
 
@@ -605,6 +613,7 @@ button:disabled {
 
       <div class="compare-card">
         <div class="compare-title">持有配息股票／ETF</div>
+
         <div class="compare-inner">
 
           <div class="data-row">
@@ -652,6 +661,7 @@ button:disabled {
 
       <div class="compare-card highlight">
         <div class="compare-title">不配息 ETF 連結基金</div>
+
         <div class="compare-inner">
 
           <div class="data-row">
@@ -797,7 +807,7 @@ function calculate() {
   $("marketValue").value =
     Math.round(marketValue).toLocaleString("zh-TW");
 
-  // 簡化股利所得稅試算
+  // 股利所得稅簡化試算
   const combinedTax =
     annualDividend * taxRate -
     Math.min(annualDividend * 0.085, 80000);
@@ -820,7 +830,7 @@ function calculate() {
       combinedTax <= separateTax ? "合併計稅" : "28%分開計稅";
   }
 
-  // 二代健保簡化試算
+  // 二代健保補充保費簡化試算
   let nhi = 0;
 
   if ($("nhi").value === "yes" && singleDividend >= 20000) {
