@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>投資稅務效益分析系統</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -31,6 +32,8 @@ body {
   color: var(--text);
 }
 
+/* ===== 頂部 ===== */
+
 .topbar {
   background: linear-gradient(120deg, #10243e, #24476c);
   color: white;
@@ -49,6 +52,8 @@ body {
   font-size: 13px;
   color: #d8e2ee;
 }
+
+/* ===== 操作區 ===== */
 
 .layout {
   max-width: 1320px;
@@ -83,7 +88,8 @@ label {
   margin: 15px 0 7px;
 }
 
-input, select {
+input,
+select {
   width: 100%;
   padding: 11px;
   border: 1px solid #ccd6e1;
@@ -93,7 +99,8 @@ input, select {
   font-size: 16px;
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   outline: none;
   border-color: var(--gold);
 }
@@ -178,7 +185,7 @@ button:disabled {
 .report-cover {
   background: linear-gradient(120deg, #142b49, #284c72);
   color: white;
-  padding: 20px 28px 16px;
+  padding: 18px 27px 14px;
   flex-shrink: 0;
 }
 
@@ -186,7 +193,7 @@ button:disabled {
   color: #d6bc87;
   font-size: 12px;
   letter-spacing: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
 
 .report-cover h2 {
@@ -196,7 +203,7 @@ button:disabled {
 }
 
 .report-subtitle {
-  margin-top: 8px;
+  margin-top: 7px;
   color: #dbe5f0;
   font-size: 15px;
 }
@@ -205,15 +212,15 @@ button:disabled {
   display: flex;
   justify-content: space-between;
   gap: 10px;
-  margin-top: 15px;
-  padding-top: 10px;
+  margin-top: 13px;
+  padding-top: 9px;
   border-top: 1px solid rgba(255,255,255,.2);
   font-size: 14px;
   color: #e0e8f0;
 }
 
 .report-content {
-  padding: 15px 24px 10px;
+  padding: 13px 23px 9px;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -227,7 +234,7 @@ button:disabled {
   font-size: 19px;
   font-weight: bold;
   color: var(--navy);
-  margin-bottom: 10px;
+  margin-bottom: 9px;
 }
 
 .section-heading::before {
@@ -238,7 +245,7 @@ button:disabled {
   border-radius: 3px;
 }
 
-/* 投資概況：四欄 */
+/* ===== 投資概況 ===== */
 
 .overview {
   display: grid;
@@ -249,7 +256,7 @@ button:disabled {
 .overview-item {
   background: #f5f7fa;
   border: 1px solid #e8edf2;
-  padding: 11px 5px;
+  padding: 10px 5px;
   border-radius: 8px;
   text-align: center;
   min-width: 0;
@@ -258,7 +265,7 @@ button:disabled {
 .overview-label {
   font-size: 13px;
   color: #728095;
-  margin-bottom: 7px;
+  margin-bottom: 6px;
   white-space: nowrap;
 }
 
@@ -266,13 +273,14 @@ button:disabled {
   font-size: 20px;
   font-weight: bold;
   color: var(--navy);
-  overflow-wrap: anywhere;
   white-space: nowrap;
 }
 
+/* ===== 稅費差異 ===== */
+
 .hero-saving {
-  margin-top: 12px;
-  padding: 14px;
+  margin-top: 11px;
+  padding: 12px;
   background: linear-gradient(120deg, #f8f4ec, #f3e8d5);
   border: 1px solid #e6d5b4;
   border-radius: 10px;
@@ -289,7 +297,7 @@ button:disabled {
   font-size: 42px;
   font-weight: bold;
   color: #9a7133;
-  margin: 7px 0;
+  margin: 5px 0;
 }
 
 .hero-desc {
@@ -298,11 +306,13 @@ button:disabled {
   line-height: 1.5;
 }
 
+/* ===== 左右比較 ===== */
+
 .comparison {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 9px;
 }
 
 .compare-card {
@@ -320,7 +330,7 @@ button:disabled {
   background: #eaf0f6;
   color: var(--navy);
   text-align: center;
-  padding: 12px 6px;
+  padding: 10px 6px;
   font-size: 18px;
   font-weight: bold;
 }
@@ -331,7 +341,7 @@ button:disabled {
 }
 
 .compare-inner {
-  padding: 10px;
+  padding: 9px;
 }
 
 .data-row {
@@ -339,9 +349,10 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   gap: 6px;
-  padding: 7px 0;
+  padding: 6px 0;
   border-bottom: 1px solid #edf0f4;
-  font-size: 15px;
+  font-size: 14px;
+  min-height: 32px;
 }
 
 .data-row span:first-child {
@@ -351,6 +362,7 @@ button:disabled {
 .data-row span:last-child {
   font-weight: bold;
   text-align: right;
+  white-space: nowrap;
 }
 
 .data-total {
@@ -363,7 +375,14 @@ button:disabled {
   align-items: center;
   gap: 7px;
   font-weight: bold;
-  font-size: 17px;
+  font-size: 16px;
+}
+
+.tax-credit-row {
+  background: #f1f8f4;
+  padding-left: 5px;
+  padding-right: 5px;
+  border-radius: 4px;
 }
 
 .red {
@@ -374,34 +393,43 @@ button:disabled {
   color: var(--green);
 }
 
+.tax-result {
+  font-weight: bold;
+  color: var(--navy);
+}
+
+/* ===== 分析結論 ===== */
+
 .conclusion {
-  margin-top: 12px;
-  padding: 12px 14px;
+  margin-top: 11px;
+  padding: 10px 13px;
   border-left: 4px solid var(--gold);
   background: #f7f9fc;
   border-radius: 0 8px 8px 0;
 }
 
 .conclusion h3 {
-  margin: 0 0 7px;
+  margin: 0 0 6px;
   color: var(--navy);
   font-size: 18px;
 }
 
 .conclusion p {
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.55;
   font-size: 14px;
   color: #526176;
 }
+
+/* ===== 風險提醒 ===== */
 
 .disclaimer {
   margin-top: auto;
   padding-top: 8px;
   border-top: 1px solid var(--line);
   color: #798595;
-  font-size: 11px;
-  line-height: 1.5;
+  font-size: 10.5px;
+  line-height: 1.45;
 }
 
 .report-footer {
@@ -413,6 +441,8 @@ button:disabled {
   letter-spacing: 1px;
   flex-shrink: 0;
 }
+
+/* ===== 手機 ===== */
 
 @media(max-width: 1100px) {
   .layout {
@@ -438,7 +468,7 @@ button:disabled {
   }
 }
 
-/* ===== A4 列印 ===== */
+/* ===== 列印 ===== */
 
 @media print {
   @page {
@@ -446,7 +476,8 @@ button:disabled {
     margin: 0;
   }
 
-  html, body {
+  html,
+  body {
     margin: 0;
     padding: 0;
     width: 210mm;
@@ -501,6 +532,8 @@ button:disabled {
 </header>
 
 <main class="layout">
+
+<!-- ===== 左側輸入區 ===== -->
 
 <section class="panel input-panel">
 
@@ -562,6 +595,8 @@ button:disabled {
 
 </section>
 
+<!-- ===== 右側報告 ===== -->
+
 <div class="report-area">
 
 <div class="report-scroll">
@@ -614,18 +649,24 @@ button:disabled {
     </div>
 
     <div class="hero-saving">
-      <div class="hero-label">預估年度股利相關稅費差異</div>
+      <div class="hero-label" id="heroLabel">
+        預估年度股利相關稅費差異
+      </div>
+
       <div class="hero-value" id="saving"></div>
-      <div class="hero-desc">
-        依目前輸入條件進行初估<br>
+
+      <div class="hero-desc" id="heroDesc">
+        依目前輸入條件進行初估
       </div>
     </div>
 
-    <div class="section-heading" style="margin-top:15px;">
+    <div class="section-heading" style="margin-top:13px;">
       兩種投資方式比較
     </div>
 
     <div class="comparison">
+
+      <!-- 配息股票 -->
 
       <div class="compare-card">
 
@@ -644,12 +685,12 @@ button:disabled {
           </div>
 
           <div class="data-row">
-            <span>整年配息次數</span>
+            <span>全年配息次數</span>
             <span id="annualTimes"></span>
           </div>
 
           <div class="data-row">
-            <span>整年股息</span>
+            <span>全年股息</span>
             <span id="stockDividend"></span>
           </div>
 
@@ -659,8 +700,18 @@ button:disabled {
           </div>
 
           <div class="data-row">
-            <span>股利所得稅估算</span>
-            <span class="red" id="stockTax"></span>
+            <span id="grossTaxLabel">股利所得稅</span>
+            <span class="red" id="grossTax"></span>
+          </div>
+
+          <div class="data-row tax-credit-row" id="creditRow">
+            <span>股利抵減稅額（8.5%）</span>
+            <span class="green" id="taxCredit"></span>
+          </div>
+
+          <div class="data-row">
+            <span id="netTaxLabel">抵減後股利稅負</span>
+            <span class="tax-result" id="stockTax"></span>
           </div>
 
           <div class="data-row">
@@ -669,7 +720,7 @@ button:disabled {
           </div>
 
           <div class="data-total">
-            <span>股利相關稅費合計</span>
+            <span id="totalTaxLabel">股利相關稅費合計</span>
             <span class="red" id="stockTotalTax"></span>
           </div>
 
@@ -680,6 +731,8 @@ button:disabled {
 
         </div>
       </div>
+
+      <!-- 不配息基金 -->
 
       <div class="compare-card highlight">
 
@@ -718,12 +771,22 @@ button:disabled {
           </div>
 
           <div class="data-row">
+            <span>股利抵減稅額</span>
+            <span>$0</span>
+          </div>
+
+          <div class="data-row">
+            <span>股利相關稅負</span>
+            <span class="green">$0</span>
+          </div>
+
+          <div class="data-row">
             <span>二代健保補充保費</span>
             <span class="green">$0</span>
           </div>
 
           <div class="data-total">
-            <span>相關稅負合計</span>
+            <span>本次比較稅費合計</span>
             <span class="green">$0</span>
           </div>
 
@@ -745,13 +808,7 @@ button:disabled {
     <div class="disclaimer">
       <strong>重要說明及風險提醒</strong><br>
       1. 本報告為簡化稅務試算，非正式稅務申報或投資建議。<br>
-      2. 合併計稅採所選邊際稅率及股利8.5%抵減估算，每申報戶抵減上限80,000元；未納入其他所得及既有抵減額。<br>
-      3. 二代健保補充保費以2.11%估算，實際扣繳應依給付性質、給付方式及相關法規辦理。<br>
-      4. 不配息基金不直接配發現金股利，不代表所有收益或交易均免稅。<br>
-      5. 基金與ETF的費用、追蹤差異及績效可能不同，基金淨值亦可能下跌。<br>
-      6. 0050、0056配息金額與次數為指定試算假設，並非未來配息保證。<br>
-      7. 實際稅務結果請依個人申報情況及主管機關規定確認。
-    </div>
+      </div>
 
   </div>
 
@@ -764,8 +821,13 @@ button:disabled {
 </div>
 
 <div class="download-actions">
-  <button class="btn-navy" onclick="printReport()">🖨 列印 A4 報告</button>
-  <button class="btn-gold" id="downloadBtn" onclick="downloadImage()">⬇ 下載 A4 圖片</button>
+  <button class="btn-navy" onclick="printReport()">
+    🖨 列印 A4 報告
+  </button>
+
+  <button class="btn-gold" id="downloadBtn" onclick="downloadImage()">
+    ⬇ 下載 A4 圖片
+  </button>
 </div>
 
 </div>
@@ -781,6 +843,7 @@ function num(id) {
 
 function money(value) {
   const n = Number(value) || 0;
+
   return (n < 0 ? "-" : "") +
     "$" + Math.abs(Math.round(n)).toLocaleString("zh-TW");
 }
@@ -797,20 +860,25 @@ function changeStock() {
     $("times").value = 2;
     $("dividend").disabled = true;
     $("times").disabled = true;
+
     $("dividendHint").textContent =
       "0050：固定每股配息0.8元，全年2次。";
+
   } else if (stock === "0056") {
     $("dividend").value = 1.02;
     $("times").value = 4;
     $("dividend").disabled = true;
     $("times").disabled = true;
+
     $("dividendHint").textContent =
       "0056：固定每股配息1.02元，全年4次。";
+
   } else {
     $("dividend").value = 0;
     $("times").value = 1;
     $("dividend").disabled = false;
     $("times").disabled = false;
+
     $("dividendHint").textContent =
       "自訂股票可自行輸入配息金額及次數。";
   }
@@ -835,87 +903,200 @@ function calculate() {
   $("marketValue").value =
     Math.round(marketValue).toLocaleString("zh-TW");
 
-  // 股利所得稅簡化試算
-  const combinedTax =
-    annualDividend * taxRate -
-    Math.min(annualDividend * 0.085, 80000);
+  // ===== 股利所得稅 =====
+
+  const combinedGrossTax = annualDividend * taxRate;
+
+  const combinedCredit = Math.min(
+    annualDividend * 0.085,
+    80000
+  );
+
+  const combinedNetTax = combinedGrossTax - combinedCredit;
 
   const separateTax = annualDividend * 0.28;
 
   const taxMode = $("taxMode").value;
-  let dividendTax = 0;
+
   let selectedMode = "";
+  let grossTax = 0;
+  let taxCredit = 0;
+  let netTax = 0;
+  let isCombined = false;
 
   if (taxMode === "combined") {
-    dividendTax = combinedTax;
+
     selectedMode = "合併計稅";
+    grossTax = combinedGrossTax;
+    taxCredit = combinedCredit;
+    netTax = combinedNetTax;
+    isCombined = true;
+
   } else if (taxMode === "separate") {
-    dividendTax = separateTax;
+
     selectedMode = "28%分開計稅";
+    grossTax = separateTax;
+    taxCredit = 0;
+    netTax = separateTax;
+    isCombined = false;
+
   } else {
-    dividendTax = Math.min(combinedTax, separateTax);
-    selectedMode =
-      combinedTax <= separateTax ? "合併計稅" : "28%分開計稅";
+
+    if (combinedNetTax <= separateTax) {
+
+      selectedMode = "合併計稅";
+      grossTax = combinedGrossTax;
+      taxCredit = combinedCredit;
+      netTax = combinedNetTax;
+      isCombined = true;
+
+    } else {
+
+      selectedMode = "28%分開計稅";
+      grossTax = separateTax;
+      taxCredit = 0;
+      netTax = separateTax;
+      isCombined = false;
+
+    }
   }
 
-  // 二代健保補充保費簡化試算
+  // ===== 二代健保 =====
+
   let nhi = 0;
 
   if ($("nhi").value === "yes" && singleDividend >= 20000) {
     nhi = Math.min(singleDividend, 10000000) * 0.0211 * times;
   }
 
-  const totalTax = dividendTax + nhi;
-  const netDividend = annualDividend - totalTax;
+  // 正數為估算稅費，負數為可能抵減利益
+  const totalTaxEffect = netTax + nhi;
+
+  // 不將負數當成已實際退稅
+  const payableTax = Math.max(0, netTax) + nhi;
+
+  // 稅後股息：不預先計入可能退稅
+  const netDividend = annualDividend - payableTax;
 
   const stockName =
     stock === "0050" ? "0050" :
     stock === "0056" ? "0056" : "自訂股票";
 
+  // ===== 報告資訊 =====
+
   setText("reportCustomer", customer + "｜專屬分析");
-  setText("reportDate", "試算日期 " + new Date().toLocaleDateString("zh-TW"));
+
+  setText(
+    "reportDate",
+    "試算日期 " + new Date().toLocaleDateString("zh-TW")
+  );
 
   setText("overviewStock", stockName);
   setText("overviewMarket", money(marketValue));
   setText("overviewDividend", money(annualDividend));
-
-  // 新增：報告顯示綜所稅級距
   setText("overviewTaxRate", (taxRate * 100).toFixed(0) + "%");
-
-  setText("saving", money(totalTax));
 
   setText("stockMarket", money(marketValue));
   setText("singleDividend", money(singleDividend));
   setText("annualTimes", times + " 次");
   setText("stockDividend", money(annualDividend));
-
-  // 新增：報告顯示股利課稅方式
   setText("selectedTaxMode", selectedMode);
 
-  setText("stockTax", money(dividendTax));
+  // ===== 顯示稅額計算明細 =====
+
+  if (isCombined) {
+
+    setText(
+      "grossTaxLabel",
+      "股利所得稅（" + (taxRate * 100).toFixed(0) + "%）"
+    );
+
+    setText("grossTax", money(grossTax));
+    setText("taxCredit", "−" + money(taxCredit));
+
+    $("creditRow").style.display = "flex";
+
+    if (netTax >= 0) {
+      setText("netTaxLabel", "抵減後股利稅負");
+      setText("stockTax", money(netTax));
+    } else {
+      setText("netTaxLabel", "可能抵減利益");
+      setText("stockTax", money(Math.abs(netTax)));
+    }
+
+  } else {
+
+    setText("grossTaxLabel", "股利所得稅（28%）");
+    setText("grossTax", money(grossTax));
+    setText("taxCredit", "$0");
+
+    $("creditRow").style.display = "none";
+
+    setText("netTaxLabel", "股利稅負");
+    setText("stockTax", money(netTax));
+  }
+
   setText("stockNhi", money(nhi));
-  setText("stockTotalTax", money(totalTax));
   setText("stockNet", money(netDividend));
 
   setText("fundMarket", money(marketValue));
 
+  // ===== 稅費合計與差異 =====
+
+  if (netTax < 0) {
+
+    setText("totalTaxLabel", "估算應繳稅費");
+    setText("stockTotalTax", money(payableTax));
+
+    setText("heroLabel", "預估股利抵減利益");
+    setText("saving", money(Math.abs(netTax)));
+
+    setText(
+      "heroDesc",
+      "抵減利益不代表實際退稅金額；另有補充保費 " +
+      money(nhi)
+    );
+
+  } else {
+
+    setText("totalTaxLabel", "股利相關稅費合計");
+    setText("stockTotalTax", money(totalTaxEffect));
+
+    setText("heroLabel", "預估年度股利相關稅費差異");
+    setText("saving", money(totalTaxEffect));
+
+    setText(
+      "heroDesc",
+      "依目前輸入條件進行初估"
+    );
+  }
+
+  // ===== 稅務效益分析 =====
+
   let conclusion = "";
 
-  if (totalTax > 0) {
+  if (netTax < 0) {
+
     conclusion =
-      "以目前 " + stockName + " 的投資條件估算，全年預估股息為 " +
-      money(annualDividend) + "，綜所稅級距設定為 " +
-      (taxRate * 100).toFixed(0) + "%，採「" + selectedMode +
-      "」估算，股利相關稅費約為 " + money(totalTax) +
-      "。若改採不直接配發現金股利的連結基金，可減少本次模型所比較的股利配發相關稅費；惟仍須考量基金費用、投資風險及其他稅負。";
-  } else if (totalTax < 0) {
-    conclusion =
-      "依目前設定，配息商品在簡化稅額抵減模型下可能呈現抵減利益 " +
-      money(Math.abs(totalTax)) +
-      "。此結果不代表實際可退稅金額，仍須依整戶所得稅申報情況確認。";
+      "以 " + stockName + " 為例，全年預估股息 " +
+      money(annualDividend) +
+      "，採合併計稅方式，估算股利稅額為 " +
+      money(grossTax) +
+      "，8.5%可抵減稅額為 " +
+      money(taxCredit) +
+      "。抵減額高於本模型估算的股利稅額，可能形成抵減或退稅利益；實際金額仍須依整戶所得稅申報結果確認。";
+
   } else {
+
     conclusion =
-      "依目前輸入條件，兩種方式在本次比較的股利相關稅費中，未呈現正向差異。仍建議依投資需求、商品費用及風險綜合評估。";
+      "以 " + stockName + " 為例，全年預估股息 " +
+      money(annualDividend) +
+      "，綜所稅級距設定為 " +
+      (taxRate * 100).toFixed(0) +
+      "%，採「" + selectedMode +
+      "」估算，股利相關稅費約 " +
+      money(totalTaxEffect) +
+      "。若改採不直接配發現金股利的連結基金，可減少本次模型比較的股利配發相關稅費，但仍須考量基金費用、績效及其他稅務因素。";
   }
 
   setText("conclusionText", conclusion);
@@ -929,6 +1110,7 @@ function resetForm() {
   $("taxRate").value = "0.20";
   $("taxMode").value = "combined";
   $("nhi").value = "yes";
+
   changeStock();
 }
 
@@ -953,8 +1135,10 @@ async function downloadImage() {
       backgroundColor: "#ffffff",
       useCORS: true,
       windowWidth: 1200,
+
       onclone: clonedDocument => {
-        const clonedReport = clonedDocument.getElementById("report");
+        const clonedReport =
+          clonedDocument.getElementById("report");
 
         clonedReport.style.width = "794px";
         clonedReport.style.height = "1123px";
@@ -962,10 +1146,12 @@ async function downloadImage() {
         clonedReport.style.margin = "0";
         clonedReport.style.boxShadow = "none";
 
-        clonedReport.querySelector(".overview").style.gridTemplateColumns =
+        clonedReport.querySelector(".overview")
+          .style.gridTemplateColumns =
           "repeat(4, minmax(0, 1fr))";
 
-        clonedReport.querySelector(".comparison").style.gridTemplateColumns =
+        clonedReport.querySelector(".comparison")
+          .style.gridTemplateColumns =
           "repeat(2, minmax(0, 1fr))";
       }
     });
@@ -973,7 +1159,9 @@ async function downloadImage() {
     const link = document.createElement("a");
     const date = new Date().toLocaleDateString("sv-SE");
 
-    link.download = "投資稅務比較報告_A4_" + date + ".png";
+    link.download =
+      "投資稅務比較報告_A4_" + date + ".png";
+
     link.href = canvas.toDataURL("image/png");
 
     document.body.appendChild(link);
@@ -983,11 +1171,14 @@ async function downloadImage() {
   } catch (error) {
     console.error(error);
     alert("圖片產生失敗，請確認網路連線後重試。");
+
   } finally {
     button.disabled = false;
     button.textContent = "⬇ 下載 A4 圖片";
   }
 }
+
+/* ===== 即時更新 ===== */
 
 [
   "customer",
