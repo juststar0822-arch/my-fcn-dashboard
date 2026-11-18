@@ -1191,7 +1191,7 @@ deleteEntry(idx) { if (confirm('確定刪除這筆？')) { this.inventory.splice
 downloadCSV() {
 if (!this.inventory.length) { alert('目前沒有資料'); return; }
 const csv = '﻿' + this.inventoryToCSV();
-const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+const blob = new Blob(['\uFEFF',csv], { type: 'text/csv;charset=utf-8' });
 const a = document.createElement('a');
 a.href = URL.createObjectURL(blob);
 const d = new Date();
