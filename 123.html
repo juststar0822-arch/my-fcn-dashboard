@@ -1481,7 +1481,7 @@ if (!this.inventory.length) { alert('目前沒有資料，請先匯入客戶表�
 if (!confirm('會先儲存目前資料，再啟動報價排程，去抓「表單中所有美股+日股」的 2 年收盤歷史。\n\n確定執行？')) return;
 this.isUploading = true;
 try {
-const owner = 'juststar0822-arch', repo = 'fcn-dashboard';
+const owner = 'juststar0822-arch', repo = 'my-fcn-dashboard';
 localStorage.setItem('fcn_token', this.githubToken);
 // 1) 先存 data.csv，讓排程看得到所有標的代號
 const content = btoa(unescape(encodeURIComponent(this.inventoryToCSV())));
@@ -1507,7 +1507,7 @@ async saveAllToGithub() {
 if (!this.githubToken) { alert('請先貼上 GitHub Token'); return; }
 this.isUploading = true;
 try {
-const owner = 'juststar0822-arch', repo = 'fcn-dashboard', path = 'data.csv';
+const owner = 'juststar0822-arch', repo = 'my-fcn-dashboard', path = 'data.csv';
 localStorage.setItem('fcn_token', this.githubToken);
 const csv = this.inventoryToCSV();
 const content = btoa(unescape(encodeURIComponent(csv)));
@@ -1612,7 +1612,7 @@ const last = +(localStorage.getItem('fcn_auto_fetch') || 0);
 if (Date.now() - last < 30 * 60 * 1000) return; // 30 分鐘內不重複觸發
 localStorage.setItem('fcn_auto_fetch', String(Date.now()));
 this.autoRefreshing = true;
-const owner = 'juststar0822-arch', repo = 'fcn-dashboard';
+const owner = 'juststar0822-arch', repo = 'my-fcn-dashboard';
 const d = await fetch(`https://api.github.com/repos/${owner}/${repo}/actions/workflows/prices.yml/dispatches`, {
 method: 'POST',
 headers: { 'Authorization': `token ${this.githubToken}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json' },
