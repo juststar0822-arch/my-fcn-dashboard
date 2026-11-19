@@ -15,7 +15,7 @@ body{
  font-family:-apple-system,BlinkMacSystemFont,"Microsoft JhengHei",sans-serif;
 }
 header{
- padding:25px 15px;
+ padding:26px 12px;
  text-align:center;
  background:linear-gradient(135deg,#172c4c,#294b73);
 }
@@ -56,7 +56,6 @@ button:disabled{opacity:.45;cursor:default}
 .gold{background:#f0b449;color:#17253a}
 .gray{background:#344d6d}
 .green{background:#168b70}
-.red{background:#b94151}
 .hide{display:none!important}
 .row{
  display:flex;
@@ -272,7 +271,7 @@ button:disabled{opacity:.45;cursor:default}
 <span id="doubleBadge" class="badge hide">🔥 雙倍積分</span>
 </div>
 
-<div id="timer" class="timer">10</div>
+<div id="timer" class="timer">10.0</div>
 <div class="progress"><div id="timerBar"></div></div>
 
 <div id="questionText" class="question"></div>
@@ -289,7 +288,6 @@ button:disabled{opacity:.45;cursor:default}
 <h2>🎯 本題結果</h2>
 
 <div id="correctAnswer" class="notice"></div>
-
 <div id="myResult" class="notice" style="margin-top:10px"></div>
 
 <h2 style="margin-top:20px">📊 作答統計</h2>
@@ -332,8 +330,7 @@ import {
  onSnapshot,
  runTransaction,
  setDoc,
- serverTimestamp,
- Timestamp
+ serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 
@@ -443,9 +440,8 @@ let busy=false;
 
 let unsubscribers=[];
 let timerInterval=null;
-let serverOffset=0;
-let lastQuestionKey="";
 let lastAutoRevealKey="";
+let submitting=false;
 
 const params=new URLSearchParams(location.search);
 
@@ -478,10 +474,6 @@ function roomRef(){
  return doc(db,"quizRooms",roomId);
 }
 
-function playerRef(id){
- return doc(db,"quizRooms",roomId,"players",id);
-}
-
 function answerRef(id,index,session){
  return doc(
   db,"quizRooms",roomId,"answers",
@@ -489,21 +481,8 @@ function answerRef(id,index,session){
  );
 }
 
-function now(){
- return Date.now()+serverOffset;
-}
-
-function questionKey(){
- if(!roomData)return "";
- return `${roomData.session}_${roomData.questionIndex}`;
-}
-
 function questionStart(){
  return roomData?.questionStartedAt?.toMillis?.()||0;
-}
-
-function revealTime(){
- return roomData?.revealAt?.toMillis?.()||0;
 }
 
 function currentQuestion(){
@@ -512,6 +491,7 @@ function currentQuestion(){
 
 function currentAnswers(){
  if(!roomData||roomData.questionIndex<0)return [];
+
  return answers.filter(a=>
   a.session===roomData.session &&
   a.questionIndex===roomData.questionIndex
@@ -522,82 +502,99 @@ function myAnswer(){
  return currentAnswers().find(a=>a.uid===uid);
 }
 
-function elapsedMs(answer){
- if(!answer?.submittedAt||!questionStart())return QUESTION_MS;
- return Math.max(
-  0,
-  answer.submittedAt.toMillis()-questionStart()
- );
-}
+function getScore(a){
 
-function points(answer){
- const q=QUESTIONS[answer.questionIndex];
- if(!q||answer.choice!==q.answer)return 0;
+ if(!roomData||!a?.submittedAt)return 0;
 
- const ms=Math.max(
-  0,
-  answer.submittedAt.toMillis()-
-  (answer.startedAtMs||0)
- );
+ const q=QUESTIONS[a.questionIndex];
 
- let score;
+ if(!q||a.choice!==q.answer)return 0;
 
- if(ms<=2000)score=1000;
- else if(ms<=4000)score=900;
- else if(ms<=6000)score=800;
- else if(ms<=8000)score=700;
- else score=600;
+ const key=`${a.session}_${a.questionIndex}`;
 
- if(answer.questionIndex===9)score*=2;
- return score;
-}
+ const start=roomData.starts?.[key];
 
-/*
-  正式計分以該題的開始時間為準。
-  題目開始時間由 Firebase serverTimestamp 寫入。
-*/
-function scoreFor(answer){
- if(!answer?.submittedAt)return 0;
+ if(!start?.toMillis)return 0;
 
- const q=QUESTIONS[answer.questionIndex];
- if(!q||answer.choice!==q.answer)return 0;
+ const ms=a.submittedAt.toMillis()-start.toMillis();
 
- const start=answer.questionStartedAtMs;
-
- if(!Number.isFinite(start))return 0;
-
- const ms=Math.max(
-  0,
-  answer.submittedAt.toMillis()-start
- );
-
- if(ms>=QUESTION_MS)return 0;
+ if(ms<0||ms>=QUESTION_MS)return 0;
 
  let score=600;
+
  if(ms<=2000)score=1000;
  else if(ms<=4000)score=900;
  else if(ms<=6000)score=800;
  else if(ms<=8000)score=700;
 
- return answer.questionIndex===9?score*2:score;
+ return a.questionIndex===9?score*2:score;
 }
 
-/*
-  因為答案文件不儲存開始時間，
-  使用當前房間的開始時間計算本題；
-  歷史題目開始時間由題目紀錄保留在本機不可行。
-  因此改由 Firebase answers 的 submittedAt 與
-  每題開始時間記錄在 room 的 starts 欄位。
-*/
+function leaderboard(){
+
+ if(!roomData)return [];
+
+ const result=players.map(p=>{
+
+  const mine=answers.filter(a=>
+   a.uid===p.id &&
+   a.session===roomData.session &&
+   a.questionIndex<=roomData.questionIndex &&
+   (
+    a.questionIndex<roomData.questionIndex ||
+    roomData.phase==="results" ||
+    roomData.phase==="finished"
+   )
+  );
+
+  const total=mine.reduce(
+   (sum,a)=>sum+getScore(a),0
+  );
+
+  const correct=mine.filter(a=>getScore(a)>0).length;
+
+  const time=mine.reduce((sum,a)=>{
+
+   if(!getScore(a))return sum;
+
+   const start=roomData.starts?.[
+    `${a.session}_${a.questionIndex}`
+   ];
+
+   if(!start?.toMillis||!a.submittedAt)return sum;
+
+   return sum+Math.max(
+    0,
+    a.submittedAt.toMillis()-start.toMillis()
+   );
+
+  },0);
+
+  return {...p,total,correct,time};
+
+ });
+
+ result.sort((a,b)=>
+  b.total-a.total ||
+  b.correct-a.correct ||
+  a.time-b.time ||
+  a.name.localeCompare(b.name,"zh-TW")
+ );
+
+ return result;
+}
+
 
 /* ============================
-   登入
+   Firebase 登入
 ============================ */
 
 onAuthStateChanged(auth,user=>{
  if(!user)return;
+
  uid=user.uid;
  ready=true;
+
  $("connection").textContent="✅ Firebase 已連線";
  $("joinBtn").disabled=false;
  $("joinBtn").textContent="加入／建立房間";
@@ -607,7 +604,7 @@ signInAnonymously(auth).catch(fail);
 
 
 /* ============================
-   房間加入
+   加入房間
 ============================ */
 
 $("joinBtn").onclick=async()=>{
@@ -634,9 +631,11 @@ $("joinBtn").onclick=async()=>{
   const ref=doc(db,"quizRooms",code);
 
   await runTransaction(db,async tx=>{
+
    const snap=await tx.get(ref);
 
    if(!snap.exists()){
+
     tx.set(ref,{
      hostUid:uid,
      phase:"lobby",
@@ -644,9 +643,12 @@ $("joinBtn").onclick=async()=>{
      questionStartedAt:null,
      revealAt:null,
      session:1,
+     starts:{},
      createdAt:serverTimestamp()
     });
+
    }
+
   });
 
   const snap=await getDoc(ref);
@@ -656,7 +658,10 @@ $("joinBtn").onclick=async()=>{
 
   if(!host){
 
-   const pref=doc(db,"quizRooms",code,"players",uid);
+   const pref=doc(
+    db,"quizRooms",code,"players",uid
+   );
+
    const existing=await getDoc(pref);
 
    if(!existing.exists()){
@@ -669,7 +674,9 @@ $("joinBtn").onclick=async()=>{
      name:nick,
      joinedAt:serverTimestamp()
     });
+
    }
+
   }
 
   cleanup();
@@ -679,7 +686,6 @@ $("joinBtn").onclick=async()=>{
   roomData=null;
   players=[];
   answers=[];
-  lastQuestionKey="";
   lastAutoRevealKey="";
 
   localStorage.setItem("quizNickname",nick);
@@ -711,135 +717,70 @@ $("joinBtn").onclick=async()=>{
 function subscribe(){
 
  unsubscribers.push(
+
   onSnapshot(roomRef(),snap=>{
+
    if(!snap.exists())return;
 
    roomData=snap.data();
+
    render();
    updateTimer();
+
   },fail)
+
  );
 
  unsubscribers.push(
+
   onSnapshot(
    collection(db,"quizRooms",roomId,"players"),
    snap=>{
+
     players=snap.docs.map(d=>({
      id:d.id,
      ...d.data()
     }));
+
     render();
-   },fail)
+
+   },
+   fail
+  )
+
  );
 
  unsubscribers.push(
+
   onSnapshot(
    collection(db,"quizRooms",roomId,"answers"),
    snap=>{
+
     answers=snap.docs.map(d=>({
      id:d.id,
      ...d.data()
     }));
+
     render();
-   },fail)
+
+   },
+   fail
+  )
+
  );
 
  timerInterval=setInterval(updateTimer,150);
+
 }
 
 function cleanup(){
+
  unsubscribers.forEach(fn=>fn());
  unsubscribers=[];
+
  clearInterval(timerInterval);
  timerInterval=null;
-}
 
-
-/* ============================
-   計分
-   使用題目開始時間資料
-============================ */
-
-function getScore(a){
-
- const q=QUESTIONS[a.questionIndex];
-
- if(!q||a.choice!==q.answer||!a.submittedAt){
-  return 0;
- }
-
- const starts=roomData?.starts||{};
- const start=starts[
-  `${a.session}_${a.questionIndex}`
- ];
-
- if(!start?.toMillis)return 0;
-
- const ms=a.submittedAt.toMillis()-start.toMillis();
-
- if(ms<0||ms>=10000)return 0;
-
- let score=600;
-
- if(ms<=2000)score=1000;
- else if(ms<=4000)score=900;
- else if(ms<=6000)score=800;
- else if(ms<=8000)score=700;
-
- return a.questionIndex===9?score*2:score;
-}
-
-function leaderboard(){
-
- const result=players.map(p=>{
-
-  const mine=answers.filter(a=>
-   a.uid===p.id &&
-   a.session===roomData?.session &&
-   a.questionIndex<=roomData?.questionIndex
-  );
-
-  const total=mine.reduce(
-   (sum,a)=>sum+getScore(a),0
-  );
-
-  const correct=mine.filter(a=>
-   QUESTIONS[a.questionIndex]?.answer===a.choice
-   &&getScore(a)>0
-  ).length;
-
-  const time=mine.reduce((sum,a)=>{
-
-   const start=roomData?.starts?.[
-    `${a.session}_${a.questionIndex}`
-   ];
-
-   if(!start?.toMillis||!a.submittedAt)return sum;
-
-   return sum+Math.max(
-    0,
-    a.submittedAt.toMillis()-start.toMillis()
-   );
-
-  },0);
-
-  return {
-   ...p,
-   total,
-   correct,
-   time
-  };
-
- });
-
- result.sort((a,b)=>
-  b.total-a.total ||
-  b.correct-a.correct ||
-  a.time-b.time ||
-  a.name.localeCompare(b.name,"zh-TW")
- );
-
- return result;
 }
 
 
@@ -860,6 +801,7 @@ function render(){
  $("role").textContent=isHost?"👑 主持人":"🎮 玩家";
 
  $("playerCount").textContent=players.length;
+
  $("questionNumber").textContent=
   index<0?"0/10":`${index+1}/10`;
 
@@ -882,7 +824,10 @@ function render(){
  show("finishBtn",isHost&&d.phase==="results"&&index===9);
 
  $("startBtn").disabled=busy||players.length<3;
- $("revealBtn").disabled=busy||now()<questionStart()+QUESTION_MS;
+
+ $("revealBtn").disabled=
+  busy||Date.now()<questionStart()+QUESTION_MS;
+
  $("nextBtn").disabled=busy;
  $("finishBtn").disabled=busy;
  $("resetBtn").disabled=busy;
@@ -909,12 +854,14 @@ function render(){
  if(q&&(d.phase==="question"||d.phase==="results")){
 
   $("qBadge").textContent=`第 ${index+1} / 10 題`;
+
   show("doubleBadge",index===9);
 
   $("questionText").textContent=q.q;
 
   const selected=myAnswer()?.choice;
   const opts=$("options");
+
   opts.replaceChildren();
 
   LETTERS.forEach((letter,i)=>{
@@ -934,16 +881,21 @@ function render(){
    }
 
    if(d.phase==="results"){
-    if(letter===q.answer)btn.classList.add("correct");
-    else if(selected===letter)btn.classList.add("wrong");
+
+    if(letter===q.answer){
+     btn.classList.add("correct");
+    }else if(selected===letter){
+     btn.classList.add("wrong");
+    }
+
    }
 
    btn.disabled=
     isHost||
     d.phase!=="question"||
     !!selected||
-    busy||
-    now()>=questionStart()+QUESTION_MS;
+    submitting||
+    Date.now()>=questionStart()+QUESTION_MS;
 
    btn.onclick=()=>submitAnswer(letter);
 
@@ -958,7 +910,7 @@ function render(){
    ?"本題已結束"
    :selected
    ?`✅ 已送出 ${selected}，等待公布答案`
-   :now()>=questionStart()+QUESTION_MS
+   :Date.now()>=questionStart()+QUESTION_MS
    ?"⏰ 作答時間結束"
    :"請在10秒內選擇答案，送出後不可更改。";
 
@@ -994,7 +946,11 @@ function render(){
    const b=document.createElement("b");
    b.textContent=`${letter}. ${q.options[i]}`;
 
-   div.append(b,document.createTextNode(`　${count}人`));
+   div.append(
+    b,
+    document.createTextNode(`　${count}人`)
+   );
+
    stats.append(div);
 
   });
@@ -1019,7 +975,6 @@ function render(){
 
  renderRanks();
  renderPlayers();
- updateTimer();
 
 }
 
@@ -1056,6 +1011,7 @@ function renderRanks(){
 
   const place=document.createElement("span");
   place.className="place";
+
   place.textContent=
    ["🥇","🥈","🥉"][i]||`${i+1}`;
 
@@ -1082,6 +1038,7 @@ function renderPlayers(){
 
   const div=document.createElement("div");
   div.style.padding="7px 0";
+
   div.textContent=
    "👤 "+p.name+(p.id===uid?"（我）":"");
 
@@ -1105,7 +1062,7 @@ function updateTimer(){
 
  const remaining=Math.max(
   0,
-  QUESTION_MS-(now()-start)
+  QUESTION_MS-(Date.now()-start)
  );
 
  $("timer").textContent=
@@ -1138,7 +1095,7 @@ function updateTimer(){
 
 async function autoReveal(){
 
- const key=questionKey();
+ const key=`${roomData.session}_${roomData.questionIndex}`;
 
  if(lastAutoRevealKey===key||busy)return;
 
@@ -1162,18 +1119,19 @@ async function submitAnswer(choice){
 
  if(
   isHost||
-  busy||
+  submitting||
   !roomData||
   roomData.phase!=="question"||
   myAnswer()
  )return;
 
- if(now()>=questionStart()+QUESTION_MS){
+ if(Date.now()>=questionStart()+QUESTION_MS){
   toast("⏰ 作答時間已結束");
   return;
  }
 
- busy=true;
+ submitting=true;
+ render();
 
  try{
 
@@ -1196,7 +1154,7 @@ async function submitAnswer(choice){
  }catch(e){
   fail(e);
  }finally{
-  busy=false;
+  submitting=false;
   render();
  }
 
@@ -1246,11 +1204,17 @@ async function startQuestion(nextIndex){
 
    }
 
+   const key=`${d.session}_${nextIndex}`;
+
    tx.update(ref,{
     phase:"question",
     questionIndex:nextIndex,
     questionStartedAt:serverTimestamp(),
-    revealAt:null
+    revealAt:null,
+    starts:{
+     ...(d.starts||{}),
+     [key]:serverTimestamp()
+    }
    });
 
   });
@@ -1285,13 +1249,13 @@ async function revealQuestion(){
    const snap=await tx.get(ref);
    const d=snap.data();
 
-   if(d.phase!=="question"){
+   if(!d||d.phase!=="question"){
     throw Error("本題已公布");
    }
 
    const started=d.questionStartedAt?.toMillis?.();
 
-   if(!started||Date.now()<started+10000-500){
+   if(!started||Date.now()<started+10000){
     throw Error("尚未到公布時間");
    }
 
@@ -1381,10 +1345,13 @@ async function resetGame(){
     questionIndex:-1,
     questionStartedAt:null,
     revealAt:null,
-    session:d.session+1
+    session:d.session+1,
+    starts:{}
    });
 
   });
+
+  lastAutoRevealKey="";
 
   toast("🔄 遊戲已重設");
 
