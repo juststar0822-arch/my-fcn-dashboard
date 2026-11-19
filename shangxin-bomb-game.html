@@ -2,134 +2,184 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>💣 上新莊炸彈傳傳樂</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101c32">
+<title>上新莊冷知識快問快答</title>
 
 <style>
 *{box-sizing:border-box}
 body{
  margin:0;
- font-family:Arial,"Microsoft JhengHei",sans-serif;
- background:#0b1425;
+ background:#101c32;
  color:#fff;
+ font-family:-apple-system,BlinkMacSystemFont,"Microsoft JhengHei",sans-serif;
 }
 header{
+ padding:25px 15px;
  text-align:center;
- padding:25px 12px;
- background:#172b49;
+ background:linear-gradient(135deg,#172c4c,#294b73);
 }
-h1{margin:0;font-size:28px}
-header p{color:#b9c8df}
-.wrap{max-width:850px;margin:auto;padding:15px}
+header h1{font-size:27px;margin:0 0 8px}
+header p{color:#c5d5e8;margin:0}
+main{max-width:850px;margin:auto;padding:15px}
 .card{
- background:#17263d;
- border:1px solid #324764;
- border-radius:16px;
+ background:#1b2d48;
+ border:1px solid #344c6b;
+ border-radius:17px;
  padding:20px;
  margin-bottom:15px;
 }
-h2{font-size:21px;margin:0 0 15px}
-label{display:block;margin:12px 0 5px}
-input,select{
+h2{margin:0 0 15px;font-size:21px}
+input{
  width:100%;
- padding:13px;
- font-size:16px;
- border:1px solid #4a6384;
+ padding:14px;
+ background:#101e33;
+ border:1px solid #4c6585;
  border-radius:10px;
- background:#0e1b2e;
- color:white;
+ color:#fff;
+ font-size:17px;
 }
+label{display:block;margin:14px 0 7px}
 button{
- padding:13px;
- min-height:48px;
  border:0;
- border-radius:10px;
- background:#3875c9;
+ border-radius:11px;
+ padding:14px;
+ background:#3679d1;
  color:white;
- font-size:16px;
+ font-size:17px;
  font-weight:bold;
  cursor:pointer;
+ min-height:48px;
 }
-button:disabled{opacity:.4}
+button:disabled{opacity:.45;cursor:default}
 .full{width:100%}
-.gold{background:#f1ad36;color:#19243a}
-.red{background:#c74750}
-.gray{background:#30465f}
+.gold{background:#f0b449;color:#17253a}
+.gray{background:#344d6d}
+.green{background:#168b70}
+.red{background:#b94151}
 .hide{display:none!important}
 .row{
  display:flex;
- justify-content:space-between;
  align-items:center;
- gap:10px;
+ justify-content:space-between;
  flex-wrap:wrap;
-}
-.grid{
- display:grid;
- grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
  gap:10px;
 }
 .badge{
- background:#30445e;
+ display:inline-block;
+ background:#344c6b;
  padding:8px 12px;
- border-radius:25px;
+ border-radius:20px;
  font-size:14px;
 }
 .notice{
- background:#253e5d;
  padding:13px;
- border-radius:10px;
+ border-radius:11px;
+ background:#263f60;
  line-height:1.7;
 }
-.muted{color:#bacbe1;font-size:14px;line-height:1.7}
+.muted{color:#b7c9e0;font-size:14px;line-height:1.7}
 .center{text-align:center}
-.bomb{
- font-size:75px;
+.timer{
+ font-size:58px;
+ font-weight:900;
  text-align:center;
- margin:12px;
- animation:bob 1s infinite alternate;
+ color:#ffd16e;
+ margin:12px 0;
 }
-@keyframes bob{
- to{transform:translateY(-8px)}
-}
-.danger{
- background:#5b1d30;
- border:2px solid #ff6a73;
-}
-.names{
- display:grid;
- grid-template-columns:repeat(2,1fr);
- gap:10px;
- margin-top:15px;
-}
-.names button{background:#294c71}
-.player{
- padding:12px 0;
- border-bottom:1px solid #31435d;
- display:flex;
- justify-content:space-between;
- gap:10px;
-}
-.out{opacity:.5}
-.winner{
- color:#ffd78b;
+.timer.urgent{color:#ff6877}
+.question{
  font-size:23px;
- font-weight:bold;
- padding:10px;
+ font-weight:800;
+ line-height:1.55;
+ margin:20px 0;
 }
+.options{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:12px;
+}
+.option{
+ background:#31557d;
+ min-height:90px;
+ padding:15px;
+ text-align:left;
+ line-height:1.5;
+}
+.option.selected{background:#d89d32;color:#142238}
+.option.correct{background:#138b6d}
+.option.wrong{background:#a63c4c}
+.option span{
+ display:block;
+ font-size:24px;
+ margin-bottom:5px;
+}
+.stats{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:8px;
+ margin:15px 0;
+}
+.stat{
+ background:#263d5b;
+ padding:12px 6px;
+ border-radius:10px;
+ text-align:center;
+}
+.stat strong{
+ display:block;
+ font-size:23px;
+ color:#ffd16e;
+}
+.rank{
+ display:grid;
+ grid-template-columns:48px 1fr 95px;
+ align-items:center;
+ gap:10px;
+ padding:13px 5px;
+ border-bottom:1px solid #344c6b;
+}
+.rank.me{background:#304b6b;border-radius:9px}
+.rank strong{text-align:right;color:#ffd16e}
+.rank .place{font-size:21px;text-align:center}
+.progress{
+ height:9px;
+ background:#354b68;
+ border-radius:9px;
+ overflow:hidden;
+ margin:10px 0;
+}
+.progress div{
+ height:100%;
+ background:#f0b449;
+ width:0;
+ transition:width .2s;
+}
+.answer-stat{
+ padding:10px 0;
+ border-bottom:1px solid #344c6b;
+}
+.answer-stat b{color:#ffd16e}
 #toast{
  position:fixed;
  bottom:20px;
  left:50%;
  transform:translateX(-50%);
- background:#f1ad36;
- color:#19243a;
- padding:12px 20px;
+ background:#f0b449;
+ color:#15253c;
+ padding:13px 18px;
  border-radius:12px;
+ z-index:20;
  display:none;
- z-index:99;
+ max-width:90%;
+ text-align:center;
 }
-@media(prefers-reduced-motion:reduce){
- .bomb{animation:none}
+@media(max-width:480px){
+ .options{grid-template-columns:1fr}
+ .option{min-height:64px}
+ .option span{display:inline;margin-right:12px;font-size:20px}
+ .question{font-size:21px}
+ .timer{font-size:48px}
 }
 </style>
 </head>
@@ -137,173 +187,125 @@ button:disabled{opacity:.4}
 <body>
 
 <header>
-<h1>💣 上新莊炸彈傳傳樂</h1>
-<p>多人即時連線・經典模式・快速淘汰</p>
+<h1>🧠 上新莊冷知識快問快答</h1>
+<p>10題挑戰・速度積分・即時排行榜</p>
 </header>
 
-<main class="wrap">
+<main>
 
 <section id="entry" class="card">
-
 <h2>🎮 加入遊戲</h2>
-
-<div id="conn" class="notice">
-正在連線 Firebase...
-</div>
+<div id="connection" class="notice">正在連接 Firebase...</div>
 
 <label>房間代碼</label>
-<input id="code" maxlength="20" placeholder="例如 BOMB888">
+<input id="roomCode" maxlength="20" placeholder="例如 QUIZ888">
 
 <label>你的暱稱</label>
-<input id="nickname" maxlength="16" placeholder="輸入名字">
+<input id="nickname" maxlength="16" placeholder="請輸入姓名">
 
 <br><br>
-
-<button id="join" class="gold full" disabled>
-連線中...
-</button>
+<button id="joinBtn" class="gold full" disabled>連線中...</button>
 
 <p class="muted">
-第一位建立房間的人自動成為主持人。<br>
-主持人不參賽，至少3位玩家即可開始。
+第一位建立房間的人自動成為主持人，不參賽。<br>
+至少3位玩家即可開始。每題10秒，共10題。
 </p>
-
 </section>
-
 
 <div id="game" class="hide">
 
 <section class="card">
-
 <div class="row">
 <h2 id="roomTitle">遊戲房間</h2>
 <span id="role" class="badge"></span>
 </div>
 
-<div id="state" class="notice">
-等待遊戲開始
-</div>
+<div id="phaseText" class="notice"></div>
 
-<br>
+<div class="stats">
+<div class="stat"><strong id="playerCount">0</strong>玩家</div>
+<div class="stat"><strong id="questionNumber">0/10</strong>題目</div>
+<div class="stat"><strong id="answeredCount">0</strong>已作答</div>
+</div>
 
 <div class="row">
-<span id="count" class="badge">存活0人</span>
-<span id="round" class="badge">第0回合</span>
-<span id="mode" class="badge">經典模式</span>
+<button id="shareBtn" class="gray">📤 分享房間</button>
+<button id="leaveBtn" class="gray">🚪 離開畫面</button>
 </div>
-
-<br>
-
-<div class="grid">
-<button id="share" class="gray">📤 分享房間</button>
-<button id="leave" class="gray">🚪 離開畫面</button>
-</div>
-
 </section>
-
 
 <section id="hostPanel" class="card hide">
-
 <h2>👑 主持人控制台</h2>
 
-<div id="setup">
-
-<label>遊戲模式</label>
-
-<select id="modeSelect">
-<option value="classic">💣 經典模式（1顆炸彈）</option>
-<option value="fast">💣💣 快速模式（多顆炸彈）</option>
-</select>
-
-<label>得獎方式</label>
-
-<select id="finishSelect">
-<option value="three">剩下3人結束</option>
-<option value="one">繼續至最後1人（排名）</option>
-</select>
-
-<p class="muted">
-只有3位玩家時，自動進行到最後1人，方便測試。
-每顆炸彈隨機15～30秒爆炸。
-</p>
-
-<button id="start" class="gold full">
-▶️ 開始遊戲
-</button>
-
-</div>
-
-<div id="hostActions" class="hide">
-
-<p id="hostInfo" class="muted"></p>
-
-<button id="next" class="gold full hide">
-💣 開始下一回合
-</button>
-
-<button id="settle" class="red full hide">
-💥 處理到期炸彈
-</button>
-
+<div id="hostHelp" class="notice">
+等待玩家加入，至少3位玩家即可開始。
 </div>
 
 <br>
 
-<button id="reset" class="gray full">
-🔄 重新開始遊戲
+<button id="startBtn" class="gold full hide">
+▶️ 開始第1題
 </button>
 
+<button id="revealBtn" class="green full hide">
+📊 公布本題答案
+</button>
+
+<button id="nextBtn" class="gold full hide">
+➡️ 下一題
+</button>
+
+<button id="finishBtn" class="gold full hide">
+🏆 公布最終排行榜
+</button>
+
+<br>
+<button id="resetBtn" class="gray full">
+🔄 重新開始10題
+</button>
 </section>
 
+<section id="questionPanel" class="card hide">
 
-<section class="card">
-
-<h2>💣 即時炸彈戰況</h2>
-
-<div id="bombs" class="grid">
-等待主持人開始...
+<div class="row">
+<span id="qBadge" class="badge">第1題</span>
+<span id="doubleBadge" class="badge hide">🔥 雙倍積分</span>
 </div>
 
-<p class="muted">
-拿到炸彈的人可以指定其他玩家傳遞。<br>
-不能立即傳回上一位玩家。<br>
-同一位玩家不能同時持有兩顆炸彈。
+<div id="timer" class="timer">10</div>
+<div class="progress"><div id="timerBar"></div></div>
+
+<div id="questionText" class="question"></div>
+
+<div id="options" class="options"></div>
+
+<p id="answerMessage" class="notice center">
+請選擇答案
 </p>
 
 </section>
 
+<section id="resultPanel" class="card hide">
+<h2>🎯 本題結果</h2>
 
-<section id="winnerPanel" class="card hide">
+<div id="correctAnswer" class="notice"></div>
 
-<h2>🏆 得獎名單</h2>
+<div id="myResult" class="notice" style="margin-top:10px"></div>
 
-<div id="winners"></div>
+<h2 style="margin-top:20px">📊 作答統計</h2>
+<div id="answerStats"></div>
 
+<p id="explanation" class="muted"></p>
 </section>
 
+<section id="rankPanel" class="card">
+<h2 id="rankTitle">🏆 即時排行榜</h2>
+<div id="rankList"></div>
+</section>
 
 <section class="card">
-
-<div class="row">
 <h2>👥 玩家名單</h2>
-<span id="total" class="badge">0人</span>
-</div>
-
-<div id="playerList">
-等待玩家加入...
-</div>
-
-</section>
-
-
-<section class="card">
-
-<h2>📜 淘汰紀錄</h2>
-
-<div id="logs" class="muted">
-尚無紀錄
-</div>
-
+<div id="playersList" class="muted"></div>
 </section>
 
 </div>
@@ -311,12 +313,10 @@ button:disabled{opacity:.4}
 
 <div id="toast"></div>
 
-
 <script type="module">
 
-import {
- initializeApp
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 
 import {
  getAuth,
@@ -329,18 +329,19 @@ import {
  doc,
  collection,
  getDoc,
- setDoc,
  onSnapshot,
  runTransaction,
- serverTimestamp
+ setDoc,
+ serverTimestamp,
+ Timestamp
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 
-/* =====================================
-   新 Firebase 專案
-===================================== */
+/* ============================
+   Firebase 設定
+============================ */
 
-const firebaseConfig = {
+const firebaseConfig={
  apiKey:"AIzaSyByWLmFGZYZpwF60daHSxzTN22bUWXnHbQ",
  authDomain:"shangxin-bomb-game.firebaseapp.com",
  projectId:"shangxin-bomb-game",
@@ -350,170 +351,270 @@ const firebaseConfig = {
 };
 
 const app=initializeApp(firebaseConfig);
-const db=getFirestore(app);
 const auth=getAuth(app);
+const db=getFirestore(app);
+
+
+/* ============================
+   固定10題冷知識
+============================ */
+
+const QUESTIONS=[
+ {
+  q:"以下哪一種動物有三顆心臟？",
+  options:["海豚","章魚","鯊魚","海龜"],
+  answer:"B",
+  explanation:"章魚有三顆心臟，其中兩顆負責將血液送往鰓。"
+ },
+ {
+  q:"人體最大的器官是哪一個？",
+  options:["肝臟","肺臟","皮膚","心臟"],
+  answer:"C",
+  explanation:"皮膚是人體最大的器官，具有保護、感覺及調節體溫等功能。"
+ },
+ {
+  q:"下列哪一種動物屬於哺乳類？",
+  options:["企鵝","海豚","鱷魚","海龜"],
+  answer:"B",
+  explanation:"海豚用肺呼吸，並以乳汁哺育幼兒，因此屬於哺乳類。"
+ },
+ {
+  q:"太陽系中體積最大的行星是哪一顆？",
+  options:["土星","海王星","木星","天王星"],
+  answer:"C",
+  explanation:"木星是太陽系中體積最大的行星。"
+ },
+ {
+  q:"標準大氣壓下，純水的沸點約為攝氏幾度？",
+  options:["90度","95度","100度","105度"],
+  answer:"C",
+  explanation:"在標準大氣壓下，純水的沸點約為攝氏100度。"
+ },
+ {
+  q:"下列哪一種水果在植物學分類上屬於漿果？",
+  options:["草莓","覆盆子","香蕉","黑莓"],
+  answer:"C",
+  explanation:"香蕉在植物學上屬於漿果；草莓、覆盆子與黑莓並非植物學定義的漿果。"
+ },
+ {
+  q:"世界上面積最大的海洋是哪一個？",
+  options:["大西洋","印度洋","太平洋","北冰洋"],
+  answer:"C",
+  explanation:"太平洋是地球上面積最大的海洋。"
+ },
+ {
+  q:"下列哪一種金屬的化學元素符號是 Ag？",
+  options:["金","銀","鋁","銅"],
+  answer:"B",
+  explanation:"Ag 是銀的元素符號；金是 Au、鋁是 Al、銅是 Cu。"
+ },
+ {
+  q:"聲音在下列哪一種介質中通常傳播得最快？",
+  options:["空氣","純水","鋼鐵","真空"],
+  answer:"C",
+  explanation:"在一般條件下，聲音在鋼鐵中的傳播速度高於水及空氣；真空無法傳聲。"
+ },
+ {
+  q:"下列哪一顆行星的自轉方向與地球相反？",
+  options:["火星","木星","金星","水星"],
+  answer:"C",
+  explanation:"金星為逆行自轉，其自轉方向與地球相反。"
+ }
+];
+
+const LETTERS=["A","B","C","D"];
+const QUESTION_MS=10000;
+
+
+/* ============================
+   狀態
+============================ */
 
 const $=id=>document.getElementById(id);
 
 let uid="";
-let room="";
-let host=false;
-
+let roomId="";
+let isHost=false;
 let roomData=null;
 let players=[];
-let bombs=[];
-
-let unsubs=[];
-let bombUnsubs=[];
-
+let answers=[];
+let ready=false;
 let busy=false;
-let settling=false;
-let hostTimer=null;
 
-let joining=false;
+let unsubscribers=[];
+let timerInterval=null;
+let serverOffset=0;
+let lastQuestionKey="";
+let lastAutoRevealKey="";
+
+const params=new URLSearchParams(location.search);
+
+$("roomCode").value=params.get("room")||"";
+$("nickname").value=localStorage.getItem("quizNickname")||"";
 
 
-/* =====================================
-   工具函式
-===================================== */
+/* ============================
+   工具
+============================ */
 
-function show(id,yes){
- $(id).classList.toggle("hide",!yes);
+function show(id,value){
+ $(id).classList.toggle("hide",!value);
 }
 
-function msg(text){
+function toast(message){
  const el=$("toast");
- el.textContent=text;
+ el.textContent=message;
  el.style.display="block";
-
- clearTimeout(msg.timer);
-
- msg.timer=setTimeout(()=>{
-  el.style.display="none";
- },3000);
+ clearTimeout(toast.t);
+ toast.t=setTimeout(()=>el.style.display="none",3000);
 }
 
-function error(e){
+function fail(e){
  console.error(e);
  alert("操作失敗："+(e.message||e));
 }
 
-function pname(id){
- return players.find(p=>p.id===id)?.name||"玩家";
+function roomRef(){
+ return doc(db,"quizRooms",roomId);
 }
 
-function rref(){
- return doc(db,"bombRooms",room);
+function playerRef(id){
+ return doc(db,"quizRooms",roomId,"players",id);
 }
 
-function pref(id){
- return doc(db,"bombRooms",room,"players",id);
-}
-
-function bref(id){
- return doc(db,"bombRooms",room,"bombs",id);
-}
-
-function alive(){
- return roomData?.alive||[];
-}
-
-function activeBombs(){
- return bombs.filter(b=>
-  b.status==="active" &&
-  b.round===roomData?.round
+function answerRef(id,index,session){
+ return doc(
+  db,"quizRooms",roomId,"answers",
+  `${id}_${session}_${index}`
  );
 }
 
-function cleanup(){
-
- unsubs.forEach(fn=>fn());
- bombUnsubs.forEach(fn=>fn());
-
- unsubs=[];
- bombUnsubs=[];
-
- clearTimeout(hostTimer);
- hostTimer=null;
-
+function now(){
+ return Date.now()+serverOffset;
 }
 
-
-/* =====================================
-   快速模式炸彈數量
-===================================== */
-
-function bombCount(n,mode){
-
- if(mode==="classic")return 1;
-
- if(n>=40)return 5;
- if(n>=30)return 4;
- if(n>=20)return 3;
- if(n>=10)return 2;
-
- return 1;
+function questionKey(){
+ if(!roomData)return "";
+ return `${roomData.session}_${roomData.questionIndex}`;
 }
 
-function shuffle(arr){
-
- const a=[...arr];
-
- for(let i=a.length-1;i>0;i--){
-
-  const j=Math.floor(Math.random()*(i+1));
-
-  [a[i],a[j]]=[a[j],a[i]];
-
- }
-
- return a;
+function questionStart(){
+ return roomData?.questionStartedAt?.toMillis?.()||0;
 }
 
+function revealTime(){
+ return roomData?.revealAt?.toMillis?.()||0;
+}
 
-/* =====================================
-   Firebase 登入
-===================================== */
+function currentQuestion(){
+ return QUESTIONS[roomData?.questionIndex]||null;
+}
+
+function currentAnswers(){
+ if(!roomData||roomData.questionIndex<0)return [];
+ return answers.filter(a=>
+  a.session===roomData.session &&
+  a.questionIndex===roomData.questionIndex
+ );
+}
+
+function myAnswer(){
+ return currentAnswers().find(a=>a.uid===uid);
+}
+
+function elapsedMs(answer){
+ if(!answer?.submittedAt||!questionStart())return QUESTION_MS;
+ return Math.max(
+  0,
+  answer.submittedAt.toMillis()-questionStart()
+ );
+}
+
+function points(answer){
+ const q=QUESTIONS[answer.questionIndex];
+ if(!q||answer.choice!==q.answer)return 0;
+
+ const ms=Math.max(
+  0,
+  answer.submittedAt.toMillis()-
+  (answer.startedAtMs||0)
+ );
+
+ let score;
+
+ if(ms<=2000)score=1000;
+ else if(ms<=4000)score=900;
+ else if(ms<=6000)score=800;
+ else if(ms<=8000)score=700;
+ else score=600;
+
+ if(answer.questionIndex===9)score*=2;
+ return score;
+}
+
+/*
+  正式計分以該題的開始時間為準。
+  題目開始時間由 Firebase serverTimestamp 寫入。
+*/
+function scoreFor(answer){
+ if(!answer?.submittedAt)return 0;
+
+ const q=QUESTIONS[answer.questionIndex];
+ if(!q||answer.choice!==q.answer)return 0;
+
+ const start=answer.questionStartedAtMs;
+
+ if(!Number.isFinite(start))return 0;
+
+ const ms=Math.max(
+  0,
+  answer.submittedAt.toMillis()-start
+ );
+
+ if(ms>=QUESTION_MS)return 0;
+
+ let score=600;
+ if(ms<=2000)score=1000;
+ else if(ms<=4000)score=900;
+ else if(ms<=6000)score=800;
+ else if(ms<=8000)score=700;
+
+ return answer.questionIndex===9?score*2:score;
+}
+
+/*
+  因為答案文件不儲存開始時間，
+  使用當前房間的開始時間計算本題；
+  歷史題目開始時間由題目紀錄保留在本機不可行。
+  因此改由 Firebase answers 的 submittedAt 與
+  每題開始時間記錄在 room 的 starts 欄位。
+*/
+
+/* ============================
+   登入
+============================ */
 
 onAuthStateChanged(auth,user=>{
-
- if(user){
-
-  uid=user.uid;
-
-  $("conn").textContent="✅ Firebase 已連線";
-
-  $("join").disabled=false;
-  $("join").textContent="加入／建立房間";
-
- }
-
+ if(!user)return;
+ uid=user.uid;
+ ready=true;
+ $("connection").textContent="✅ Firebase 已連線";
+ $("joinBtn").disabled=false;
+ $("joinBtn").textContent="加入／建立房間";
 });
 
-signInAnonymously(auth).catch(error);
+signInAnonymously(auth).catch(fail);
 
 
-/* =====================================
-   預填資料
-===================================== */
+/* ============================
+   房間加入
+============================ */
 
-$("code").value=
- new URLSearchParams(location.search).get("room")||"";
+$("joinBtn").onclick=async()=>{
 
-$("nickname").value=
- localStorage.getItem("bombNickname")||"";
+ if(!ready||busy)return;
 
-
-/* =====================================
-   建立／加入房間
-===================================== */
-
-$("join").onclick=async()=>{
-
- if(!uid||joining)return;
-
- const code=$("code").value
-  .trim()
+ const code=$("roomCode").value.trim()
   .toUpperCase()
   .replace(/[^A-Z0-9_-]/g,"")
   .slice(0,20);
@@ -525,532 +626,550 @@ $("join").onclick=async()=>{
   return;
  }
 
- joining=true;
- $("join").disabled=true;
+ busy=true;
+ $("joinBtn").disabled=true;
 
  try{
 
-  const ref=doc(db,"bombRooms",code);
+  const ref=doc(db,"quizRooms",code);
 
   await runTransaction(db,async tx=>{
-
    const snap=await tx.get(ref);
 
    if(!snap.exists()){
-
     tx.set(ref,{
      hostUid:uid,
      phase:"lobby",
-     round:0,
-     mode:"classic",
-     target:3,
-     alive:[],
-     eliminated:[],
-     winners:[],
-     history:[],
-     bombTotal:0,
+     questionIndex:-1,
+     questionStartedAt:null,
+     revealAt:null,
+     session:1,
      createdAt:serverTimestamp()
     });
-
    }
-
   });
 
   const snap=await getDoc(ref);
-  const d=snap.data();
+  const data=snap.data();
 
-  const isHost=d.hostUid===uid;
+  const host=data.hostUid===uid;
 
-  if(!isHost){
+  if(!host){
 
-   const playerRef=doc(
-    db,"bombRooms",code,"players",uid
-   );
+   const pref=doc(db,"quizRooms",code,"players",uid);
+   const existing=await getDoc(pref);
 
-   const playerSnap=await getDoc(playerRef);
+   if(!existing.exists()){
 
-   if(!playerSnap.exists()){
-
-    if(d.phase!=="lobby"){
-     throw Error("遊戲已開始，不能加入");
+    if(data.phase!=="lobby"){
+     throw Error("遊戲已開始，無法加入");
     }
 
-    await setDoc(playerRef,{
+    await setDoc(pref,{
      name:nick,
      joinedAt:serverTimestamp()
     });
-
    }
-
   }
 
   cleanup();
 
-  room=code;
-  host=isHost;
+  roomId=code;
+  isHost=host;
   roomData=null;
   players=[];
-  bombs=[];
+  answers=[];
+  lastQuestionKey="";
+  lastAutoRevealKey="";
 
-  localStorage.setItem("bombNickname",nick);
+  localStorage.setItem("quizNickname",nick);
 
   show("entry",false);
   show("game",true);
 
   history.replaceState(
-   {},
-   "",
-   location.pathname+"?room="+encodeURIComponent(room)
+   {}, "",
+   location.pathname+"?room="+encodeURIComponent(code)
   );
 
-  listen();
+  subscribe();
 
  }catch(e){
-  error(e);
+  fail(e);
  }finally{
-  joining=false;
-  $("join").disabled=false;
+  busy=false;
+  $("joinBtn").disabled=false;
  }
 
 };
 
 
-/* =====================================
+/* ============================
    即時監聽
-===================================== */
+============================ */
 
-function listen(){
+function subscribe(){
 
- unsubs.push(
-
-  onSnapshot(rref(),snap=>{
-
+ unsubscribers.push(
+  onSnapshot(roomRef(),snap=>{
    if(!snap.exists())return;
 
-   const previous=roomData?.round;
-
    roomData=snap.data();
-
-   if(previous!==roomData.round){
-    listenBombs();
-   }
-
    render();
-   scheduleHost();
-
-  },error)
-
+   updateTimer();
+  },fail)
  );
 
- unsubs.push(
-
+ unsubscribers.push(
   onSnapshot(
-   collection(db,"bombRooms",room,"players"),
+   collection(db,"quizRooms",roomId,"players"),
    snap=>{
-
     players=snap.docs.map(d=>({
      id:d.id,
      ...d.data()
     }));
-
     render();
-
-   },
-   error
-  )
-
+   },fail)
  );
 
+ unsubscribers.push(
+  onSnapshot(
+   collection(db,"quizRooms",roomId,"answers"),
+   snap=>{
+    answers=snap.docs.map(d=>({
+     id:d.id,
+     ...d.data()
+    }));
+    render();
+   },fail)
+ );
+
+ timerInterval=setInterval(updateTimer,150);
+}
+
+function cleanup(){
+ unsubscribers.forEach(fn=>fn());
+ unsubscribers=[];
+ clearInterval(timerInterval);
+ timerInterval=null;
 }
 
 
-/* =====================================
-   炸彈即時監聽
-===================================== */
+/* ============================
+   計分
+   使用題目開始時間資料
+============================ */
 
-function listenBombs(){
+function getScore(a){
 
- bombUnsubs.forEach(fn=>fn());
+ const q=QUESTIONS[a.questionIndex];
 
- bombUnsubs=[];
- bombs=[];
-
- if(!roomData||roomData.round===0)return;
-
- const count=roomData.bombTotal||1;
-
- for(let i=1;i<=Math.min(5,count);i++){
-
-  const id=`${roomData.round}_${i}`;
-
-  bombUnsubs.push(
-
-   onSnapshot(bref(id),snap=>{
-
-    bombs=bombs.filter(b=>b.id!==id);
-
-    if(snap.exists()){
-
-     bombs.push({
-      id,
-      ...snap.data()
-     });
-
-    }
-
-    render();
-    scheduleHost();
-
-   },error)
-
-  );
-
+ if(!q||a.choice!==q.answer||!a.submittedAt){
+  return 0;
  }
 
+ const starts=roomData?.starts||{};
+ const start=starts[
+  `${a.session}_${a.questionIndex}`
+ ];
+
+ if(!start?.toMillis)return 0;
+
+ const ms=a.submittedAt.toMillis()-start.toMillis();
+
+ if(ms<0||ms>=10000)return 0;
+
+ let score=600;
+
+ if(ms<=2000)score=1000;
+ else if(ms<=4000)score=900;
+ else if(ms<=6000)score=800;
+ else if(ms<=8000)score=700;
+
+ return a.questionIndex===9?score*2:score;
+}
+
+function leaderboard(){
+
+ const result=players.map(p=>{
+
+  const mine=answers.filter(a=>
+   a.uid===p.id &&
+   a.session===roomData?.session &&
+   a.questionIndex<=roomData?.questionIndex
+  );
+
+  const total=mine.reduce(
+   (sum,a)=>sum+getScore(a),0
+  );
+
+  const correct=mine.filter(a=>
+   QUESTIONS[a.questionIndex]?.answer===a.choice
+   &&getScore(a)>0
+  ).length;
+
+  const time=mine.reduce((sum,a)=>{
+
+   const start=roomData?.starts?.[
+    `${a.session}_${a.questionIndex}`
+   ];
+
+   if(!start?.toMillis||!a.submittedAt)return sum;
+
+   return sum+Math.max(
+    0,
+    a.submittedAt.toMillis()-start.toMillis()
+   );
+
+  },0);
+
+  return {
+   ...p,
+   total,
+   correct,
+   time
+  };
+
+ });
+
+ result.sort((a,b)=>
+  b.total-a.total ||
+  b.correct-a.correct ||
+  a.time-b.time ||
+  a.name.localeCompare(b.name,"zh-TW")
+ );
+
+ return result;
 }
 
 
-/* =====================================
-   畫面更新
-===================================== */
+/* ============================
+   畫面
+============================ */
 
 function render(){
 
  if(!roomData)return;
 
  const d=roomData;
- const living=alive();
+ const index=d.questionIndex;
+ const q=currentQuestion();
+ const current=currentAnswers();
 
- $("roomTitle").textContent="房間："+room;
+ $("roomTitle").textContent="房間："+roomId;
+ $("role").textContent=isHost?"👑 主持人":"🎮 玩家";
 
- $("role").textContent=
-  host?"👑 主持人":"🎮 "+pname(uid);
+ $("playerCount").textContent=players.length;
+ $("questionNumber").textContent=
+  index<0?"0/10":`${index+1}/10`;
 
- const status={
-  lobby:"⏳ 等待主持人開始",
-  playing:"💣 炸彈傳遞中！隨時可能爆炸",
-  between:"💥 本回合結束，等待下一回合",
-  finished:"🏆 比賽結束！"
+ $("answeredCount").textContent=current.length;
+
+ const phases={
+  lobby:"⏳ 等待玩家加入",
+  question:"⚡ 快問快答進行中",
+  results:"📊 本題結果已公布",
+  finished:"🏆 10題挑戰完成！"
  };
 
- $("state").textContent=status[d.phase]||d.phase;
+ $("phaseText").textContent=phases[d.phase]||"";
 
- $("count").textContent="存活 "+living.length+" 人";
+ show("hostPanel",isHost);
 
- $("round").textContent="第 "+d.round+" 回合";
+ show("startBtn",isHost&&d.phase==="lobby");
+ show("revealBtn",isHost&&d.phase==="question");
+ show("nextBtn",isHost&&d.phase==="results"&&index<9);
+ show("finishBtn",isHost&&d.phase==="results"&&index===9);
 
- $("mode").textContent=
-  d.mode==="fast"?"快速模式":"經典模式";
+ $("startBtn").disabled=busy||players.length<3;
+ $("revealBtn").disabled=busy||now()<questionStart()+QUESTION_MS;
+ $("nextBtn").disabled=busy;
+ $("finishBtn").disabled=busy;
+ $("resetBtn").disabled=busy;
 
- $("total").textContent=players.length+"位玩家";
-
- show("hostPanel",host);
-
- show("setup",host&&d.phase==="lobby");
-
- show("hostActions",host&&d.phase!=="lobby");
-
- $("start").disabled=busy||players.length<3;
-
- $("hostInfo").textContent=
-  "存活："+living.length+
-  "人｜本回合炸彈："+d.bombTotal+
-  "顆｜目標剩餘："+d.target+"人";
-
- show("next",host&&d.phase==="between");
-
- $("next").disabled=busy;
+ $("hostHelp").textContent=
+  d.phase==="lobby"
+  ?`目前${players.length}位玩家，至少3位即可開始。`
+  :d.phase==="question"
+  ?`目前已作答 ${current.length}/${players.length} 人。10秒結束後公布答案。`
+  :d.phase==="results"
+  ?"答案已公布，可以進入下一題。"
+  :"比賽已完成，可以重新開始。";
 
  show(
-  "settle",
-  host&&
-  d.phase==="playing"&&
-  activeBombs().some(b=>Date.now()>=b.deadline)
+  "questionPanel",
+  d.phase==="question"||d.phase==="results"
  );
 
- $("settle").disabled=busy;
+ show(
+  "resultPanel",
+  d.phase==="results"||d.phase==="finished"
+ );
 
+ if(q&&(d.phase==="question"||d.phase==="results")){
 
- /* 玩家名單 */
+  $("qBadge").textContent=`第 ${index+1} / 10 題`;
+  show("doubleBadge",index===9);
 
- const list=$("playerList");
- list.replaceChildren();
+  $("questionText").textContent=q.q;
 
- for(const p of players){
+  const selected=myAnswer()?.choice;
+  const opts=$("options");
+  opts.replaceChildren();
 
-  const row=document.createElement("div");
-  row.className="player";
+  LETTERS.forEach((letter,i)=>{
 
-  const left=document.createElement("strong");
-  left.textContent=
-   p.name+(p.id===uid?"（我）":"");
+   const btn=document.createElement("button");
+   btn.className="option";
 
-  const right=document.createElement("span");
+   const mark=document.createElement("span");
+   mark.textContent=letter+".";
 
-  if(d.phase==="lobby"){
-   right.textContent="🟢 已加入";
-  }else if(living.includes(p.id)){
-   right.textContent="💚 存活";
-  }else{
-   right.textContent="💥 淘汰";
-   row.classList.add("out");
-  }
+   const label=document.createTextNode(q.options[i]);
 
-  row.append(left,right);
-  list.append(row);
+   btn.append(mark,label);
+
+   if(selected===letter){
+    btn.classList.add("selected");
+   }
+
+   if(d.phase==="results"){
+    if(letter===q.answer)btn.classList.add("correct");
+    else if(selected===letter)btn.classList.add("wrong");
+   }
+
+   btn.disabled=
+    isHost||
+    d.phase!=="question"||
+    !!selected||
+    busy||
+    now()>=questionStart()+QUESTION_MS;
+
+   btn.onclick=()=>submitAnswer(letter);
+
+   opts.append(btn);
+
+  });
+
+  $("answerMessage").textContent=
+   isHost
+   ?"👑 主持人不參賽，請等待玩家作答。"
+   :d.phase==="results"
+   ?"本題已結束"
+   :selected
+   ?`✅ 已送出 ${selected}，等待公布答案`
+   :now()>=questionStart()+QUESTION_MS
+   ?"⏰ 作答時間結束"
+   :"請在10秒內選擇答案，送出後不可更改。";
 
  }
 
+ if(d.phase==="results"&&q){
 
- /* 炸彈畫面 */
+  const correctIndex=LETTERS.indexOf(q.answer);
 
- const box=$("bombs");
- box.replaceChildren();
+  $("correctAnswer").textContent=
+   `✅ 正確答案：${q.answer}. ${q.options[correctIndex]}`;
 
- if(d.phase==="lobby"){
+  $("explanation").textContent="💡 "+q.explanation;
 
-  box.textContent="等待主持人開始遊戲";
+  const mine=myAnswer();
 
- }else if(d.phase==="finished"){
+  $("myResult").textContent=isHost
+   ?"主持人不計分"
+   :mine
+   ?`本題得分：${getScore(mine).toLocaleString()} 分`
+   :"本題未作答：0分";
 
-  box.textContent="🎊 遊戲已結束！";
+  const stats=$("answerStats");
+  stats.replaceChildren();
 
- }else{
+  LETTERS.forEach((letter,i)=>{
 
-  const current=bombs.filter(
-   b=>b.round===d.round
-  );
-
-  if(!current.length){
-   box.textContent="正在配置炸彈...";
-  }
-
-  for(const b of current){
-
-   const card=document.createElement("div");
-
-   card.className="card";
-
-   card.style.margin="0";
-
-   if(
-    b.status==="active"&&
-    b.holder===uid
-   ){
-    card.classList.add("danger");
-   }
-
-   const title=document.createElement("h2");
-   title.textContent="💣 炸彈 "+b.id;
-
-   const icon=document.createElement("div");
-   icon.className="bomb";
-   icon.textContent=
-    b.status==="exploded"?"💥":"💣";
-
-   const holder=document.createElement("p");
-   holder.className="center";
-
-   holder.textContent=
-    b.status==="exploded"
-    ?"💥 淘汰："+pname(b.holder)
-    :"目前持有人："+pname(b.holder);
-
-   card.append(title,icon,holder);
-
-
-   /* 只有持有人可以傳遞 */
-
-   if(
-    b.status==="active"&&
-    b.holder===uid&&
-    !host
-   ){
-
-    const tip=document.createElement("p");
-
-    tip.className="center";
-    tip.textContent="🚨 炸彈在你手上！快傳出去！";
-
-    card.append(tip);
-
-    const choices=document.createElement("div");
-    choices.className="names";
-
-    const occupied=new Set(
-     activeBombs().map(x=>x.holder)
-    );
-
-    const options=living.filter(id=>
-     id!==uid&&
-     id!==b.previous&&
-     !occupied.has(id)
-    );
-
-    if(!options.length){
-
-     const p=document.createElement("p");
-     p.className="muted";
-     p.textContent="目前沒有可傳遞的玩家";
-
-     choices.append(p);
-
-    }
-
-    for(const id of options){
-
-     const button=document.createElement("button");
-
-     button.textContent="➡️ "+pname(id);
-     button.disabled=busy;
-
-     button.onclick=()=>passBomb(b,id);
-
-     choices.append(button);
-
-    }
-
-    card.append(choices);
-
-   }
-
-   box.append(card);
-
-  }
-
- }
-
-
- /* 得獎名單 */
-
- show("winnerPanel",d.phase==="finished");
-
- const winners=$("winners");
- winners.replaceChildren();
-
- (d.winners||[]).forEach((id,index)=>{
-
-  const div=document.createElement("div");
-  div.className="winner";
-
-  div.textContent=
-   (["🥇","🥈","🥉"][index]||"🏆")+
-   " "+pname(id);
-
-  winners.append(div);
-
- });
-
-
- /* 淘汰紀錄 */
-
- const logs=$("logs");
- logs.replaceChildren();
-
- if(!d.history?.length){
-
-  logs.textContent="尚無紀錄";
-
- }else{
-
-  [...d.history].reverse().forEach(h=>{
+   const count=current.filter(a=>a.choice===letter).length;
 
    const div=document.createElement("div");
-   div.className="player";
+   div.className="answer-stat";
 
-   div.textContent=
-    "第"+h.round+"回合｜💥 "+
-    pname(h.player)+" 淘汰";
+   const b=document.createElement("b");
+   b.textContent=`${letter}. ${q.options[i]}`;
 
-   logs.append(div);
+   div.append(b,document.createTextNode(`　${count}人`));
+   stats.append(div);
 
   });
 
  }
+
+ if(d.phase==="finished"){
+
+  $("correctAnswer").textContent=
+   "🎉 全部10題結束！恭喜完成挑戰！";
+
+  $("myResult").textContent=isHost
+   ?"主持人不參賽"
+   :`你的總分：${
+      leaderboard().find(p=>p.id===uid)?.total||0
+    } 分`;
+
+  $("answerStats").replaceChildren();
+  $("explanation").textContent="";
+
+ }
+
+ renderRanks();
+ renderPlayers();
+ updateTimer();
 
 }
 
 
-/* =====================================
-   開始回合
-===================================== */
+/* ============================
+   排行榜
+============================ */
 
-async function beginRound(d,first=false){
+function renderRanks(){
 
- const ids=first
-  ?players.map(p=>p.id)
-  :d.alive;
+ const list=$("rankList");
+ list.replaceChildren();
 
- if(ids.length<=d.target&&!first){
-  throw Error("已達到得獎人數");
+ if(!roomData)return;
+
+ const ranking=leaderboard();
+
+ $("rankTitle").textContent=
+  roomData.phase==="finished"
+  ?"🏆 最終總排行榜"
+  :"🏆 即時累積排行榜";
+
+ if(!ranking.length){
+  list.textContent="等待玩家加入...";
+  return;
  }
 
- const count=Math.min(
-  bombCount(ids.length,d.mode),
-  Math.max(1,ids.length-d.target)
- );
+ ranking.forEach((p,i)=>{
 
- const chosen=shuffle(ids).slice(0,count);
+  const row=document.createElement("div");
+  row.className="rank";
 
- const nextRound=d.round+1;
+  if(p.id===uid)row.classList.add("me");
 
- await runTransaction(db,async tx=>{
+  const place=document.createElement("span");
+  place.className="place";
+  place.textContent=
+   ["🥇","🥈","🥉"][i]||`${i+1}`;
 
-  const snap=await tx.get(rref());
-  const now=snap.data();
+  const name=document.createElement("span");
+  name.textContent=
+   p.name+(p.id===uid?"（我）":"");
 
-  if(
-   !now||
-   now.hostUid!==uid||
-   now.phase!==(first?"lobby":"between")||
-   now.round!==d.round
-  ){
-   throw Error("房間狀態已變更");
-  }
+  const score=document.createElement("strong");
+  score.textContent=p.total.toLocaleString()+"分";
 
-  const base=Date.now();
+  row.append(place,name,score);
+  list.append(row);
 
-  tx.update(rref(),{
-   phase:"playing",
-   round:nextRound,
-   alive:ids,
-   mode:d.mode,
-   target:d.target,
-   bombTotal:count
-  });
+ });
 
-  for(let i=0;i<count;i++){
+}
 
-   const duration=
-    15000+Math.floor(Math.random()*15001);
+function renderPlayers(){
 
-   tx.set(bref(`${nextRound}_${i+1}`),{
-    holder:chosen[i],
-    previous:"",
-    round:nextRound,
-    status:"active",
-    deadline:base+duration,
-    lastPassedAt:base,
-    passes:0
-   });
+ const list=$("playersList");
+ list.replaceChildren();
 
-  }
+ players.forEach(p=>{
+
+  const div=document.createElement("div");
+  div.style.padding="7px 0";
+  div.textContent=
+   "👤 "+p.name+(p.id===uid?"（我）":"");
+
+  list.append(div);
 
  });
 
 }
 
 
-/* =====================================
-   主持人開始遊戲
-===================================== */
+/* ============================
+   倒數計時
+============================ */
 
-$("start").onclick=async()=>{
+function updateTimer(){
 
- if(!host||busy)return;
+ if(!roomData||roomData.phase!=="question")return;
 
- if(players.length<3){
-  alert("至少需要3位玩家");
+ const start=questionStart();
+ if(!start)return;
+
+ const remaining=Math.max(
+  0,
+  QUESTION_MS-(now()-start)
+ );
+
+ $("timer").textContent=
+  (remaining/1000).toFixed(1);
+
+ $("timer").classList.toggle(
+  "urgent",remaining<=3000
+ );
+
+ $("timerBar").style.width=
+  (remaining/QUESTION_MS*100)+"%";
+
+ if(remaining===0){
+
+  $("answerMessage").textContent=
+   myAnswer()
+   ?"✅ 已送出答案，等待公布"
+   :"⏰ 時間到！";
+
+  $("options").querySelectorAll("button")
+   .forEach(b=>b.disabled=true);
+
+  if(isHost){
+   autoReveal();
+  }
+
+ }
+
+}
+
+async function autoReveal(){
+
+ const key=questionKey();
+
+ if(lastAutoRevealKey===key||busy)return;
+
+ lastAutoRevealKey=key;
+
+ try{
+  await revealQuestion();
+ }catch(e){
+  console.error(e);
+  lastAutoRevealKey="";
+ }
+
+}
+
+
+/* ============================
+   玩家送出答案
+============================ */
+
+async function submitAnswer(choice){
+
+ if(
+  isHost||
+  busy||
+  !roomData||
+  roomData.phase!=="question"||
+  myAnswer()
+ )return;
+
+ if(now()>=questionStart()+QUESTION_MS){
+  toast("⏰ 作答時間已結束");
   return;
  }
 
@@ -1058,139 +1177,88 @@ $("start").onclick=async()=>{
 
  try{
 
-  const mode=$("modeSelect").value;
+  const index=roomData.questionIndex;
+  const session=roomData.session;
 
-  const target=
-   players.length===3
-   ?1
-   :$("finishSelect").value==="one"
-    ?1
-    :3;
+  await setDoc(
+   answerRef(uid,index,session),
+   {
+    uid,
+    session,
+    questionIndex:index,
+    choice,
+    submittedAt:serverTimestamp()
+   }
+  );
 
-  await beginRound({
-   ...roomData,
-   mode,
-   target
-  },true);
-
-  msg("💣 遊戲開始！");
+  toast("✅ 答案已送出！");
 
  }catch(e){
-  error(e);
+  fail(e);
  }finally{
   busy=false;
   render();
  }
 
-};
+}
 
 
-/* =====================================
-   開始下一回合
-===================================== */
+/* ============================
+   主持人：開始題目
+============================ */
 
-$("next").onclick=async()=>{
+async function startQuestion(nextIndex){
 
- if(!host||busy)return;
-
- busy=true;
-
- try{
-
-  await beginRound(roomData);
-
-  msg("🔥 下一回合開始！");
-
- }catch(e){
-  error(e);
- }finally{
-  busy=false;
-  render();
- }
-
-};
-
-
-/* =====================================
-   玩家傳遞炸彈
-===================================== */
-
-async function passBomb(b,target){
-
- if(busy||roomData?.phase!=="playing")return;
+ if(!isHost||busy)return;
 
  busy=true;
- render();
 
  try{
 
   await runTransaction(db,async tx=>{
 
-   const roomSnap=await tx.get(rref());
-   const bombSnap=await tx.get(bref(b.id));
+   const ref=roomRef();
+   const snap=await tx.get(ref);
+   const d=snap.data();
 
-   const r=roomSnap.data();
-   const v=bombSnap.data();
-
-   if(
-    !r||
-    r.phase!=="playing"||
-    r.round!==b.round||
-    !v||
-    v.status!=="active"||
-    v.holder!==uid
-   ){
-    throw Error("炸彈已被傳走或回合結束");
+   if(!d||d.hostUid!==uid){
+    throw Error("只有主持人可以操作");
    }
 
-   if(Date.now()>=v.deadline){
-    throw Error("炸彈已到爆炸時間");
+   if(nextIndex===0){
+
+    if(d.phase!=="lobby"){
+     throw Error("遊戲已開始");
+    }
+
+    if(players.length<3){
+     throw Error("至少需要3位玩家");
+    }
+
+   }else{
+
+    if(
+     d.phase!=="results"||
+     d.questionIndex!==nextIndex-1
+    ){
+     throw Error("目前無法開始下一題");
+    }
+
    }
 
-   if(Date.now()-v.lastPassedAt<1000){
-    throw Error("傳遞間隔至少1秒");
-   }
-
-   if(
-    target===uid||
-    target===v.previous||
-    !r.alive.includes(target)
-   ){
-    throw Error("不能傳給這位玩家");
-   }
-
-   const otherIds=Array.from(
-    {length:Math.min(5,r.bombTotal||1)},
-    (_,i)=>`${r.round}_${i+1}`
-   ).filter(id=>id!==b.id);
-
-   const others=[];
-
-   for(const id of otherIds){
-    others.push(await tx.get(bref(id)));
-   }
-
-   if(others.some(s=>
-    s.exists()&&
-    s.data().status==="active"&&
-    s.data().holder===target
-   )){
-    throw Error("對方已持有其他炸彈");
-   }
-
-   tx.update(bref(b.id),{
-    holder:target,
-    previous:uid,
-    lastPassedAt:Date.now(),
-    passes:v.passes+1
+   tx.update(ref,{
+    phase:"question",
+    questionIndex:nextIndex,
+    questionStartedAt:serverTimestamp(),
+    revealAt:null
    });
 
   });
 
-  msg("💨 炸彈傳遞成功！");
+  toast(`⚡ 第${nextIndex+1}題開始！`);
 
  }catch(e){
-  error(e);
+  fail(e);
  }finally{
   busy=false;
   render();
@@ -1199,210 +1267,98 @@ async function passBomb(b,target){
 }
 
 
-/* =====================================
-   主持人自動爆炸計時
-===================================== */
+/* ============================
+   主持人：公布答案
+============================ */
 
-function scheduleHost(){
+async function revealQuestion(){
 
- clearTimeout(hostTimer);
- hostTimer=null;
+ if(!isHost||busy)return;
 
- if(
-  !host||
-  !roomData||
-  roomData.phase!=="playing"||
-  settling
- )return;
-
- const current=activeBombs();
-
- if(!current.length)return;
-
- const nearest=Math.min(
-  ...current.map(b=>b.deadline)
- );
-
- hostTimer=setTimeout(
-  settleExpired,
-  Math.max(150,nearest-Date.now()+150)
- );
-
-}
-
-
-/* =====================================
-   爆炸結算
-===================================== */
-
-async function settleExpired(){
-
- if(
-  !host||
-  settling||
-  roomData?.phase!=="playing"
- )return;
-
- settling=true;
-
- clearTimeout(hostTimer);
+ busy=true;
 
  try{
 
-  const due=activeBombs()
-   .filter(b=>Date.now()>=b.deadline)
-   .sort((a,b)=>a.deadline-b.deadline);
+  await runTransaction(db,async tx=>{
 
-  for(const b of due){
+   const ref=roomRef();
+   const snap=await tx.get(ref);
+   const d=snap.data();
 
-   await runTransaction(db,async tx=>{
+   if(d.phase!=="question"){
+    throw Error("本題已公布");
+   }
 
-    const roomSnap=await tx.get(rref());
-    const bombSnap=await tx.get(bref(b.id));
+   const started=d.questionStartedAt?.toMillis?.();
 
-    const r=roomSnap.data();
-    const v=bombSnap.data();
+   if(!started||Date.now()<started+10000-500){
+    throw Error("尚未到公布時間");
+   }
 
-    if(
-     !r||
-     r.phase!=="playing"||
-     r.round!==b.round||
-     !v||
-     v.status!=="active"||
-     Date.now()<v.deadline
-    )return;
-
-    const living=[...r.alive];
-
-    if(!living.includes(v.holder))return;
-
-    const remaining=living.filter(
-     id=>id!==v.holder
-    );
-
-    const history=[
-     ...(r.history||[]),
-     {
-      round:r.round,
-      player:v.holder,
-      bomb:b.id
-     }
-    ];
-
-    const eliminated=[
-     ...(r.eliminated||[]),
-     v.holder
-    ];
-
-    const finish=remaining.length<=r.target;
-
-    const winners=finish
-     ?(
-       r.target===1
-       ?[
-         ...remaining,
-         ...eliminated.slice().reverse()
-        ].slice(0,3)
-       :remaining
-      )
-     :[];
-
-    tx.update(bref(b.id),{
-     status:"exploded"
-    });
-
-    tx.update(rref(),{
-     alive:remaining,
-     eliminated,
-     history,
-     ...(finish?{
-      phase:"finished",
-      winners
-     }:{})
-    });
-
+   tx.update(ref,{
+    phase:"results",
+    revealAt:serverTimestamp()
    });
 
-  }
+  });
 
-
-  /* 確認本回合是否全部爆炸 */
-
-  const latest=await getDoc(rref());
-
-  if(
-   latest.exists()&&
-   latest.data().phase==="playing"
-  ){
-
-   const d=latest.data();
-
-   const ids=Array.from(
-    {length:Math.min(5,d.bombTotal||1)},
-    (_,i)=>`${d.round}_${i+1}`
-   );
-
-   const docs=[];
-
-   for(const id of ids){
-    docs.push(await getDoc(bref(id)));
-   }
-
-   if(docs.every(s=>
-    s.exists()&&
-    s.data().status==="exploded"
-   )){
-
-    await runTransaction(db,async tx=>{
-
-     const snap=await tx.get(rref());
-
-     if(
-      snap.data()?.phase==="playing"&&
-      snap.data().round===d.round
-     ){
-      tx.update(rref(),{
-       phase:"between"
-      });
-     }
-
-    });
-
-   }
-
-  }
-
- }catch(e){
-
-  console.error(e);
-  msg("⚠️ 爆炸結算失敗，請重試");
+  toast("📊 正確答案已公布");
 
  }finally{
-
-  settling=false;
-  scheduleHost();
-
+  busy=false;
+  render();
  }
 
 }
 
 
-/* =====================================
-   手動結算
-===================================== */
+/* ============================
+   主持人：結束比賽
+============================ */
 
-$("settle").onclick=settleExpired;
+async function finishGame(){
+
+ if(!isHost||busy)return;
+
+ busy=true;
+
+ try{
+
+  await runTransaction(db,async tx=>{
+
+   const ref=roomRef();
+   const snap=await tx.get(ref);
+   const d=snap.data();
+
+   if(d.phase!=="results"||d.questionIndex!==9){
+    throw Error("必須完成10題才能結束");
+   }
+
+   tx.update(ref,{phase:"finished"});
+
+  });
+
+  toast("🏆 最終排行榜公布！");
+
+ }catch(e){
+  fail(e);
+ }finally{
+  busy=false;
+  render();
+ }
+
+}
 
 
-/* =====================================
-   重新開始
-===================================== */
+/* ============================
+   主持人：重新開始
+============================ */
 
-$("reset").onclick=async()=>{
+async function resetGame(){
 
- if(!host||busy)return;
+ if(!isHost||busy)return;
 
- if(!confirm("確定重新開始？保留所有玩家。")){
+ if(!confirm("確定重新開始10題？所有玩家分數歸零。")){
   return;
  }
 
@@ -1412,103 +1368,99 @@ $("reset").onclick=async()=>{
 
   await runTransaction(db,async tx=>{
 
-   const snap=await tx.get(rref());
+   const ref=roomRef();
+   const snap=await tx.get(ref);
    const d=snap.data();
 
    if(d.hostUid!==uid){
     throw Error("只有主持人可以重設");
    }
 
-   tx.update(rref(),{
+   tx.update(ref,{
     phase:"lobby",
-    round:d.round+1,
-    alive:[],
-    eliminated:[],
-    winners:[],
-    history:[],
-    mode:"classic",
-    target:3,
-    bombTotal:0
+    questionIndex:-1,
+    questionStartedAt:null,
+    revealAt:null,
+    session:d.session+1
    });
 
   });
 
-  msg("🔄 已重新開始");
+  toast("🔄 遊戲已重設");
 
  }catch(e){
-  error(e);
+  fail(e);
  }finally{
   busy=false;
   render();
  }
 
+}
+
+
+/* ============================
+   按鈕事件
+============================ */
+
+$("startBtn").onclick=()=>startQuestion(0);
+
+$("nextBtn").onclick=()=>{
+ startQuestion(roomData.questionIndex+1);
 };
 
+$("revealBtn").onclick=async()=>{
+ try{
+  await revealQuestion();
+ }catch(e){
+  fail(e);
+ }
+};
 
-/* =====================================
-   分享房間
-===================================== */
+$("finishBtn").onclick=finishGame;
+$("resetBtn").onclick=resetGame;
 
-$("share").onclick=async()=>{
+$("shareBtn").onclick=async()=>{
 
- const url=
-  location.origin+
-  location.pathname+
-  "?room="+encodeURIComponent(room);
+ const url=location.origin+location.pathname+
+  "?room="+encodeURIComponent(roomId);
 
  try{
 
   if(navigator.share){
-
    await navigator.share({
-    title:"上新莊炸彈傳傳樂",
+    title:"上新莊冷知識快問快答",
     url
    });
-
   }else{
-
    await navigator.clipboard.writeText(url);
-   msg("連結已複製");
-
+   toast("房間連結已複製");
   }
 
  }catch(e){
-
   if(e.name!=="AbortError"){
-   prompt("請複製房間連結",url);
+   prompt("請複製連結",url);
   }
-
  }
 
 };
 
-
-/* =====================================
-   離開畫面
-===================================== */
-
-$("leave").onclick=()=>{
+$("leaveBtn").onclick=()=>{
 
  cleanup();
 
- room="";
- host=false;
+ roomId="";
  roomData=null;
  players=[];
- bombs=[];
+ answers=[];
+ isHost=false;
 
  show("game",false);
  show("entry",true);
 
- history.replaceState(
-  {},
-  "",
-  location.pathname
- );
+ history.replaceState({}, "",location.pathname);
 
 };
 
 </script>
-
 </body>
 </html>
