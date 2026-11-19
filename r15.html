@@ -1,72 +1,69 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>YAMAHA R15 V4 齒比計算系統</title>
+<meta name="theme-color" content="#080e1a">
+<title>YAMAHA R15 V4｜齒比計算系統</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-:root {
+:root{
   --bg:#080e1a;
-  --card:#131e30;
+  --card:#121e30;
   --card2:#1b2b42;
-  --blue:#28a5ff;
-  --red:#ff4757;
+  --blue:#29a8ff;
   --green:#39d5a1;
-  --gold:#ffc857;
-  --text:#f3f7ff;
-  --muted:#9caec5;
-  --border:#304159;
+  --red:#ff5265;
+  --gold:#ffcb62;
+  --text:#f5f8ff;
+  --muted:#9cacc3;
+  --border:#304158;
 }
 
-* {
-  box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
-body {
+body{
   margin:0;
   background:var(--bg);
   color:var(--text);
   font-family:Arial,"Microsoft JhengHei",sans-serif;
 }
 
-header {
-  padding:28px 15px;
+header{
   text-align:center;
-  background:linear-gradient(135deg,#142c4d,#08111e);
+  padding:30px 15px;
+  background:linear-gradient(135deg,#163a62,#08111e);
   border-bottom:3px solid var(--blue);
 }
 
-header h1 {
-  margin:0;
-  font-size:30px;
-  letter-spacing:1px;
+header h1{
+  font-size:32px;
+  margin:8px 0;
 }
 
-header p {
+header p{
   color:var(--muted);
-  margin-bottom:0;
+  margin:5px 0;
 }
 
-.badge {
+.badge{
   display:inline-block;
-  background:#123d65;
-  color:#70c8ff;
-  padding:6px 15px;
+  padding:7px 16px;
+  background:#16466c;
+  color:#8ed4ff;
   border-radius:30px;
   font-size:13px;
-  margin-bottom:12px;
 }
 
-.container {
+.container{
   max-width:1150px;
   margin:auto;
   padding:18px;
 }
 
-.card {
+.card{
   background:var(--card);
   border:1px solid var(--border);
   border-radius:15px;
@@ -74,232 +71,207 @@ header p {
   margin-bottom:20px;
 }
 
-h2 {
+h2{
   font-size:21px;
-  margin:0 0 20px;
   border-left:4px solid var(--blue);
   padding-left:12px;
+  margin:0 0 20px;
 }
 
-.grid {
+h3{
+  font-size:17px;
+}
+
+.grid{
   display:grid;
   grid-template-columns:repeat(2,1fr);
   gap:15px;
 }
 
-.grid3 {
+.grid3{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:15px;
 }
 
-.field label {
+.field label{
   display:block;
   color:var(--muted);
   font-size:14px;
   margin-bottom:8px;
 }
 
-input,select {
+input,select{
   width:100%;
-  padding:13px;
   background:#091524;
   color:white;
   border:1px solid var(--border);
+  padding:13px;
   border-radius:9px;
   font-size:18px;
   outline:none;
 }
 
-input:focus,select:focus {
+input:focus,select:focus{
   border-color:var(--blue);
 }
 
-button {
-  background:var(--blue);
-  color:#fff;
-  border:none;
+button{
+  border:0;
   border-radius:9px;
-  padding:12px 18px;
-  font-size:15px;
+  padding:12px 17px;
+  background:var(--blue);
+  color:white;
   font-weight:bold;
   cursor:pointer;
+  font-size:14px;
 }
 
-button.secondary {
-  background:#30445f;
+button.secondary{
+  background:#34465e;
 }
 
-button:hover {
-  opacity:.85;
-}
-
-.btnrow {
+.btnrow{
   display:flex;
   gap:10px;
   flex-wrap:wrap;
   margin-top:15px;
 }
 
-.result-grid {
+.result-grid{
   display:grid;
   grid-template-columns:repeat(3,1fr);
   gap:12px;
 }
 
-.result {
+.result{
   background:var(--card2);
-  padding:20px 10px;
+  border:1px solid var(--border);
+  padding:18px 10px;
   border-radius:12px;
   text-align:center;
-  border:1px solid var(--border);
 }
 
-.result .label {
-  font-size:14px;
+.label{
+  font-size:13px;
   color:var(--muted);
 }
 
-.result .value {
-  font-size:30px;
+.value{
+  font-size:29px;
   font-weight:bold;
   color:var(--blue);
-  margin-top:10px;
+  margin-top:9px;
 }
 
-.result .unit {
+.unit{
   font-size:12px;
   color:var(--muted);
-  margin-top:5px;
+  margin-top:6px;
 }
 
-.highlight {
-  color:var(--green)!important;
-}
+.green{color:var(--green)!important}
+.gold{color:var(--gold)!important}
+.red{color:var(--red)!important}
 
-.table-wrap {
+.table-wrap{
   overflow-x:auto;
   border-radius:10px;
 }
 
-table {
+table{
   width:100%;
   border-collapse:collapse;
+  min-width:610px;
   text-align:center;
-  min-width:600px;
 }
 
-th {
+th{
   background:#213b59;
-  color:#fff;
   padding:14px 8px;
   font-size:14px;
 }
 
-td {
-  padding:13px 8px;
+td{
+  padding:12px 8px;
   border-bottom:1px solid var(--border);
   font-size:15px;
 }
 
-tr:nth-child(even) {
+tr:nth-child(even){
   background:#19283d;
 }
 
-tr:hover {
+tr:hover{
   background:#26415e;
 }
 
-.note {
+.note{
   color:var(--muted);
+  font-size:13px;
+  line-height:1.8;
+}
+
+.warning{
+  background:#392d20;
+  color:#ffd18a;
+  border-radius:9px;
+  padding:13px;
   font-size:13px;
   line-height:1.8;
   margin-top:15px;
 }
 
-.warning {
-  background:#392d20;
-  color:#ffd18a;
-  padding:13px;
-  border-radius:9px;
-  font-size:13px;
-  line-height:1.7;
-  margin-top:15px;
-}
-
-.compare {
+.compare{
   display:grid;
   grid-template-columns:1fr 1fr;
   gap:15px;
 }
 
-.comparebox {
+.comparebox{
   background:var(--card2);
   border-radius:12px;
   padding:18px;
 }
 
-.comparebox h3 {
-  margin-top:0;
-}
-
-.big {
+.big{
   font-size:28px;
   font-weight:bold;
   color:var(--blue);
 }
 
-details {
+.chartbox{
+  height:360px;
+  position:relative;
+}
+
+details{
   margin-top:15px;
 }
 
-summary {
-  cursor:pointer;
+summary{
   color:var(--blue);
   font-weight:bold;
+  cursor:pointer;
   padding:10px 0;
 }
 
-.chartbox {
-  position:relative;
-  height:360px;
-}
-
-footer {
+footer{
   text-align:center;
   color:var(--muted);
   padding:25px;
   font-size:12px;
+  line-height:1.8;
 }
 
-@media(max-width:650px) {
-  header h1 {
-    font-size:24px;
-  }
-
-  .grid3 {
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .result-grid {
-    grid-template-columns:repeat(2,1fr);
-  }
-
-  .result .value {
-    font-size:25px;
-  }
-
-  .compare {
-    grid-template-columns:1fr;
-  }
-
-  .card {
-    padding:15px;
-  }
-
-  .chartbox {
-    height:300px;
-  }
+@media(max-width:650px){
+  header h1{font-size:25px}
+  .card{padding:15px}
+  .grid3{grid-template-columns:repeat(2,1fr)}
+  .result-grid{grid-template-columns:repeat(2,1fr)}
+  .result .value{font-size:24px}
+  .compare{grid-template-columns:1fr}
+  .chartbox{height:300px}
 }
 </style>
 </head>
@@ -307,45 +279,47 @@ footer {
 <body>
 
 <header>
-  <div class="badge">INDONESIA SPEC · 155 VVA · 6 SPEED</div>
+  <div class="badge">INDONESIA SPEC · ECU TUNED · 6 SPEED</div>
   <h1>YAMAHA R15 V4</h1>
-  <p>齒比 × 檔位 × RPM × 時速 計算系統</p>
+  <p>齒比 × 檔位 × RPM × 時速分析系統</p>
 </header>
 
 <div class="container">
 
-<!-- 齒比設定 -->
 <section class="card">
-
-<h2>01｜傳動齒比設定</h2>
+<h2>01｜目前車輛設定</h2>
 
 <div class="grid">
-
   <div class="field">
     <label>前齒 Front Sprocket（T）</label>
-    <input id="front" type="number" value="14" min="1">
+    <input id="front" type="number" value="12" min="1">
   </div>
 
   <div class="field">
     <label>後齒 Rear Sprocket（T）</label>
-    <input id="rear" type="number" value="48" min="1">
+    <input id="rear" type="number" value="52" min="1">
   </div>
 
+  <div class="field">
+    <label>ECU 斷油轉速 RPM</label>
+    <input id="redline" type="number" value="12500" min="1">
+  </div>
+
+  <div class="field">
+    <label>指定計算轉速 RPM</label>
+    <input id="rpm" type="number" value="10000" min="1">
+  </div>
 </div>
 
 <div class="btnrow">
+  <button onclick="setSprocket(12,52)">12 / 52 現況</button>
+  <button onclick="setSprocket(13,52)">13 / 52</button>
+  <button onclick="setSprocket(14,52)">14 / 52</button>
   <button onclick="setSprocket(14,48)">14 / 48</button>
-  <button onclick="setSprocket(14,46)">14 / 46</button>
   <button onclick="setSprocket(15,48)">15 / 48</button>
-  <button onclick="setSprocket(15,45)">15 / 45</button>
 </div>
 
-<p class="note">
-以上為快速選擇的齒比組合，並非原廠規格認定。
-</p>
-
-<div class="result-grid">
-
+<div class="result-grid" style="margin-top:18px">
   <div class="result">
     <div class="label">最終傳動比</div>
     <div class="value" id="finalRatio">--</div>
@@ -353,35 +327,25 @@ footer {
   </div>
 
   <div class="result">
-    <div class="label">前齒</div>
-    <div class="value" id="frontDisplay">--</div>
-    <div class="unit">T</div>
+    <div class="label">ECU 斷油</div>
+    <div class="value gold" id="redlineDisplay">--</div>
+    <div class="unit">RPM</div>
   </div>
 
   <div class="result">
-    <div class="label">後齒</div>
-    <div class="value" id="rearDisplay">--</div>
-    <div class="unit">T</div>
+    <div class="label">後輪規格</div>
+    <div class="value" style="font-size:20px">140/70</div>
+    <div class="unit">17 吋</div>
   </div>
-
 </div>
-
 </section>
 
-<!-- 轉速設定 -->
 <section class="card">
-
-<h2>02｜指定轉速試算</h2>
+<h2>02｜指定檔位速度計算</h2>
 
 <div class="grid">
-
   <div class="field">
-    <label>引擎轉速 RPM</label>
-    <input id="rpm" type="number" value="10000" min="1">
-  </div>
-
-  <div class="field">
-    <label>指定檔位</label>
+    <label>選擇檔位</label>
     <select id="gear">
       <option value="0">1 檔</option>
       <option value="1">2 檔</option>
@@ -392,88 +356,79 @@ footer {
     </select>
   </div>
 
+  <div class="field">
+    <label>引擎轉速 RPM</label>
+    <input id="selectedRPM" type="number" value="10000" min="1">
+  </div>
 </div>
 
 <div class="result-grid" style="margin-top:18px">
-
   <div class="result">
-    <div class="label">指定檔位理論時速</div>
-    <div class="value highlight" id="mainSpeed">--</div>
+    <div class="label">理論時速</div>
+    <div class="value green" id="selectedSpeed">--</div>
     <div class="unit">km/h</div>
   </div>
 
   <div class="result">
-    <div class="label">引擎轉速</div>
-    <div class="value" id="rpmDisplay">--</div>
-    <div class="unit">RPM</div>
+    <div class="label">總減速比</div>
+    <div class="value" id="selectedTotalRatio">--</div>
+    <div class="unit">Primary × Gear × Final</div>
   </div>
 
   <div class="result">
-    <div class="label">總減速比</div>
-    <div class="value" id="totalRatio">--</div>
-    <div class="unit">一次 × 檔位 × 最終</div>
+    <div class="label">斷油轉速理論時速</div>
+    <div class="value gold" id="selectedLimitSpeed">--</div>
+    <div class="unit">km/h</div>
   </div>
-
 </div>
 
+<p class="note" id="rpmWarning"></p>
 </section>
 
-<!-- 六檔速度 -->
 <section class="card">
-
-<h2>03｜六檔速度試算</h2>
-
+<h2>03｜六檔斷油轉速理論速度</h2>
 <p class="note">
-依照上方設定的 RPM，顯示六個檔位的理論速度。
+以 ECU 斷油轉速計算各檔理論最高速度。
 </p>
-
-<div class="result-grid" id="gearResults"></div>
-
+<div class="result-grid" id="limitResults"></div>
 </section>
 
-<!-- RPM表 -->
 <section class="card">
-
-<h2>04｜RPM × 檔位 × 時速對照表</h2>
+<h2>04｜六檔 RPM × 時速對照表</h2>
 
 <div class="table-wrap">
 <table>
-  <thead>
-    <tr>
-      <th>RPM</th>
-      <th>1檔</th>
-      <th>2檔</th>
-      <th>3檔</th>
-      <th>4檔</th>
-      <th>5檔</th>
-      <th>6檔</th>
-    </tr>
-  </thead>
-
-  <tbody id="rpmTable"></tbody>
+<thead>
+<tr>
+<th>RPM</th>
+<th>1檔</th>
+<th>2檔</th>
+<th>3檔</th>
+<th>4檔</th>
+<th>5檔</th>
+<th>6檔</th>
+</tr>
+</thead>
+<tbody id="rpmTable"></tbody>
 </table>
 </div>
 
 <p class="note">
-單位：km/h。表格顯示理論車速，不代表引擎能在每個檔位達到指定轉速。
+單位：km/h。最高列會自動包含 ECU 斷油轉速。
 </p>
-
 </section>
 
-<!-- 速度反推 -->
 <section class="card">
-
-<h2>05｜速度反推 RPM</h2>
+<h2>05｜指定時速反推 RPM</h2>
 
 <div class="grid">
-
   <div class="field">
     <label>目標時速 km/h</label>
-    <input id="targetSpeed" type="number" value="120" min="1">
+    <input id="targetSpeed" type="number" value="100" min="1">
   </div>
 
   <div class="field">
-    <label>指定檔位</label>
+    <label>選擇檔位</label>
     <select id="reverseGear">
       <option value="0">1 檔</option>
       <option value="1">2 檔</option>
@@ -483,123 +438,147 @@ footer {
       <option value="5" selected>6 檔</option>
     </select>
   </div>
-
 </div>
 
 <div class="result" style="margin-top:18px">
   <div class="label">達到目標時速所需轉速</div>
-  <div class="value highlight" id="reverseRPM">--</div>
+  <div class="value green" id="reverseRPM">--</div>
   <div class="unit">RPM</div>
 </div>
 
+<p class="note" id="reverseWarning"></p>
 </section>
 
-<!-- 曲線圖 -->
 <section class="card">
+<h2>06｜升檔轉速落點分析</h2>
 
-<h2>06｜六檔速度曲線</h2>
+<div class="grid">
+  <div class="field">
+    <label>升檔前 RPM</label>
+    <input id="shiftRPM" type="number" value="12500" min="1">
+  </div>
 
-<div class="chartbox">
-  <canvas id="speedChart"></canvas>
+  <div class="field">
+    <label>分析說明</label>
+    <div class="note">
+      假設升檔過程車速不變，計算下一檔接合後的引擎轉速。
+    </div>
+  </div>
+</div>
+
+<div class="table-wrap" style="margin-top:18px">
+<table>
+<thead>
+<tr>
+<th>換檔</th>
+<th>升檔前</th>
+<th>升檔後</th>
+<th>下降 RPM</th>
+<th>下降比例</th>
+</tr>
+</thead>
+<tbody id="shiftTable"></tbody>
+</table>
 </div>
 
 <p class="note">
-橫軸：RPM ｜ 縱軸：km/h
+升檔轉速落點取決於變速箱內部齒比。
+單純更換前後鏈輪齒數，不會改變同車速下的升檔轉速落點。
 </p>
-
 </section>
 
-<!-- 齒比比較 -->
 <section class="card">
+<h2>07｜六檔速度曲線</h2>
 
-<h2>07｜兩組齒比比較</h2>
+<div class="chartbox">
+<canvas id="speedChart"></canvas>
+</div>
+
+<p class="note">
+橫軸為 RPM，縱軸為理論時速 km/h。
+</p>
+</section>
+
+<section class="card">
+<h2>08｜兩組前後齒比較</h2>
 
 <div class="compare">
 
-  <div class="comparebox">
+<div class="comparebox">
+<h3>組合 A｜目前齒比</h3>
 
-    <h3>組合 A</h3>
-
-    <div class="grid">
-      <div class="field">
-        <label>前齒</label>
-        <input id="aFront" type="number" value="14">
-      </div>
-
-      <div class="field">
-        <label>後齒</label>
-        <input id="aRear" type="number" value="48">
-      </div>
-    </div>
-
-    <p>最終傳動比</p>
-    <div class="big" id="aRatio">--</div>
-
-    <p>指定 RPM 六檔理論時速</p>
-    <div class="big" id="aSpeed">--</div>
-
+<div class="grid">
+  <div class="field">
+    <label>前齒</label>
+    <input id="aFront" type="number" value="12">
   </div>
-
-  <div class="comparebox">
-
-    <h3>組合 B</h3>
-
-    <div class="grid">
-      <div class="field">
-        <label>前齒</label>
-        <input id="bFront" type="number" value="15">
-      </div>
-
-      <div class="field">
-        <label>後齒</label>
-        <input id="bRear" type="number" value="48">
-      </div>
-    </div>
-
-    <p>最終傳動比</p>
-    <div class="big" id="bRatio">--</div>
-
-    <p>指定 RPM 六檔理論時速</p>
-    <div class="big" id="bSpeed">--</div>
-
+  <div class="field">
+    <label>後齒</label>
+    <input id="aRear" type="number" value="52">
   </div>
+</div>
+
+<p class="note">最終傳動比</p>
+<div class="big" id="aRatio">--</div>
+
+<p class="note">六檔指定 RPM 理論時速</p>
+<div class="big" id="aSpeed">--</div>
+
+<p class="note">六檔斷油 RPM 理論時速</p>
+<div class="big gold" id="aLimit">--</div>
+</div>
+
+<div class="comparebox">
+<h3>組合 B｜改裝齒比</h3>
+
+<div class="grid">
+  <div class="field">
+    <label>前齒</label>
+    <input id="bFront" type="number" value="14">
+  </div>
+  <div class="field">
+    <label>後齒</label>
+    <input id="bRear" type="number" value="48">
+  </div>
+</div>
+
+<p class="note">最終傳動比</p>
+<div class="big" id="bRatio">--</div>
+
+<p class="note">六檔指定 RPM 理論時速</p>
+<div class="big" id="bSpeed">--</div>
+
+<p class="note">六檔斷油 RPM 理論時速</p>
+<div class="big gold" id="bLimit">--</div>
+</div>
 
 </div>
 
 <div class="result" style="margin-top:15px">
-
-  <div class="label">組合 B 相較組合 A 的六檔理論速度差異</div>
-
+  <div class="label">組合 B 相較 A｜相同轉速六檔理論速度差異</div>
   <div class="value" id="compareDiff">--</div>
-
   <div class="unit" id="comparePercent">--</div>
-
 </div>
 
 <p class="note" id="compareText"></p>
-
 </section>
 
-<!-- 進階參數 -->
 <section class="card">
-
-<h2>08｜進階傳動參數</h2>
+<h2>09｜進階參數設定</h2>
 
 <div class="warning">
-  以下為可調整的參考參數。印尼版實際一次減速比、
-  各檔齒比及原廠鏈輪齒數，請以對應年份的原廠維修手冊為準。
-  本系統不將示範數值視為已驗證的印尼原廠數據。
+  一次減速比與六檔齒比目前使用參考數值，
+  尚未確認與你的印尼版 R15 V4 年份完全一致。
+  請依原廠維修手冊核對後再使用計算結果。
 </div>
 
 <details>
-
-<summary>展開／修改傳動設定</summary>
+<summary>展開／修改變速箱與輪胎參數</summary>
 
 <div class="grid" style="margin-top:15px">
-
   <div class="field">
-    <label>一次減速比 Primary Ratio</label>
-    <input id="primary" type="number" value="3.042" step="0.001">
+    <label>一次減速比</label>
+    <input id="primary" type="number" value="3.042" step="any">
   </div>
 
   <div class="field">
@@ -621,106 +600,93 @@ footer {
     <label>輪胎有效周長修正係數</label>
     <input id="tireFactor" type="number" value="1" step="0.001">
   </div>
-
 </div>
 
-<h3>各檔齒比</h3>
+<h3>六檔變速箱齒比</h3>
 
 <div class="grid3">
-
   <div class="field">
     <label>1 檔</label>
     <input id="g1" type="number" value="2.8333333333" step="any">
   </div>
-
   <div class="field">
     <label>2 檔</label>
     <input id="g2" type="number" value="1.875" step="any">
   </div>
-
   <div class="field">
     <label>3 檔</label>
     <input id="g3" type="number" value="1.3636363636" step="any">
   </div>
-
   <div class="field">
     <label>4 檔</label>
     <input id="g4" type="number" value="1.1428571429" step="any">
   </div>
-
   <div class="field">
     <label>5 檔</label>
     <input id="g5" type="number" value="0.9565217391" step="any">
   </div>
-
   <div class="field">
     <label>6 檔</label>
     <input id="g6" type="number" value="0.84" step="any">
   </div>
-
 </div>
 
 <div class="btnrow">
-  <button onclick="saveSettings()">儲存目前設定</button>
-  <button class="secondary" onclick="resetSettings()">恢復預設設定</button>
+  <button onclick="saveSettings()">儲存設定</button>
+  <button class="secondary" onclick="resetSettings()">恢復預設</button>
 </div>
-
 </details>
 
 <p class="note">
-輪胎周長使用名義尺寸估算：
-直徑 = 輪框直徑 + 2 × 胎壁高度。
-實際滾動周長會因胎壓、載重、輪胎型號而不同，
-可使用修正係數校正。
+輪胎周長使用標稱輪胎尺寸估算。
+可依 GPS 實測速度校正有效周長係數，
+但需確認儀表轉速與 GPS 數據可靠。
 </p>
-
 </section>
 
 <section class="card">
-
-<h2>計算說明</h2>
+<h2>計算公式與注意事項</h2>
 
 <p class="note">
 最終傳動比 = 後齒 ÷ 前齒
 <br><br>
 總減速比 = 一次減速比 × 檔位齒比 × 最終傳動比
 <br><br>
-理論時速 =
-RPM ÷ 總減速比 × 輪胎有效周長 × 60 ÷ 1000
+理論時速 = RPM ÷ 總減速比 × 輪胎有效周長 × 60 ÷ 1000
 <br><br>
-反推 RPM =
-目標時速 × 1000 × 總減速比 ÷
-（輪胎有效周長 × 60）
+升檔後 RPM = 升檔前 RPM × 下一檔齒比 ÷ 原檔齒比
 </p>
 
 <div class="warning">
-  本網站為齒比及速度理論計算工具。
-  不包含引擎功率、空氣阻力、風向、坡度、
-  傳動損失、離合器打滑及輪胎動態變形。
-  計算速度不等於 GPS 實測速度或實際極速。
+  本工具計算的是傳動系統理論速度，不是實際極速。
+  不包含引擎功率、空氣阻力、坡度、傳動損失及輪胎動態變形。
+  ECU 設定 12,500 RPM 不代表每一檔都能實際拉到該轉速。
   請勿在一般道路測試極速。
 </div>
-
 </section>
 
 </div>
 
 <footer>
 YAMAHA R15 V4 INDONESIA<br>
-GEAR RATIO CALCULATOR
+ECU TUNED · GEAR RATIO CALCULATOR
 </footer>
 
 <script>
-
-// =========================
-// 預設參數
-// =========================
-
-const defaults = {
-  front:14,
-  rear:48,
+const defaults={
+  front:12,
+  rear:52,
+  redline:12500,
   rpm:10000,
   gear:5,
+  selectedRPM:10000,
+  targetSpeed:100,
+  reverseGear:5,
+  shiftRPM:12500,
+  aFront:12,
+  aRear:52,
+  bFront:14,
+  bRear:48,
   primary:3.042,
   tireWidth:140,
   tireAspect:70,
@@ -734,27 +700,36 @@ const defaults = {
   g6:21/25
 };
 
-let chart = null;
+let chart=null;
 
-// =========================
-// 讀取數值
-// =========================
-
-function num(id) {
-  return Number(document.getElementById(id).value);
+function el(id){
+  return document.getElementById(id);
 }
 
-function setValue(id,value) {
-  document.getElementById(id).value=value;
+function num(id){
+  return Number(el(id).value);
 }
 
-function validPositive(...values) {
+function setValue(id,value){
+  el(id).value=value;
+}
+
+function positive(...values){
   return values.every(
-    v => Number.isFinite(v) && v>0
+    value=>Number.isFinite(value)&&value>0
   );
 }
 
-function getGears() {
+function fmt(value,digits=1){
+  if(!Number.isFinite(value))return "--";
+
+  return value.toLocaleString("zh-TW",{
+    minimumFractionDigits:digits,
+    maximumFractionDigits:digits
+  });
+}
+
+function gears(){
   return [
     num("g1"),
     num("g2"),
@@ -765,447 +740,379 @@ function getGears() {
   ];
 }
 
-// =========================
-// 輪胎周長
-// =========================
-
-function tireCircumference() {
-
+function circumference(){
   const width=num("tireWidth");
   const aspect=num("tireAspect");
   const rim=num("rim");
   const factor=num("tireFactor");
 
-  if(!validPositive(width,aspect,rim,factor)) {
+  if(!positive(width,aspect,rim,factor)){
     return NaN;
   }
 
   const sidewall=width*aspect/100;
+  const diameter=rim*25.4+sidewall*2;
 
-  const diameterMM=
-    rim*25.4+sidewall*2;
-
-  const circumferenceM=
-    Math.PI*diameterMM/1000;
-
-  return circumferenceM*factor;
+  return Math.PI*diameter/1000*factor;
 }
 
-// =========================
-// 最終傳動比
-// =========================
-
-function finalRatio(front,rear) {
-
-  if(!validPositive(front,rear)) {
-    return NaN;
-  }
-
+function finalRatio(front,rear){
+  if(!positive(front,rear))return NaN;
   return rear/front;
 }
 
-// =========================
-// 總減速比
-// =========================
-
-function totalRatio(gearIndex,front,rear) {
-
-  const gears=getGears();
-
+function totalRatio(gear,front,rear){
   const primary=num("primary");
+  const ratio=gears()[gear];
 
-  const gearRatio=gears[gearIndex];
-
-  if(
-    !validPositive(primary,gearRatio,front,rear)
-  ) {
+  if(!positive(primary,ratio,front,rear)){
     return NaN;
   }
 
-  return primary*
-         gearRatio*
-         finalRatio(front,rear);
+  return primary*ratio*rear/front;
 }
 
-// =========================
-// RPM 計算時速
-// =========================
+function speedAt(rpm,gear,front,rear){
+  const ratio=totalRatio(gear,front,rear);
+  const wheel=circumference();
 
-function calculateSpeed(
-  rpm,
-  gearIndex,
-  front,
-  rear
-) {
-
-  const ratio=totalRatio(
-    gearIndex,
-    front,
-    rear
-  );
-
-  const circumference=tireCircumference();
-
-  if(
-    !validPositive(rpm,ratio,circumference)
-  ) {
+  if(!positive(rpm,ratio,wheel)){
     return NaN;
   }
 
-  const wheelRPM=rpm/ratio;
-
-  const speed=
-    wheelRPM*
-    circumference*
-    60/1000;
-
-  return speed;
+  return rpm/ratio*wheel*60/1000;
 }
 
-// =========================
-// 時速反推 RPM
-// =========================
+function rpmAt(speed,gear,front,rear){
+  const ratio=totalRatio(gear,front,rear);
+  const wheel=circumference();
 
-function calculateRPM(
-  speed,
-  gearIndex,
-  front,
-  rear
-) {
-
-  const ratio=totalRatio(
-    gearIndex,
-    front,
-    rear
-  );
-
-  const circumference=tireCircumference();
-
-  if(
-    !validPositive(speed,ratio,circumference)
-  ) {
+  if(!positive(speed,ratio,wheel)){
     return NaN;
   }
 
-  return speed*
-         1000*
-         ratio/
-         (circumference*60);
+  return speed*1000*ratio/(wheel*60);
 }
 
-// =========================
-// 格式化
-// =========================
-
-function fmt(value,digits=1) {
-
-  if(!Number.isFinite(value)) {
-    return "--";
-  }
-
-  return value.toLocaleString(
-    "zh-TW",
-    {
-      minimumFractionDigits:digits,
-      maximumFractionDigits:digits
-    }
-  );
-}
-
-// =========================
-// 快速選擇齒比
-// =========================
-
-function setSprocket(front,rear) {
-
+function setSprocket(front,rear){
   setValue("front",front);
   setValue("rear",rear);
-
   updateAll();
 }
 
-// =========================
-// 主畫面
-// =========================
-
-function updateMain() {
-
-  const front=num("front");
-  const rear=num("rear");
-  const rpm=num("rpm");
-  const gear=num("gear");
-
-  const ratio=finalRatio(front,rear);
-
-  document.getElementById(
-    "finalRatio"
-  ).textContent=fmt(ratio,3);
-
-  document.getElementById(
-    "frontDisplay"
-  ).textContent=fmt(front,0);
-
-  document.getElementById(
-    "rearDisplay"
-  ).textContent=fmt(rear,0);
-
-  document.getElementById(
-    "rpmDisplay"
-  ).textContent=fmt(rpm,0);
-
-  const speed=calculateSpeed(
-    rpm,gear,front,rear
+function updateVehicle(){
+  el("finalRatio").textContent=fmt(
+    finalRatio(num("front"),num("rear")),3
   );
 
-  document.getElementById(
-    "mainSpeed"
-  ).textContent=fmt(speed,1);
-
-  document.getElementById(
-    "totalRatio"
-  ).textContent=fmt(
-    totalRatio(gear,front,rear),
-    3
+  el("redlineDisplay").textContent=fmt(
+    num("redline"),0
   );
 }
 
-// =========================
-// 六檔速度卡片
-// =========================
-
-function updateGearResults() {
-
+function updateSelected(){
   const front=num("front");
   const rear=num("rear");
-  const rpm=num("rpm");
+  const gear=num("gear");
+  const rpm=num("selectedRPM");
+  const redline=num("redline");
+
+  el("selectedSpeed").textContent=fmt(
+    speedAt(rpm,gear,front,rear),1
+  );
+
+  el("selectedTotalRatio").textContent=fmt(
+    totalRatio(gear,front,rear),3
+  );
+
+  el("selectedLimitSpeed").textContent=fmt(
+    speedAt(redline,gear,front,rear),1
+  );
+
+  el("rpmWarning").textContent=
+    rpm>redline
+    ?"注意：指定 RPM 已超過目前設定的 ECU 斷油轉速。"
+    :"";
+}
+
+function updateLimits(){
+  const front=num("front");
+  const rear=num("rear");
+  const redline=num("redline");
 
   let html="";
 
-  for(let i=0;i<6;i++) {
-
-    const speed=calculateSpeed(
-      rpm,i,front,rear
-    );
+  for(let i=0;i<6;i++){
+    const speed=speedAt(redline,i,front,rear);
 
     html+=`
       <div class="result">
-        <div class="label">
-          ${i+1} 檔
-        </div>
-
-        <div class="value">
+        <div class="label">${i+1} 檔</div>
+        <div class="value ${i===5?"green":""}">
           ${fmt(speed,1)}
         </div>
-
-        <div class="unit">
-          km/h
-        </div>
+        <div class="unit">km/h · 理論值</div>
       </div>
     `;
   }
 
-  document.getElementById(
-    "gearResults"
-  ).innerHTML=html;
+  el("limitResults").innerHTML=html;
 }
 
-// =========================
-// RPM 對照表
-// =========================
-
-function updateTable() {
-
+function updateTable(){
   const front=num("front");
   const rear=num("rear");
+  const redline=num("redline");
+
+  let rpms=[];
+
+  if(positive(redline)){
+    for(let rpm=3000;rpm<=redline;rpm+=1000){
+      rpms.push(rpm);
+    }
+
+    if(!rpms.includes(redline)){
+      rpms.push(redline);
+    }
+
+    rpms.sort((a,b)=>a-b);
+  }
 
   let html="";
 
-  for(let rpm=3000;rpm<=12000;rpm+=1000) {
-
+  rpms.forEach(rpm=>{
     html+=`<tr><td>${fmt(rpm,0)}</td>`;
 
-    for(let gear=0;gear<6;gear++) {
-
-      const speed=calculateSpeed(
-        rpm,gear,front,rear
-      );
-
+    for(let gear=0;gear<6;gear++){
       html+=`
-        <td>${fmt(speed,1)}</td>
+        <td>
+          ${fmt(speedAt(rpm,gear,front,rear),1)}
+        </td>
       `;
     }
 
     html+="</tr>";
-  }
+  });
 
-  document.getElementById(
-    "rpmTable"
-  ).innerHTML=html;
+  el("rpmTable").innerHTML=html;
 }
 
-// =========================
-// 速度反推
-// =========================
-
-function updateReverse() {
-
-  const speed=num("targetSpeed");
-  const gear=num("reverseGear");
-
-  const rpm=calculateRPM(
-    speed,
-    gear,
+function updateReverse(){
+  const rpm=rpmAt(
+    num("targetSpeed"),
+    num("reverseGear"),
     num("front"),
     num("rear")
   );
 
-  document.getElementById(
-    "reverseRPM"
-  ).textContent=fmt(rpm,0);
+  el("reverseRPM").textContent=fmt(rpm,0);
+
+  el("reverseWarning").textContent=
+    Number.isFinite(rpm)&&rpm>num("redline")
+    ?"注意：所需轉速已超過 ECU 斷油設定。"
+    :"";
 }
 
-// =========================
-// 齒比比較
-// =========================
+function updateShift(){
+  const shiftRPM=num("shiftRPM");
+  const ratios=gears();
 
-function updateCompare() {
+  let html="";
 
+  for(let i=0;i<5;i++){
+    const before=ratios[i];
+    const after=ratios[i+1];
+
+    const landing=
+      positive(shiftRPM,before,after)
+      ?shiftRPM*after/before
+      :NaN;
+
+    const drop=shiftRPM-landing;
+    const percent=drop/shiftRPM*100;
+
+    html+=`
+      <tr>
+        <td>${i+1} → ${i+2}</td>
+        <td>${fmt(shiftRPM,0)}</td>
+        <td style="color:#39d5a1;font-weight:bold">
+          ${fmt(landing,0)}
+        </td>
+        <td>${fmt(drop,0)}</td>
+        <td>${fmt(percent,1)}%</td>
+      </tr>
+    `;
+  }
+
+  el("shiftTable").innerHTML=html;
+}
+
+function updateCompare(){
   const rpm=num("rpm");
+  const redline=num("redline");
 
   const af=num("aFront");
   const ar=num("aRear");
-
   const bf=num("bFront");
   const br=num("bRear");
 
-  const ratioA=finalRatio(af,ar);
-  const ratioB=finalRatio(bf,br);
+  const speedA=speedAt(rpm,5,af,ar);
+  const speedB=speedAt(rpm,5,bf,br);
 
-  const speedA=calculateSpeed(
-    rpm,5,af,ar
-  );
-
-  const speedB=calculateSpeed(
-    rpm,5,bf,br
-  );
-
-  document.getElementById(
-    "aRatio"
-  ).textContent=fmt(ratioA,3);
-
-  document.getElementById(
-    "bRatio"
-  ).textContent=fmt(ratioB,3);
-
-  document.getElementById(
-    "aSpeed"
-  ).textContent=fmt(speedA,1)+" km/h";
-
-  document.getElementById(
-    "bSpeed"
-  ).textContent=fmt(speedB,1)+" km/h";
+  const limitA=speedAt(redline,5,af,ar);
+  const limitB=speedAt(redline,5,bf,br);
 
   const diff=speedB-speedA;
-
-  const percent=
-    validPositive(speedA)
+  const percent=positive(speedA)
     ?diff/speedA*100
     :NaN;
 
-  document.getElementById(
-    "compareDiff"
-  ).textContent=
+  el("aRatio").textContent=fmt(finalRatio(af,ar),3);
+  el("bRatio").textContent=fmt(finalRatio(bf,br),3);
+
+  el("aSpeed").textContent=fmt(speedA,1)+" km/h";
+  el("bSpeed").textContent=fmt(speedB,1)+" km/h";
+
+  el("aLimit").textContent=fmt(limitA,1)+" km/h";
+  el("bLimit").textContent=fmt(limitB,1)+" km/h";
+
+  el("compareDiff").textContent=
     Number.isFinite(diff)
     ?(diff>=0?"+":"")+fmt(diff,1)+" km/h"
     :"--";
 
-  document.getElementById(
-    "comparePercent"
-  ).textContent=
+  el("comparePercent").textContent=
     Number.isFinite(percent)
     ?(percent>=0?"+":"")+fmt(percent,2)+"%"
     :"--";
 
   let description="";
 
-  if(Number.isFinite(diff)) {
-
-    if(diff>0.001) {
+  if(Number.isFinite(diff)){
+    if(diff>0.001){
       description=
-        "組合 B 的齒比較長，同轉速下理論時速較高；"+
+        "組合 B 齒比較長，相同 RPM 下理論時速較高，"+
         "但不代表實際極速一定提高。";
-    }
-
-    else if(diff < -0.001) {
+    }else if(diff < -0.001){
       description=
-        "組合 B 的齒比較短，同轉速下理論時速較低；"+
-        "相同輪上扭力條件下，短齒比可提高輪上扭力。";
-    }
-
-    else {
-      description="兩組齒比的理論速度相同。";
+        "組合 B 齒比較短，相同 RPM 下理論時速較低，"+
+        "但輪上扭力放大效果較明顯。";
+    }else{
+      description="兩組齒比的理論時速相同。";
     }
   }
 
-  document.getElementById(
-    "compareText"
-  ).textContent=description;
+  el("compareText").textContent=description;
 }
 
-// =========================
-// 速度曲線圖
-// =========================
-
-function updateChart() {
-
-  if(typeof Chart==="undefined") {
-    return;
-  }
+function updateChart(){
+  if(typeof Chart==="undefined")return;
 
   const front=num("front");
   const rear=num("rear");
+  const redline=num("redline");
 
-  const rpms=[
-    3000,4000,5000,6000,7000,
-    8000,9000,10000,11000,12000
-  ];
+  if(!positive(redline))return;
+
+  const rpms=[];
+
+  for(let rpm=1000;rpm<=redline;rpm+=1000){
+    rpms.push(rpm);
+  }
+
+  if(!rpms.includes(redline)){
+    rpms.push(redline);
+  }
 
   const colors=[
-    "#ff4757",
+    "#ff5265",
     "#ff9f43",
-    "#ffc857",
+    "#ffcb62",
     "#39d5a1",
-    "#28a5ff",
-    "#a88bff"
+    "#29a8ff",
+    "#b39aff"
   ];
 
   const datasets=[];
 
-  for(let gear=0;gear<6;gear++) {
-
-    const speeds=rpms.map(rpm=>{
-      const value=calculateSpeed(
-        rpm,gear,front,rear
-      );
-
-      return Number.isFinite(value)
-        ?value
-        :null;
-    });
-
+  for(let gear=0;gear<6;gear++){
     datasets.push({
       label:`${gear+1}檔`,
-      data:speeds,
+      data:rpms.map(rpm=>{
+        const value=speedAt(rpm,gear,front,rear);
+        return Number.isFinite(value)?value:null;
+      }),
       borderColor:colors[gear],
       backgroundColor:colors[gear],
       borderWidth:2,
-      tension:0.25,
-      pointRadius:2
+      pointRadius:2,
+      tension:0.2
     });
   }
 
-  const canvas=document.getElementById(
-    "speedChart"
+  if(chart)chart.destroy();
+
+  chart=new Chart(el("speedChart"),{
+    type:"line",
+    data:{
+      labels:rpms,
+      datasets
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{
+          labels:{color:"#ffffff"}
+        },
+        tooltip:{
+          callbacks:{
+            label(context){
+              return context.dataset.label+
+                "："+fmt(context.parsed.y,1)+" km/h";
+            }
+          }
+        }
+      },
+      scales:{
+        x:{
+          title:{
+            display:true,
+            text:"RPM",
+            color:"#9cacc3"
+          },
+          ticks:{color:"#9cacc3"},
+          grid:{color:"#26364b"}
+        },
+        y:{
+          beginAtZero:true,
+          title:{
+            display:true,
+            text:"km/h",
+            color:"#9cacc3"
+          },
+          ticks:{color:"#9cacc3"},
+          grid:{color:"#26364b"}
+        }
+      }
+    }
+  });
+}
+
+function saveSettings(){
+  const settings={};
+
+  document.querySelectorAll("input,select").forEach(input=>{
+    settings[input.id]=input.value;
+  });
+
+  localStorage.setItem(
+    "r15v4_indonesia_settings",
+    JSON.stringify(settings)
   );
 
-  if(chart)
+  alert("設定已儲存！");
+}
+
+function loadSettings(){
+  try{
