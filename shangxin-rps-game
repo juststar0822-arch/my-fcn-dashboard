@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>上新莊歡樂猜拳淘汰賽</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,"Microsoft JhengHei",sans-serif;
+  background:#edf2f8;
+  color:#24364b;
+}
+header{
+  background:linear-gradient(135deg,#102943,#315d88);
+  color:white;
+  padding:25px 12px;
+  text-align:center;
+}
+header h1{margin:0;font-size:27px}
+header p{opacity:.85;margin:8px 0 0}
+.container{max-width:760px;margin:auto;padding:15px}
+.card{
+  background:white;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px #00000010;
+}
+h2{margin:0 0 15px;font-size:21px}
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0 15px;
+  border:1px solid #ccd5df;
+  border-radius:10px;
+  font-size:17px;
+}
+button{
+  border:0;
+  border-radius:12px;
+  padding:13px 17px;
+  background:#193e66;
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%}
+.gold{background:#c39746}
+.green{background:#218567}
+.red{background:#c34d4d}
+.gray{background:#e8edf3;color:#28415d}
+.purple{background:#7256b7}
+.hidden{display:none!important}
+.center{text-align:center}
+.muted{font-size:14px;color:#7c8999;line-height:1.7}
+.status{
+  padding:12px;
+  background:#fff3d0;
+  color:#805c08;
+  border-radius:10px;
+  margin-bottom:15px;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+.status.success{background:#dcf4e8;color:#12633f}
+.status.error{background:#ffe1e1;color:#a12727}
+.badge{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:30px;
+  background:#eaf0f7;
+  font-size:14px;
+  font-weight:bold;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.host{
+  border:2px solid #d0ac65;
+}
+.moves{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+  margin:18px 0;
+}
+.move{
+  padding:20px 5px;
+  background:#edf2f8;
+  color:#28415d;
+  border:2px solid transparent;
+}
+.move .emoji{display:block;font-size:48px;margin-bottom:8px}
+.move.selected{
+  background:#fff2d3;
+  border-color:#c69b42;
+}
+.move:disabled{opacity:.55}
+.big{
+  font-size:65px;
+  font-weight:900;
+  text-align:center;
+  margin:15px 0;
+}
+.player{
+  padding:12px 5px;
+  border-bottom:1px solid #e7edf3;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+.player.out{opacity:.55}
+.notice{
+  background:#edf4fc;
+  border-radius:10px;
+  padding:12px;
+  line-height:1.7;
+  font-size:14px;
+}
+.result{
+  background:#fff7df;
+  border:2px solid #e4c37c;
+  border-radius:14px;
+  padding:20px;
+  text-align:center;
+}
+.result h2{color:#a87520}
+.actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:12px;
+}
+.historyItem{
+  padding:12px 0;
+  border-bottom:1px solid #e7edf3;
+  line-height:1.8;
+}
+#toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#203d5d;
+  color:white;
+  padding:12px 18px;
+  border-radius:10px;
+  display:none;
+  z-index:99;
+  max-width:90%;
+  text-align:center;
+}
+@media(max-width:390px){
+  .card{padding:15px}
+  .move{padding:15px 3px}
+  .move .emoji{font-size:38px}
+}
+</style>
+
+<script>
+window.firebaseStarted=false;
+
+window.addEventListener("error",e=>{
+  const box=document.getElementById("connectionStatus");
+  if(box){
+    box.className="status error";
+    box.textContent="❌ 程式錯誤："+(e.message||"未知錯誤");
+  }
+});
+
+window.addEventListener("unhandledrejection",e=>{
+  const box=document.getElementById("connectionStatus");
+  if(box){
+    box.className="status error";
+    box.textContent="❌ 連線錯誤："+(e.reason?.message||String(e.reason));
+  }
+});
+
+window.addEventListener("load",()=>{
+  setTimeout(()=>{
+    const box=document.getElementById("connectionStatus");
+    if(box&&!window.firebaseStarted){
+      box.className="status error";
+      box.textContent="❌ Firebase 程式載入失敗，請重新整理網頁。";
+    }
+  },12000);
+});
+</script>
+</head>
+
+<body>
+
+<header>
+  <h1>✊ 上新莊歡樂猜拳淘汰賽 ✌️</h1>
+  <p>全體玩家 VS 主持人 · 最後3人獲勝</p>
+</header>
+
+<div class="container">
+
+  <div class="card" id="joinBox">
+    <h2>🎮 加入遊戲</h2>
+
+    <div id="connectionStatus" class="status">
+      Firebase 連線中...
+    </div>
+
+    <label>房間代碼</label>
+    <input id="roomInput" maxlength="20" placeholder="例如 RPS2027">
+
+    <label>玩家暱稱</label>
+    <input id="nameInput" maxlength="16" placeholder="請輸入名字">
+
+    <button id="joinBtn" class="full gold" disabled>
+      系統連線中...
+    </button>
+
+    <p class="muted center">
+      第一位建立房間的人會成為主持人。<br>
+      主持人不參賽，其他人加入後即可準備猜拳。
+    </p>
+  </div>
+
+  <div id="main" class="hidden">
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2 id="roomLabel">遊戲房間</h2>
+          <div id="welcome" class="muted"></div>
+        </div>
+        <span id="roleBadge" class="badge">玩家</span>
+      </div>
+
+      <p id="gameStatus" class="notice">等待主持人開始</p>
+
+      <div class="row">
+        <span id="roundBadge" class="badge">第0回合</span>
+        <span id="aliveBadge" class="badge">存活0人</span>
+      </div>
+
+      <div class="actions">
+        <button id="shareBtn" class="gray">📤 分享房間</button>
+        <button id="leaveBtn" class="gray">離開畫面</button>
+      </div>
+    </div>
+
+    <div id="hostPanel" class="card host hidden">
+      <h2>👑 主持人控制台</h2>
+
+      <div class="notice">
+        主持人與所有存活玩家各出一拳。<br>
+        公布前，其他人無法查看玩家選擇。<br>
+        主持人也必須先出拳，才能公布結果。
+      </div>
+
+      <br>
+
+      <button id="startBtn" class="full green">
+        ▶️ 開始比賽
+      </button>
+
+      <div id="hostMoveArea" class="hidden">
+        <h2 style="margin-top:20px">主持人出拳</h2>
+        <div id="hostMoves" class="moves"></div>
+      </div>
+
+      <p id="progressText" class="muted center"></p>
+
+      <button id="revealBtn" class="full gold hidden">
+        🎉 公布本回合結果
+      </button>
+
+      <button id="nextBtn" class="full green hidden">
+        ➡️ 結算並進入下一回合
+      </button>
+
+      <br><br>
+
+      <button id="resetBtn" class="full gray">
+        🔄 重新開始整場比賽
+      </button>
+    </div>
+
+    <div id="playerPanel" class="card hidden">
+      <h2>🥊 我的猜拳</h2>
+
+      <div id="playerMessage" class="notice">
+        等待主持人開始
+      </div>
+
+      <div id="playerMoves" class="moves"></div>
+
+      <p class="muted center">
+        ✊ 石頭勝剪刀　✌️ 剪刀勝布　✋ 布勝石頭
+      </p>
+    </div>
+
+    <div id="roundResult" class="card hidden">
+      <h2>🎯 本回合戰況</h2>
+
+      <div class="center">
+        <p>主持人出拳</p>
+        <div id="hostResultMove" class="big">❔</div>
+      </div>
+
+      <div id="roundSummary" class="notice"></div>
+      <div id="roundPlayers"></div>
+    </div>
+
+    <div id="finalBox" class="card result hidden">
+      <h2>🏆 最終3位得獎者</h2>
+      <div id="winnerList"></div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <h2>👥 玩家戰況</h2>
+        <span id="playerCount" class="badge">0人</span>
+      </div>
+      <div id="playerList">等待玩家加入...</div>
+    </div>
+
+    <div class="card">
+      <h2>📜 比賽紀錄</h2>
+      <div id="historyList" class="muted">尚無紀錄</div>
+    </div>
+
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+
+import {initializeApp} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  onSnapshot,
+  runTransaction,
+  writeBatch,
+  serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+window.firebaseStarted=true;
+
+const firebaseConfig={
+  apiKey:"AIzaSyBP9h5s8NAMfSaxxWZZxBFOZdn7ZviH6R4",
+  authDomain:"shangxin-rps-game.firebaseapp.com",
+  projectId:"shangxin-rps-game",
+  storageBucket:"shangxin-rps-game.firebasestorage.app",
+  messagingSenderId:"803016931310",
+  appId:"1:803016931310:web:7198444a9c068f64f4c0ff"
+};
+
+const $=id=>document.getElementById(id);
+
+const MOVE={
+  rock:{emoji:"✊",name:"石頭"},
+  scissors:{emoji:"✌️",name:"剪刀"},
+  paper:{emoji:"✋",name:"布"}
+};
+
+let db,auth,uid="";
+let room="",name="",isHost=false;
+let roomData=null,players=[];
+let myMove=null;
+let currentMoves={};
+let busy=false;
+let unsubRoom=null,unsubPlayers=null;
+let resultToken=0;
+
+function show(id,visible=true){
+  $(id).classList.toggle("hidden",!visible);
+}
+
+function toast(message){
+  const el=$("toast");
+  el.textContent=message;
+  el.style.display="block";
+  clearTimeout(window.toastTimer);
+  window.toastTimer=setTimeout(()=>{
+    el.style.display="none";
+  },3000);
+}
+
+function fail(error){
+  console.error(error);
+  alert("操作失敗：\n"+error.message);
+}
+
+function setConnection(message,type){
+  $("connectionStatus").textContent=message;
+  $("connectionStatus").className="status "+type;
+}
+
+function setBusy(value){
+  busy=value;
+  render();
+}
+
+function roomRef(){
+  return doc(db,"rpsRooms",room);
+}
+
+function playerRef(id){
+  return doc(db,"rpsRooms",room,"players",id);
+}
+
+function moveRef(round,id){
+  return doc(
+    db,"rpsRooms",room,
+    "rounds",String(round),
+    "moves",id
+  );
+}
+
+function moveCollection(round){
+  return collection(
+    db,"rpsRooms",room,
+    "rounds",String(round),
+    "moves"
+  );
+}
+
+function emoji(move){
+  return MOVE[move]?.emoji||"❔";
+}
+
+function playerWins(playerMove,hostMove){
+  return (
+    playerMove==="rock"&&hostMove==="scissors" ||
+    playerMove==="scissors"&&hostMove==="paper" ||
+    playerMove==="paper"&&hostMove==="rock"
+  );
+}
+
+function playerLoses(playerMove,hostMove){
+  return (
+    playerMove==="rock"&&hostMove==="paper" ||
+    playerMove==="scissors"&&hostMove==="rock" ||
+    playerMove==="paper"&&hostMove==="scissors"
+  );
+}
+
+function makeMoveButtons(containerId,handler){
+  const box=$(containerId);
+  box.replaceChildren();
+
+  for(const [key,value] of Object.entries(MOVE)){
+    const button=document.createElement("button");
+    button.className="move";
+
+    const icon=document.createElement("span");
+    icon.className="emoji";
+    icon.textContent=value.emoji;
+
+    const label=document.createElement("span");
+    label.textContent=value.name;
+
+    button.append(icon,label);
+    button.onclick=()=>handler(key);
+    button.dataset.move=key;
+    box.append(button);
+  }
+}
+
+makeMoveButtons("playerMoves",move=>submitMove(move));
+makeMoveButtons("hostMoves",move=>submitMove(move));
+
+try{
+  const app=initializeApp(firebaseConfig);
+  db=getFirestore(app);
+  auth=getAuth(app);
+
+  onAuthStateChanged(auth,user=>{
+    if(user){
+      uid=user.uid;
+      setConnection("✅ Firebase 連線成功，可以加入遊戲","success");
+      $("joinBtn").disabled=false;
+      $("joinBtn").textContent="加入遊戲";
+    }
+  },error=>{
+    setConnection("❌ 登入狀態錯誤："+error.message,"error");
+  });
+
+  signInAnonymously(auth).catch(error=>{
+    setConnection("❌ Firebase 登入失敗："+error.message,"error");
+    $("joinBtn").textContent="連線失敗";
+  });
+
+  setTimeout(()=>{
+    if(!uid){
+      setConnection(
+        "❌ Firebase 登入逾時，請檢查匿名登入設定或網路。",
+        "error"
+      );
+      $("joinBtn").textContent="連線逾時";
+    }
+  },15000);
+
+}catch(error){
+  setConnection("❌ Firebase 初始化失敗："+error.message,"error");
+}
+
+const params=new URLSearchParams(location.search);
+
+if(params.get("room")){
+  $("roomInput").value=params.get("room");
+}
+
+$("nameInput").value=
+  localStorage.getItem("rpsPlayerName")||"";
+
+$("joinBtn").onclick=async()=>{
+  if(!uid)return;
+
+  const r=$("roomInput").value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g,"")
+    .slice(0,20);
+
+  const n=$("nameInput").value.trim().slice(0,16);
+
+  if(!r||!n){
+    alert("請輸入房間代碼及暱稱");
+    return;
+  }
+
+  $("joinBtn").disabled=true;
+  $("joinBtn").textContent="加入中...";
+
+  try{
+    const ref=doc(db,"rpsRooms",r);
+
+    await runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+
+      if(!snap.exists()){
+        tx.set(ref,{
+          hostUid:uid,
+          phase:"lobby",
+          round:0,
+          survivors:[],
+          history:[],
+          createdAt:serverTimestamp()
+        });
+      }
+    });
+
+    const snap=await getDoc(ref);
+    const data=snap.data();
+
+    if(!data)throw new Error("房間建立失敗");
+
+    const host=data.hostUid===uid;
+    const pRef=doc(db,"rpsRooms",r,"players",uid);
+    const pSnap=await getDoc(pRef);
+
+    if(!host&&!pSnap.exists()){
+      if(data.phase!=="lobby"){
+        throw new Error("比賽已開始，不能新增參賽者");
+      }
+
+      await setDoc(pRef,{
+        name:n,
+        submittedRound:0,
+        joinedAt:serverTimestamp()
+      });
+    }
+
+    room=r;
+    name=n;
+    isHost=host;
+    roomData=data;
+    players=[];
+    myMove=null;
+    currentMoves={};
+
+    localStorage.setItem("rpsPlayerName",n);
+
+    $("roomLabel").textContent="房間："+room;
+    $("welcome").textContent="歡迎，"+name;
+    $("roleBadge").textContent=
+      isHost?"👑 主持人":"🎮 玩家";
+
+    show("joinBox",false);
+    show("main",true);
+    show("hostPanel",isHost);
+    show("playerPanel",!isHost);
+
+    history.replaceState(
+      {},"",
+      location.pathname+"?room="+encodeURIComponent(room)
+    );
+
+    listenRoom();
+    listenPlayers();
+
+  }catch(error){
+    fail(error);
+  }finally{
+    $("joinBtn").disabled=false;
+    $("joinBtn").textContent="加入遊戲";
+  }
+};
+
+function listenRoom(){
+  if(unsubRoom)unsubRoom();
+
+  unsubRoom=onSnapshot(roomRef(),snap=>{
+    if(!snap.exists())return;
+
+    const previousRound=roomData?.round;
+    const previousPhase=roomData?.phase;
+
+    roomData=snap.data();
+
+    if(
+      previousRound!==roomData.round ||
+      previousPhase!==roomData.phase
+    ){
+      myMove=null;
+      currentMoves={};
+      loadRoundData();
+    }
+
+    render();
+  },fail);
+}
+
+function listenPlayers(){
+  if(unsubPlayers)unsubPlayers();
+
+  unsubPlayers=onSnapshot(
+    collection(db,"rpsRooms",room,"players"),
+    snap=>{
+      players=snap.docs.map(d=>({
+        id:d.id,
+        ...d.data()
+      }));
+      render();
+    },
+    fail
+  );
+}
+
+async function loadRoundData(){
+  if(!roomData||roomData.phase==="lobby")return;
+
+  const round=roomData.round;
+  const phase=roomData.phase;
+  const token=++resultToken;
+
+  try{
+    if(phase==="collecting"){
+      const snap=await getDoc(moveRef(round,uid));
+
+      if(token!==resultToken)return;
+
+      myMove=snap.exists()?snap.data().move:null;
+    }
+
+    if(phase==="revealed"||phase==="finished"){
+      const snap=await getDocs(moveCollection(round));
+
+      if(token!==resultToken)return;
+
+      currentMoves={};
+
+      snap.docs.forEach(d=>{
+        currentMoves[d.id]=d.data().move;
+      });
+    }
+
+    render();
+  }catch(error){
+    console.error("讀取回合資料失敗",error);
+    toast("讀取回合資料失敗："+error.message);
+  }
+}
+
+function render(){
+  if(!roomData)return;
+
+  const phase=roomData.phase;
+  const round=roomData.round;
+  const survivors=roomData.survivors||[];
+  const alive=survivors.length;
+
+  $("roundBadge").textContent="第"+round+"回合";
+  $("aliveBadge").textContent="存活"+alive+"人";
+  $("playerCount").textContent=players.length+"人";
+
+  const phaseText={
+    lobby:"⏳ 等待主持人開始比賽",
+    collecting:"🥊 本回合出拳中",
+    revealed:"🎉 本回合結果已公布",
+    finished:"🏆 比賽結束！"
+  };
+
+  $("gameStatus").textContent=phaseText[phase]||phase;
+
+  const active=!isHost&&survivors.includes(uid);
+  const eliminated=!isHost&&phase!=="lobby"&&!active;
+
+  show("startBtn",isHost&&phase==="lobby");
+  show("hostMoveArea",isHost&&phase==="collecting");
+  show("revealBtn",isHost&&phase==="collecting");
+  show("nextBtn",isHost&&phase==="revealed");
+
+  $("startBtn").disabled=busy||players.length<3;
+  $("resetBtn").disabled=busy;
+
+  const submitted=players.filter(p=>
+    survivors.includes(p.id)&&
+    p.submittedRound===round
+  ).length;
+
+  if(isHost){
+    $("progressText").textContent=
+      phase==="lobby"
+      ?"目前有 "+players.length+" 位參賽者，至少3人才能開始"
+      :phase==="collecting"
+      ?"玩家已出拳 "+submitted+" / "+alive+" 人"
+      :"";
+
+    $("revealBtn").disabled=
+      busy||
+      !myMove||
+      submitted!==alive||
+      alive<3;
+
+    for(const button of $("hostMoves").children){
+      button.disabled=busy||!!myMove;
+      button.classList.toggle(
+        "selected",
+        button.dataset.move===myMove
+      );
+    }
+
+    $("nextBtn").disabled=busy||
+      !currentMoves[roomData.hostUid];
+  }
+
+  if(!isHost){
+    let message="";
+
+    if(phase==="lobby"){
+      message="⏳ 已加入遊戲，等待主持人開始。";
+    }else if(eliminated){
+      message="💔 你已遭到淘汰！可以繼續觀看其他玩家的戰況。";
+    }else if(phase==="collecting"){
+      message=myMove
+        ?"✅ 已出拳 "+emoji(myMove)+"，等待主持人公布結果。"
+        :"請選擇本回合要出的拳！";
+    }else if(phase==="revealed"){
+      message="🎯 本回合結果已公布，請查看下方戰況。";
+    }else{
+      message="🏆 比賽已結束！";
+    }
+
+    $("playerMessage").textContent=message;
+
+    for(const button of $("playerMoves").children){
+      button.disabled=
+        busy||
+        phase!=="collecting"||
+        !active||
+        !!myMove;
+
+      button.classList.toggle(
+        "selected",
+        button.dataset.move===myMove
+      );
+    }
+  }
+
+  renderPlayers();
+  renderHistory();
+
+  if(phase==="revealed"||phase==="finished"){
+    renderRoundResult();
+  }else{
+    show("roundResult",false);
+  }
+
+  show("finalBox",phase==="finished");
+
+  if(phase==="finished"){
+    const box=$("winnerList");
+    box.replaceChildren();
+
+    survivors.forEach((id,index)=>{
+      const player=players.find(p=>p.id===id);
+      const p=document.createElement("p");
+      p.style.fontSize="23px";
+      p.style.fontWeight="bold";
+      p.textContent=
+        ["🥇","🥈","🥉"][index]+
+        " "+(player?.name||"玩家");
+      box.append(p);
+    });
+  }
+}
+
+function renderPlayers(){
+  const box=$("playerList");
+  box.replaceChildren();
+
+  const survivors=roomData.survivors||[];
+  const round=roomData.round;
+
+  const sorted=[...players].sort((a,b)=>{
+    const aAlive=survivors.includes(a.id);
+    const bAlive=survivors.includes(b.id);
+    return Number(bAlive)-Number(aAlive);
+  });
+
+  for(const player of sorted){
+    const row=document.createElement("div");
+    row.className="player";
+
+    const left=document.createElement("strong");
+    left.textContent=
+      player.name+(player.id===uid?"（我）":"");
+
+    const right=document.createElement("span");
+
+    if(roomData.phase==="lobby"){
+      right.textContent="🟢 已加入";
+    }else if(!survivors.includes(player.id)){
+      right.textContent="❌ 已淘汰";
+      row.classList.add("out");
+    }else if(roomData.phase==="collecting"){
+      right.textContent=
+        player.submittedRound===round
+        ?"✅ 已出拳"
+        :"⏳ 未出拳";
+    }else{
+      right.textContent="💚 存活";
+    }
+
+    row.append(left,right);
+    box.append(row);
+  }
+
+  if(!sorted.length){
+    box.textContent="尚無玩家";
+  }
+}
+
+function renderHistory(){
+  const box=$("historyList");
+  box.replaceChildren();
+
+  const history=roomData.history||[];
+
+  if(!history.length){
+    box.textContent="尚無紀錄";
+    return;
+  }
+
+  [...history].reverse().forEach(item=>{
+    const div=document.createElement("div");
+    div.className="historyItem";
+
+    div.textContent=
+      "第"+item.round+"回合｜主持人 "+
+      emoji(item.hostMove)+"｜"+
+      (item.invalid
+        ?"淘汰後不足3人，本回合不計"
+        :"淘汰 "+item.eliminated.length+" 人")+
+      "｜剩餘 "+item.remaining+" 人";
+
+    box.append(div);
+  });
+}
+
+function calculateResult(){
+  const hostMove=currentMoves[roomData.hostUid];
+  const survivors=roomData.survivors||[];
+
+  if(!hostMove)return null;
+
+  const eliminated=[];
+  const winners=[];
+  const ties=[];
+
+  for(const id of survivors){
+    const move=currentMoves[id];
+    if(!move)return null;
+
+    if(playerLoses(move,hostMove)){
+      eliminated.push(id);
+    }else if(playerWins(move,hostMove)){
+      winners.push(id);
+    }else{
+      ties.push(id);
+    }
+  }
+
+  const remaining=survivors.filter(
+    id=>!eliminated.includes(id)
+  );
+
+  const invalid=remaining.length<3;
+
+  return{
+    hostMove,
+    eliminated,
+    winners,
+    ties,
+    remaining:invalid?survivors:remaining,
+    invalid
+  };
+}
+
+function renderRoundResult(){
+  const result=calculateResult();
+
+  show("roundResult",true);
+
+  if(!result){
+    $("hostResultMove").textContent="⏳";
+    $("roundSummary").textContent="正在讀取本回合結果...";
+    $("roundPlayers").replaceChildren();
+    return;
+  }
+
+  $("hostResultMove").textContent=emoji(result.hostMove);
+
+  $("roundSummary").textContent=
+    "玩家獲勝："+result.winners.length+"人｜"+
+    "平手："+result.ties.length+"人｜"+
+    "玩家落敗："+result.eliminated.length+"人。"+
+    (result.invalid
+      ?" ⚠️ 淘汰後會少於3人，本回合不淘汰，重新猜拳。"
+      :"");
+
+  const box=$("roundPlayers");
+  box.replaceChildren();
+
+  for(const id of roomData.survivors){
+    const player=players.find(p=>p.id===id);
+    const move=currentMoves[id];
+
+    let status="平手晉級";
+    if(result.winners.includes(id))status="獲勝晉級";
+    if(result.eliminated.includes(id)){
+      status=result.invalid?"本回合不淘汰":"淘汰";
+    }
+
+    const row=document.createElement("div");
+    row.className="player";
+
+    const left=document.createElement("span");
+    left.textContent=(player?.name||"玩家")+" "+emoji(move);
+
+    const right=document.createElement("strong");
+    right.textContent=status;
+
+    row.append(left,right);
+    box.append(row);
+  }
+}
+
+/* 主持人開始比賽 */
+
+$("startBtn").onclick=async()=>{
+  if(!isHost||busy)return;
+
+  if(players.length<3){
+    alert("至少需要3位玩家");
+    return;
+  }
+
+  if(!confirm("確定開始比賽？開始後不能新增玩家。"))return;
+
+  setBusy(true);
+
+  try{
+    const ids=players.map(p=>p.id);
+
+    await runTransaction(db,async tx=>{
+      const ref=roomRef();
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+      if(snap.data().phase!=="lobby"){
+        throw new Error("比賽已開始");
+      }
+
+      tx.update(ref,{
+        phase:"collecting",
+        round:1,
+        survivors:ids,
+        history:[]
+      });
+    });
+
+    toast("🎉 比賽開始！");
+
+  }catch(error){
+    fail(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+/* 所有人出拳 */
+
+async function submitMove(move){
+  if(busy||!roomData||roomData.phase!=="collecting")return;
+  if(myMove)return;
+
+  if(!isHost&&!roomData.survivors.includes(uid)){
+    alert("你已淘汰，不能再出拳");
+    return;
+  }
+
+  setBusy(true);
+
+  try{
+    const round=roomData.round;
+
+    if(isHost){
+      await setDoc(moveRef(round,uid),{
+        move,
+        createdAt:serverTimestamp()
+      });
+    }else{
+      const batch=writeBatch(db);
+
+      batch.set(moveRef(round,uid),{
+        move,
+        createdAt:serverTimestamp()
+      });
+
+      batch.update(playerRef(uid),{
+        submittedRound:round
+      });
+
+      await batch.commit();
+    }
+
+    myMove=move;
+    toast("已完成出拳！");
+  }catch(error){
+    fail(error);
+  }finally{
+    setBusy(false);
+  }
+}
+
+/* 公布結果 */
+
+$("revealBtn").onclick=async()=>{
+  if(!isHost||busy||!myMove)return;
+
+  const alive=roomData.survivors.length;
+  const submitted=players.filter(p=>
+    roomData.survivors.includes(p.id)&&
+    p.submittedRound===roomData.round
+  ).length;
+
+  if(submitted!==alive){
+    alert("還有玩家尚未出拳");
+    return;
+  }
+
+  if(!confirm("確定公布本回合結果？"))return;
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=roomRef();
+      const snap=await tx.get(ref);
+
+      if(!snap.exists())throw new Error("房間不存在");
+      if(snap.data().phase!=="collecting"){
+        throw new Error("目前無法公布");
+      }
+
+      tx.update(ref,{phase:"revealed"});
+    });
+
+    toast("🎉 已公布結果！");
+  }catch(error){
+    fail(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+/* 結算並進入下一回合 */
+
+$("nextBtn").onclick=async()=>{
+  if(!isHost||busy)return;
+
+  const result=calculateResult();
+
+  if(!result){
+    alert("尚未取得完整結果，請稍候");
+    return;
+  }
+
+  setBusy(true);
+
+  try{
+    const oldRound=roomData.round;
+    const remaining=result.remaining;
+
+    const record={
+      round:oldRound,
+      hostMove:result.hostMove,
+      eliminated:result.invalid?[]:result.eliminated,
+      remaining:remaining.length,
+      invalid:result.invalid
+    };
+
+    await runTransaction(db,async tx=>{
+      const ref=roomRef();
+      const snap=await tx.get(ref);
+
+      if(!snap.exists())throw new Error("房間不存在");
+
+      const data=snap.data();
+
+      if(data.phase!=="revealed"||data.round!==oldRound){
+        throw new Error("回合狀態已變更");
+      }
+
+      const finished=remaining.length===3;
+
+      tx.update(ref,{
+        phase:finished?"finished":"collecting",
+        round:finished?oldRound:oldRound+1,
+        survivors:remaining,
+        history:[...(data.history||[]),record]
+      });
+    });
+
+    myMove=null;
+    currentMoves={};
+
+    toast(
+      remaining.length===3
+      ?"🏆 最終3位得獎者出爐！"
+      :"開始下一回合！"
+    );
+
+  }catch(error){
+    fail(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+/* 重新開始 */
+
+$("resetBtn").onclick=async()=>{
+  if(!isHost||busy)return;
+
+  if(!confirm(
+    "確定重新開始整場比賽？\n所有玩家恢復參賽資格，回到等待開始畫面。"
+  ))return;
+
+  setBusy(true);
+
+  try{
+    await updateDoc(roomRef(),{
+      phase:"lobby",
+      round:0,
+      survivors:[],
+      history:[]
+    });
+
+    myMove=null;
+    currentMoves={};
+
+    toast("已重新開始");
+  }catch(error){
+    fail(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+/* 分享 */
+
+$("shareBtn").onclick=async()=>{
+  const url=location.origin+location.pathname+
+    "?room="+encodeURIComponent(room);
+
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"上新莊歡樂猜拳淘汰賽",
+        text:"一起來玩猜拳！",
+        url
+      });
+    }else{
+      await navigator.clipboard.writeText(url);
+      toast("房間連結已複製");
+    }
+  }catch(error){
+    if(error.name!=="AbortError"){
+      prompt("請複製連結：",url);
+    }
+  }
+};
+
+/* 離開畫面 */
+
+$("leaveBtn").onclick=()=>{
+  if(unsubRoom)unsubRoom();
+  if(unsubPlayers)unsubPlayers();
+
+  unsubRoom=null;
+  unsubPlayers=null;
+
+  room="";
+  roomData=null;
+  players=[];
+  myMove=null;
+  currentMoves={};
+  isHost=false;
+  resultToken++;
+
+  show("main",false);
+  show("joinBox",true);
+
+  history.replaceState({}, "", location.pathname);
+};
+
+</script>
+</body>
+</html>
