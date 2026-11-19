@@ -2,183 +2,197 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#101c32">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>上新莊冷知識快問快答</title>
 
 <style>
 *{box-sizing:border-box}
+
 body{
- margin:0;
- background:#101c32;
- color:#fff;
- font-family:-apple-system,BlinkMacSystemFont,"Microsoft JhengHei",sans-serif;
+  margin:0;
+  background:#101b31;
+  color:white;
+  font-family:Arial,"Microsoft JhengHei",sans-serif;
 }
+
 header{
- padding:26px 12px;
- text-align:center;
- background:linear-gradient(135deg,#172c4c,#294b73);
+  background:#24476e;
+  padding:25px 12px;
+  text-align:center;
 }
-header h1{font-size:27px;margin:0 0 8px}
-header p{color:#c5d5e8;margin:0}
-main{max-width:850px;margin:auto;padding:15px}
+
+h1{font-size:27px;margin:0}
+
+header p{color:#cbd9e9}
+
+main{
+  max-width:850px;
+  margin:auto;
+  padding:15px;
+}
+
 .card{
- background:#1b2d48;
- border:1px solid #344c6b;
- border-radius:17px;
- padding:20px;
- margin-bottom:15px;
+  background:#1b2e49;
+  border:1px solid #3c5677;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:15px;
 }
-h2{margin:0 0 15px;font-size:21px}
-input{
- width:100%;
- padding:14px;
- background:#101e33;
- border:1px solid #4c6585;
- border-radius:10px;
- color:#fff;
- font-size:17px;
-}
-label{display:block;margin:14px 0 7px}
-button{
- border:0;
- border-radius:11px;
- padding:14px;
- background:#3679d1;
- color:white;
- font-size:17px;
- font-weight:bold;
- cursor:pointer;
- min-height:48px;
-}
-button:disabled{opacity:.45;cursor:default}
-.full{width:100%}
-.gold{background:#f0b449;color:#17253a}
-.gray{background:#344d6d}
-.green{background:#168b70}
+
 .hide{display:none!important}
-.row{
- display:flex;
- align-items:center;
- justify-content:space-between;
- flex-wrap:wrap;
- gap:10px;
+
+input{
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  margin:10px 0 18px;
+  background:#11243c;
+  color:white;
+  border:1px solid #6684a6;
+  border-radius:9px;
 }
-.badge{
- display:inline-block;
- background:#344c6b;
- padding:8px 12px;
- border-radius:20px;
- font-size:14px;
+
+button{
+  background:#367bd1;
+  color:white;
+  border:0;
+  border-radius:10px;
+  padding:13px;
+  font-size:17px;
+  font-weight:bold;
+  cursor:pointer;
+  min-height:48px;
 }
+
+button:disabled{opacity:.5}
+
+.full{
+  width:100%;
+  margin:5px 0;
+}
+
+.gold{
+  background:#eeb44a;
+  color:#182940;
+}
+
+.gray{background:#405878}
+
 .notice{
- padding:13px;
- border-radius:11px;
- background:#263f60;
- line-height:1.7;
+  background:#2a4565;
+  padding:13px;
+  border-radius:10px;
+  line-height:1.7;
+  white-space:pre-line;
 }
-.muted{color:#b7c9e0;font-size:14px;line-height:1.7}
-.center{text-align:center}
-.timer{
- font-size:58px;
- font-weight:900;
- text-align:center;
- color:#ffd16e;
- margin:12px 0;
+
+.muted{color:#b9cee3}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
 }
-.timer.urgent{color:#ff6877}
-.question{
- font-size:23px;
- font-weight:800;
- line-height:1.55;
- margin:20px 0;
-}
-.options{
- display:grid;
- grid-template-columns:1fr 1fr;
- gap:12px;
-}
-.option{
- background:#31557d;
- min-height:90px;
- padding:15px;
- text-align:left;
- line-height:1.5;
-}
-.option.selected{background:#d89d32;color:#142238}
-.option.correct{background:#138b6d}
-.option.wrong{background:#a63c4c}
-.option span{
- display:block;
- font-size:24px;
- margin-bottom:5px;
-}
+
 .stats{
- display:grid;
- grid-template-columns:repeat(3,1fr);
- gap:8px;
- margin:15px 0;
+  display:flex;
+  justify-content:space-around;
+  background:#28405c;
+  padding:12px;
+  border-radius:10px;
+  margin:12px 0;
 }
-.stat{
- background:#263d5b;
- padding:12px 6px;
- border-radius:10px;
- text-align:center;
+
+.stats b{color:#ffd06a}
+
+.timer{
+  text-align:center;
+  font-size:60px;
+  color:#ffd06a;
+  font-weight:900;
 }
-.stat strong{
- display:block;
- font-size:23px;
- color:#ffd16e;
+
+.question{
+  font-size:24px;
+  font-weight:bold;
+  line-height:1.5;
+  margin:20px 0;
 }
+
+.options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.option{
+  background:#345a82;
+  text-align:left;
+  min-height:75px;
+}
+
+.selected{
+  background:#e2ad49;
+  color:#14243b;
+}
+
+.correct{background:#16866b}
+
+.wrong{background:#a83b4c}
+
 .rank{
- display:grid;
- grid-template-columns:48px 1fr 95px;
- align-items:center;
- gap:10px;
- padding:13px 5px;
- border-bottom:1px solid #344c6b;
+  display:flex;
+  justify-content:space-between;
+  padding:13px;
+  border-bottom:1px solid #415978;
 }
-.rank.me{background:#304b6b;border-radius:9px}
-.rank strong{text-align:right;color:#ffd16e}
-.rank .place{font-size:21px;text-align:center}
-.progress{
- height:9px;
- background:#354b68;
- border-radius:9px;
- overflow:hidden;
- margin:10px 0;
+
+.rank.me{background:#385474}
+
+.record{
+  background:#29425f;
+  margin:9px 0;
+  border-radius:9px;
 }
-.progress div{
- height:100%;
- background:#f0b449;
- width:0;
- transition:width .2s;
+
+.record summary{
+  padding:13px;
+  cursor:pointer;
 }
-.answer-stat{
- padding:10px 0;
- border-bottom:1px solid #344c6b;
+
+.record div{
+  padding:12px;
+  line-height:1.8;
 }
-.answer-stat b{color:#ffd16e}
+
+.good{background:#17614f}
+
+.bad{background:#693243}
+
+#error{
+  background:#742f42;
+  color:white;
+}
+
 #toast{
- position:fixed;
- bottom:20px;
- left:50%;
- transform:translateX(-50%);
- background:#f0b449;
- color:#15253c;
- padding:13px 18px;
- border-radius:12px;
- z-index:20;
- display:none;
- max-width:90%;
- text-align:center;
+  position:fixed;
+  bottom:20px;
+  left:10%;
+  width:80%;
+  text-align:center;
+  background:#f0b94d;
+  color:#182940;
+  border-radius:10px;
+  padding:12px;
+  display:none;
+  z-index:999;
 }
-@media(max-width:480px){
- .options{grid-template-columns:1fr}
- .option{min-height:64px}
- .option span{display:inline;margin-right:12px;font-size:20px}
- .question{font-size:21px}
- .timer{font-size:48px}
+
+@media(max-width:550px){
+  .options{grid-template-columns:1fr}
+  .question{font-size:21px}
 }
 </style>
 </head>
@@ -186,1248 +200,1606 @@ button:disabled{opacity:.45;cursor:default}
 <body>
 
 <header>
-<h1>🧠 上新莊冷知識快問快答</h1>
-<p>10題挑戰・速度積分・即時排行榜</p>
+  <h1>🧠 上新莊冷知識快問快答</h1>
+  <p>100題題庫｜隨機10題｜速度積分挑戰</p>
 </header>
 
 <main>
 
 <section id="entry" class="card">
-<h2>🎮 加入遊戲</h2>
-<div id="connection" class="notice">正在連接 Firebase...</div>
 
-<label>房間代碼</label>
-<input id="roomCode" maxlength="20" placeholder="例如 QUIZ888">
+  <h2>🎮 加入遊戲</h2>
 
-<label>你的暱稱</label>
-<input id="nickname" maxlength="16" placeholder="請輸入姓名">
+  <div id="connection" class="notice">
+    正在連接 Firebase…
+  </div>
 
-<br><br>
-<button id="joinBtn" class="gold full" disabled>連線中...</button>
+  <div id="error" class="notice hide"></div>
 
-<p class="muted">
-第一位建立房間的人自動成為主持人，不參賽。<br>
-至少3位玩家即可開始。每題10秒，共10題。
-</p>
+  <p>房間代碼</p>
+  <input id="roomCode" placeholder="例如 QUIZ888" maxlength="20">
+
+  <p>你的暱稱</p>
+  <input id="nickname" placeholder="請輸入姓名" maxlength="16">
+
+  <button id="join" class="gold full" disabled>
+    連線中…
+  </button>
+
+  <p class="muted">
+    第一位建立房間的人是主持人，不參賽。<br>
+    至少3位玩家才能開始。<br>
+    每題10秒，第10題雙倍積分。
+  </p>
+
 </section>
 
 <div id="game" class="hide">
 
 <section class="card">
-<div class="row">
-<h2 id="roomTitle">遊戲房間</h2>
-<span id="role" class="badge"></span>
-</div>
 
-<div id="phaseText" class="notice"></div>
+  <div class="row">
+    <h2 id="roomTitle"></h2>
+    <b id="role"></b>
+  </div>
 
-<div class="stats">
-<div class="stat"><strong id="playerCount">0</strong>玩家</div>
-<div class="stat"><strong id="questionNumber">0/10</strong>題目</div>
-<div class="stat"><strong id="answeredCount">0</strong>已作答</div>
-</div>
+  <div id="phase" class="notice"></div>
 
-<div class="row">
-<button id="shareBtn" class="gray">📤 分享房間</button>
-<button id="leaveBtn" class="gray">🚪 離開畫面</button>
-</div>
+  <div class="stats">
+    <span>玩家 <b id="count">0</b></span>
+    <span>題目 <b id="number">0/10</b></span>
+    <span>已答 <b id="answered">0</b></span>
+  </div>
+
+  <div class="row">
+    <button id="share" class="gray">📤 分享房間</button>
+    <button id="leave" class="gray">🚪 離開畫面</button>
+  </div>
+
 </section>
 
 <section id="hostPanel" class="card hide">
-<h2>👑 主持人控制台</h2>
 
-<div id="hostHelp" class="notice">
-等待玩家加入，至少3位玩家即可開始。
-</div>
+  <h2>👑 主持人控制台</h2>
 
-<br>
+  <div id="hostInfo" class="notice"></div>
 
-<button id="startBtn" class="gold full hide">
-▶️ 開始第1題
-</button>
+  <button id="start" class="gold full hide">
+    ▶ 開始第1題
+  </button>
 
-<button id="revealBtn" class="green full hide">
-📊 公布本題答案
-</button>
+  <button id="reveal" class="full hide">
+    📊 公布答案
+  </button>
 
-<button id="nextBtn" class="gold full hide">
-➡️ 下一題
-</button>
+  <button id="next" class="gold full hide">
+    ➡ 下一題
+  </button>
 
-<button id="finishBtn" class="gold full hide">
-🏆 公布最終排行榜
-</button>
+  <button id="finish" class="gold full hide">
+    🏆 公布最終排名
+  </button>
 
-<br>
-<button id="resetBtn" class="gray full">
-🔄 重新開始10題
-</button>
+  <button id="reset" class="gray full">
+    🔄 重新抽題開始新一場
+  </button>
+
 </section>
 
 <section id="questionPanel" class="card hide">
 
-<div class="row">
-<span id="qBadge" class="badge">第1題</span>
-<span id="doubleBadge" class="badge hide">🔥 雙倍積分</span>
-</div>
+  <div class="row">
+    <b id="qLabel"></b>
+    <b id="double" class="hide">🔥 雙倍積分</b>
+  </div>
 
-<div id="timer" class="timer">10.0</div>
-<div class="progress"><div id="timerBar"></div></div>
+  <div id="timer" class="timer">10.0</div>
 
-<div id="questionText" class="question"></div>
+  <div id="qText" class="question"></div>
 
-<div id="options" class="options"></div>
+  <div id="options" class="options"></div>
 
-<p id="answerMessage" class="notice center">
-請選擇答案
-</p>
+  <p id="answerInfo" class="notice">
+    請選擇答案
+  </p>
 
 </section>
 
 <section id="resultPanel" class="card hide">
-<h2>🎯 本題結果</h2>
 
-<div id="correctAnswer" class="notice"></div>
-<div id="myResult" class="notice" style="margin-top:10px"></div>
+  <h2>🎯 本題結果</h2>
 
-<h2 style="margin-top:20px">📊 作答統計</h2>
-<div id="answerStats"></div>
+  <div id="correctInfo" class="notice"></div>
 
-<p id="explanation" class="muted"></p>
-</section>
+  <br>
 
-<section id="rankPanel" class="card">
-<h2 id="rankTitle">🏆 即時排行榜</h2>
-<div id="rankList"></div>
+  <div id="myResult" class="notice"></div>
+
+  <p id="explain" class="muted"></p>
+
+  <h3>📊 選項統計</h3>
+
+  <div id="optionStats"></div>
+
 </section>
 
 <section class="card">
-<h2>👥 玩家名單</h2>
-<div id="playersList" class="muted"></div>
+
+  <h2 id="rankTitle">🏆 即時排行榜</h2>
+
+  <div id="ranks">等待玩家…</div>
+
+</section>
+
+<section id="personal" class="card hide">
+
+  <h2>📋 我的10題作答紀錄</h2>
+
+  <div id="summary"></div>
+
+  <div id="records"></div>
+
+</section>
+
+<section class="card">
+
+  <h2>👥 玩家名單</h2>
+
+  <div id="playerList"></div>
+
 </section>
 
 </div>
+
 </main>
 
 <div id="toast"></div>
 
 <script type="module">
 
-import {initializeApp}
-from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import {initializeApp} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 
 import {
- getAuth,
- signInAnonymously,
- onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
+} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 import {
- getFirestore,
- doc,
- collection,
- getDoc,
- onSnapshot,
- runTransaction,
- setDoc,
- serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+  getFirestore,
+  doc,
+  collection,
+  getDoc,
+  onSnapshot,
+  runTransaction,
+  setDoc,
+  serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 
-/* ============================
+/* ==========================
    Firebase 設定
-============================ */
+========================== */
 
-const firebaseConfig={
- apiKey:"AIzaSyByWLmFGZYZpwF60daHSxzTN22bUWXnHbQ",
- authDomain:"shangxin-bomb-game.firebaseapp.com",
- projectId:"shangxin-bomb-game",
- storageBucket:"shangxin-bomb-game.firebasestorage.app",
- messagingSenderId:"944292892956",
- appId:"1:944292892956:web:8fa456f6706d0c69686ad9"
+const firebaseConfig = {
+  apiKey:"AIzaSyByWLmFGZYZpwF60daHSxzTN22bUWXnHbQ",
+  authDomain:"shangxin-bomb-game.firebaseapp.com",
+  projectId:"shangxin-bomb-game",
+  storageBucket:"shangxin-bomb-game.firebasestorage.app",
+  messagingSenderId:"944292892956",
+  appId:"1:944292892956:web:8fa456f6706d0c69686ad9"
 };
 
-const app=initializeApp(firebaseConfig);
-const auth=getAuth(app);
-const db=getFirestore(app);
 
+/* ==========================
+   100題冷知識題庫
 
-/* ============================
-   固定10題冷知識
-============================ */
+   格式：
+   題目、正確答案、錯誤1、
+   錯誤2、錯誤3、解釋
 
-const QUESTIONS=[
- {
-  q:"以下哪一種動物有三顆心臟？",
-  options:["海豚","章魚","鯊魚","海龜"],
-  answer:"B",
-  explanation:"章魚有三顆心臟，其中兩顆負責將血液送往鰓。"
- },
- {
-  q:"人體最大的器官是哪一個？",
-  options:["肝臟","肺臟","皮膚","心臟"],
-  answer:"C",
-  explanation:"皮膚是人體最大的器官，具有保護、感覺及調節體溫等功能。"
- },
- {
-  q:"下列哪一種動物屬於哺乳類？",
-  options:["企鵝","海豚","鱷魚","海龜"],
-  answer:"B",
-  explanation:"海豚用肺呼吸，並以乳汁哺育幼兒，因此屬於哺乳類。"
- },
- {
-  q:"太陽系中體積最大的行星是哪一顆？",
-  options:["土星","海王星","木星","天王星"],
-  answer:"C",
-  explanation:"木星是太陽系中體積最大的行星。"
- },
- {
-  q:"標準大氣壓下，純水的沸點約為攝氏幾度？",
-  options:["90度","95度","100度","105度"],
-  answer:"C",
-  explanation:"在標準大氣壓下，純水的沸點約為攝氏100度。"
- },
- {
-  q:"下列哪一種水果在植物學分類上屬於漿果？",
-  options:["草莓","覆盆子","香蕉","黑莓"],
-  answer:"C",
-  explanation:"香蕉在植物學上屬於漿果；草莓、覆盆子與黑莓並非植物學定義的漿果。"
- },
- {
-  q:"世界上面積最大的海洋是哪一個？",
-  options:["大西洋","印度洋","太平洋","北冰洋"],
-  answer:"C",
-  explanation:"太平洋是地球上面積最大的海洋。"
- },
- {
-  q:"下列哪一種金屬的化學元素符號是 Ag？",
-  options:["金","銀","鋁","銅"],
-  answer:"B",
-  explanation:"Ag 是銀的元素符號；金是 Au、鋁是 Al、銅是 Cu。"
- },
- {
-  q:"聲音在下列哪一種介質中通常傳播得最快？",
-  options:["空氣","純水","鋼鐵","真空"],
-  answer:"C",
-  explanation:"在一般條件下，聲音在鋼鐵中的傳播速度高於水及空氣；真空無法傳聲。"
- },
- {
-  q:"下列哪一顆行星的自轉方向與地球相反？",
-  options:["火星","木星","金星","水星"],
-  answer:"C",
-  explanation:"金星為逆行自轉，其自轉方向與地球相反。"
- }
+   正確答案固定放第2欄，
+   遊戲開始會自動打亂選項。
+========================== */
+
+const BANK = [
+
+["章魚有幾顆心臟？","3","1","2","4","章魚有三顆心臟。"],
+["蜘蛛通常有幾隻腳？","8","6","10","12","蜘蛛有八隻步足。"],
+["下列何者是哺乳類？","海豚","企鵝","鱷魚","海龜","海豚用肺呼吸並哺乳。"],
+["下列何者是鳥類？","企鵝","蝙蝠","飛鼠","蜻蜓","企鵝是鳥類。"],
+["下列何者會產卵？","鴨嘴獸","貓","狗","海豚","鴨嘴獸是卵生哺乳類。"],
+["毛毛蟲是蝴蝶的哪個階段？","幼蟲","蛹","卵","成蟲","毛毛蟲是幼蟲。"],
+["下列何者沒有脊椎？","水母","青蛙","蛇","鯨魚","水母是無脊椎動物。"],
+["下列何者是兩棲類？","青蛙","蜥蜴","海龜","鴿子","青蛙屬於兩棲類。"],
+["下列何者是昆蟲？","螞蟻","蜘蛛","蠍子","蜈蚣","螞蟻有六隻腳。"],
+["蝙蝠屬於哪一類動物？","哺乳類","鳥類","爬蟲類","魚類","蝙蝠是哺乳類。"],
+
+["人體最大的器官是？","皮膚","肝臟","心臟","肺臟","皮膚是人體最大器官。"],
+["人體負責輸送血液的器官是？","心臟","胃","肝臟","腎臟","心臟負責泵送血液。"],
+["人體主要氣體交換器官是？","肺","胃","腎臟","脾臟","肺泡進行氣體交換。"],
+["包含智齒的完整成人恆牙共有幾顆？","32","28","24","20","完整恆牙齒列有32顆。"],
+["哪個器官製造膽汁？","肝臟","胃","胰臟","腎臟","膽汁由肝臟製造。"],
+["哪種血球主要運送氧氣？","紅血球","白血球","血小板","淋巴球","紅血球含血紅素。"],
+["哪種血液成分參與凝血？","血小板","紅血球","葡萄糖","膽紅素","血小板參與止血。"],
+["聽小骨位於哪裡？","中耳","鼻腔","眼球","喉嚨","聽小骨位於中耳。"],
+["哪個器官主要形成尿液？","腎臟","胃","肺","胰臟","腎臟過濾血液形成尿液。"],
+["視網膜位於哪裡？","眼睛","耳朵","鼻子","舌頭","視網膜位於眼球內。"],
+
+["太陽系體積最大行星是？","木星","土星","海王星","天王星","木星體積最大。"],
+["地球的天然衛星是？","月球","火星","金星","木星","月球是地球天然衛星。"],
+["太陽屬於哪種天體？","恆星","行星","衛星","彗星","太陽是恆星。"],
+["離太陽最近的行星是？","水星","金星","地球","火星","水星最接近太陽。"],
+["哪顆行星以明顯行星環聞名？","土星","水星","金星","地球","土星有明顯行星環。"],
+["紅色行星是？","火星","金星","木星","海王星","火星表面氧化鐵使其偏紅。"],
+["地球公轉太陽一圈約需？","一年","一天","一個月","十年","地球公轉約365.25天。"],
+["月球的主要可見光來源是？","反射太陽光","自身燃燒","地球發光","閃電","月球主要反射太陽光。"],
+["哪顆行星自轉方向與地球相反？","金星","火星","木星","水星","金星逆向自轉。"],
+["主要小行星帶位於哪兩顆行星間？","火星與木星","地球與火星","木星與土星","金星與地球","主要小行星帶位於火星與木星之間。"],
+
+["面積最大的海洋是？","太平洋","大西洋","印度洋","北冰洋","太平洋面積最大。"],
+["埃及位於哪一洲？","非洲","亞洲","歐洲","南美洲","埃及位於非洲東北部。"],
+["日本首都是？","東京","大阪","京都","名古屋","日本首都是東京。"],
+["澳洲首都是？","坎培拉","雪梨","墨爾本","伯斯","澳洲首都是坎培拉。"],
+["哪個國家位於南美洲？","巴西","葡萄牙","埃及","泰國","巴西位於南美洲。"],
+["台灣最高山峰是？","玉山","雪山","合歡山","阿里山","玉山主峰為台灣最高峰。"],
+["日月潭位於哪個縣？","南投縣","花蓮縣","宜蘭縣","苗栗縣","日月潭位於南投縣。"],
+["富士山位於哪個國家？","日本","韓國","中國","越南","富士山位於日本。"],
+["哪個國家位於歐洲？","挪威","秘魯","印度","肯亞","挪威位於北歐。"],
+["羅馬競技場位於哪國？","義大利","希臘","法國","西班牙","羅馬競技場位於義大利。"],
+
+["標準大氣壓下純水沸點約為？","100°C","90°C","80°C","110°C","純水沸點約100°C。"],
+["水的化學式是？","H2O","CO2","O2","NaCl","水分子是H2O。"],
+["氧氣分子的化學式是？","O2","CO2","H2","N2","常見氧氣分子是O2。"],
+["食鹽主要成分是？","NaCl","H2O","CO2","O2","食鹽主要是氯化鈉。"],
+["Ag是哪種元素？","銀","金","鋁","銅","Ag代表銀。"],
+["Au是哪種元素？","金","銀","鐵","銅","Au代表金。"],
+["Fe是哪種元素？","鐵","鋁","銀","鋅","Fe代表鐵。"],
+["聲音能在真空中傳播嗎？","不能","可以","只有低音能","只有高音能","聲音需要介質。"],
+["通常聲音在哪種介質傳得較快？","鋼鐵","空氣","水","真空","聲音在鋼鐵通常比空氣與水快。"],
+["真空中的光速約每秒幾公里？","30萬","3千","3萬","300萬","光速約每秒30萬公里。"],
+
+["植物學上哪種水果是漿果？","香蕉","草莓","覆盆子","黑莓","香蕉在植物學上屬漿果。"],
+["光合作用主要吸收哪種氣體？","二氧化碳","氧氣","氮氣","氦氣","光合作用吸收二氧化碳。"],
+["光合作用利用哪種能量？","光能","聲能","核能","電能","光合作用利用光能。"],
+["傳統豆腐主要由什麼製成？","黃豆","小麥","玉米","馬鈴薯","豆腐以黃豆豆漿製成。"],
+["白米主要來自哪種作物？","稻","小麥","玉米","燕麥","白米來自稻穀。"],
+["巧克力主要原料之一是？","可可豆","黃豆","綠豆","咖啡豆","巧克力以可可加工品製成。"],
+["紅茶主要由哪種植物葉片製成？","茶樹","咖啡樹","可可樹","橄欖樹","紅茶來自茶樹葉片。"],
+["優格通常由什麼發酵製成？","牛奶","豆漿","果汁","米漿","優格常用乳酸菌發酵牛奶。"],
+["哪種植物屬於禾本科？","小麥","玫瑰","向日葵","仙人掌","小麥是禾本科。"],
+["馬鈴薯在植物學上屬於？","塊莖","果實","種子","葉片","馬鈴薯是變態地下莖。"],
+
+["古埃及使用哪種文字？","象形文字","拉丁字母","注音符號","假名","古埃及使用象形文字。"],
+["萬里長城主要位於哪國？","中國","印度","蒙古","日本","長城主要位於中國。"],
+["文藝復興最早興起於哪個地區？","義大利","瑞典","冰島","愛爾蘭","文藝復興最早興起於義大利。"],
+["莎士比亞是哪國劇作家？","英國","法國","德國","西班牙","莎士比亞是英國劇作家。"],
+["《蒙娜麗莎》作者是？","達文西","梵谷","畢卡索","莫內","《蒙娜麗莎》是達文西作品。"],
+["《星夜》作者是？","梵谷","達文西","米開朗基羅","拉斐爾","《星夜》是梵谷作品。"],
+["貝多芬以哪種藝術聞名？","音樂","雕塑","建築","攝影","貝多芬是作曲家。"],
+["古代奧運起源於？","古希臘","古埃及","古羅馬","古印度","古奧運起源於古希臘。"],
+["自由女神像位於美國哪個城市？","紐約","洛杉磯","芝加哥","波士頓","自由女神像位於紐約港。"],
+["一個直角是多少度？","90","45","60","180","直角為90度。"],
+
+["平面三角形內角和是多少度？","180","90","270","360","歐氏平面三角形內角和180度。"],
+["一公尺等於幾公分？","100","10","1000","10000","一公尺等於100公分。"],
+["一公斤等於幾公克？","1000","10","100","10000","一公斤等於1000公克。"],
+["一公升等於幾毫升？","1000","10","100","10000","一公升等於1000毫升。"],
+["一般平年有幾天？","365","364","366","367","平年有365天。"],
+["閏年的二月有幾天？","29","27","28","30","閏年二月有29天。"],
+["一打是幾個？","12","6","10","24","一打是12個。"],
+["正方形有幾條對角線？","2","1","3","4","正方形有兩條對角線。"],
+["圓的直徑是半徑的幾倍？","2","1","3","4","直徑為半徑兩倍。"],
+["CPU主要負責？","執行指令與運算","列印","顯示器供電","網路佈線","CPU負責執行指令與運算。"],
+
+["RAM是什麼？","隨機存取記憶體","唯讀記憶體","光碟","硬碟","RAM是隨機存取記憶體。"],
+["哪個是常見圖片格式？","JPG","MP3","MP4","TXT","JPG是圖片格式。"],
+["哪個是常見音訊格式？","MP3","PNG","PDF","HTML","MP3是音訊格式。"],
+["HTML主要用於？","描述網頁結構","影片剪輯","音訊錄製","硬體散熱","HTML描述網頁結構。"],
+["USB中的U代表？","Universal","Ultra","Unique","United","USB全名Universal Serial Bus。"],
+["GPS主要提供？","衛星定位","影像壓縮","電池充電","文字翻譯","GPS是全球定位系統。"],
+["QR Code中的QR代表？","Quick Response","Quality Radio","Quantum Reader","Quick Record","QR是Quick Response。"],
+["哪個是網頁瀏覽器？","Chrome","Excel","PowerPoint","Photoshop","Chrome是瀏覽器。"],
+["哪個是數位資料容量單位？","GB","公斤","公升","攝氏度","GB是資料容量單位。"],
+["乾燥大氣中占比最高的氣體是？","氮氣","氧氣","二氧化碳","氦氣","氮氣約占乾燥大氣78%。"],
+
+["哪個不是RGB光三原色？","黃色","紅色","綠色","藍色","RGB為紅綠藍。"],
+["紅光與紫光哪個波長較長？","紅光","紫光","相同","都沒有波長","紅光波長較長。"],
+["磁鐵有哪兩種磁極？","南極與北極","東極與西極","上極與下極","左極與右極","磁鐵有南北磁極。"],
+["地球自轉約對應？","一天","一週","一個月","一年","地球自轉約一天。"],
+["標準大氣壓下純冰熔點約為？","0°C","-10°C","50°C","100°C","純冰熔點約0°C。"],
+["哪種物態有固定體積但無固定形狀？","液體","固體","氣體","真空","液體形狀隨容器改變。"],
+["地球最外層固體構造是？","地殼","外核","內核","地函","地殼是最外層固體構造。"],
+["地震規模主要描述？","地震事件大小","降雨量","氣溫","風速","規模反映地震事件大小。"],
+["哪種儀器用來測量氣溫？","溫度計","氣壓計","風速計","雨量計","溫度計測量溫度。"],
+["人體骨骼主要含哪種礦物質？","鈣","金","銀","銅","骨骼富含鈣質。"]
+
 ];
 
-const LETTERS=["A","B","C","D"];
-const QUESTION_MS=10000;
+
+/* ==========================
+   基本設定
+========================== */
+
+const $ = id => document.getElementById(id);
+
+const show = (id,on) => {
+  $(id).classList.toggle("hide",!on);
+};
+
+const LETTERS = ["A","B","C","D"];
+
+const COL = "triviaRoomsV4";
+
+let db;
+let auth;
+let uid = "";
+let roomId = "";
+let isHost = false;
+let room = null;
+let players = [];
+let answers = [];
+let busy = false;
+let submitting = false;
+let unsubs = [];
+let ticker = null;
+let autoKey = "";
+let pendingChoice = null;
+let sessionToken = 0;
+
+const params = new URLSearchParams(location.search);
+
+$("roomCode").value = params.get("room") || "";
+$("nickname").value = localStorage.getItem("quizNick") || "";
 
 
-/* ============================
-   狀態
-============================ */
+/* ==========================
+   提示訊息
+========================== */
 
-const $=id=>document.getElementById(id);
+function toast(s){
+  $("toast").textContent = s;
+  $("toast").style.display = "block";
 
-let uid="";
-let roomId="";
-let isHost=false;
-let roomData=null;
-let players=[];
-let answers=[];
-let ready=false;
-let busy=false;
-
-let unsubscribers=[];
-let timerInterval=null;
-let lastAutoRevealKey="";
-let submitting=false;
-
-const params=new URLSearchParams(location.search);
-
-$("roomCode").value=params.get("room")||"";
-$("nickname").value=localStorage.getItem("quizNickname")||"";
-
-
-/* ============================
-   工具
-============================ */
-
-function show(id,value){
- $(id).classList.toggle("hide",!value);
+  setTimeout(()=>{
+    $("toast").style.display = "none";
+  },2500);
 }
 
-function toast(message){
- const el=$("toast");
- el.textContent=message;
- el.style.display="block";
- clearTimeout(toast.t);
- toast.t=setTimeout(()=>el.style.display="none",3000);
+function error(e){
+  console.error(e);
+  alert("操作失敗：" + (e?.message || String(e)));
 }
 
-function fail(e){
- console.error(e);
- alert("操作失敗："+(e.message||e));
+function connectError(e){
+
+  console.error(e);
+
+  $("connection").textContent = "❌ Firebase 連線失敗";
+
+  $("error").textContent =
+    "錯誤代碼：" + (e?.code || "unknown") +
+    "\n" + (e?.message || String(e)) +
+    "\n請檢查 Firebase 匿名登入、授權網域及網路連線。";
+
+  show("error",true);
 }
 
-function roomRef(){
- return doc(db,"quizRooms",roomId);
+
+/* ==========================
+   Firebase 登入
+========================== */
+
+try{
+
+  const app = initializeApp(firebaseConfig);
+
+  auth = getAuth(app);
+  db = getFirestore(app);
+
+  onAuthStateChanged(auth,user=>{
+
+    if(user){
+
+      uid = user.uid;
+
+      $("connection").textContent = "✅ Firebase 已連線";
+
+      $("join").disabled = false;
+      $("join").textContent = "加入／建立房間";
+
+      show("error",false);
+
+    }else{
+
+      $("connection").textContent = "正在登入 Firebase…";
+      $("join").disabled = true;
+
+    }
+
+  },connectError);
+
+  signInAnonymously(auth).catch(connectError);
+
+}catch(e){
+
+  connectError(e);
+
 }
 
-function answerRef(id,index,session){
- return doc(
-  db,"quizRooms",roomId,"answers",
-  `${id}_${session}_${index}`
- );
+
+/* ==========================
+   Firestore 路徑
+========================== */
+
+const ref = () => doc(db,COL,roomId);
+
+const aRef = (id,s,i) =>
+  doc(db,COL,roomId,"answers",`${id}_${s}_${i}`);
+
+
+/* ==========================
+   題目隨機抽選
+========================== */
+
+function shuffle(arr){
+
+  const a = [...arr];
+
+  for(let i=a.length-1;i>0;i--){
+
+    const j = Math.floor(Math.random()*(i+1));
+
+    [a[i],a[j]] = [a[j],a[i]];
+
+  }
+
+  return a;
 }
 
-function questionStart(){
- return roomData?.questionStartedAt?.toMillis?.()||0;
+function picks(){
+
+  return shuffle(
+    Array.from({length:BANK.length},(_,i)=>i)
+  )
+  .slice(0,10)
+  .map(id=>({
+    id,
+    order:shuffle([0,1,2,3])
+  }));
+
 }
 
-function currentQuestion(){
- return QUESTIONS[roomData?.questionIndex]||null;
+function question(i){
+
+  const p = room?.picks?.[i];
+
+  if(!p)return null;
+
+  const x = BANK[p.id];
+
+  return {
+    text:x[0],
+    options:p.order.map(j=>x[j+1]),
+    correct:p.order.indexOf(0),
+    explain:x[5]
+  };
+
+}
+
+
+/* ==========================
+   時間、答案與計分
+========================== */
+
+function time(t){
+  return t?.toMillis?.() || 0;
+}
+
+function startTime(i){
+  return time(room?.starts?.["q"+i]);
+}
+
+function mine(i=room?.questionIndex){
+
+  return answers.find(a=>
+    a.uid===uid &&
+    a.session===room?.session &&
+    a.questionIndex===i
+  );
+
 }
 
 function currentAnswers(){
- if(!roomData||roomData.questionIndex<0)return [];
 
- return answers.filter(a=>
-  a.session===roomData.session &&
-  a.questionIndex===roomData.questionIndex
- );
-}
-
-function myAnswer(){
- return currentAnswers().find(a=>a.uid===uid);
-}
-
-function getScore(a){
-
- if(!roomData||!a?.submittedAt)return 0;
-
- const q=QUESTIONS[a.questionIndex];
-
- if(!q||a.choice!==q.answer)return 0;
-
- const key=`${a.session}_${a.questionIndex}`;
-
- const start=roomData.starts?.[key];
-
- if(!start?.toMillis)return 0;
-
- const ms=a.submittedAt.toMillis()-start.toMillis();
-
- if(ms<0||ms>=QUESTION_MS)return 0;
-
- let score=600;
-
- if(ms<=2000)score=1000;
- else if(ms<=4000)score=900;
- else if(ms<=6000)score=800;
- else if(ms<=8000)score=700;
-
- return a.questionIndex===9?score*2:score;
-}
-
-function leaderboard(){
-
- if(!roomData)return [];
-
- const result=players.map(p=>{
-
-  const mine=answers.filter(a=>
-   a.uid===p.id &&
-   a.session===roomData.session &&
-   a.questionIndex<=roomData.questionIndex &&
-   (
-    a.questionIndex<roomData.questionIndex ||
-    roomData.phase==="results" ||
-    roomData.phase==="finished"
-   )
+  return answers.filter(a=>
+    a.session===room?.session &&
+    a.questionIndex===room?.questionIndex
   );
 
-  const total=mine.reduce(
-   (sum,a)=>sum+getScore(a),0
-  );
+}
 
-  const correct=mine.filter(a=>getScore(a)>0).length;
+function revealed(i){
 
-  const time=mine.reduce((sum,a)=>{
+  return room?.phase==="finished" ||
+    i<room?.questionIndex ||
+    (
+      i===room?.questionIndex &&
+      room?.phase==="results"
+    );
 
-   if(!getScore(a))return sum;
+}
 
-   const start=roomData.starts?.[
-    `${a.session}_${a.questionIndex}`
-   ];
+function points(a){
 
-   if(!start?.toMillis||!a.submittedAt)return sum;
+  if(!a || !room)return 0;
 
-   return sum+Math.max(
-    0,
-    a.submittedAt.toMillis()-start.toMillis()
-   );
+  const q = question(a.questionIndex);
 
-  },0);
+  if(!q || a.choice!==q.correct)return 0;
 
-  return {...p,total,correct,time};
+  const ms =
+    time(a.submittedAt) -
+    startTime(a.questionIndex);
 
- });
+  if(ms<0 || ms>=10000)return 0;
 
- result.sort((a,b)=>
-  b.total-a.total ||
-  b.correct-a.correct ||
-  a.time-b.time ||
-  a.name.localeCompare(b.name,"zh-TW")
- );
+  let n;
 
- return result;
+  if(ms<=2000)n=1000;
+  else if(ms<=4000)n=900;
+  else if(ms<=6000)n=800;
+  else if(ms<=8000)n=700;
+  else n=600;
+
+  return n*(a.questionIndex===9?2:1);
+
 }
 
 
-/* ============================
-   Firebase 登入
-============================ */
+/* ==========================
+   排行榜
+========================== */
 
-onAuthStateChanged(auth,user=>{
- if(!user)return;
+function ranking(){
 
- uid=user.uid;
- ready=true;
+  return players.map(p=>{
 
- $("connection").textContent="✅ Firebase 已連線";
- $("joinBtn").disabled=false;
- $("joinBtn").textContent="加入／建立房間";
-});
+    const aa = answers.filter(a=>
+      a.uid===p.id &&
+      a.session===room?.session &&
+      revealed(a.questionIndex)
+    );
 
-signInAnonymously(auth).catch(fail);
+    return {
+      ...p,
+
+      score:aa.reduce(
+        (s,a)=>s+points(a),0
+      ),
+
+      correct:aa.filter(
+        a=>points(a)>0
+      ).length,
+
+      time:aa.reduce(
+        (s,a)=>s+(
+          points(a)>0
+          ?Math.max(
+            0,
+            time(a.submittedAt)-startTime(a.questionIndex)
+          )
+          :0
+        ),0
+      )
+    };
+
+  }).sort((a,b)=>
+    b.score-a.score ||
+    b.correct-a.correct ||
+    a.time-b.time ||
+    a.name.localeCompare(b.name,"zh-TW")
+  );
+
+}
 
 
-/* ============================
-   加入房間
-============================ */
+/* ==========================
+   加入／建立房間
+========================== */
 
-$("joinBtn").onclick=async()=>{
+$("join").onclick = async()=>{
 
- if(!ready||busy)return;
+  if(busy || !uid)return;
 
- const code=$("roomCode").value.trim()
-  .toUpperCase()
-  .replace(/[^A-Z0-9_-]/g,"")
-  .slice(0,20);
+  const code = $("roomCode")
+    .value.trim().toUpperCase()
+    .replace(/[^A-Z0-9_-]/g,"")
+    .slice(0,20);
 
- const nick=$("nickname").value.trim().slice(0,16);
+  const nick = $("nickname")
+    .value.trim().slice(0,16);
 
- if(!code||!nick){
-  alert("請輸入房間代碼與暱稱");
-  return;
- }
+  if(!code || !nick){
 
- busy=true;
- $("joinBtn").disabled=true;
-
- try{
-
-  const ref=doc(db,"quizRooms",code);
-
-  await runTransaction(db,async tx=>{
-
-   const snap=await tx.get(ref);
-
-   if(!snap.exists()){
-
-    tx.set(ref,{
-     hostUid:uid,
-     phase:"lobby",
-     questionIndex:-1,
-     questionStartedAt:null,
-     revealAt:null,
-     session:1,
-     starts:{},
-     createdAt:serverTimestamp()
-    });
-
-   }
-
-  });
-
-  const snap=await getDoc(ref);
-  const data=snap.data();
-
-  const host=data.hostUid===uid;
-
-  if(!host){
-
-   const pref=doc(
-    db,"quizRooms",code,"players",uid
-   );
-
-   const existing=await getDoc(pref);
-
-   if(!existing.exists()){
-
-    if(data.phase!=="lobby"){
-     throw Error("遊戲已開始，無法加入");
-    }
-
-    await setDoc(pref,{
-     name:nick,
-     joinedAt:serverTimestamp()
-    });
-
-   }
+    alert("請輸入房間代碼與暱稱");
+    return;
 
   }
 
-  cleanup();
+  busy = true;
+  $("join").disabled = true;
 
-  roomId=code;
-  isHost=host;
-  roomData=null;
-  players=[];
-  answers=[];
-  lastAutoRevealKey="";
+  try{
 
-  localStorage.setItem("quizNickname",nick);
+    const r = doc(db,COL,code);
 
-  show("entry",false);
-  show("game",true);
+    await runTransaction(db,async tx=>{
 
-  history.replaceState(
-   {}, "",
-   location.pathname+"?room="+encodeURIComponent(code)
-  );
+      const d = await tx.get(r);
 
-  subscribe();
+      if(!d.exists()){
 
- }catch(e){
-  fail(e);
- }finally{
-  busy=false;
-  $("joinBtn").disabled=false;
- }
+        tx.set(r,{
+          hostUid:uid,
+          phase:"lobby",
+          session:1,
+          questionIndex:-1,
+          questionStartedAt:null,
+          picks:[],
+          starts:{},
+          createdAt:serverTimestamp()
+        });
+
+      }
+
+    });
+
+    const snap = await getDoc(r);
+
+    const d = snap.data();
+
+    const host = d.hostUid===uid;
+
+    if(!host){
+
+      const pr = doc(db,COL,code,"players",uid);
+
+      if(!(await getDoc(pr)).exists()){
+
+        if(d.phase!=="lobby"){
+          throw Error("遊戲已開始，無法加入");
+        }
+
+        await setDoc(pr,{
+          name:nick,
+          joinedAt:serverTimestamp()
+        });
+
+      }
+
+    }
+
+    cleanup();
+
+    roomId = code;
+    isHost = host;
+
+    room = null;
+    players = [];
+    answers = [];
+
+    autoKey = "";
+    pendingChoice = null;
+
+    localStorage.setItem("quizNick",nick);
+
+    show("entry",false);
+    show("game",true);
+
+    history.replaceState(
+      {},
+      "",
+      location.pathname+"?room="+encodeURIComponent(code)
+    );
+
+    subscribe();
+
+  }catch(e){
+
+    error(e);
+
+  }finally{
+
+    busy = false;
+    $("join").disabled = !uid;
+
+  }
 
 };
 
 
-/* ============================
-   即時監聽
-============================ */
-
-function subscribe(){
-
- unsubscribers.push(
-
-  onSnapshot(roomRef(),snap=>{
-
-   if(!snap.exists())return;
-
-   roomData=snap.data();
-
-   render();
-   updateTimer();
-
-  },fail)
-
- );
-
- unsubscribers.push(
-
-  onSnapshot(
-   collection(db,"quizRooms",roomId,"players"),
-   snap=>{
-
-    players=snap.docs.map(d=>({
-     id:d.id,
-     ...d.data()
-    }));
-
-    render();
-
-   },
-   fail
-  )
-
- );
-
- unsubscribers.push(
-
-  onSnapshot(
-   collection(db,"quizRooms",roomId,"answers"),
-   snap=>{
-
-    answers=snap.docs.map(d=>({
-     id:d.id,
-     ...d.data()
-    }));
-
-    render();
-
-   },
-   fail
-  )
-
- );
-
- timerInterval=setInterval(updateTimer,150);
-
-}
+/* ==========================
+   即時同步
+========================== */
 
 function cleanup(){
 
- unsubscribers.forEach(fn=>fn());
- unsubscribers=[];
+  sessionToken++;
 
- clearInterval(timerInterval);
- timerInterval=null;
+  unsubs.forEach(f=>f());
+
+  unsubs = [];
+
+  clearInterval(ticker);
+  ticker = null;
+
+}
+
+function subscribe(){
+
+  const token = sessionToken;
+
+  unsubs.push(
+    onSnapshot(ref(),s=>{
+
+      if(token!==sessionToken)return;
+
+      if(s.exists()){
+        room=s.data();
+        render();
+      }
+
+    },error)
+  );
+
+  unsubs.push(
+    onSnapshot(
+      collection(db,COL,roomId,"players"),
+      s=>{
+
+        if(token!==sessionToken)return;
+
+        players=s.docs.map(x=>({
+          id:x.id,
+          ...x.data()
+        }));
+
+        render();
+
+      },error
+    )
+  );
+
+  unsubs.push(
+    onSnapshot(
+      collection(db,COL,roomId,"answers"),
+      s=>{
+
+        if(token!==sessionToken)return;
+
+        answers=s.docs.map(x=>({
+          id:x.id,
+          ...x.data()
+        }));
+
+        render();
+
+      },error
+    )
+  );
+
+  ticker=setInterval(tick,150);
 
 }
 
 
-/* ============================
-   畫面
-============================ */
+/* ==========================
+   畫面更新
+========================== */
 
 function render(){
 
- if(!roomData)return;
+  if(!room)return;
 
- const d=roomData;
- const index=d.questionIndex;
- const q=currentQuestion();
- const current=currentAnswers();
+  const i=room.questionIndex;
 
- $("roomTitle").textContent="房間："+roomId;
- $("role").textContent=isHost?"👑 主持人":"🎮 玩家";
+  const q=question(i);
 
- $("playerCount").textContent=players.length;
+  const ca=currentAnswers();
 
- $("questionNumber").textContent=
-  index<0?"0/10":`${index+1}/10`;
+  $("roomTitle").textContent="房間："+roomId;
 
- $("answeredCount").textContent=current.length;
+  $("role").textContent=
+    isHost?"👑 主持人":"🎮 玩家";
 
- const phases={
-  lobby:"⏳ 等待玩家加入",
-  question:"⚡ 快問快答進行中",
-  results:"📊 本題結果已公布",
-  finished:"🏆 10題挑戰完成！"
- };
+  $("count").textContent=players.length;
 
- $("phaseText").textContent=phases[d.phase]||"";
+  $("number").textContent=
+    i<0?"0/10":`${i+1}/10`;
 
- show("hostPanel",isHost);
+  $("answered").textContent=ca.length;
 
- show("startBtn",isHost&&d.phase==="lobby");
- show("revealBtn",isHost&&d.phase==="question");
- show("nextBtn",isHost&&d.phase==="results"&&index<9);
- show("finishBtn",isHost&&d.phase==="results"&&index===9);
+  $("phase").textContent=({
+    lobby:"⏳ 等待玩家加入",
+    question:"⚡ 題目進行中",
+    results:"📊 本題答案已公布",
+    finished:"🏆 全部10題完成"
+  })[room.phase];
 
- $("startBtn").disabled=busy||players.length<3;
+  show("hostPanel",isHost);
 
- $("revealBtn").disabled=
-  busy||Date.now()<questionStart()+QUESTION_MS;
-
- $("nextBtn").disabled=busy;
- $("finishBtn").disabled=busy;
- $("resetBtn").disabled=busy;
-
- $("hostHelp").textContent=
-  d.phase==="lobby"
-  ?`目前${players.length}位玩家，至少3位即可開始。`
-  :d.phase==="question"
-  ?`目前已作答 ${current.length}/${players.length} 人。10秒結束後公布答案。`
-  :d.phase==="results"
-  ?"答案已公布，可以進入下一題。"
-  :"比賽已完成，可以重新開始。";
-
- show(
-  "questionPanel",
-  d.phase==="question"||d.phase==="results"
- );
-
- show(
-  "resultPanel",
-  d.phase==="results"||d.phase==="finished"
- );
-
- if(q&&(d.phase==="question"||d.phase==="results")){
-
-  $("qBadge").textContent=`第 ${index+1} / 10 題`;
-
-  show("doubleBadge",index===9);
-
-  $("questionText").textContent=q.q;
-
-  const selected=myAnswer()?.choice;
-  const opts=$("options");
-
-  opts.replaceChildren();
-
-  LETTERS.forEach((letter,i)=>{
-
-   const btn=document.createElement("button");
-   btn.className="option";
-
-   const mark=document.createElement("span");
-   mark.textContent=letter+".";
-
-   const label=document.createTextNode(q.options[i]);
-
-   btn.append(mark,label);
-
-   if(selected===letter){
-    btn.classList.add("selected");
-   }
-
-   if(d.phase==="results"){
-
-    if(letter===q.answer){
-     btn.classList.add("correct");
-    }else if(selected===letter){
-     btn.classList.add("wrong");
-    }
-
-   }
-
-   btn.disabled=
-    isHost||
-    d.phase!=="question"||
-    !!selected||
-    submitting||
-    Date.now()>=questionStart()+QUESTION_MS;
-
-   btn.onclick=()=>submitAnswer(letter);
-
-   opts.append(btn);
-
-  });
-
-  $("answerMessage").textContent=
-   isHost
-   ?"👑 主持人不參賽，請等待玩家作答。"
-   :d.phase==="results"
-   ?"本題已結束"
-   :selected
-   ?`✅ 已送出 ${selected}，等待公布答案`
-   :Date.now()>=questionStart()+QUESTION_MS
-   ?"⏰ 作答時間結束"
-   :"請在10秒內選擇答案，送出後不可更改。";
-
- }
-
- if(d.phase==="results"&&q){
-
-  const correctIndex=LETTERS.indexOf(q.answer);
-
-  $("correctAnswer").textContent=
-   `✅ 正確答案：${q.answer}. ${q.options[correctIndex]}`;
-
-  $("explanation").textContent="💡 "+q.explanation;
-
-  const mine=myAnswer();
-
-  $("myResult").textContent=isHost
-   ?"主持人不計分"
-   :mine
-   ?`本題得分：${getScore(mine).toLocaleString()} 分`
-   :"本題未作答：0分";
-
-  const stats=$("answerStats");
-  stats.replaceChildren();
-
-  LETTERS.forEach((letter,i)=>{
-
-   const count=current.filter(a=>a.choice===letter).length;
-
-   const div=document.createElement("div");
-   div.className="answer-stat";
-
-   const b=document.createElement("b");
-   b.textContent=`${letter}. ${q.options[i]}`;
-
-   div.append(
-    b,
-    document.createTextNode(`　${count}人`)
-   );
-
-   stats.append(div);
-
-  });
-
- }
-
- if(d.phase==="finished"){
-
-  $("correctAnswer").textContent=
-   "🎉 全部10題結束！恭喜完成挑戰！";
-
-  $("myResult").textContent=isHost
-   ?"主持人不參賽"
-   :`你的總分：${
-      leaderboard().find(p=>p.id===uid)?.total||0
-    } 分`;
-
-  $("answerStats").replaceChildren();
-  $("explanation").textContent="";
-
- }
-
- renderRanks();
- renderPlayers();
-
-}
-
-
-/* ============================
-   排行榜
-============================ */
-
-function renderRanks(){
-
- const list=$("rankList");
- list.replaceChildren();
-
- if(!roomData)return;
-
- const ranking=leaderboard();
-
- $("rankTitle").textContent=
-  roomData.phase==="finished"
-  ?"🏆 最終總排行榜"
-  :"🏆 即時累積排行榜";
-
- if(!ranking.length){
-  list.textContent="等待玩家加入...";
-  return;
- }
-
- ranking.forEach((p,i)=>{
-
-  const row=document.createElement("div");
-  row.className="rank";
-
-  if(p.id===uid)row.classList.add("me");
-
-  const place=document.createElement("span");
-  place.className="place";
-
-  place.textContent=
-   ["🥇","🥈","🥉"][i]||`${i+1}`;
-
-  const name=document.createElement("span");
-  name.textContent=
-   p.name+(p.id===uid?"（我）":"");
-
-  const score=document.createElement("strong");
-  score.textContent=p.total.toLocaleString()+"分";
-
-  row.append(place,name,score);
-  list.append(row);
-
- });
-
-}
-
-function renderPlayers(){
-
- const list=$("playersList");
- list.replaceChildren();
-
- players.forEach(p=>{
-
-  const div=document.createElement("div");
-  div.style.padding="7px 0";
-
-  div.textContent=
-   "👤 "+p.name+(p.id===uid?"（我）":"");
-
-  list.append(div);
-
- });
-
-}
-
-
-/* ============================
-   倒數計時
-============================ */
-
-function updateTimer(){
-
- if(!roomData||roomData.phase!=="question")return;
-
- const start=questionStart();
- if(!start)return;
-
- const remaining=Math.max(
-  0,
-  QUESTION_MS-(Date.now()-start)
- );
-
- $("timer").textContent=
-  (remaining/1000).toFixed(1);
-
- $("timer").classList.toggle(
-  "urgent",remaining<=3000
- );
-
- $("timerBar").style.width=
-  (remaining/QUESTION_MS*100)+"%";
-
- if(remaining===0){
-
-  $("answerMessage").textContent=
-   myAnswer()
-   ?"✅ 已送出答案，等待公布"
-   :"⏰ 時間到！";
-
-  $("options").querySelectorAll("button")
-   .forEach(b=>b.disabled=true);
-
-  if(isHost){
-   autoReveal();
-  }
-
- }
-
-}
-
-async function autoReveal(){
-
- const key=`${roomData.session}_${roomData.questionIndex}`;
-
- if(lastAutoRevealKey===key||busy)return;
-
- lastAutoRevealKey=key;
-
- try{
-  await revealQuestion();
- }catch(e){
-  console.error(e);
-  lastAutoRevealKey="";
- }
-
-}
-
-
-/* ============================
-   玩家送出答案
-============================ */
-
-async function submitAnswer(choice){
-
- if(
-  isHost||
-  submitting||
-  !roomData||
-  roomData.phase!=="question"||
-  myAnswer()
- )return;
-
- if(Date.now()>=questionStart()+QUESTION_MS){
-  toast("⏰ 作答時間已結束");
-  return;
- }
-
- submitting=true;
- render();
-
- try{
-
-  const index=roomData.questionIndex;
-  const session=roomData.session;
-
-  await setDoc(
-   answerRef(uid,index,session),
-   {
-    uid,
-    session,
-    questionIndex:index,
-    choice,
-    submittedAt:serverTimestamp()
-   }
+  show(
+    "start",
+    isHost && room.phase==="lobby"
   );
 
-  toast("✅ 答案已送出！");
+  show(
+    "reveal",
+    isHost && room.phase==="question"
+  );
 
- }catch(e){
-  fail(e);
- }finally{
-  submitting=false;
-  render();
- }
+  show(
+    "next",
+    isHost &&
+    room.phase==="results" &&
+    i<9
+  );
+
+  show(
+    "finish",
+    isHost &&
+    room.phase==="results" &&
+    i===9
+  );
+
+  $("start").disabled=
+    busy || players.length<3;
+
+  $("reveal").disabled=
+    busy ||
+    Date.now()<time(room.questionStartedAt)+10000;
+
+  $("hostInfo").textContent=
+    room.phase==="lobby"
+    ?`目前${players.length}位玩家，至少3位才能開始。`
+    :room.phase==="question"
+    ?`已作答 ${ca.length}/${players.length} 人，10秒後自動公布。`
+    :room.phase==="results"
+    ?"請按下一題。"
+    :"可以重新抽題開始新一場。";
+
+  show(
+    "questionPanel",
+    room.phase==="question" ||
+    room.phase==="results"
+  );
+
+  show(
+    "resultPanel",
+    room.phase==="results"
+  );
+
+  show(
+    "personal",
+    room.phase==="finished" && !isHost
+  );
+
+  if(q && (
+    room.phase==="question" ||
+    room.phase==="results"
+  )){
+    renderQuestion(q);
+  }
+
+  if(q && room.phase==="results"){
+    renderResult(q);
+  }
+
+  if(room.phase==="finished" && !isHost){
+    renderPersonal();
+  }
+
+  renderRank();
+
+  $("playerList").replaceChildren(
+    ...players.map(p=>{
+
+      const d=document.createElement("p");
+
+      d.textContent=
+        "👤 "+p.name+
+        (p.id===uid?"（我）":"");
+
+      return d;
+
+    })
+  );
+
+  tick();
 
 }
 
 
-/* ============================
-   主持人：開始題目
-============================ */
+/* ==========================
+   題目顯示
+========================== */
 
-async function startQuestion(nextIndex){
+function renderQuestion(q){
 
- if(!isHost||busy)return;
+  $("qLabel").textContent=
+    `第${room.questionIndex+1}/10題`;
 
- busy=true;
+  show("double",room.questionIndex===9);
 
- try{
+  $("qText").textContent=q.text;
 
-  await runTransaction(db,async tx=>{
+  const a=mine();
 
-   const ref=roomRef();
-   const snap=await tx.get(ref);
-   const d=snap.data();
+  const selected=
+    a?.choice??pendingChoice;
 
-   if(!d||d.hostUid!==uid){
-    throw Error("只有主持人可以操作");
-   }
+  $("options").replaceChildren(
+    ...q.options.map((v,i)=>{
 
-   if(nextIndex===0){
+      const b=document.createElement("button");
 
-    if(d.phase!=="lobby"){
-     throw Error("遊戲已開始");
+      b.className="option";
+
+      b.textContent=LETTERS[i]+". "+v;
+
+      if(selected===i){
+        b.classList.add("selected");
+      }
+
+      if(room.phase==="results"){
+
+        if(i===q.correct){
+          b.classList.add("correct");
+        }else if(i===selected){
+          b.classList.add("wrong");
+        }
+
+      }
+
+      b.disabled=
+        isHost ||
+        room.phase!=="question" ||
+        (selected!==null && selected!==undefined) ||
+        submitting ||
+        Date.now()>=time(room.questionStartedAt)+10000;
+
+      b.onclick=()=>submit(i);
+
+      return b;
+
+    })
+  );
+
+  $("answerInfo").textContent=
+    isHost
+    ?"主持人不參賽"
+    :room.phase==="results"
+    ?"本題結束，請查看結果"
+    :a
+    ?`✅ 已送出 ${LETTERS[a.choice]}，等待公布`
+    :pendingChoice!==null
+    ?"正在送出答案…"
+    :"請在10秒內作答，送出後不能更改";
+
+}
+
+
+/* ==========================
+   每題結果
+========================== */
+
+function renderResult(q){
+
+  $("correctInfo").textContent=
+    `✅ 正確答案：${LETTERS[q.correct]}. ${q.options[q.correct]}`;
+
+  $("explain").textContent="💡 "+q.explain;
+
+  const a=mine();
+
+  const box=$("myResult");
+
+  box.className="notice";
+
+  const rank=ranking();
+
+  const me=rank.find(p=>p.id===uid);
+
+  const place=rank.findIndex(p=>p.id===uid)+1;
+
+  if(isHost){
+
+    box.textContent="👑 主持人不計分";
+
+  }else if(!a){
+
+    box.textContent="⏰ 未作答｜本題0分";
+
+  }else if(a.choice===q.correct){
+
+    box.classList.add("good");
+
+    box.textContent=
+      `✅ 答對！你的答案：${LETTERS[a.choice]} ${q.options[a.choice]}\n`+
+      `本題 +${points(a)} 分｜累積 ${me?.score||0} 分｜目前第 ${place} 名`;
+
+  }else{
+
+    box.classList.add("bad");
+
+    box.textContent=
+      `❌ 答錯！你的答案：${LETTERS[a.choice]} ${q.options[a.choice]}\n`+
+      `正確答案：${LETTERS[q.correct]} ${q.options[q.correct]}｜本題0分`;
+
+  }
+
+  $("optionStats").replaceChildren(
+    ...q.options.map((v,i)=>{
+
+      const p=document.createElement("p");
+
+      p.textContent=
+        `${LETTERS[i]}. ${v}：`+
+        `${currentAnswers().filter(a=>a.choice===i).length}人`;
+
+      return p;
+
+    })
+  );
+
+}
+
+
+/* ==========================
+   排名顯示
+========================== */
+
+function renderRank(){
+
+  const r=ranking();
+
+  $("rankTitle").textContent=
+    room.phase==="finished"
+    ?"🏆 最終排行榜"
+    :"🏆 即時排行榜";
+
+  $("ranks").replaceChildren(
+    ...r.map((p,i)=>{
+
+      const d=document.createElement("div");
+
+      d.className=
+        "rank"+(p.id===uid?" me":"");
+
+      const n=document.createElement("span");
+      const s=document.createElement("b");
+
+      n.textContent=
+        (["🥇","🥈","🥉"][i]||`${i+1}.`)+
+        " "+p.name+
+        (p.id===uid?"（我）":"");
+
+      s.textContent=
+        p.score.toLocaleString()+"分";
+
+      d.append(n,s);
+
+      return d;
+
+    })
+  );
+
+  if(!r.length){
+    $("ranks").textContent="等待玩家…";
+  }
+
+}
+
+
+/* ==========================
+   最終個人作答紀錄
+========================== */
+
+function renderPersonal(){
+
+  const rank=ranking();
+
+  const me=rank.find(p=>p.id===uid);
+
+  const place=rank.findIndex(p=>p.id===uid)+1;
+
+  let c=0,w=0,m=0;
+
+  for(let i=0;i<10;i++){
+
+    const a=mine(i);
+    const q=question(i);
+
+    if(!a)m++;
+    else if(a.choice===q.correct)c++;
+    else w++;
+
+  }
+
+  $("summary").className="notice";
+
+  $("summary").textContent=
+    `🎉 總分 ${(me?.score||0).toLocaleString()} 分｜第 ${place} 名／${rank.length}人\n`+
+    `✅答對${c}題　❌答錯${w}題　⏰未答${m}題`;
+
+  $("records").replaceChildren(
+    ...Array.from({length:10},(_,i)=>{
+
+      const q=question(i);
+      const a=mine(i);
+
+      const d=document.createElement("details");
+      const s=document.createElement("summary");
+      const body=document.createElement("div");
+
+      d.className="record";
+
+      s.textContent=
+        `第${i+1}題　`+
+        (!a
+          ?"⏰未作答"
+          :a.choice===q.correct
+          ?"✅答對"
+          :"❌答錯"
+        )+
+        `　${points(a)}分`;
+
+      body.textContent=
+        `${q.text}\n`+
+        `你的答案：${a?LETTERS[a.choice]+". "+q.options[a.choice]:"未作答"}\n`+
+        `正確答案：${LETTERS[q.correct]}. ${q.options[q.correct]}\n`+
+        `💡 ${q.explain}`;
+
+      body.style.whiteSpace="pre-line";
+
+      d.append(s,body);
+
+      return d;
+
+    })
+  );
+
+}
+
+
+/* ==========================
+   10秒倒數
+========================== */
+
+function tick(){
+
+  if(!room || room.phase!=="question")return;
+
+  const t=time(room.questionStartedAt);
+
+  if(!t)return;
+
+  const left=Math.max(
+    0,
+    10000-(Date.now()-t)
+  );
+
+  $("timer").textContent=(left/1000).toFixed(1);
+
+  $("timer").style.color=
+    left<=3000?"#ff7b8c":"#ffd06a";
+
+  if(left===0){
+
+    $("options")
+      .querySelectorAll("button")
+      .forEach(b=>b.disabled=true);
+
+    $("answerInfo").textContent=
+      "⏰ 時間到，等待公布答案";
+
+    if(isHost){
+
+      const key=
+        room.session+"_"+room.questionIndex;
+
+      if(autoKey!==key && !busy){
+
+        autoKey=key;
+
+        reveal(true).catch(()=>{
+          autoKey="";
+        });
+
+      }
+
     }
 
-    if(players.length<3){
-     throw Error("至少需要3位玩家");
-    }
+  }
 
-   }else{
+}
+
+
+/* ==========================
+   玩家作答
+========================== */
+
+async function submit(choice){
+
+  if(
+    isHost ||
+    submitting ||
+    mine() ||
+    pendingChoice!==null ||
+    room?.phase!=="question"
+  )return;
+
+  if(Date.now()>=time(room.questionStartedAt)+10000){
+
+    toast("時間到");
+    return;
+
+  }
+
+  const s=room.session;
+  const i=room.questionIndex;
+
+  pendingChoice=choice;
+  submitting=true;
+
+  renderQuestion(question(i));
+
+  try{
+
+    await setDoc(
+      aRef(uid,s,i),
+      {
+        uid,
+        session:s,
+        questionIndex:i,
+        choice,
+        submittedAt:serverTimestamp()
+      }
+    );
+
+    toast("✅ 已送出");
+
+  }catch(e){
+
+    pendingChoice=null;
+    error(e);
+
+  }finally{
+
+    submitting=false;
 
     if(
-     d.phase!=="results"||
-     d.questionIndex!==nextIndex-1
+      room?.session===s &&
+      room?.questionIndex===i
     ){
-     throw Error("目前無法開始下一題");
+      renderQuestion(question(i));
     }
 
-   }
+    pendingChoice=null;
 
-   const key=`${d.session}_${nextIndex}`;
+  }
 
-   tx.update(ref,{
-    phase:"question",
-    questionIndex:nextIndex,
-    questionStartedAt:serverTimestamp(),
-    revealAt:null,
-    starts:{
-     ...(d.starts||{}),
-     [key]:serverTimestamp()
+}
+
+
+/* ==========================
+   主持人開始題目
+========================== */
+
+async function begin(i){
+
+  if(busy || !isHost)return;
+
+  busy=true;
+
+  try{
+
+    await runTransaction(db,async tx=>{
+
+      const r=ref();
+
+      const snap=await tx.get(r);
+
+      const d=snap.data();
+
+      if(d.hostUid!==uid){
+        throw Error("只有主持人可操作");
+      }
+
+      if(i===0){
+
+        if(
+          d.phase!=="lobby" ||
+          players.length<3
+        ){
+          throw Error("至少3位玩家才能開始");
+        }
+
+      }else if(
+        d.phase!=="results" ||
+        d.questionIndex!==i-1
+      ){
+
+        throw Error("目前不能進入下一題");
+
+      }
+
+      tx.update(r,{
+        phase:"question",
+        questionIndex:i,
+        questionStartedAt:serverTimestamp(),
+        picks:i===0?picks():d.picks,
+        starts:{
+          ...d.starts,
+          ["q"+i]:serverTimestamp()
+        }
+      });
+
+    });
+
+    toast(`第${i+1}題開始`);
+
+  }catch(e){
+
+    error(e);
+
+  }finally{
+
+    busy=false;
+    render();
+
+  }
+
+}
+
+
+/* ==========================
+   主持人公布答案
+========================== */
+
+async function reveal(silent=false){
+
+  if(busy || !isHost)return;
+
+  busy=true;
+
+  try{
+
+    await runTransaction(db,async tx=>{
+
+      const r=ref();
+
+      const snap=await tx.get(r);
+
+      const d=snap.data();
+
+      if(d.phase!=="question")return;
+
+      const ms=time(d.questionStartedAt);
+
+      if(!ms || Date.now()<ms+10000){
+        throw Error("尚未滿10秒");
+      }
+
+      tx.update(r,{
+        phase:"results"
+      });
+
+    });
+
+  }catch(e){
+
+    if(!silent){
+      error(e);
+    }else{
+      console.warn("自動公布稍後重試",e);
     }
-   });
 
-  });
+    throw e;
 
-  toast(`⚡ 第${nextIndex+1}題開始！`);
+  }finally{
 
- }catch(e){
-  fail(e);
- }finally{
-  busy=false;
-  render();
- }
+    busy=false;
+    render();
+
+  }
 
 }
 
 
-/* ============================
-   主持人：公布答案
-============================ */
+/* ==========================
+   最終排名
+========================== */
 
-async function revealQuestion(){
+async function finish(){
 
- if(!isHost||busy)return;
+  if(busy || !isHost)return;
 
- busy=true;
+  busy=true;
 
- try{
+  try{
 
-  await runTransaction(db,async tx=>{
+    await runTransaction(db,async tx=>{
 
-   const ref=roomRef();
-   const snap=await tx.get(ref);
-   const d=snap.data();
+      const r=ref();
 
-   if(!d||d.phase!=="question"){
-    throw Error("本題已公布");
-   }
+      const d=(await tx.get(r)).data();
 
-   const started=d.questionStartedAt?.toMillis?.();
+      if(
+        d.phase!=="results" ||
+        d.questionIndex!==9
+      ){
+        throw Error("尚未完成10題");
+      }
 
-   if(!started||Date.now()<started+10000){
-    throw Error("尚未到公布時間");
-   }
+      tx.update(r,{
+        phase:"finished"
+      });
 
-   tx.update(ref,{
-    phase:"results",
-    revealAt:serverTimestamp()
-   });
+    });
 
-  });
+  }catch(e){
 
-  toast("📊 正確答案已公布");
+    error(e);
 
- }finally{
-  busy=false;
-  render();
- }
+  }finally{
 
-}
+    busy=false;
+    render();
 
-
-/* ============================
-   主持人：結束比賽
-============================ */
-
-async function finishGame(){
-
- if(!isHost||busy)return;
-
- busy=true;
-
- try{
-
-  await runTransaction(db,async tx=>{
-
-   const ref=roomRef();
-   const snap=await tx.get(ref);
-   const d=snap.data();
-
-   if(d.phase!=="results"||d.questionIndex!==9){
-    throw Error("必須完成10題才能結束");
-   }
-
-   tx.update(ref,{phase:"finished"});
-
-  });
-
-  toast("🏆 最終排行榜公布！");
-
- }catch(e){
-  fail(e);
- }finally{
-  busy=false;
-  render();
- }
+  }
 
 }
 
 
-/* ============================
-   主持人：重新開始
-============================ */
+/* ==========================
+   重新開始
+========================== */
 
-async function resetGame(){
+async function reset(){
 
- if(!isHost||busy)return;
+  if(
+    !isHost ||
+    busy ||
+    !confirm("確定重新抽題？玩家本場分數歸零。")
+  )return;
 
- if(!confirm("確定重新開始10題？所有玩家分數歸零。")){
-  return;
- }
+  busy=true;
 
- busy=true;
+  try{
 
- try{
+    await runTransaction(db,async tx=>{
 
-  await runTransaction(db,async tx=>{
+      const r=ref();
 
-   const ref=roomRef();
-   const snap=await tx.get(ref);
-   const d=snap.data();
+      const d=(await tx.get(r)).data();
 
-   if(d.hostUid!==uid){
-    throw Error("只有主持人可以重設");
-   }
+      tx.update(r,{
+        phase:"lobby",
+        session:d.session+1,
+        questionIndex:-1,
+        questionStartedAt:null,
+        picks:[],
+        starts:{}
+      });
 
-   tx.update(ref,{
-    phase:"lobby",
-    questionIndex:-1,
-    questionStartedAt:null,
-    revealAt:null,
-    session:d.session+1,
-    starts:{}
-   });
+    });
 
-  });
+    autoKey="";
 
-  lastAutoRevealKey="";
+    toast("已重設，準備新一場");
 
-  toast("🔄 遊戲已重設");
+  }catch(e){
 
- }catch(e){
-  fail(e);
- }finally{
-  busy=false;
-  render();
- }
+    error(e);
+
+  }finally{
+
+    busy=false;
+    render();
+
+  }
 
 }
 
 
-/* ============================
+/* ==========================
    按鈕事件
-============================ */
+========================== */
 
-$("startBtn").onclick=()=>startQuestion(0);
+$("start").onclick=()=>begin(0);
 
-$("nextBtn").onclick=()=>{
- startQuestion(roomData.questionIndex+1);
-};
+$("next").onclick=()=>begin(
+  room.questionIndex+1
+);
 
-$("revealBtn").onclick=async()=>{
- try{
-  await revealQuestion();
- }catch(e){
-  fail(e);
- }
-};
+$("reveal").onclick=()=>
+  reveal().catch(()=>{});
 
-$("finishBtn").onclick=finishGame;
-$("resetBtn").onclick=resetGame;
+$("finish").onclick=finish;
 
-$("shareBtn").onclick=async()=>{
+$("reset").onclick=reset;
 
- const url=location.origin+location.pathname+
-  "?room="+encodeURIComponent(roomId);
 
- try{
+/* ==========================
+   分享房間
+========================== */
 
-  if(navigator.share){
-   await navigator.share({
-    title:"上新莊冷知識快問快答",
-    url
-   });
-  }else{
-   await navigator.clipboard.writeText(url);
-   toast("房間連結已複製");
+$("share").onclick=async()=>{
+
+  const url=
+    location.origin+
+    location.pathname+
+    "?room="+encodeURIComponent(roomId);
+
+  try{
+
+    if(navigator.share){
+
+      await navigator.share({
+        title:"冷知識快問快答",
+        url
+      });
+
+    }else{
+
+      await navigator.clipboard.writeText(url);
+
+      toast("連結已複製");
+
+    }
+
+  }catch(e){
+
+    if(e.name!=="AbortError"){
+      prompt("複製房間連結",url);
+    }
+
   }
 
- }catch(e){
-  if(e.name!=="AbortError"){
-   prompt("請複製連結",url);
-  }
- }
-
 };
 
-$("leaveBtn").onclick=()=>{
 
- cleanup();
+/* ==========================
+   離開遊戲畫面
+========================== */
 
- roomId="";
- roomData=null;
- players=[];
- answers=[];
- isHost=false;
+$("leave").onclick=()=>{
 
- show("game",false);
- show("entry",true);
+  cleanup();
 
- history.replaceState({}, "",location.pathname);
+  roomId="";
+  room=null;
+  players=[];
+  answers=[];
+  isHost=false;
+
+  show("game",false);
+  show("entry",true);
+
+  history.replaceState(
+    {},
+    "",
+    location.pathname
+  );
 
 };
 
 </script>
+
 </body>
 </html>
