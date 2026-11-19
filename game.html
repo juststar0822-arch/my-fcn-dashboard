@@ -1,1613 +1,1369 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0,maximum-scale=1.0">
-
-<title>上新莊歡樂遊戲大廳</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上新莊歡樂賓果 Bingo</title>
 
 <style>
-
-*{
-box-sizing:border-box;
-}
+*{box-sizing:border-box}
 
 body{
-margin:0;
-font-family:Arial,"Microsoft JhengHei",sans-serif;
-background:#eef2f7;
-color:#24344b;
+  margin:0;
+  font-family:Arial,"Microsoft JhengHei",sans-serif;
+  background:#eef2f7;
+  color:#20334c;
 }
 
 header{
-background:linear-gradient(135deg,#142b49,#315b85);
-color:white;
-text-align:center;
-padding:28px 15px;
+  background:linear-gradient(135deg,#102845,#315c86);
+  color:white;
+  text-align:center;
+  padding:25px 12px;
 }
 
 header h1{
-margin:0;
-font-size:27px;
+  margin:0;
+  font-size:28px;
 }
 
 header p{
-opacity:.85;
+  margin-bottom:0;
+  opacity:.85;
 }
 
 .container{
-max-width:650px;
-margin:auto;
-padding:15px;
+  max-width:720px;
+  margin:auto;
+  padding:15px;
 }
 
 .card{
-background:white;
-border-radius:18px;
-padding:22px;
-margin-bottom:16px;
-box-shadow:0 4px 15px #00000012;
+  background:white;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px #00000010;
 }
 
 h2{
-margin-top:0;
+  margin:0 0 15px;
+  font-size:21px;
 }
 
 input{
-width:100%;
-padding:14px;
-margin:8px 0;
-border:1px solid #ccd5e0;
-border-radius:10px;
-font-size:17px;
+  width:100%;
+  padding:14px;
+  margin:8px 0 15px;
+  border:1px solid #ccd5df;
+  border-radius:10px;
+  font-size:17px;
 }
 
 button{
-border:0;
-background:#17385d;
-color:white;
-padding:13px 20px;
-border-radius:10px;
-font-size:16px;
-font-weight:bold;
-cursor:pointer;
+  border:0;
+  border-radius:10px;
+  padding:13px 18px;
+  background:#183d65;
+  color:white;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
 button:disabled{
-opacity:.45;
-cursor:not-allowed;
+  opacity:.45;
+  cursor:not-allowed;
 }
 
-.full{
-width:100%;
-}
-
-.gold{
-background:#c49b47;
-}
-
-.gray{
-background:#e5eaf1;
-color:#24344b;
-}
-
-.hidden{
-display:none!important;
-}
-
-.game{
-border:1px solid #e0e6ed;
-border-radius:14px;
-padding:18px;
-margin:15px 0;
-}
-
-.game h3{
-margin:0 0 10px;
-}
-
-.game p{
-color:#718096;
-font-size:14px;
-}
-
-.score{
-font-size:30px;
-font-weight:bold;
-color:#bd8d32;
-}
-
-.center{
-text-align:center;
-}
-
-.row{
-display:flex;
-justify-content:space-between;
-align-items:center;
-gap:10px;
-}
-
-.rank{
-display:flex;
-justify-content:space-between;
-align-items:center;
-padding:13px 5px;
-border-bottom:1px solid #edf0f4;
-gap:8px;
-}
-
-.rank small{
-color:#8290a0;
-}
-
-.me{
-background:#fff7e5;
-border-radius:10px;
-padding:12px;
-}
-
-.tiles{
-display:grid;
-grid-template-columns:repeat(3,1fr);
-gap:10px;
-margin:20px 0;
-}
-
-.tile{
-height:75px;
-background:#dce6f2;
-color:#24344b;
-font-size:28px;
-}
-
-.tile.active{
-background:#f6ce62;
-}
-
-.tile.correct{
-background:#6ac8a4;
-}
-
-#reactionPad{
-height:200px;
-background:#dce6f2;
-border-radius:18px;
-display:flex;
-align-items:center;
-justify-content:center;
-text-align:center;
-font-size:24px;
-font-weight:bold;
-user-select:none;
-touch-action:manipulation;
-}
-
-#reactionPad.wait{
-background:#d96868;
-color:white;
-}
-
-#reactionPad.go{
-background:#3cbd89;
-color:white;
-}
-
-#toast{
-position:fixed;
-bottom:20px;
-left:50%;
-transform:translateX(-50%);
-background:#17385d;
-color:white;
-padding:12px 20px;
-border-radius:12px;
-display:none;
-z-index:100;
-max-width:90%;
-text-align:center;
-}
+.full{width:100%}
+.gold{background:#bd9140}
+.red{background:#c34e4e}
+.gray{background:#e7ecf3;color:#243b55}
+.green{background:#208866}
+.hidden{display:none!important}
+.center{text-align:center}
 
 .status{
-font-size:14px;
-padding:12px;
-border-radius:10px;
-margin-bottom:15px;
-background:#fff3cd;
-color:#856404;
-text-align:center;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  background:#fff3cf;
+  color:#805b00;
+  margin-bottom:15px;
+  font-size:14px;
 }
 
 .status.success{
-background:#d4edda;
-color:#155724;
+  background:#d9f3e7;
+  color:#11633e;
 }
 
 .status.error{
-background:#f8d7da;
-color:#721c24;
+  background:#ffe1e1;
+  color:#a12727;
 }
 
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.muted{
+  color:#78889b;
+  font-size:14px;
+}
+
+.badge{
+  background:#eaf0f7;
+  border-radius:30px;
+  padding:8px 12px;
+  font-weight:bold;
+  font-size:14px;
+}
+
+.bigNumber{
+  font-size:76px;
+  font-weight:900;
+  color:#bd9140;
+  line-height:1.2;
+  margin:15px 0;
+}
+
+.bingoBoard{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:5px;
+  margin:15px 0;
+}
+
+.bingoCell{
+  aspect-ratio:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#eaf0f7;
+  border-radius:9px;
+  font-size:clamp(15px,5vw,25px);
+  font-weight:bold;
+  border:2px solid transparent;
+}
+
+.bingoCell.marked{
+  background:#f3ce78;
+  color:#49300b;
+  border-color:#c39538;
+}
+
+.bingoCell.winning{
+  background:#42ae82;
+  color:white;
+  border-color:#23815d;
+}
+
+.bingoHeader{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:5px;
+  text-align:center;
+  font-weight:bold;
+  font-size:20px;
+  color:#234a73;
+}
+
+.history{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+  margin-top:12px;
+}
+
+.ball{
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  background:#e7edf5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:bold;
+  font-size:15px;
+}
+
+.ball.latest{
+  background:#c89d49;
+  color:white;
+}
+
+.rank{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 5px;
+  border-bottom:1px solid #e7edf3;
+  gap:8px;
+}
+
+.rank.me{
+  background:#fff6df;
+  padding:12px;
+  border-radius:10px;
+}
+
+.rank small{
+  color:#78889b;
+}
+
+.result{
+  text-align:center;
+  background:#fff6df;
+  border:2px solid #e4c37c;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:15px;
+}
+
+.result h2{
+  color:#a87520;
+}
+
+.hostPanel{
+  border:2px solid #c7a05b;
+}
+
+.hostButtons{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.notice{
+  background:#edf4fc;
+  border-radius:10px;
+  padding:12px;
+  font-size:14px;
+  line-height:1.7;
+}
+
+#toast{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#203d5d;
+  color:white;
+  padding:12px 20px;
+  border-radius:10px;
+  display:none;
+  z-index:99;
+  max-width:90%;
+  text-align:center;
+}
+
+@media(max-width:380px){
+  .card{padding:15px}
+  .bigNumber{font-size:60px}
+  .hostButtons{grid-template-columns:1fr}
+}
 </style>
 </head>
 
 <body>
 
 <header>
-
-<h1>🎉 上新莊歡樂遊戲大廳</h1>
-
-<p>多人挑戰・即時戰績・最終排行榜</p>
-
+  <h1>🎉 上新莊歡樂賓果</h1>
+  <p>BINGO PARTY · 多人即時連線</p>
 </header>
 
 <div class="container">
 
-<!-- 加入遊戲 -->
+  <!-- 加入畫面 -->
+  <div class="card" id="joinBox">
+
+    <h2>🎮 加入賓果遊戲</h2>
 
-<div class="card" id="joinBox">
+    <div class="status" id="connectionStatus">
+      Firebase 連線中...
+    </div>
 
-<h2>🚪 加入遊戲</h2>
+    <label>房間代碼</label>
+    <input id="roomInput"
+      placeholder="例如 XJ2026"
+      maxlength="20">
+
+    <label>玩家暱稱</label>
+    <input id="nameInput"
+      placeholder="請輸入你的名字"
+      maxlength="16">
+
+    <button id="joinBtn" class="full gold" disabled>
+      系統連線中...
+    </button>
+
+    <p class="muted center">
+      第一位加入的人會成為主持人。<br>
+      其他玩家輸入相同房間代碼即可加入。
+    </p>
+
+  </div>
+
+  <!-- 遊戲主畫面 -->
+  <div id="main" class="hidden">
 
-<div class="status" id="connectionStatus">
-Firebase 系統連線中...
-</div>
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2 id="roomLabel">房間</h2>
+          <div class="muted" id="welcome"></div>
+        </div>
+        <div class="badge" id="roleBadge">玩家</div>
+      </div>
 
-<label>遊戲房間代碼</label>
+      <p class="muted" id="gameStatus">
+        等待主持人開始
+      </p>
+
+      <div class="row">
+        <button class="gray" id="shareBtn">
+          📤 分享房間
+        </button>
+        <button class="gray" id="leaveBtn">
+          離開
+        </button>
+      </div>
+    </div>
+
+    <!-- 主持人 -->
+    <div class="card hostPanel hidden" id="hostPanel">
+
+      <h2>👑 主持人控制台</h2>
 
-<input
-id="roomInput"
-placeholder="例如 XJ2026">
+      <div class="notice">
+        只有建立房間的主持人可以操作抽號碼。<br>
+        開始後，所有玩家的手機會同步更新。
+      </div>
+
+      <br>
 
-<label>玩家暱稱</label>
+      <div class="hostButtons">
+        <button class="green" id="startBtn">
+          ▶️ 開始遊戲
+        </button>
 
-<input
-id="nameInput"
-placeholder="請輸入名字">
+        <button class="gold" id="drawBtn">
+          🎱 抽一個號碼
+        </button>
 
-<button
-class="full gold"
-id="joinBtn"
-disabled>
+        <button class="red" id="endBtn">
+          🏁 結束比賽
+        </button>
 
-系統連線中...
+        <button class="gray" id="resetBtn">
+          🔄 重新開始
+        </button>
+      </div>
 
-</button>
+    </div>
 
-<p style="color:#8893a2;font-size:13px">
+    <!-- 最新號碼 -->
+    <div class="card center">
 
-所有玩家輸入相同房間代碼，即可共同參加。
+      <h2>🎱 最新抽出號碼</h2>
 
-</p>
+      <div class="bigNumber" id="latestNumber">
+        --
+      </div>
 
-</div>
+      <div class="badge" id="drawCount">
+        已抽 0 / 75 個號碼
+      </div>
 
+    </div>
 
-<!-- 遊戲主畫面 -->
+    <!-- 玩家賓果卡 -->
+    <div class="card">
 
-<div id="main" class="hidden">
+      <div class="row">
+        <h2>🎫 我的賓果卡</h2>
+        <div class="badge" id="lineCount">
+          0 條線
+        </div>
+      </div>
 
-<div class="card">
+      <div class="bingoHeader">
+        <div>B</div>
+        <div>I</div>
+        <div>N</div>
+        <div>G</div>
+        <div>O</div>
+      </div>
 
-<div class="row">
+      <div class="bingoBoard" id="bingoBoard"></div>
 
-<div>
+      <p class="muted center">
+        系統會自動標記抽中的號碼，無須手動點擊。
+      </p>
 
-<h3 id="roomLabel"></h3>
+    </div>
 
-<p id="welcome"></p>
+    <!-- 抽號碼紀錄 -->
+    <div class="card">
 
-</div>
+      <h2>📋 已抽出的號碼</h2>
 
-<div class="center">
+      <div id="drawHistory" class="history">
+        尚未抽號碼
+      </div>
 
-<div>我的總分</div>
+    </div>
 
-<div class="score" id="myScore">0</div>
+    <!-- 結果 -->
+    <div class="result hidden" id="resultBox">
+      <h2>🏆 比賽結束</h2>
+      <div id="winnerText">正在計算排名</div>
+    </div>
 
-</div>
+    <!-- 排行榜 -->
+    <div class="card">
 
-</div>
+      <div class="row">
+        <h2>🏆 即時排行榜</h2>
+        <span class="badge" id="playerCount">
+          0 人參加
+        </span>
+      </div>
 
-<button class="gray" id="shareBtn">
-📤 分享遊戲
-</button>
+      <p class="muted">
+        依照完成連線數排名；同分比較達成時間。
+      </p>
 
-<button class="gray" id="leaveBtn">
-離開
-</button>
+      <div id="leaderboard">
+        等待玩家加入...
+      </div>
 
-</div>
+    </div>
 
-
-<!-- 遊戲大廳 -->
-
-<div class="card" id="lobby">
-
-<h2>🎮 選擇挑戰</h2>
-
-<p>
-每個遊戲可以重複挑戰，系統只記錄最高分。
-</p>
-
-<div class="game">
-
-<h3>⚡ 反應速度挑戰</h3>
-
-<p>
-畫面變綠色時立即點擊，反應越快分數越高。
-</p>
-
-<button class="full"
-onclick="openGame('reaction')">
-
-開始挑戰
-
-</button>
-
-</div>
-
-
-<div class="game">
-
-<h3>🧠 記憶力挑戰</h3>
-
-<p>
-記住方塊亮起的順序，再依照順序點擊。
-</p>
-
-<button class="full"
-onclick="openGame('memory')">
-
-開始挑戰
-
-</button>
-
-</div>
-
-
-<div class="game">
-
-<h3>🔢 猜數字挑戰</h3>
-
-<p>
-六次機會內猜出1～100的秘密數字。
-</p>
-
-<button class="full"
-onclick="openGame('number')">
-
-開始挑戰
-
-</button>
-
-</div>
-
-</div>
-
-
-<!-- 遊戲區 -->
-
-<div class="card hidden" id="play">
-
-<div class="row">
-
-<h2 id="gameTitle"></h2>
-
-<button class="gray"
-onclick="backLobby()">
-
-返回
-
-</button>
-
-</div>
-
-<p id="gameHelp"></p>
-
-
-<!-- 反應速度 -->
-
-<div id="reactionGame" class="hidden">
-
-<div id="reactionPad">
-
-按下準備開始
+  </div>
 
 </div>
-
-<br>
-
-<button
-class="full"
-id="reactionStart">
-
-準備開始
-
-</button>
-
-</div>
-
-
-<!-- 記憶挑戰 -->
-
-<div id="memoryGame" class="hidden">
-
-<h2 class="center" id="memoryLevel">
-
-第1關
-
-</h2>
-
-<p class="center" id="memoryStatus">
-
-按開始記住亮燈順序
-
-</p>
-
-<div class="tiles" id="memoryTiles"></div>
-
-<button
-class="full"
-id="memoryStart">
-
-開始記憶挑戰
-
-</button>
-
-</div>
-
-
-<!-- 猜數字 -->
-
-<div id="numberGame" class="hidden">
-
-<h2 class="center" id="numberStatus">
-
-還有6次機會
-
-</h2>
-
-<input
-type="number"
-id="guessInput"
-min="1"
-max="100"
-placeholder="輸入1～100">
-
-<button
-class="full"
-id="guessBtn">
-
-送出答案
-
-</button>
-
-<p class="center" id="guessHint"></p>
-
-<button
-class="full gray hidden"
-id="numberRestart">
-
-再玩一次
-
-</button>
-
-</div>
-
-</div>
-
-
-<!-- 排行榜 -->
-
-<div class="card">
-
-<h2>🏆 即時排行榜</h2>
-
-<p style="color:#8290a0;font-size:14px">
-
-三項遊戲最高分加總，滿分3000分。
-
-</p>
-
-<div id="leaderboard">
-
-等待玩家加入...
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
 
 <div id="toast"></div>
 
-
 <script type="module">
 
-// =====================================
+// ========================================
 // Firebase 設定
-// 已填入你的專案資料
-// =====================================
+// ========================================
 
 const firebaseConfig = {
-
-apiKey:"AIzaSyAVE9VOrZNR-jp101t3ImXMg802ttcBmUk",
-
-authDomain:"game-d0d54.firebaseapp.com",
-
-databaseURL:"https://game-d0d54-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-projectId:"game-d0d54",
-
-storageBucket:"game-d0d54.firebasestorage.app",
-
-messagingSenderId:"231562636049",
-
-appId:"1:231562636049:web:b49a7ebe6d956f3239bab0"
-
+  apiKey:"AIzaSyAVE9VOrZNR-jp101t3ImXMg802ttcBmUk",
+  authDomain:"game-d0d54.firebaseapp.com",
+  databaseURL:"https://game-d0d54-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"game-d0d54",
+  storageBucket:"game-d0d54.firebasestorage.app",
+  messagingSenderId:"231562636049",
+  appId:"1:231562636049:web:b49a7ebe6d956f3239bab0"
 };
 
-
-// =====================================
+// ========================================
 // Firebase SDK
-// =====================================
+// ========================================
 
 import {initializeApp}
 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
 
 import {
-getAuth,
-signInAnonymously,
-onAuthStateChanged
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged
 }
 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
 
 import {
-getFirestore,
-doc,
-setDoc,
-getDoc,
-collection,
-onSnapshot,
-serverTimestamp
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  updateDoc,
+  collection,
+  onSnapshot,
+  runTransaction,
+  serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+// ========================================
+// 基本變數
+// ========================================
 
-// =====================================
-// 基本設定
-// =====================================
+const $ = id => document.getElementById(id);
 
-const $=id=>document.getElementById(id);
+let db, auth, uid = "";
+let room = "";
+let playerName = "";
+let myCard = [];
 
-let db;
-let auth;
-let uid="";
+let roomData = null;
+let players = [];
 
-let room="";
-let playerName="";
+let isHost = false;
+let unsubRoom = null;
+let unsubPlayers = null;
+let busy = false;
 
-let scores={
-reaction:0,
-memory:0,
-number:0
-};
+const winningLines = [];
 
-let unsubscribe=null;
-
-let currentGame="";
-let gameRun=0;
-
-let reactionTimer=null;
-let reactionState="idle";
-let reactionStartTime=0;
-
-let memorySequence=[];
-let memoryInput=0;
-let memoryLevel=0;
-let memoryBusy=false;
-
-let secretNumber=0;
-let guessCount=0;
-
-
-// =====================================
-// 提示訊息
-// =====================================
-
-function toast(msg){
-
-const box=$("toast");
-
-box.textContent=msg;
-
-box.style.display="block";
-
-setTimeout(()=>{
-
-box.style.display="none";
-
-},3000);
-
+// 橫向 5 條
+for(let r=0;r<5;r++){
+  winningLines.push(
+    Array.from({length:5},(_,c)=>r*5+c)
+  );
 }
 
+// 直向 5 條
+for(let c=0;c<5;c++){
+  winningLines.push(
+    Array.from({length:5},(_,r)=>r*5+c)
+  );
+}
 
-// =====================================
-// 顯示或隱藏
-// =====================================
+// 斜向 2 條
+winningLines.push([0,6,12,18,24]);
+winningLines.push([4,8,12,16,20]);
+
+// ========================================
+// 共用函式
+// ========================================
 
 function show(id,visible=true){
-
-$(id).classList.toggle("hidden",!visible);
-
+  $(id).classList.toggle("hidden",!visible);
 }
 
+function toast(message){
+  const box=$("toast");
+  box.textContent=message;
+  box.style.display="block";
 
-// =====================================
-// 連線狀態
-// =====================================
+  clearTimeout(window.toastTimer);
 
-function setConnectionStatus(message,type){
-
-const status=$("connectionStatus");
-
-status.textContent=message;
-
-status.className="status "+type;
-
+  window.toastTimer=setTimeout(()=>{
+    box.style.display="none";
+  },3000);
 }
 
+function errorMessage(error){
+  console.error(error);
+  alert("操作失敗：\n"+error.message);
+}
 
-// =====================================
+function setBusy(value){
+  busy=value;
+  updateHostButtons();
+}
+
+function shuffle(array){
+  const result=[...array];
+
+  for(let i=result.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [result[i],result[j]]=[result[j],result[i]];
+  }
+
+  return result;
+}
+
+// ========================================
+// 產生 5×5 賓果卡
+// 每張卡使用 1～75 不重複數字
+// ========================================
+
+function generateCard(){
+
+  const numbers=shuffle(
+    Array.from({length:75},(_,i)=>i+1)
+  ).slice(0,25);
+
+  return numbers;
+}
+
+// ========================================
+// 計算完成幾條線
+// ========================================
+
+function calculateLines(card,draws){
+
+  if(!Array.isArray(card)||card.length!==25){
+    return [];
+  }
+
+  const drawn=new Set(draws);
+
+  return winningLines.filter(line=>
+    line.every(index=>drawn.has(card[index]))
+  );
+}
+
+// ========================================
+// 計算達成目前連線數的抽號順序
+// ========================================
+
+function achievedAt(card,draws,targetLines){
+
+  if(targetLines<=0)return Infinity;
+
+  for(let i=0;i<draws.length;i++){
+
+    const partial=draws.slice(0,i+1);
+
+    const count=calculateLines(card,partial).length;
+
+    if(count>=targetLines){
+      return i+1;
+    }
+  }
+
+  return Infinity;
+}
+
+// ========================================
 // Firebase 初始化
-// =====================================
+// ========================================
 
 try{
 
-const app=initializeApp(firebaseConfig);
+  const app=initializeApp(firebaseConfig);
 
-db=getFirestore(app);
+  db=getFirestore(app);
+  auth=getAuth(app);
 
-auth=getAuth(app);
+  onAuthStateChanged(auth,user=>{
 
-onAuthStateChanged(auth,user=>{
+    if(user){
 
-if(user){
+      uid=user.uid;
 
-uid=user.uid;
+      $("connectionStatus").textContent=
+        "✅ 系統連線成功，可以加入遊戲";
 
-setConnectionStatus(
-"✅ Firebase 連線成功，可以加入遊戲",
-"success"
-);
+      $("connectionStatus").className=
+        "status success";
 
-$("joinBtn").disabled=false;
+      $("joinBtn").disabled=false;
+      $("joinBtn").textContent="加入遊戲";
 
-$("joinBtn").textContent="加入遊戲";
+    }
 
-}
+  });
 
-});
+  signInAnonymously(auth).catch(error=>{
 
-signInAnonymously(auth)
+    $("connectionStatus").textContent=
+      "❌ 登入失敗："+error.message;
 
-.then(result=>{
+    $("connectionStatus").className=
+      "status error";
 
-uid=result.user.uid;
+    alert("Firebase 登入失敗："+error.message);
 
-console.log("Firebase 登入成功",uid);
-
-setConnectionStatus(
-"✅ Firebase 連線成功，可以加入遊戲",
-"success"
-);
-
-$("joinBtn").disabled=false;
-
-$("joinBtn").textContent="加入遊戲";
-
-})
-
-.catch(error=>{
-
-console.error(error);
-
-setConnectionStatus(
-"❌ Firebase 登入失敗："+error.message,
-"error"
-);
-
-$("joinBtn").textContent="連線失敗";
-
-alert("Firebase 登入失敗："+error.message);
-
-});
+  });
 
 }catch(error){
 
-setConnectionStatus(
-"❌ Firebase 初始化失敗："+error.message,
-"error"
-);
+  $("connectionStatus").textContent=
+    "❌ 初始化失敗："+error.message;
 
-alert("Firebase 初始化失敗："+error.message);
+  $("connectionStatus").className=
+    "status error";
 
 }
 
-
-// =====================================
-// 房間代碼
-// =====================================
+// ========================================
+// 預填資料
+// ========================================
 
 const params=new URLSearchParams(location.search);
 
 if(params.get("room")){
-
-$("roomInput").value=params.get("room");
-
+  $("roomInput").value=params.get("room");
 }
 
 $("nameInput").value=
-localStorage.getItem("partyPlayerName")||"";
+  localStorage.getItem("bingoPlayerName")||"";
 
-
-// =====================================
-// 加入遊戲
-// =====================================
+// ========================================
+// 加入房間
+// ========================================
 
 $("joinBtn").onclick=async()=>{
 
-if(!uid){
+  if(!uid){
+    alert("Firebase 尚未連線成功");
+    return;
+  }
 
-alert("Firebase 尚未連線成功");
+  const r=$("roomInput").value
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z0-9_-]/g,"")
+    .slice(0,20);
 
-return;
+  const n=$("nameInput").value.trim().slice(0,16);
 
-}
+  if(!r||!n){
+    alert("請輸入房間代碼及玩家暱稱");
+    return;
+  }
 
-const r=$("roomInput").value
-.trim()
-.toUpperCase()
-.replace(/[^A-Z0-9_-]/g,"")
-.slice(0,20);
+  $("joinBtn").disabled=true;
+  $("joinBtn").textContent="加入中...";
 
-const n=$("nameInput").value.trim().slice(0,16);
+  try{
 
-if(!r||!n){
+    const roomRef=doc(db,"rooms",r);
+    const playerRef=doc(db,"rooms",r,"players",uid);
 
-alert("請輸入房間代碼及玩家暱稱");
+    // 第一位建立房間的人是主持人
+    await runTransaction(db,async transaction=>{
 
-return;
+      const roomSnap=await transaction.get(roomRef);
 
-}
+      if(!roomSnap.exists()){
 
-room=r;
-playerName=n;
+        transaction.set(roomRef,{
+          hostUid:uid,
+          status:"lobby",
+          draws:[],
+          createdAt:serverTimestamp()
+        });
 
-localStorage.setItem("partyPlayerName",n);
+      }
 
-const playerRef=doc(
-db,
-"rooms",
-room,
-"players",
-uid
-);
+    });
 
-$("joinBtn").disabled=true;
-$("joinBtn").textContent="加入中...";
+    const roomSnap=await getDoc(roomRef);
+    const data=roomSnap.data();
 
-try{
+    if(data.status==="ended"){
+      throw new Error("這個房間已經結束比賽，請主持人重新開始。");
+    }
 
-const existing=await getDoc(playerRef);
+    const playerSnap=await getDoc(playerRef);
 
-if(existing.exists()){
+    let card;
 
-const old=existing.data().scores||{};
+    if(playerSnap.exists()){
 
-scores={
-reaction:Number(old.reaction)||0,
-memory:Number(old.memory)||0,
-number:Number(old.number)||0
+      card=playerSnap.data().card;
+
+    }else{
+
+      if(data.status!=="lobby"){
+        throw new Error("比賽已開始，無法新增玩家，請等待下一場。");
+      }
+
+      card=generateCard();
+
+    }
+
+    await setDoc(playerRef,{
+      name:n,
+      card:card,
+      joinedAt:playerSnap.exists()
+        ? (playerSnap.data().joinedAt||serverTimestamp())
+        : serverTimestamp()
+    },{merge:true});
+
+    room=r;
+    playerName=n;
+    myCard=card;
+    isHost=data.hostUid===uid;
+
+    localStorage.setItem("bingoPlayerName",n);
+
+    $("roomLabel").textContent="房間："+room;
+    $("welcome").textContent="歡迎，"+playerName;
+
+    $("roleBadge").textContent=
+      isHost?"👑 主持人":"🎮 玩家";
+
+    show("hostPanel",isHost);
+    show("joinBox",false);
+    show("main",true);
+
+    history.replaceState(
+      {},
+      "",
+      location.pathname+"?room="+encodeURIComponent(room)
+    );
+
+    listenRoom();
+    listenPlayers();
+
+  }catch(error){
+
+    errorMessage(error);
+
+  }finally{
+
+    $("joinBtn").disabled=false;
+    $("joinBtn").textContent="加入遊戲";
+
+  }
+
 };
 
-}else{
+// ========================================
+// 即時監聽房間
+// ========================================
 
-scores={
-reaction:0,
-memory:0,
-number:0
-};
+function listenRoom(){
 
-}
+  if(unsubRoom)unsubRoom();
 
-await setDoc(playerRef,{
+  unsubRoom=onSnapshot(
+    doc(db,"rooms",room),
 
-name:playerName,
+    snapshot=>{
 
-scores:scores,
+      if(!snapshot.exists()){
+        toast("房間不存在");
+        return;
+      }
 
-updatedAt:serverTimestamp()
+      roomData=snapshot.data();
 
-},{merge:true});
+      renderRoom();
+      renderBoard();
+      renderRanking();
 
-$("roomLabel").textContent="房間："+room;
+    },
 
-$("welcome").textContent="歡迎，"+playerName;
-
-show("joinBox",false);
-
-show("main",true);
-
-history.replaceState(
-{},
-"",
-location.pathname+"?room="+encodeURIComponent(room)
-);
-
-listenRanking();
-
-}catch(error){
-
-console.error(error);
-
-alert(
-"加入遊戲失敗！\n\n"+
-error.message+
-"\n\n請確認 Firestore 資料庫規則已發布。"
-);
-
-}finally{
-
-$("joinBtn").disabled=false;
-$("joinBtn").textContent="加入遊戲";
+    error=>{
+      errorMessage(error);
+    }
+  );
 
 }
 
-};
+// ========================================
+// 即時監聽玩家
+// ========================================
 
+function listenPlayers(){
 
-// =====================================
+  if(unsubPlayers)unsubPlayers();
+
+  unsubPlayers=onSnapshot(
+    collection(db,"rooms",room,"players"),
+
+    snapshot=>{
+
+      players=snapshot.docs.map(d=>({
+        id:d.id,
+        ...d.data()
+      }));
+
+      $("playerCount").textContent=
+        players.length+" 人參加";
+
+      renderRanking();
+
+    },
+
+    error=>{
+      errorMessage(error);
+    }
+  );
+
+}
+
+// ========================================
+// 顯示房間狀態
+// ========================================
+
+function renderRoom(){
+
+  if(!roomData)return;
+
+  const status=roomData.status;
+  const draws=roomData.draws||[];
+
+  const statusText={
+    lobby:"⏳ 等待主持人開始遊戲",
+    playing:"🟢 比賽進行中",
+    ended:"🏁 比賽已結束"
+  };
+
+  $("gameStatus").textContent=
+    statusText[status]||status;
+
+  $("latestNumber").textContent=
+    draws.length
+      ? draws[draws.length-1]
+      : "--";
+
+  $("drawCount").textContent=
+    "已抽 "+draws.length+" / 75 個號碼";
+
+  const history=$("drawHistory");
+  history.replaceChildren();
+
+  if(draws.length===0){
+    history.textContent="尚未抽號碼";
+  }else{
+
+    [...draws].reverse().forEach((number,index)=>{
+
+      const ball=document.createElement("div");
+
+      ball.className=
+        "ball"+(index===0?" latest":"");
+
+      ball.textContent=number;
+
+      history.append(ball);
+
+    });
+
+  }
+
+  show("resultBox",status==="ended");
+
+  updateHostButtons();
+
+}
+
+// ========================================
+// 主持人按鈕狀態
+// ========================================
+
+function updateHostButtons(){
+
+  if(!isHost||!roomData)return;
+
+  const status=roomData.status;
+
+  $("startBtn").disabled=
+    busy||status!=="lobby";
+
+  $("drawBtn").disabled=
+    busy||
+    status!=="playing"||
+    (roomData.draws||[]).length>=75;
+
+  $("endBtn").disabled=
+    busy||status!=="playing";
+
+  $("resetBtn").disabled=busy;
+
+}
+
+// ========================================
+// 繪製我的賓果卡
+// ========================================
+
+function renderBoard(){
+
+  if(!roomData||myCard.length!==25)return;
+
+  const draws=roomData.draws||[];
+  const drawn=new Set(draws);
+
+  const lines=calculateLines(myCard,draws);
+
+  const winningCells=new Set(
+    lines.flat()
+  );
+
+  $("lineCount").textContent=
+    lines.length+" 條線";
+
+  const board=$("bingoBoard");
+  board.replaceChildren();
+
+  myCard.forEach((number,index)=>{
+
+    const cell=document.createElement("div");
+
+    cell.className="bingoCell";
+
+    if(drawn.has(number)){
+      cell.classList.add("marked");
+    }
+
+    if(winningCells.has(index)){
+      cell.classList.add("winning");
+    }
+
+    cell.textContent=number;
+
+    board.append(cell);
+
+  });
+
+}
+
+// ========================================
 // 即時排行榜
-// =====================================
+// ========================================
 
-function listenRanking(){
+function renderRanking(){
 
-if(unsubscribe)unsubscribe();
+  if(!roomData)return;
 
-unsubscribe=onSnapshot(
+  const draws=roomData.draws||[];
 
-collection(db,"rooms",room,"players"),
+  const ranking=players.map(player=>{
 
-snapshot=>{
+    const card=player.card||[];
 
-let players=[];
+    const lines=calculateLines(card,draws);
 
-snapshot.forEach(item=>{
+    return {
+      id:player.id,
+      name:player.name||"玩家",
+      lineCount:lines.length,
+      achieved:achievedAt(
+        card,
+        draws,
+        lines.length
+      )
+    };
 
-const data=item.data();
+  });
 
-const s=data.scores||{};
+  ranking.sort((a,b)=>{
 
-const total=
-(Number(s.reaction)||0)+
-(Number(s.memory)||0)+
-(Number(s.number)||0);
+    if(b.lineCount!==a.lineCount){
+      return b.lineCount-a.lineCount;
+    }
 
-players.push({
+    if(a.achieved!==b.achieved){
+      return a.achieved-b.achieved;
+    }
 
-id:item.id,
+    return a.name.localeCompare(b.name,"zh-TW");
 
-name:data.name||"玩家",
+  });
 
-scores:s,
+  const board=$("leaderboard");
+  board.replaceChildren();
 
-total:total
+  ranking.forEach((player,index)=>{
 
-});
+    const row=document.createElement("div");
 
-if(item.id===uid){
+    row.className="rank";
 
-scores={
-reaction:Number(s.reaction)||0,
-memory:Number(s.memory)||0,
-number:Number(s.number)||0
+    if(player.id===uid){
+      row.classList.add("me");
+    }
+
+    const left=document.createElement("div");
+
+    const medal=
+      index===0?"🥇":
+      index===1?"🥈":
+      index===2?"🥉":
+      "#"+(index+1);
+
+    const name=document.createElement("strong");
+
+    name.textContent=
+      medal+" "+player.name+
+      (player.id===uid?"（我）":"");
+
+    left.append(name);
+
+    const right=document.createElement("div");
+
+    right.style.textAlign="right";
+
+    const score=document.createElement("strong");
+
+    score.textContent=
+      player.lineCount+" 條線";
+
+    const detail=document.createElement("small");
+
+    detail.textContent=
+      player.lineCount>0
+        ?"第 "+player.achieved+" 球達成"
+        :"尚未連線";
+
+    right.append(
+      score,
+      document.createElement("br"),
+      detail
+    );
+
+    row.append(left,right);
+    board.append(row);
+
+  });
+
+  if(!ranking.length){
+    board.textContent="尚無玩家";
+  }
+
+  if(roomData.status==="ended"){
+
+    const winner=ranking[0];
+
+    $("winnerText").textContent=
+      winner
+        ?"🥇 冠軍："+winner.name+
+          "｜"+winner.lineCount+" 條線"
+        :"本場沒有參賽玩家";
+
+  }
+
+}
+
+// ========================================
+// 主持人：開始遊戲
+// ========================================
+
+$("startBtn").onclick=async()=>{
+
+  if(!isHost||!roomData)return;
+
+  if(roomData.status!=="lobby")return;
+
+  if(players.length===0){
+    alert("目前沒有玩家");
+    return;
+  }
+
+  if(!confirm("確定開始賓果遊戲？開始後不能新增玩家。")){
+    return;
+  }
+
+  setBusy(true);
+
+  try{
+
+    await updateDoc(
+      doc(db,"rooms",room),
+      {status:"playing"}
+    );
+
+    toast("🎉 遊戲開始！");
+
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+
 };
 
-$("myScore").textContent=total.toLocaleString();
+// ========================================
+// 主持人：抽號碼
+// ========================================
 
-}
+$("drawBtn").onclick=async()=>{
 
-});
+  if(!isHost||!roomData)return;
 
-players.sort((a,b)=>
-b.total-a.total||
-a.name.localeCompare(b.name,"zh-TW")
-);
+  setBusy(true);
 
-const board=$("leaderboard");
+  try{
 
-board.replaceChildren();
+    let drawnNumber=null;
 
-players.forEach((p,index)=>{
+    await runTransaction(db,async transaction=>{
 
-const row=document.createElement("div");
+      const roomRef=doc(db,"rooms",room);
+      const snap=await transaction.get(roomRef);
 
-row.className="rank";
+      if(!snap.exists()){
+        throw new Error("房間不存在");
+      }
 
-if(p.id===uid){
-row.classList.add("me");
-}
+      const data=snap.data();
 
-const left=document.createElement("div");
+      if(data.hostUid!==uid){
+        throw new Error("只有主持人可以抽號碼");
+      }
 
-const medal=
-index===0?"🥇":
-index===1?"🥈":
-index===2?"🥉":
-"#"+(index+1);
+      if(data.status!=="playing"){
+        throw new Error("目前不是比賽進行狀態");
+      }
 
-left.textContent=
-medal+" "+p.name+
-(p.id===uid?"（我）":"");
+      const draws=data.draws||[];
 
-const right=document.createElement("div");
+      const remaining=Array.from(
+        {length:75},
+        (_,i)=>i+1
+      ).filter(n=>!draws.includes(n));
 
-right.style.textAlign="right";
+      if(!remaining.length){
+        throw new Error("所有號碼都已抽完");
+      }
 
-const total=document.createElement("strong");
+      drawnNumber=remaining[
+        Math.floor(Math.random()*remaining.length)
+      ];
 
-total.textContent=
-p.total.toLocaleString()+" 分";
+      transaction.update(roomRef,{
+        draws:[...draws,drawnNumber]
+      });
 
-const detail=document.createElement("small");
+    });
 
-detail.textContent=
-"⚡"+(p.scores.reaction||0)+
-" 🧠"+(p.scores.memory||0)+
-" 🔢"+(p.scores.number||0);
+    toast("🎱 抽出號碼："+drawnNumber);
 
-right.append(
-total,
-document.createElement("br"),
-detail
-);
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
 
-row.append(left,right);
+};
 
-board.append(row);
+// ========================================
+// 主持人：結束比賽
+// ========================================
 
-});
+$("endBtn").onclick=async()=>{
 
-if(!players.length){
+  if(!isHost)return;
 
-board.textContent="尚無玩家";
+  if(!confirm("確定結束比賽並鎖定排名？")){
+    return;
+  }
 
-}
+  setBusy(true);
 
-},
+  try{
 
-error=>{
+    await updateDoc(
+      doc(db,"rooms",room),
+      {status:"ended"}
+    );
 
-console.error(error);
+    toast("🏆 比賽結束！");
 
-alert(
-"排行榜讀取失敗："+error.message
-);
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
 
-}
+};
 
-);
+// ========================================
+// 主持人：重新開始
+// 保留玩家原本的賓果卡
+// ========================================
 
-}
+$("resetBtn").onclick=async()=>{
 
+  if(!isHost)return;
 
-// =====================================
+  if(!confirm(
+    "確定重新開始？\n\n所有抽號紀錄及排行榜將歸零，玩家賓果卡保持不變。"
+  )){
+    return;
+  }
+
+  setBusy(true);
+
+  try{
+
+    await updateDoc(
+      doc(db,"rooms",room),
+      {
+        status:"lobby",
+        draws:[]
+      }
+    );
+
+    toast("已重設，等待開始新一局");
+
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+
+};
+
+// ========================================
 // 分享房間
-// =====================================
+// ========================================
 
 $("shareBtn").onclick=async()=>{
 
-const url=
-location.origin+
-location.pathname+
-"?room="+encodeURIComponent(room);
+  const url=
+    location.origin+
+    location.pathname+
+    "?room="+encodeURIComponent(room);
 
-try{
+  try{
 
-if(navigator.share){
+    if(navigator.share){
 
-await navigator.share({
+      await navigator.share({
+        title:"上新莊歡樂賓果",
+        text:"一起來玩賓果！",
+        url:url
+      });
 
-title:"上新莊歡樂遊戲",
+    }else{
 
-url:url
+      await navigator.clipboard.writeText(url);
+      toast("房間連結已複製");
 
-});
+    }
 
-}else{
+  }catch(error){
 
-await navigator.clipboard.writeText(url);
+    if(error.name!=="AbortError"){
+      prompt("請複製房間連結：",url);
+    }
 
-toast("連結已複製");
-
-}
-
-}catch(error){
-
-if(error.name!=="AbortError"){
-
-toast("請複製網址分享");
-
-}
-
-}
+  }
 
 };
 
-
-// =====================================
-// 離開遊戲
-// =====================================
+// ========================================
+// 離開房間
+// ========================================
 
 $("leaveBtn").onclick=()=>{
 
-stopGame();
+  if(unsubRoom){
+    unsubRoom();
+    unsubRoom=null;
+  }
 
-if(unsubscribe)unsubscribe();
+  if(unsubPlayers){
+    unsubPlayers();
+    unsubPlayers=null;
+  }
 
-show("main",false);
+  room="";
+  playerName="";
+  myCard=[];
+  roomData=null;
+  players=[];
+  isHost=false;
 
-show("joinBox",true);
+  show("main",false);
+  show("joinBox",true);
 
-room="";
-
-history.replaceState(
-{},
-"",
-location.pathname
-);
-
-};
-
-
-// =====================================
-// 儲存最高成績
-// =====================================
-
-async function award(type,points){
-
-points=Math.max(
-0,
-Math.min(1000,Math.round(points))
-);
-
-if(points<=scores[type]){
-
-toast(
-"本次"+points+
-"分，未超過最高紀錄"
-);
-
-return;
-
-}
-
-scores[type]=points;
-
-try{
-
-await setDoc(
-
-doc(db,"rooms",room,"players",uid),
-
-{
-
-name:playerName,
-
-scores:{...scores},
-
-updatedAt:serverTimestamp()
-
-},
-
-{merge:true}
-
-);
-
-toast("🎉 新紀錄！"+points+"分");
-
-}catch(error){
-
-alert(
-"成績儲存失敗："+error.message
-);
-
-}
-
-}
-
-
-// =====================================
-// 停止遊戲
-// =====================================
-
-function stopGame(){
-
-gameRun++;
-
-clearTimeout(reactionTimer);
-
-reactionState="idle";
-
-memoryBusy=false;
-
-}
-
-
-// =====================================
-// 開啟遊戲
-// =====================================
-
-window.openGame=function(type){
-
-stopGame();
-
-currentGame=type;
-
-show("lobby",false);
-
-show("play",true);
-
-["reaction","memory","number"].forEach(g=>{
-
-show(g+"Game",g===type);
-
-});
-
-const titles={
-
-reaction:"⚡ 反應速度",
-
-memory:"🧠 記憶力挑戰",
-
-number:"🔢 猜數字"
+  history.replaceState(
+    {},
+    "",
+    location.pathname
+  );
 
 };
-
-$("gameTitle").textContent=titles[type];
-
-if(type==="reaction")resetReaction();
-
-if(type==="memory")resetMemory();
-
-if(type==="number")resetNumber();
-
-};
-
-
-// =====================================
-// 返回大廳
-// =====================================
-
-window.backLobby=function(){
-
-stopGame();
-
-currentGame="";
-
-show("play",false);
-
-show("lobby",true);
-
-};
-
-
-// =====================================
-// 遊戲一：反應速度
-// =====================================
-
-function resetReaction(){
-
-reactionState="idle";
-
-$("reactionPad").className="";
-
-$("reactionPad").textContent="按下準備開始";
-
-$("reactionStart").disabled=false;
-
-}
-
-
-$("reactionStart").onclick=()=>{
-
-if(
-reactionState==="wait"||
-reactionState==="go"
-)return;
-
-reactionState="wait";
-
-$("reactionStart").disabled=true;
-
-$("reactionPad").className="wait";
-
-$("reactionPad").textContent="等待綠燈...";
-
-const run=++gameRun;
-
-reactionTimer=setTimeout(()=>{
-
-if(run!==gameRun)return;
-
-reactionState="go";
-
-reactionStartTime=performance.now();
-
-$("reactionPad").className="go";
-
-$("reactionPad").textContent="快點！";
-
-},1500+Math.random()*2500);
-
-};
-
-
-$("reactionPad").onclick=()=>{
-
-if(reactionState==="wait"){
-
-clearTimeout(reactionTimer);
-
-gameRun++;
-
-reactionState="done";
-
-$("reactionPad").className="";
-
-$("reactionPad").textContent="太早按了！0分";
-
-$("reactionStart").disabled=false;
-
-}else if(reactionState==="go"){
-
-const ms=Math.round(
-performance.now()-reactionStartTime
-);
-
-reactionState="done";
-
-const points=Math.max(
-100,
-Math.min(
-1000,
-Math.round(1200-ms)
-)
-);
-
-$("reactionPad").className="";
-
-$("reactionPad").textContent=
-ms+"毫秒，獲得"+points+"分";
-
-$("reactionStart").disabled=false;
-
-award("reaction",points);
-
-}
-
-};
-
-
-// =====================================
-// 遊戲二：記憶挑戰
-// =====================================
-
-const tiles=[];
-
-for(let i=0;i<9;i++){
-
-const btn=document.createElement("button");
-
-btn.className="tile";
-
-btn.textContent="●";
-
-btn.onclick=()=>tapMemory(i);
-
-$("memoryTiles").append(btn);
-
-tiles.push(btn);
-
-}
-
-
-function resetMemory(){
-
-memorySequence=[];
-
-memoryInput=0;
-
-memoryLevel=0;
-
-memoryBusy=false;
-
-$("memoryLevel").textContent="第1關";
-
-$("memoryStatus").textContent=
-"按開始記住順序";
-
-$("memoryStart").disabled=false;
-
-tiles.forEach(t=>t.className="tile");
-
-}
-
-
-const sleep=ms=>
-new Promise(resolve=>setTimeout(resolve,ms));
-
-
-async function nextMemory(){
-
-const run=++gameRun;
-
-memoryBusy=true;
-
-memoryLevel++;
-
-memoryInput=0;
-
-memorySequence.push(
-Math.floor(Math.random()*9)
-);
-
-$("memoryLevel").textContent=
-"第"+memoryLevel+"關";
-
-$("memoryStatus").textContent=
-"請記住亮燈順序";
-
-await sleep(650);
-
-for(const index of memorySequence){
-
-if(run!==gameRun)return;
-
-tiles[index].classList.add("active");
-
-await sleep(480);
-
-tiles[index].classList.remove("active");
-
-await sleep(240);
-
-}
-
-if(run!==gameRun)return;
-
-memoryBusy=false;
-
-$("memoryStatus").textContent=
-"換你點擊方塊！";
-
-}
-
-
-$("memoryStart").onclick=()=>{
-
-resetMemory();
-
-$("memoryStart").disabled=true;
-
-nextMemory();
-
-};
-
-
-function tapMemory(index){
-
-if(
-currentGame!=="memory"||
-memoryBusy||
-!memoryLevel
-)return;
-
-tiles[index].classList.add("correct");
-
-setTimeout(()=>{
-
-tiles[index].classList.remove("correct");
-
-},180);
-
-
-if(index!==memorySequence[memoryInput]){
-
-memoryBusy=true;
-
-const passed=memoryLevel-1;
-
-$("memoryStatus").textContent=
-"挑戰結束！通過"+passed+"關";
-
-award(
-"memory",
-Math.min(1000,passed*150)
-);
-
-$("memoryStart").disabled=false;
-
-return;
-
-}
-
-memoryInput++;
-
-if(memoryInput===memorySequence.length){
-
-memoryBusy=true;
-
-if(memoryLevel>=7){
-
-$("memoryStatus").textContent=
-"🎉 完美過關！";
-
-award("memory",1000);
-
-$("memoryStart").disabled=false;
-
-}else{
-
-$("memoryStatus").textContent=
-"答對！下一關";
-
-const run=gameRun;
-
-setTimeout(()=>{
-
-if(
-currentGame==="memory"&&
-run===gameRun
-){
-
-nextMemory();
-
-}
-
-},700);
-
-}
-
-}
-
-}
-
-
-// =====================================
-// 遊戲三：猜數字
-// =====================================
-
-function resetNumber(){
-
-secretNumber=
-1+Math.floor(Math.random()*100);
-
-guessCount=0;
-
-$("numberStatus").textContent=
-"還有6次機會";
-
-$("guessHint").textContent="";
-
-$("guessInput").value="";
-
-$("guessInput").disabled=false;
-
-$("guessBtn").disabled=false;
-
-show("numberRestart",false);
-
-}
-
-
-$("guessBtn").onclick=()=>{
-
-const n=Number(
-$("guessInput").value
-);
-
-if(
-$("guessInput").value.trim()===""||
-!Number.isInteger(n)||
-n<1||
-n>100
-){
-
-toast("請輸入1～100的整數");
-
-return;
-
-}
-
-guessCount++;
-
-if(n===secretNumber){
-
-const points=
-1000-(guessCount-1)*150;
-
-$("guessHint").textContent=
-"🎉 猜中了！第"+
-guessCount+
-"次成功，獲得"+
-points+"分";
-
-award("number",points);
-
-endNumber();
-
-}else if(guessCount>=6){
-
-$("guessHint").textContent=
-"挑戰結束！正確答案："+secretNumber;
-
-endNumber();
-
-}else{
-
-$("guessHint").textContent=
-n<secretNumber?
-"太小了 ⬆️":
-"太大了 ⬇️";
-
-$("numberStatus").textContent=
-"還有"+(6-guessCount)+"次機會";
-
-$("guessInput").value="";
-
-}
-
-};
-
-
-$("guessInput").addEventListener(
-"keydown",
-e=>{
-
-if(
-e.key==="Enter"&&
-!$("guessBtn").disabled
-){
-
-$("guessBtn").click();
-
-}
-
-}
-);
-
-
-function endNumber(){
-
-$("guessInput").disabled=true;
-
-$("guessBtn").disabled=true;
-
-show("numberRestart",true);
-
-}
-
-
-$("numberRestart").onclick=resetNumber;
 
 </script>
 
