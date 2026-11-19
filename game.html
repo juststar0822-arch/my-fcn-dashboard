@@ -2,87 +2,22 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>上新莊歡樂賓果 BINGO</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>上新莊歡樂賓果</title>
 
 <style>
 *{box-sizing:border-box}
-
-body{
-  margin:0;
-  background:#eef2f7;
-  color:#24364d;
-  font-family:Arial,"Microsoft JhengHei",sans-serif;
-}
-
-header{
-  background:linear-gradient(135deg,#102845,#315c86);
-  color:#fff;
-  padding:25px 12px;
-  text-align:center;
-}
-
-header h1{
-  margin:0;
-  font-size:28px;
-}
-
-header p{
-  margin:8px 0 0;
-  opacity:.85;
-}
-
-.container{
-  max-width:720px;
-  margin:auto;
-  padding:15px;
-}
-
-.card{
-  background:white;
-  border-radius:16px;
-  padding:20px;
-  margin-bottom:15px;
-  box-shadow:0 3px 12px #00000010;
-}
-
-h2{
-  margin:0 0 15px;
-  font-size:21px;
-}
-
-label{
-  display:block;
-  font-weight:bold;
-  margin-top:10px;
-}
-
-input{
-  width:100%;
-  font-size:17px;
-  padding:14px;
-  margin:8px 0 15px;
-  border:1px solid #ccd5df;
-  border-radius:10px;
-}
-
-button{
-  border:0;
-  border-radius:10px;
-  padding:13px 18px;
-  background:#183d65;
-  color:white;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-  min-height:46px;
-}
-
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed;
-}
-
+body{margin:0;background:#eef2f7;color:#24364d;font-family:Arial,"Microsoft JhengHei",sans-serif}
+header{background:linear-gradient(135deg,#102845,#315c86);color:white;text-align:center;padding:25px 12px}
+header h1{margin:0;font-size:28px}
+header p{margin:8px 0 0;opacity:.85}
+.container{max-width:760px;margin:auto;padding:15px}
+.card{background:white;border-radius:16px;padding:20px;margin-bottom:15px;box-shadow:0 3px 12px #00000010}
+h2{margin:0 0 15px;font-size:21px}
+label{display:block;font-weight:bold;margin-top:10px}
+input{width:100%;padding:14px;margin:8px 0 15px;border:1px solid #ccd5df;border-radius:10px;font-size:17px}
+button{border:0;border-radius:10px;padding:13px 18px;background:#183d65;color:white;font-size:16px;font-weight:bold;cursor:pointer;min-height:46px}
+button:disabled{opacity:.45;cursor:not-allowed}
 .full{width:100%}
 .gold{background:#bd9140}
 .green{background:#208866}
@@ -90,383 +25,198 @@ button:disabled{
 .gray{background:#e7ecf3;color:#243b55}
 .hidden{display:none!important}
 .center{text-align:center}
-
-.row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  flex-wrap:wrap;
-  gap:10px;
-}
-
-.muted{
-  color:#78889b;
-  font-size:14px;
-  line-height:1.7;
-}
-
-.status{
-  padding:12px;
-  border-radius:10px;
-  background:#fff3cf;
-  color:#805b00;
-  text-align:center;
-  margin-bottom:15px;
-  font-size:14px;
-}
-
-.status.success{
-  background:#d9f3e7;
-  color:#11633e;
-}
-
-.status.error{
-  background:#ffe1e1;
-  color:#a12727;
-}
-
-.badge{
-  display:inline-block;
-  background:#eaf0f7;
-  padding:8px 12px;
-  border-radius:30px;
-  font-size:14px;
-  font-weight:bold;
-}
-
-.bigNumber{
-  font-size:76px;
-  font-weight:900;
-  color:#bd9140;
-  line-height:1.2;
-  margin:15px 0;
-}
-
-.bingoHeader,
-.bingoBoard{
-  display:grid;
-  grid-template-columns:repeat(5,minmax(0,1fr));
-  gap:5px;
-}
-
-.bingoHeader{
-  text-align:center;
-  font-weight:bold;
-  font-size:20px;
-  color:#234a73;
-}
-
-.bingoBoard{
-  margin:15px 0;
-}
-
-.bingoCell{
-  aspect-ratio:1;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#eaf0f7;
-  border:2px solid transparent;
-  border-radius:9px;
-  font-size:clamp(15px,5vw,25px);
-  font-weight:bold;
-}
-
-.bingoCell.marked{
-  background:#f3ce78;
-  color:#49300b;
-  border-color:#c39538;
-}
-
-.bingoCell.winning{
-  background:#42ae82;
-  color:white;
-  border-color:#23815d;
-}
-
-.history{
-  display:flex;
-  flex-wrap:wrap;
-  gap:7px;
-  margin-top:12px;
-}
-
-.ball{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#e7edf5;
-  font-weight:bold;
-}
-
-.ball.latest{
-  background:#c89d49;
-  color:white;
-}
-
-.rank{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  padding:12px 5px;
-  border-bottom:1px solid #e7edf3;
-}
-
-.rank.me{
-  background:#fff6df;
-  border-radius:10px;
-  padding:12px;
-}
-
-.rank small{
-  color:#78889b;
-}
-
-.hostPanel{
-  border:2px solid #c7a05b;
-}
-
-.hostButtons{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.numberEntry{
-  display:flex;
-  gap:10px;
-  align-items:stretch;
-}
-
-.numberEntry input{
-  flex:1;
-  min-width:0;
-  margin:0;
-  text-align:center;
-  font-size:26px;
-  font-weight:bold;
-}
-
-.numberEntry button{
-  white-space:nowrap;
-}
-
-.notice{
-  background:#edf4fc;
-  padding:12px;
-  border-radius:10px;
-  font-size:14px;
-  line-height:1.7;
-}
-
-.result{
-  text-align:center;
-  background:#fff6df;
-  border:2px solid #e4c37c;
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:15px;
-}
-
-.result h2{
-  color:#a87520;
-}
-
-#toast{
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#203d5d;
-  color:white;
-  padding:12px 20px;
-  border-radius:10px;
-  display:none;
-  z-index:99;
-  max-width:90%;
-  text-align:center;
-}
-
-@media(max-width:380px){
-  .card{padding:15px}
-  .bigNumber{font-size:60px}
-  .numberEntry{flex-direction:column}
-}
+.row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+.muted{color:#78889b;font-size:14px;line-height:1.7}
+.status{padding:12px;border-radius:10px;background:#fff3cf;color:#805b00;text-align:center;margin-bottom:15px;font-size:14px;overflow-wrap:anywhere}
+.status.success{background:#d9f3e7;color:#11633e}
+.status.error{background:#ffe1e1;color:#a12727}
+.badge{display:inline-block;background:#eaf0f7;padding:8px 12px;border-radius:30px;font-size:14px;font-weight:bold}
+.bigNumber{font-size:76px;font-weight:900;color:#bd9140;line-height:1.2;margin:15px 0}
+.bingoHeader,.bingoBoard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.bingoHeader{text-align:center;font-weight:bold;font-size:20px;color:#234a73}
+.bingoBoard{margin:15px 0}
+.bingoCell{aspect-ratio:1;display:flex;justify-content:center;align-items:center;background:#eaf0f7;border:2px solid transparent;border-radius:9px;font-size:clamp(15px,5vw,25px);font-weight:bold}
+.bingoCell.marked{background:#f3ce78;color:#49300b;border-color:#c39538}
+.bingoCell.winning{background:#42ae82;color:white;border-color:#23815d}
+.history{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}
+.ball{width:38px;height:38px;border-radius:50%;display:flex;justify-content:center;align-items:center;background:#e7edf5;font-weight:bold}
+.ball.latest{background:#c89d49;color:white}
+.rank{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 5px;border-bottom:1px solid #e7edf3}
+.rank.me{background:#fff6df;border-radius:10px;padding:12px}
+.rank small{color:#78889b}
+.hostPanel{border:2px solid #c7a05b}
+.hostButtons{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.numberEntry{display:flex;gap:10px;align-items:stretch}
+.numberEntry input{flex:1;min-width:0;margin:0;text-align:center;font-size:26px;font-weight:bold}
+.numberEntry button{white-space:nowrap}
+.notice{background:#edf4fc;padding:12px;border-radius:10px;font-size:14px;line-height:1.7}
+.result{text-align:center;background:#fff6df;border:2px solid #e4c37c;border-radius:14px;padding:20px;margin-bottom:15px}
+.result h2{color:#a87520}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#203d5d;color:white;padding:12px 20px;border-radius:10px;display:none;z-index:99;max-width:90%;text-align:center}
+@media(max-width:380px){.card{padding:15px}.bigNumber{font-size:60px}.numberEntry{flex-direction:column}}
 </style>
+
+<!--
+重要：
+Firebase SDK 直接使用瀏覽器模組。
+如果模組載入失敗，頁面會在 12 秒後顯示診斷提示。
+-->
+
+<script>
+window.__firebaseStarted=false;
+
+window.addEventListener("error",function(e){
+  const box=document.getElementById("connectionStatus");
+  if(box){
+    box.className="status error";
+    box.textContent="❌ 網頁執行錯誤："+(e.message||"未知錯誤");
+  }
+});
+
+window.addEventListener("unhandledrejection",function(e){
+  const box=document.getElementById("connectionStatus");
+  if(box){
+    box.className="status error";
+    box.textContent="❌ 連線錯誤："+(e.reason?.message||String(e.reason));
+  }
+});
+
+window.addEventListener("load",function(){
+  setTimeout(function(){
+    const box=document.getElementById("connectionStatus");
+    if(box && !window.__firebaseStarted &&
+       box.textContent.includes("連線中")){
+      box.className="status error";
+      box.textContent="❌ Firebase 程式未成功啟動。可能是模組載入失敗，請檢查網路或瀏覽器。";
+    }
+  },12000);
+});
+</script>
 </head>
 
 <body>
 
 <header>
-  <h1>🎉 上新莊歡樂賓果</h1>
-  <p>BINGO PARTY · 多人即時連線</p>
+<h1>🎉 上新莊歡樂賓果</h1>
+<p>BINGO PARTY · 多人即時連線</p>
 </header>
 
 <div class="container">
 
-  <div class="card" id="joinBox">
-    <h2>🎮 加入賓果遊戲</h2>
+<div class="card" id="joinBox">
+<h2>🎮 加入賓果遊戲</h2>
 
-    <div class="status" id="connectionStatus">
-      Firebase 連線中...
-    </div>
+<div class="status" id="connectionStatus">
+Firebase 連線中...
+</div>
 
-    <label for="roomInput">房間代碼</label>
-    <input id="roomInput" maxlength="20"
-      placeholder="例如 BINGO2026">
+<label for="roomInput">房間代碼</label>
+<input id="roomInput" maxlength="20" placeholder="例如 BINGO2027">
 
-    <label for="nameInput">玩家暱稱</label>
-    <input id="nameInput" maxlength="16"
-      placeholder="請輸入名字">
+<label for="nameInput">玩家暱稱</label>
+<input id="nameInput" maxlength="16" placeholder="請輸入名字">
 
-    <button class="full gold" id="joinBtn" disabled>
-      系統連線中...
-    </button>
+<button class="full gold" id="joinBtn" disabled>
+系統連線中...
+</button>
 
-    <p class="muted center">
-      第一位建立房間的人會成為主持人。<br>
-      其他玩家輸入相同房間代碼即可加入。
-    </p>
-  </div>
+<p class="muted center">
+第一位建立房間的人會成為主持人。<br>
+其他玩家輸入相同房間代碼即可加入。
+</p>
+</div>
 
-  <div id="main" class="hidden">
+<div id="main" class="hidden">
 
-    <div class="card">
-      <div class="row">
-        <div>
-          <h2 id="roomLabel">房間</h2>
-          <div class="muted" id="welcome"></div>
-        </div>
-        <span class="badge" id="roleBadge">玩家</span>
-      </div>
+<div class="card">
+<div class="row">
+<div>
+<h2 id="roomLabel">房間</h2>
+<div class="muted" id="welcome"></div>
+</div>
+<span class="badge" id="roleBadge">玩家</span>
+</div>
 
-      <p id="gameStatus" class="muted">
-        等待主持人開始
-      </p>
+<p id="gameStatus" class="muted">等待主持人開始</p>
 
-      <div class="row">
-        <button class="gray" id="shareBtn">
-          📤 分享房間
-        </button>
-        <button class="gray" id="leaveBtn">
-          離開
-        </button>
-      </div>
-    </div>
+<div class="row">
+<button class="gray" id="shareBtn">📤 分享房間</button>
+<button class="gray" id="leaveBtn">離開</button>
+</div>
+</div>
 
-    <div class="card hostPanel hidden" id="hostPanel">
-      <h2>👑 主持人控制台</h2>
+<div class="card hostPanel hidden" id="hostPanel">
+<h2>👑 主持人控制台</h2>
 
-      <div class="notice">
-        主持人輸入1～99的數字後，所有玩家手機會同步更新。<br>
-        重複號碼無法送出，輸入錯誤可以撤銷上一筆。
-      </div>
+<div class="notice">
+主持人輸入 1～99 的數字，所有玩家手機會同步更新。<br>
+重複號碼不能送出，輸入錯誤可以撤銷上一筆。
+</div>
 
-      <br>
+<br>
+<button class="full green" id="startBtn">▶️ 開始遊戲</button>
+<br><br>
 
-      <button class="full green" id="startBtn">
-        ▶️ 開始遊戲
-      </button>
+<label for="numberInput">🔢 輸入開出的號碼（1～99）</label>
 
-      <br><br>
+<div class="numberEntry">
+<input id="numberInput" type="number" min="1" max="99" step="1" inputmode="numeric" placeholder="輸入號碼">
+<button class="gold" id="submitNumberBtn">確認送出</button>
+</div>
 
-      <label for="numberInput">🔢 輸入開出的號碼（1～99）</label>
+<br>
 
-      <div class="numberEntry">
-        <input id="numberInput"
-          type="number"
-          min="1"
-          max="99"
-          step="1"
-          inputmode="numeric"
-          placeholder="輸入號碼">
+<div class="hostButtons">
+<button class="gray" id="undoBtn">↩️ 撤銷上一號</button>
+<button class="red" id="endBtn">🏁 結束比賽</button>
+<button class="gray" id="resetBtn">🔄 重新開始</button>
+</div>
+</div>
 
-        <button class="gold" id="submitNumberBtn">
-          確認送出
-        </button>
-      </div>
+<div class="card center">
+<h2>🎱 最新開出號碼</h2>
+<div class="bigNumber" id="latestNumber">--</div>
+<span class="badge" id="drawCount">已輸入 0 / 99 個號碼</span>
+</div>
 
-      <br>
+<div class="card">
+<div class="row">
+<h2>🎫 我的賓果卡</h2>
+<span class="badge" id="lineCount">0 條線</span>
+</div>
 
-      <div class="hostButtons">
-        <button class="gray" id="undoBtn">
-          ↩️ 撤銷上一號
-        </button>
+<div class="bingoHeader">
+<div>B</div><div>I</div><div>N</div><div>G</div><div>O</div>
+</div>
 
-        <button class="red" id="endBtn">
-          🏁 結束比賽
-        </button>
+<div class="bingoBoard" id="bingoBoard"></div>
 
-        <button class="gray" id="resetBtn">
-          🔄 重新開始
-        </button>
-      </div>
-    </div>
+<p class="muted center">
+每張卡片有 25 個隨機數字（1～99）。<br>
+系統自動標記開出的號碼。
+</p>
+</div>
 
-    <div class="card center">
-      <h2>🎱 最新開出號碼</h2>
+<div class="card">
+<h2>📋 已開出的號碼</h2>
+<div class="history" id="drawHistory">尚未輸入號碼</div>
+</div>
 
-      <div class="bigNumber" id="latestNumber">--</div>
+<div class="result hidden" id="resultBox">
+<h2>🏆 比賽結束</h2>
+<div id="winnerText"></div>
+</div>
 
-      <span class="badge" id="drawCount">
-        已輸入 0 / 99 個號碼
-      </span>
-    </div>
+<div class="card">
+<div class="row">
+<h2>🏆 即時排行榜</h2>
+<span class="badge" id="playerCount">0 人參加</span>
+</div>
+<p class="muted">依照完成連線數排名；同分比較達成抽號順序。</p>
+<div id="leaderboard">等待玩家加入...</div>
+</div>
 
-    <div class="card">
-      <div class="row">
-        <h2>🎫 我的賓果卡</h2>
-        <span class="badge" id="lineCount">0 條線</span>
-      </div>
-
-      <div class="bingoHeader">
-        <div>B</div>
-        <div>I</div>
-        <div>N</div>
-        <div>G</div>
-        <div>O</div>
-      </div>
-
-      <div class="bingoBoard" id="bingoBoard"></div>
-
-      <p class="muted center">
-        每張卡片有25個隨機數字（1～99）。<br>
-        系統自動標記開出的號碼，無須手動點擊。
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>📋 已開出的號碼</h2>
-      <div class="history" id="drawHistory">
-        尚未輸入號碼
-      </div>
-    </div>
-
-    <div class="result hidden" id="resultBox">
-      <h2>🏆 比賽結束</h2>
-      <div id="winnerText"></div>
-    </div>
-
-    <div class="card">
-      <div class="row">
-        <h2>🏆 即時排行榜</h2>
-        <span class="badge" id="playerCount">0 人參加</span>
-      </div>
-
-      <p class="muted">
-        依照完成連線數排名；同分比較達成抽號順序。
-      </p>
-
-      <div id="leaderboard">
-        等待玩家加入...
-      </div>
-    </div>
-
-  </div>
+</div>
 </div>
 
 <div id="toast"></div>
@@ -495,7 +245,8 @@ import {
 }
 from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-// Firebase 專案設定
+window.__firebaseStarted=true;
+
 const firebaseConfig={
   apiKey:"AIzaSyAVE9VOrZNR-jp101t3ImXMg802ttcBmUk",
   authDomain:"game-d0d54.firebaseapp.com",
@@ -516,21 +267,18 @@ let unsubRoom=null,unsubPlayers=null;
 
 const winningLines=[];
 
-// 橫向
 for(let r=0;r<5;r++){
   winningLines.push(
     Array.from({length:5},(_,c)=>r*5+c)
   );
 }
 
-// 直向
 for(let c=0;c<5;c++){
   winningLines.push(
     Array.from({length:5},(_,r)=>r*5+c)
   );
 }
 
-// 斜向
 winningLines.push([0,6,12,18,24]);
 winningLines.push([4,8,12,16,20]);
 
@@ -542,9 +290,7 @@ function toast(message){
   const box=$("toast");
   box.textContent=message;
   box.style.display="block";
-
   clearTimeout(window.toastTimer);
-
   window.toastTimer=setTimeout(()=>{
     box.style.display="none";
   },3000);
@@ -562,23 +308,19 @@ function setBusy(value){
 
 function shuffle(array){
   const result=[...array];
-
   for(let i=result.length-1;i>0;i--){
     const j=Math.floor(Math.random()*(i+1));
     [result[i],result[j]]=[result[j],result[i]];
   }
-
   return result;
 }
 
-// 產生25個不重複數字
 function generateCard(){
   return shuffle(
     Array.from({length:99},(_,i)=>i+1)
   ).slice(0,25);
 }
 
-// 檢查卡片格式
 function validCard(card){
   return Array.isArray(card)
     && card.length===25
@@ -588,64 +330,72 @@ function validCard(card){
     && new Set(card).size===25;
 }
 
-// 計算連線
 function calculateLines(card,draws){
   if(!validCard(card))return [];
-
   const drawn=new Set(draws);
-
   return winningLines.filter(line=>
     line.every(index=>drawn.has(card[index]))
   );
 }
 
-// 達成目前連線數的抽號順序
 function achievedAt(card,draws,target){
   if(target<=0)return Infinity;
-
   for(let i=0;i<draws.length;i++){
     if(calculateLines(card,draws.slice(0,i+1)).length>=target){
       return i+1;
     }
   }
-
   return Infinity;
 }
 
-// Firebase 初始化
+function setConnection(message,type){
+  $("connectionStatus").textContent=message;
+  $("connectionStatus").className="status "+type;
+}
+
+function ready(user){
+  uid=user.uid;
+  setConnection("✅ Firebase 連線成功，可以加入遊戲","success");
+  $("joinBtn").disabled=false;
+  $("joinBtn").textContent="加入遊戲";
+}
+
 try{
   const app=initializeApp(firebaseConfig);
-
   db=getFirestore(app);
   auth=getAuth(app);
 
   onAuthStateChanged(auth,user=>{
     if(user){
-      uid=user.uid;
-
-      $("connectionStatus").textContent=
-        "✅ 系統連線成功，可以加入遊戲";
-
-      $("connectionStatus").className="status success";
-
-      $("joinBtn").disabled=false;
-      $("joinBtn").textContent="加入遊戲";
+      ready(user);
     }
+  },error=>{
+    setConnection("❌ 登入狀態錯誤："+error.message,"error");
   });
 
-  signInAnonymously(auth).catch(error=>{
-    $("connectionStatus").textContent=
-      "❌ 登入失敗："+error.message;
+  signInAnonymously(auth)
+    .then(result=>{
+      ready(result.user);
+    })
+    .catch(error=>{
+      setConnection("❌ Firebase 登入失敗："+error.message,"error");
+      $("joinBtn").disabled=true;
+      $("joinBtn").textContent="連線失敗";
+    });
 
-    $("connectionStatus").className="status error";
-    alert("Firebase 登入失敗："+error.message);
-  });
+  setTimeout(()=>{
+    if(!uid){
+      setConnection(
+        "❌ Firebase 登入逾時。請檢查網路、匿名登入設定，或瀏覽器是否阻擋 Firebase。",
+        "error"
+      );
+      $("joinBtn").textContent="連線逾時";
+    }
+  },15000);
 
 }catch(error){
-  $("connectionStatus").textContent=
-    "❌ 初始化失敗："+error.message;
-
-  $("connectionStatus").className="status error";
+  setConnection("❌ Firebase 初始化失敗："+error.message,"error");
+  $("joinBtn").textContent="初始化失敗";
 }
 
 const params=new URLSearchParams(location.search);
@@ -657,7 +407,6 @@ if(params.get("room")){
 $("nameInput").value=
   localStorage.getItem("bingoPlayerName")||"";
 
-// 加入遊戲
 $("joinBtn").onclick=async()=>{
   if(!uid){
     alert("Firebase 尚未連線成功");
@@ -684,10 +433,8 @@ $("joinBtn").onclick=async()=>{
     const roomRef=doc(db,"rooms",r);
     const playerRef=doc(db,"rooms",r,"players",uid);
 
-    // 建立房間：第一位建立者成為主持人
     await runTransaction(db,async tx=>{
       const snap=await tx.get(roomRef);
-
       if(!snap.exists()){
         tx.set(roomRef,{
           hostUid:uid,
@@ -726,20 +473,13 @@ $("joinBtn").onclick=async()=>{
       throw new Error("賓果卡產生失敗");
     }
 
-    // 修正：新玩家建立資料，舊玩家只更新暱稱
-    if(playerSnap.exists()){
-      await setDoc(playerRef,{
-        name:n,
-        card:card,
-        joinedAt:playerSnap.data().joinedAt||serverTimestamp()
-      });
-    }else{
-      await setDoc(playerRef,{
-        name:n,
-        card:card,
-        joinedAt:serverTimestamp()
-      });
-    }
+    await setDoc(playerRef,{
+      name:n,
+      card:card,
+      joinedAt:playerSnap.exists()
+        ? (playerSnap.data().joinedAt||serverTimestamp())
+        : serverTimestamp()
+    });
 
     room=r;
     playerName=n;
@@ -750,7 +490,6 @@ $("joinBtn").onclick=async()=>{
 
     $("roomLabel").textContent="房間："+room;
     $("welcome").textContent="歡迎，"+playerName;
-
     $("roleBadge").textContent=
       isHost?"👑 主持人":"🎮 玩家";
 
@@ -775,7 +514,6 @@ $("joinBtn").onclick=async()=>{
   }
 };
 
-// 房間同步
 function listenRoom(){
   if(unsubRoom)unsubRoom();
 
@@ -786,9 +524,7 @@ function listenRoom(){
         toast("房間不存在");
         return;
       }
-
       roomData=snap.data();
-
       renderRoom();
       renderBoard();
       renderRanking();
@@ -797,7 +533,6 @@ function listenRoom(){
   );
 }
 
-// 玩家同步
 function listenPlayers(){
   if(unsubPlayers)unsubPlayers();
 
@@ -808,10 +543,8 @@ function listenPlayers(){
         id:d.id,
         ...d.data()
       }));
-
       $("playerCount").textContent=
         players.length+" 人參加";
-
       renderRanking();
     },
     errorMessage
@@ -830,26 +563,23 @@ function renderRoom(){
     ended:"🏁 比賽已結束"
   };
 
-  $("gameStatus").textContent=
-    statusText[status]||status;
-
+  $("gameStatus").textContent=statusText[status]||status;
   $("latestNumber").textContent=
     draws.length?draws[draws.length-1]:"--";
-
   $("drawCount").textContent=
     "已輸入 "+draws.length+" / 99 個號碼";
 
-  const history=$("drawHistory");
-  history.replaceChildren();
+  const historyBox=$("drawHistory");
+  historyBox.replaceChildren();
 
   if(draws.length===0){
-    history.textContent="尚未輸入號碼";
+    historyBox.textContent="尚未輸入號碼";
   }else{
     [...draws].reverse().forEach((number,index)=>{
       const ball=document.createElement("div");
       ball.className="ball"+(index===0?" latest":"");
       ball.textContent=number;
-      history.append(ball);
+      historyBox.append(ball);
     });
   }
 
@@ -863,25 +593,17 @@ function updateHostButtons(){
   const status=roomData.status;
   const draws=roomData.draws||[];
 
-  $("startBtn").disabled=
-    busy||status!=="lobby";
-
+  $("startBtn").disabled=busy||status!=="lobby";
   $("submitNumberBtn").disabled=
     busy||status!=="playing"||draws.length>=99;
-
   $("numberInput").disabled=
     busy||status!=="playing"||draws.length>=99;
-
   $("undoBtn").disabled=
     busy||status!=="playing"||draws.length===0;
-
-  $("endBtn").disabled=
-    busy||status!=="playing";
-
+  $("endBtn").disabled=busy||status!=="playing";
   $("resetBtn").disabled=busy;
 }
 
-// 我的賓果卡
 function renderBoard(){
   if(!roomData||!validCard(myCard))return;
 
@@ -890,8 +612,7 @@ function renderBoard(){
   const lines=calculateLines(myCard,draws);
   const winningCells=new Set(lines.flat());
 
-  $("lineCount").textContent=
-    lines.length+" 條線";
+  $("lineCount").textContent=lines.length+" 條線";
 
   const board=$("bingoBoard");
   board.replaceChildren();
@@ -900,20 +621,14 @@ function renderBoard(){
     const cell=document.createElement("div");
     cell.className="bingoCell";
 
-    if(drawn.has(number)){
-      cell.classList.add("marked");
-    }
-
-    if(winningCells.has(index)){
-      cell.classList.add("winning");
-    }
+    if(drawn.has(number))cell.classList.add("marked");
+    if(winningCells.has(index))cell.classList.add("winning");
 
     cell.textContent=number;
     board.append(cell);
   });
 }
 
-// 排行榜
 function renderRanking(){
   if(!roomData)return;
 
@@ -932,14 +647,8 @@ function renderRanking(){
   });
 
   ranking.sort((a,b)=>{
-    if(b.lineCount!==a.lineCount){
-      return b.lineCount-a.lineCount;
-    }
-
-    if(a.achieved!==b.achieved){
-      return a.achieved-b.achieved;
-    }
-
+    if(b.lineCount!==a.lineCount)return b.lineCount-a.lineCount;
+    if(a.achieved!==b.achieved)return a.achieved-b.achieved;
     return a.name.localeCompare(b.name,"zh-TW");
   });
 
@@ -949,6 +658,257 @@ function renderRanking(){
   ranking.forEach((player,index)=>{
     const row=document.createElement("div");
     row.className="rank";
+    if(player.id===uid)row.classList.add("me");
 
-    if(player.id===uid){
-     
+    const left=document.createElement("div");
+    const medal=
+      index===0?"🥇":
+      index===1?"🥈":
+      index===2?"🥉":
+      "#"+(index+1);
+
+    const name=document.createElement("strong");
+    name.textContent=
+      medal+" "+player.name+
+      (player.id===uid?"（我）":"");
+    left.append(name);
+
+    const right=document.createElement("div");
+    right.style.textAlign="right";
+
+    const score=document.createElement("strong");
+    score.textContent=player.lineCount+" 條線";
+
+    const detail=document.createElement("small");
+    detail.textContent=
+      player.lineCount>0
+        ?"第 "+player.achieved+" 個號碼達成"
+        :"尚未連線";
+
+    right.append(score,document.createElement("br"),detail);
+    row.append(left,right);
+    board.append(row);
+  });
+
+  if(!ranking.length)board.textContent="尚無玩家";
+
+  if(roomData.status==="ended"){
+    const winner=ranking[0];
+    $("winnerText").textContent=
+      winner
+        ?"🥇 冠軍："+winner.name+"｜"+winner.lineCount+" 條線"
+        :"本場沒有參賽玩家";
+  }
+}
+
+$("startBtn").onclick=async()=>{
+  if(!isHost||!roomData||roomData.status!=="lobby")return;
+
+  if(players.length===0){
+    alert("目前沒有玩家");
+    return;
+  }
+
+  if(!confirm("確定開始遊戲？開始後不能新增玩家。"))return;
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"rooms",room);
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+      if(snap.data().hostUid!==uid)throw new Error("不是主持人");
+      if(snap.data().status!=="lobby")throw new Error("遊戲已開始");
+      tx.update(ref,{status:"playing"});
+    });
+    toast("🎉 遊戲開始！");
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$("submitNumberBtn").onclick=async()=>{
+  if(!isHost||!roomData)return;
+
+  const raw=$("numberInput").value.trim();
+  const number=Number(raw);
+
+  if(raw===""||!Number.isInteger(number)||number<1||number>99){
+    alert("請輸入 1～99 的整數");
+    return;
+  }
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"rooms",room);
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+
+      const data=snap.data();
+      if(data.hostUid!==uid)throw new Error("只有主持人可以輸入號碼");
+      if(data.status!=="playing")throw new Error("遊戲尚未開始或已結束");
+
+      const draws=data.draws||[];
+      if(draws.includes(number)){
+        throw new Error("號碼 "+number+" 已經輸入過！");
+      }
+
+      tx.update(ref,{draws:[...draws,number]});
+    });
+
+    $("numberInput").value="";
+    $("numberInput").focus();
+    toast("🎱 已送出號碼："+number);
+
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$("numberInput").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&!$("submitNumberBtn").disabled){
+    e.preventDefault();
+    $("submitNumberBtn").click();
+  }
+});
+
+$("undoBtn").onclick=async()=>{
+  if(!isHost||!roomData)return;
+
+  const draws=roomData.draws||[];
+  if(!draws.length)return;
+
+  const last=draws[draws.length-1];
+  if(!confirm("確定撤銷上一個號碼 "+last+"？"))return;
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"rooms",room);
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+
+      const data=snap.data();
+      if(data.hostUid!==uid)throw new Error("不是主持人");
+      if(data.status!=="playing")throw new Error("目前無法撤銷");
+
+      const current=data.draws||[];
+      if(!current.length)throw new Error("沒有可以撤銷的號碼");
+
+      tx.update(ref,{draws:current.slice(0,-1)});
+    });
+
+    toast("已撤銷上一個號碼");
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$("endBtn").onclick=async()=>{
+  if(!isHost)return;
+  if(!confirm("確定結束比賽並鎖定排名？"))return;
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"rooms",room);
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+
+      const data=snap.data();
+      if(data.hostUid!==uid)throw new Error("不是主持人");
+      if(data.status!=="playing")throw new Error("遊戲未進行");
+
+      tx.update(ref,{status:"ended"});
+    });
+
+    toast("🏆 比賽結束！");
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$("resetBtn").onclick=async()=>{
+  if(!isHost)return;
+
+  if(!confirm(
+    "確定重新開始？\n\n已輸入號碼全部清除，玩家賓果卡保持不變。"
+  ))return;
+
+  setBusy(true);
+
+  try{
+    await runTransaction(db,async tx=>{
+      const ref=doc(db,"rooms",room);
+      const snap=await tx.get(ref);
+      if(!snap.exists())throw new Error("房間不存在");
+
+      const data=snap.data();
+      if(data.hostUid!==uid)throw new Error("不是主持人");
+
+      tx.update(ref,{status:"lobby",draws:[]});
+    });
+
+    toast("已重設，可以開始新的一局");
+  }catch(error){
+    errorMessage(error);
+  }finally{
+    setBusy(false);
+  }
+};
+
+$("shareBtn").onclick=async()=>{
+  const url=location.origin+location.pathname+
+    "?room="+encodeURIComponent(room);
+
+  try{
+    if(navigator.share){
+      await navigator.share({
+        title:"上新莊歡樂賓果",
+        text:"一起來玩賓果！",
+        url
+      });
+    }else{
+      await navigator.clipboard.writeText(url);
+      toast("房間連結已複製");
+    }
+  }catch(error){
+    if(error.name!=="AbortError"){
+      prompt("請複製房間連結：",url);
+    }
+  }
+};
+
+$("leaveBtn").onclick=()=>{
+  if(unsubRoom){unsubRoom();unsubRoom=null}
+  if(unsubPlayers){unsubPlayers();unsubPlayers=null}
+
+  room="";
+  playerName="";
+  myCard=[];
+  roomData=null;
+  players=[];
+  isHost=false;
+
+  show("main",false);
+  show("joinBox",true);
+
+  history.replaceState({}, "", location.pathname);
+};
+
+</script>
+</body>
+</html>
